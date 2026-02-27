@@ -1,10 +1,11 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router";
-import { Calendar, Filter, Plus, Clock, DollarSign, ChevronDown, Download, FolderKanban, Repeat, Pencil, Trash2, MoreHorizontal } from "lucide-react";
+import { Calendar, Filter, Plus, Clock, DollarSign, ChevronDown, Download, FolderKanban, Repeat, Pencil, Trash2, MoreHorizontal, Search, X } from "lucide-react";
 import { motion } from "motion/react";
 import { useData } from "../data/DataContext";
 import { LogSessionModal, EditSessionModal } from "../components/Modals";
 import { toast } from "sonner";
+import { startOfDay, subDays, startOfMonth, startOfQuarter, startOfYear, isBefore, isAfter } from "date-fns";
 
 const container = {
   hidden: {},
@@ -16,27 +17,88 @@ const item = {
   show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.25, 0.1, 0.25, 1] as const } },
 };
 
+/** Parse the formatted date string back to a Date for comparison */
+function parseSessionDate(dateStr: string): Date | null {
+  try {
+    return new Date(dateStr);
+  } catch {
+    return null;
+  }
+}
+
 export default function TimeLog() {
   const navigate = useNavigate();
   const { sessions, clients, addSession, updateSession, deleteSession, workCategoryNames } = useData();
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [selectedClient, setSelectedClient] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState("This Month");
+  const [searchQuery, setSearchQuery] = useState("");
   const [showLogModal, setShowLogModal] = useState(false);
   const [editingSession, setEditingSession] = useState<any>(null);
 
   const filteredSessions = useMemo(() => {
     let s = sessions;
+
+    // Date range filtering
+    const today = startOfDay(new Date());
+    let fromDate: Date | null = null;
+    let toDate: Date | null = null;
+
+    switch (dateRange) {
+      case "Last 7 days":
+        fromDate = subDays(today, 7);
+        break;
+      case "Last 30 days":
+        fromDate = subDays(today, 30);
+        break;
+      case "This Month":
+        fromDate = startOfMonth(today);
+        break;
+      case "This Quarter":
+        fromDate = startOfQuarter(today);
+        break;
+      case "This Year":
+        fromDate = startOfYear(today);
+        break;
+      // "All time" — no filter
+    }
+
+    if (fromDate || toDate) {
+      s = s.filter((ses: any) => {
+        const d = parseSessionDate(ses.date);
+        if (!d) return true;
+        const day = startOfDay(d);
+        if (fromDate && isBefore(day, fromDate)) return false;
+        if (toDate && isAfter(day, toDate)) return false;
+        return true;
+      });
+    }
+
+    // Tag filter
     if (selectedFilter && selectedFilter !== "All") {
       s = s.filter(
         (ses: any) => (ses.tags || []).includes(selectedFilter) || (ses.workTags || []).includes(selectedFilter),
       );
     }
+
+    // Client filter
     if (selectedClient) {
       s = s.filter((ses: any) => ses.clientId === selectedClient);
     }
+
+    // Search filter
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      s = s.filter((ses: any) => {
+        const task = (ses.task || "").toLowerCase();
+        const client = (ses.client || "").toLowerCase();
+        const tags = (ses.workTags || []).join(" ").toLowerCase();
+        return task.includes(q) || client.includes(q) || tags.includes(q);
+      });
+    }
+
     return s;
-  }, [sessions, selectedFilter, selectedClient]);
+  }, [sessions, selectedFilter, selectedClient, dateRange, searchQuery]);
 
   const totalInvested = filteredSessions.reduce((sum: number, session: any) => sum + session.duration, 0);
   const totalBillable = filteredSessions
@@ -159,7 +221,7 @@ export default function TimeLog() {
           >
             {totalInvested}h
           </div>
-          <div className="text-[12px] text-muted-foreground mt-1.5">February 2026</div>
+          <div className="text-[12px] text-muted-foreground mt-1.5">{dateRange}</div>
         </div>
         <div className="bg-card border border-border rounded-xl p-6 group hover:-translate-y-0.5 transition-all duration-300 shadow-[0_1px_4px_rgba(0,0,0,0.03),0_1px_2px_rgba(0,0,0,0.02)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.05),0_1px_3px_rgba(0,0,0,0.03)]">
           <div className="flex items-center gap-2 mb-3">
@@ -195,8 +257,31 @@ export default function TimeLog() {
       </motion.div>
 
       {/* Filters */}
-      <motion.div variants={item} className="mb-6">
-        <div className="flex gap-2 flex-wrap">
+      <motion.div variants={item} className="mb-6 space-y-3">
+        <div className="flex gap-2 flex-wrap items-center">
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search sessions..."
+              className="pl-9 pr-8 py-2 w-56 bg-card border border-border rounded-lg text-[14px] placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+
+          <div className="h-8 w-px bg-border self-center" />
+
+          {/* Date range */}
           <div className="relative">
             <select
               value={dateRange}
@@ -208,11 +293,14 @@ export default function TimeLog() {
               <option>Last 7 days</option>
               <option>Last 30 days</option>
               <option>This Quarter</option>
+              <option>This Year</option>
               <option>All time</option>
             </select>
             <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
           </div>
+
+          {/* Client filter */}
           <div className="relative">
             <select
               value={selectedClient || ""}
@@ -231,12 +319,34 @@ export default function TimeLog() {
             </select>
             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
           </div>
-          <div className="h-8 w-px bg-border self-center mx-1" />
+
+          {/* Active filter indicators */}
+          {(searchQuery || selectedClient || (selectedFilter && selectedFilter !== "All")) && (
+            <>
+              <div className="h-8 w-px bg-border self-center" />
+              <button
+                onClick={() => {
+                  setSearchQuery("");
+                  setSelectedClient(null);
+                  setSelectedFilter(null);
+                  setDateRange("This Month");
+                }}
+                className="px-3 py-2 text-[13px] text-muted-foreground hover:text-foreground hover:bg-accent/40 rounded-lg border border-border transition-all"
+                style={{ fontWeight: 500 }}
+              >
+                Clear filters
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* Tag pills */}
+        <div className="flex gap-2 flex-wrap">
           {allTags.map((tag) => (
             <button
               key={tag}
               onClick={() => setSelectedFilter(selectedFilter === tag ? null : tag)}
-              className={`px-3 py-2 text-[13px] rounded-lg border transition-all duration-200 ${
+              className={`px-3 py-1.5 text-[12px] rounded-lg border transition-all duration-200 ${
                 selectedFilter === tag
                   ? "bg-primary/8 border-primary/20 text-primary"
                   : "bg-card border-border text-muted-foreground hover:text-foreground hover:bg-accent/40"
