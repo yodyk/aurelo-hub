@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useParams, Link, useNavigate } from "react-router";
 import {
   ChevronLeft,
@@ -19,6 +19,8 @@ import {
   Trash2,
   Download,
   Pencil,
+  CheckSquare,
+  Square,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
@@ -27,6 +29,8 @@ import { EditClientModal, LogSessionModal, AddProjectModal, EditSessionModal } f
 import * as dataApi from "../data/dataApi";
 import * as portalApi from "../data/portalApi";
 import ClientNotes from "../components/ClientNotes";
+import BulkSessionActions from "../components/BulkSessionActions";
+import { supabase } from "@/integrations/supabase/client";
 
 const container = {
   hidden: {},
@@ -89,6 +93,9 @@ export default function ClientDetail() {
 
   // Edit session
   const [editingSession, setEditingSession] = useState<any>(null);
+
+  // Bulk selection
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   // Portal
   const [portalConfig, setPortalConfig] = useState<any>(null);
@@ -264,6 +271,119 @@ export default function ClientDetail() {
     await updateClient(client.id, { status: "Archived" });
     toast.success(`${client.name} archived`);
     navigate("/clients");
+  };
+
+  // ── Bulk session selection ─────────────────────────────────────────
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === clientSessions.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(clientSessions.map((s: any) => s.id)));
+    }
+  };
+
+  const selectedSessions = clientSessions.filter((s: any) => selectedIds.has(s.id));
+
+  const handleBulkExport = () => {
+    const rows = selectedSessions.map((s: any) =>
+      [s.date, client.name, s.task || "", s.duration, s.revenue, s.billable ? "Yes" : "No"].join(",")
+    );
+    const csv = ["Date,Client,Task,Duration,Revenue,Billable", ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${client.name.replace(/\s+/g, "-")}-sessions.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success(`${selectedSessions.length} sessions exported`);
+  };
+
+  const handleBulkDelete = async () => {
+    if (!window.confirm(`Delete ${selectedIds.size} sessions?`)) return;
+    try {
+      for (const id of selectedIds) await deleteSession(id);
+      setSelectedIds(new Set());
+      toast.success(`${selectedIds.size} sessions deleted`);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to delete sessions");
+    }
+  };
+
+  const handleBulkInvoice = async () => {
+    try {
+      // Get workspace ID
+      const { data: memberData } = await supabase
+        .from('workspace_members')
+        .select('workspace_id')
+        .limit(1)
+        .maybeSingle();
+      if (!memberData) throw new Error('No workspace found');
+      const wsId = memberData.workspace_id;
+
+      // Get next invoice number
+      const { data: seqData } = await supabase
+        .from('invoice_sequences')
+        .select('next_number')
+        .eq('workspace_id', wsId)
+        .maybeSingle();
+
+      let nextNum = seqData?.next_number || 1001;
+      const number = `INV-${nextNum}`;
+
+      // Build line items
+      const lineItems = selectedSessions.map((s: any) => ({
+        id: crypto.randomUUID(),
+        description: `${s.task || "Work session"} (${s.date})`,
+        quantity: s.duration,
+        rate: s.duration > 0 ? s.revenue / s.duration : 0,
+        amount: s.revenue,
+        sessionIds: [s.id],
+      }));
+
+      const subtotal = lineItems.reduce((sum: number, li: any) => sum + li.amount, 0);
+
+      const { error: insertErr } = await supabase.from('invoices').insert({
+        workspace_id: wsId,
+        number,
+        client_id: clientId!,
+        client_name: client.name,
+        client_email: client.contactEmail || null,
+        line_items: lineItems as any,
+        subtotal,
+        tax_rate: 0,
+        tax_amount: 0,
+        total: subtotal,
+        currency: 'USD',
+        status: 'draft',
+        due_date: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
+        issued_date: new Date().toISOString().split('T')[0],
+        created_from_sessions: Array.from(selectedIds),
+      });
+      if (insertErr) throw new Error(insertErr.message);
+
+      // Increment sequence
+      if (seqData) {
+        await supabase.from('invoice_sequences').update({ next_number: nextNum + 1 }).eq('workspace_id', wsId);
+      } else {
+        await supabase.from('invoice_sequences').insert({ workspace_id: wsId, next_number: nextNum + 1 });
+      }
+
+      setSelectedIds(new Set());
+      toast.success(`Draft invoice ${number} created`);
+      navigate("/invoicing");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to create invoice");
+    }
   };
 
   // File drop handler
@@ -716,6 +836,18 @@ export default function ClientDetail() {
               <table className="w-full">
                 <thead>
                   <tr className="bg-accent/30 border-b border-border">
+                    <th className="w-10 px-2 py-2.5">
+                      <button
+                        onClick={toggleSelectAll}
+                        className="w-5 h-5 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        {selectedIds.size === clientSessions.length && clientSessions.length > 0 ? (
+                          <CheckSquare className="w-4 h-4 text-primary" />
+                        ) : (
+                          <Square className="w-4 h-4" />
+                        )}
+                      </button>
+                    </th>
                     <th className="text-left px-4 py-2.5 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>
                       Date
                     </th>
@@ -744,8 +876,20 @@ export default function ClientDetail() {
                   {clientSessions.map((session: any) => (
                     <tr
                       key={session.id}
-                      className="group border-b border-border last:border-0 hover:bg-accent/30 transition-colors"
+                      className={`group border-b border-border last:border-0 hover:bg-accent/30 transition-colors ${selectedIds.has(session.id) ? "bg-primary/[0.04]" : ""}`}
                     >
+                      <td className="px-2 py-3">
+                        <button
+                          onClick={() => toggleSelect(session.id)}
+                          className="w-5 h-5 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          {selectedIds.has(session.id) ? (
+                            <CheckSquare className="w-4 h-4 text-primary" />
+                          ) : (
+                            <Square className="w-4 h-4" />
+                          )}
+                        </button>
+                      </td>
                       <td className="px-4 py-3 text-[13px] text-muted-foreground tabular-nums">{session.date}</td>
                       <td className="px-4 py-3 text-[14px]">
                         <div>
@@ -1066,6 +1210,14 @@ export default function ClientDetail() {
         onSave={handleUpdateSession}
         onDelete={handleDeleteSession}
         clients={clients}
+      />
+      <BulkSessionActions
+        selectedCount={selectedIds.size}
+        selectedSessions={selectedSessions}
+        onClearSelection={() => setSelectedIds(new Set())}
+        onDeleteSelected={handleBulkDelete}
+        onExportSelected={handleBulkExport}
+        onGenerateInvoice={handleBulkInvoice}
       />
     </motion.div>
   );
