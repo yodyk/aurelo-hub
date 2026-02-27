@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useSearchParams } from "react-router-dom";
+import BillingTabComponent from "@/components/BillingTab";
 
 const tabs = [
   { id: "profile", label: "Profile", icon: User },
@@ -54,7 +55,7 @@ export default function SettingsPage() {
           <div className="flex-1 min-w-0">
             {activeTab === "profile" && <ProfileSettings />}
             {activeTab === "financial" && <FinancialSettings />}
-            {activeTab === "billing" && <BillingSettings />}
+            {activeTab === "billing" && <BillingTabComponent />}
             {activeTab !== "profile" && activeTab !== "financial" && activeTab !== "billing" && (
               <div className="card-surface p-8 text-center">
                 <p className="text-sm text-muted-foreground">
@@ -125,49 +126,4 @@ function FinancialSettings() {
   );
 }
 
-function BillingSettings() {
-  const plans = [
-    { id: "starter", name: "Starter", price: "Free", features: ["1 seat", "5 active clients", "90-day data", "Basic insights"] },
-    { id: "pro", name: "Pro", price: "$24/mo", features: ["5 seats", "Unlimited clients", "Full insights", "Invoicing + Stripe"], highlighted: true },
-    { id: "studio", name: "Studio", price: "$59/mo", features: ["Unlimited seats", "White-label portal", "API access", "Team utilization"] },
-  ];
-
-  return (
-    <div className="space-y-6">
-      <div className="card-surface p-6">
-        <h2 className="text-base font-semibold text-foreground mb-1">Current Plan</h2>
-        <p className="text-sm text-muted-foreground">You're on the <span className="font-medium text-foreground">Starter</span> plan.</p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {plans.map((plan) => (
-          <div
-            key={plan.id}
-            className={`card-surface p-6 space-y-4 ${plan.highlighted ? "ring-2 ring-primary" : ""}`}
-          >
-            <div>
-              <h3 className="text-base font-semibold text-foreground">{plan.name}</h3>
-              <p className="text-2xl font-bold tabular-nums text-foreground mt-1">{plan.price}</p>
-            </div>
-            <ul className="space-y-2">
-              {plan.features.map((f) => (
-                <li key={f} className="text-sm text-muted-foreground flex items-center gap-2">
-                  <span className="h-1 w-1 rounded-full bg-primary shrink-0" />
-                  {f}
-                </li>
-              ))}
-            </ul>
-            <Button
-              variant={plan.id === "starter" ? "secondary" : plan.highlighted ? "default" : "outline"}
-              size="sm"
-              className="w-full"
-              disabled={plan.id === "starter"}
-            >
-              {plan.id === "starter" ? "Current Plan" : "Upgrade"}
-            </Button>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+// BillingSettings removed — now using BillingTab component
