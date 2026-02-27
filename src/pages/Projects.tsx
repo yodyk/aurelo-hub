@@ -7,7 +7,7 @@ import { AddProjectModal } from "../components/Modals";
 import { clientProjects as mockProjects } from "../data/mockData";
 import { toast } from "sonner";
 import { usePlan } from "../data/PlanContext";
-import { LimitEnforcementModal } from "../components/OverLimitBanner";
+import { LimitEnforcementModal } from "../components/PlanEnforcement";
 
 const container = {
   hidden: {},
@@ -16,7 +16,7 @@ const container = {
 
 const item = {
   hidden: { opacity: 0, y: 12 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.25, 0.1, 0.25, 1] } },
+  show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.25, 0.1, 0.25, 1] as const } },
 };
 
 const statusColors: Record<string, { bg: string; text: string; dot: string }> = {
