@@ -1301,3 +1301,314 @@ export function AddProjectModal({ open, onClose, onSave, clients, preSelectedCli
     </ModalShell>
   );
 }
+
+// ── Edit Session Modal ─────────────────────────────────────────────
+export function EditSessionModal({ open, onClose, session, onSave, onDelete, clients }: {
+  open: boolean; onClose: () => void;
+  session: any;
+  onSave: (sessionId: string, updates: any) => Promise<void>;
+  onDelete: (sessionId: string) => Promise<void>;
+  clients: any[];
+}) {
+  const { getProjects, loadProjectsForClient, workCategoryNames } = useData();
+  const [clientId, setClientId] = useState('');
+  const [task, setTask] = useState('');
+  const [duration, setDuration] = useState('');
+  const [billable, setBillable] = useState(true);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [sessionDate, setSessionDate] = useState('');
+  const [allocationType, setAllocationType] = useState<'general' | 'retainer' | 'project'>('general');
+  const [selectedProjectId, setSelectedProjectId] = useState<string>('');
+  const [clientProjects, setClientProjects] = useState<any[]>([]);
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  const allTags = workCategoryNames.length > 0
+    ? workCategoryNames
+    : ['Design', 'Development', 'Meetings', 'Strategy', 'Prospecting'];
+
+  // Populate fields when session changes
+  useEffect(() => {
+    if (!session) return;
+    setClientId(session.clientId || '');
+    setTask(session.task || '');
+    setDuration(String(session.duration || ''));
+    setBillable(session.billable !== false);
+    setSelectedTags(session.workTags || session.tags || []);
+    setAllocationType(session.allocationType || 'general');
+    setSelectedProjectId(session.projectId ? String(session.projectId) : '');
+    setConfirmDelete(false);
+
+    // Parse the display date back to YYYY-MM-DD
+    if (session.date) {
+      const parsed = new Date(session.date);
+      if (!isNaN(parsed.getTime())) {
+        setSessionDate(parsed.toISOString().split('T')[0]);
+      }
+    }
+  }, [session]);
+
+  // Load projects when clientId is set
+  useEffect(() => {
+    if (!clientId) { setClientProjects([]); return; }
+    const cached = getProjects(clientId);
+    setClientProjects(cached);
+    loadProjectsForClient(clientId)
+      .then(setClientProjects)
+      .catch(() => {});
+  }, [clientId]);
+
+  const toggleTag = (tag: string) => {
+    setSelectedTags(prev =>
+      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+    );
+  };
+
+  const selectedClient = clients.find(c => c.id === clientId);
+  const durationNum = parseFloat(duration) || 0;
+  const revenue = billable && selectedClient ? Math.round(durationNum * selectedClient.rate) : 0;
+  const canSave = clientId && task.trim() && durationNum > 0
+    && (allocationType !== 'project' || selectedProjectId);
+
+  const handleSave = async () => {
+    if (!canSave || !session) return;
+    setSaving(true);
+    try {
+      await onSave(session.id, {
+        clientId,
+        task: task.trim(),
+        duration: durationNum,
+        revenue,
+        billable,
+        workTags: selectedTags,
+        rawDate: sessionDate,
+        allocationType,
+        projectId: allocationType === 'project' ? selectedProjectId : null,
+      });
+      onClose();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!session) return;
+    setDeleting(true);
+    try {
+      await onDelete(session.id);
+      onClose();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const selectableProjects = clientProjects.filter((p: any) => p.status !== 'Complete');
+
+  return (
+    <ModalShell open={open} onClose={onClose} title="Edit session" subtitle="Update or remove this time entry" wide>
+      <div className="space-y-5">
+        <SectionDivider icon={Calendar} label="When & where" />
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <Label>Date</Label>
+            <input
+              type="date"
+              value={sessionDate}
+              onChange={e => setSessionDate(e.target.value)}
+              max={new Date().toISOString().split('T')[0]}
+              className="w-full px-3 py-2 text-[14px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all tabular-nums"
+            />
+          </div>
+          <div>
+            <Label>Client</Label>
+            <Select value={clientId} onChange={e => setClientId(e.target.value)}>
+              <option value="">Select a client</option>
+              {clients.filter(c => c.status === 'Active' || c.status === 'Prospect').map(c => (
+                <option key={c.id} value={c.id}>
+                  {c.name} · {c.model}{c.rate ? ` · $${c.rate}/hr` : ''}
+                </option>
+              ))}
+            </Select>
+          </div>
+        </div>
+
+        {/* Allocation */}
+        {selectedClient && (
+          <>
+            <SectionDivider icon={FolderKanban} label="Apply to" />
+            <div className="flex flex-wrap gap-1.5">
+              <button
+                onClick={() => { setAllocationType('general'); setSelectedProjectId(''); }}
+                className={`flex items-center gap-1.5 px-3 py-2 text-[13px] rounded-lg border transition-all duration-200 ${
+                  allocationType === 'general'
+                    ? 'bg-primary/6 border-primary/25 text-primary ring-1 ring-primary/15'
+                    : 'border-border text-muted-foreground hover:text-foreground hover:bg-accent/40'
+                }`}
+                style={{ fontWeight: 500 }}
+              >
+                <Clock className="w-3.5 h-3.5" />
+                General time
+              </button>
+              {selectedClient.model === 'Retainer' && (
+                <button
+                  onClick={() => { setAllocationType('retainer'); setSelectedProjectId(''); }}
+                  className={`flex items-center gap-1.5 px-3 py-2 text-[13px] rounded-lg border transition-all duration-200 ${
+                    allocationType === 'retainer'
+                      ? 'bg-primary/6 border-primary/25 text-primary ring-1 ring-primary/15'
+                      : 'border-border text-muted-foreground hover:text-foreground hover:bg-accent/40'
+                  }`}
+                  style={{ fontWeight: 500 }}
+                >
+                  <Repeat className="w-3.5 h-3.5" />
+                  Retainer
+                </button>
+              )}
+              {selectableProjects.map((proj: any) => (
+                <button
+                  key={proj.id}
+                  onClick={() => { setAllocationType('project'); setSelectedProjectId(String(proj.id)); }}
+                  className={`flex items-center gap-1.5 px-3 py-2 text-[13px] rounded-lg border transition-all duration-200 ${
+                    allocationType === 'project' && selectedProjectId === String(proj.id)
+                      ? 'bg-primary/6 border-primary/25 text-primary ring-1 ring-primary/15'
+                      : 'border-border text-muted-foreground hover:text-foreground hover:bg-accent/40'
+                  }`}
+                  style={{ fontWeight: 500 }}
+                >
+                  <FolderKanban className="w-3.5 h-3.5" />
+                  {proj.name}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+
+        <SectionDivider icon={FileText} label="What you did" />
+
+        <div>
+          <Label>Description</Label>
+          <Input value={task} onChange={e => setTask(e.target.value)} placeholder="Brand refresh — icon exploration" />
+        </div>
+
+        <div>
+          <Label>Categories</Label>
+          <div className="flex flex-wrap gap-1.5">
+            {allTags.map(tag => (
+              <button
+                key={tag}
+                onClick={() => toggleTag(tag)}
+                className={`px-2.5 py-1.5 text-[12px] rounded-lg border transition-all duration-200 ${
+                  selectedTags.includes(tag)
+                    ? 'bg-primary/8 border-primary/20 text-primary ring-1 ring-primary/10'
+                    : 'border-border text-muted-foreground hover:text-foreground hover:bg-accent/40'
+                }`}
+                style={{ fontWeight: 500 }}
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <Label>Duration (hours)</Label>
+          <div className="grid grid-cols-4 gap-2">
+            <Input value={duration} onChange={e => setDuration(e.target.value)} placeholder="2.5" className="tabular-nums col-span-1" />
+            <div className="col-span-3 flex gap-1.5">
+              {[0.5, 1, 1.5, 2, 3, 4].map(preset => (
+                <button
+                  key={preset}
+                  onClick={() => setDuration(String(preset))}
+                  className={`flex-1 py-2 text-[12px] rounded-lg border transition-all duration-200 tabular-nums ${
+                    duration === String(preset)
+                      ? 'bg-primary/8 border-primary/20 text-primary'
+                      : 'border-border text-muted-foreground hover:text-foreground hover:bg-accent/40'
+                  }`}
+                  style={{ fontWeight: 500 }}
+                >
+                  {preset}h
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <SectionDivider icon={DollarSign} label="Billing" />
+
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-[13px]" style={{ fontWeight: 500 }}>Billable time</div>
+            <div className="text-[12px] text-muted-foreground">
+              {billable ? 'This session will count toward client revenue' : 'Non-billable — internal or pro-bono work'}
+            </div>
+          </div>
+          <button
+            onClick={() => setBillable(b => !b)}
+            className={`relative w-9 h-5 rounded-full transition-colors duration-200 flex-shrink-0 ${billable ? 'bg-primary' : 'bg-zinc-300'}`}
+          >
+            <div
+              className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform duration-200 ${billable ? 'translate-x-4' : 'translate-x-0'}`}
+              style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.12)' }}
+            />
+          </button>
+        </div>
+
+        {selectedClient && durationNum > 0 && (
+          <div className="bg-accent/30 rounded-lg px-3.5 py-3">
+            <div className="flex items-center justify-between text-[13px]">
+              <span className="text-muted-foreground">
+                {billable ? 'Estimated revenue' : 'Time value'}{selectedClient.rate ? ` @ $${selectedClient.rate}/hr` : ''}
+              </span>
+              <span className={`tabular-nums ${billable ? 'text-primary' : 'text-muted-foreground'}`} style={{ fontWeight: 600 }}>
+                {billable ? `$${revenue.toLocaleString()}` : `$0 (non-billable)`}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Footer */}
+        <div className="flex items-center justify-between pt-3 border-t border-border">
+          <div>
+            {confirmDelete ? (
+              <div className="flex items-center gap-2">
+                <span className="text-[12px] text-destructive" style={{ fontWeight: 500 }}>Delete this session?</span>
+                <button
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="px-3 py-1.5 text-[12px] rounded-lg bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-all disabled:opacity-60"
+                  style={{ fontWeight: 500 }}
+                >
+                  {deleting ? 'Deleting...' : 'Yes, delete'}
+                </button>
+                <button
+                  onClick={() => setConfirmDelete(false)}
+                  className="px-3 py-1.5 text-[12px] rounded-lg border border-border text-muted-foreground hover:bg-accent/40 transition-all"
+                  style={{ fontWeight: 500 }}
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setConfirmDelete(true)}
+                className="text-[12px] text-destructive/70 hover:text-destructive transition-colors"
+                style={{ fontWeight: 500 }}
+              >
+                Delete session
+              </button>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <button onClick={onClose} className="px-4 py-2 text-[13px] rounded-lg border border-border text-muted-foreground hover:bg-accent/40 transition-all" style={{ fontWeight: 500 }}>Cancel</button>
+            <PrimaryBtn onClick={handleSave} disabled={saving || !canSave}>{saving ? 'Saving...' : 'Save changes'}</PrimaryBtn>
+          </div>
+        </div>
+      </div>
+    </ModalShell>
+  );
+}
