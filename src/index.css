@@ -1,8 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config "../tailwind.config.ts";
 
 @layer base {
   :root {
@@ -180,7 +179,8 @@
   }
 
   .card-premium {
-    @apply premium-card;
+    @apply bg-card border border-border/50 shadow-[0_1px_3px_rgba(0,0,0,0.04)]
+           rounded-[4px] p-5 transition-all duration-300 hover:border-border;
   }
 
   .card-elevated {
@@ -194,11 +194,13 @@
 
   /* ── Legacy card surface (used in existing components) ── */
   .card-surface {
-    @apply card-flat;
+    @apply bg-card border border-border/50 shadow-[0_1px_3px_rgba(0,0,0,0.04)]
+           rounded-[4px];
   }
 
   .card-interactive {
-    @apply card-flat cursor-pointer hover:border-border transition-all duration-300;
+    @apply bg-card border border-border/50 shadow-[0_1px_3px_rgba(0,0,0,0.04)]
+           rounded-[4px] cursor-pointer hover:border-border transition-all duration-300;
   }
 
   .page-container {
@@ -211,11 +213,12 @@
   }
 
   .label-muted {
-    @apply type-caption fg-tertiary;
+    @apply text-[11px] font-medium tracking-wide text-muted-foreground/40;
   }
 
   .heading-display {
-    @apply type-title;
+    @apply text-xl font-semibold text-foreground;
+    letter-spacing: -0.02em;
   }
 
   .heading-section {
@@ -223,11 +226,12 @@
   }
 
   .text-metadata {
-    @apply type-caption fg-tertiary;
+    @apply text-[11px] font-medium tracking-wide text-muted-foreground/40;
   }
 
   .text-heading-xl {
-    @apply type-title;
+    @apply text-xl font-semibold text-foreground;
+    letter-spacing: -0.02em;
   }
   .text-heading-lg {
     @apply text-lg font-semibold leading-snug;
@@ -236,13 +240,13 @@
     @apply text-sm font-medium;
   }
   .text-body {
-    @apply type-body;
+    @apply text-sm leading-relaxed text-muted-foreground;
   }
   .text-body-lg {
     @apply text-base leading-relaxed;
   }
   .text-caption {
-    @apply type-caption fg-tertiary;
+    @apply text-[11px] font-medium tracking-wide text-muted-foreground/40;
   }
 
   .metric-value {
@@ -254,7 +258,7 @@
   }
 
   .section-label {
-    @apply type-caption fg-tertiary;
+    @apply text-[11px] font-medium tracking-wide text-muted-foreground/40;
   }
 
   .transition-default {
