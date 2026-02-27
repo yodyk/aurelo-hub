@@ -65,33 +65,56 @@ export async function clearDemoData(): Promise<void> {
   console.log('[settingsApi] clearDemoData — not yet implemented');
 }
 
-// ── Avatar stubs (until storage buckets set up) ─────────────────────
+// ── Avatar (real storage) ────────────────────────────────────────────
+import * as storage from './storageApi';
 
 export async function loadAvatar(): Promise<{ url: string } | null> {
-  return null;
+  const wsId = await resolveWorkspaceId();
+  if (!wsId) return null;
+  const url = await storage.getAvatarUrl(wsId);
+  return url ? { url } : null;
 }
 
 export async function uploadAvatar(file: File): Promise<{ url: string }> {
-  const url = URL.createObjectURL(file);
+  const wsId = await resolveWorkspaceId();
+  if (!wsId) throw new Error('No workspace found');
+  const url = await storage.uploadAvatar(wsId, file);
   return { url };
 }
 
-export async function deleteAvatar(): Promise<void> {}
+export async function deleteAvatar(): Promise<void> {
+  const wsId = await resolveWorkspaceId();
+  if (!wsId) return;
+  await storage.deleteAvatar(wsId);
+}
 
-// ── Logo stubs ──────────────────────────────────────────────────────
+// ── Logos (real storage) ────────────────────────────────────────────
 
 export async function loadLogos(): Promise<{
   app: { url: string; fileName: string } | null;
   email: { url: string; fileName: string } | null;
 }> {
-  return { app: null, email: null };
+  const wsId = await resolveWorkspaceId();
+  if (!wsId) return { app: null, email: null };
+  const urls = await storage.getLogoUrls(wsId);
+  return {
+    app: urls.app ? { url: urls.app, fileName: urls.app.split('/').pop() || 'app.png' } : null,
+    email: urls.email ? { url: urls.email, fileName: urls.email.split('/').pop() || 'email.png' } : null,
+  };
 }
 
-export async function uploadLogo(file: File, _type: 'app' | 'email'): Promise<{ url: string; fileName: string }> {
-  return { url: URL.createObjectURL(file), fileName: file.name };
+export async function uploadLogo(file: File, type: 'app' | 'email'): Promise<{ url: string; fileName: string }> {
+  const wsId = await resolveWorkspaceId();
+  if (!wsId) throw new Error('No workspace found');
+  const url = await storage.uploadLogo(wsId, type, file);
+  return { url, fileName: file.name };
 }
 
-export async function deleteLogo(_type: 'app' | 'email'): Promise<void> {}
+export async function deleteLogo(type: 'app' | 'email'): Promise<void> {
+  const wsId = await resolveWorkspaceId();
+  if (!wsId) return;
+  await storage.deleteLogo(wsId, type);
+}
 
 // ── Team ────────────────────────────────────────────────────────────
 
