@@ -1,4 +1,5 @@
-import { publicAnonKey } from '/utils/supabase/info';
+// publicAnonKey will be provided when Cloud is enabled
+const publicAnonKey = '';
 import { BASE, authHeaders } from './apiHeaders';
 
 // ── Internal (workspace owner) — uses auth token ───────────────────

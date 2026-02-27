@@ -52,3 +52,7 @@ export async function signOut(): Promise<void> {
   currentUser = null;
   listeners.forEach(l => l(null));
 }
+
+export async function getAccessToken(): Promise<string | null> {
+  return currentUser ? 'stub-token' : null;
+}
