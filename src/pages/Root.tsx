@@ -239,10 +239,14 @@ function RootLayout() {
           >
             <div className="w-7 h-7 rounded-lg bg-accent/60 flex items-center justify-center flex-shrink-0 overflow-hidden">
               {wsLogoUrl ? (
-                <img src={wsLogoUrl} alt="" className="w-full h-full object-cover" />
-              ) : (
-                <span className="text-[12px] text-foreground/70" style={{ fontWeight: 600 }}>{wsInitial}</span>
-              )}
+                <img
+                  src={wsLogoUrl}
+                  alt=""
+                  className="w-full h-full object-cover"
+                  onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; e.currentTarget.parentElement!.querySelector('span')!.style.display = ''; }}
+                />
+              ) : null}
+              <span className="text-[12px] text-foreground/70" style={{ fontWeight: 600, display: wsLogoUrl ? 'none' : undefined }}>{wsInitial}</span>
             </div>
             {!sidebarCollapsed && (
               <div className="min-w-0 flex-1 text-left">
