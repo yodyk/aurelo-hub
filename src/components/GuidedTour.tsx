@@ -2,9 +2,10 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowRight, ArrowLeft, X, Sparkles, Check, RotateCcw } from 'lucide-react';
-import AureloLogo from './AureloLogo';
+import { AureloIcon } from './AureloIcon';
 
 // ── Tour Step Definitions ──────────────────────────────────────────
+
 interface TourStep {
   target: string;
   title: string;
@@ -70,6 +71,7 @@ const TOUR_STEPS: TourStep[] = [
 ];
 
 // ── Tooltip positioning ────────────────────────────────────────────
+
 function getTooltipStyle(
   rect: DOMRect,
   position: 'top' | 'bottom' | 'left' | 'right',
@@ -108,6 +110,7 @@ function getTooltipStyle(
 }
 
 // ── Main Component ─────────────────────────────────────────────────
+
 interface GuidedTourProps {
   open: boolean;
   onComplete: () => void;
@@ -126,6 +129,7 @@ export function GuidedTour({ open, onComplete }: GuidedTourProps) {
   const isLast = currentStep === TOUR_STEPS.length - 1;
   const progress = ((currentStep + 1) / TOUR_STEPS.length) * 100;
 
+  // Find and track the target element
   const updateTargetRect = useCallback(() => {
     if (!open || showCompletion) return;
     const el = document.querySelector(step.target);
@@ -136,6 +140,7 @@ export function GuidedTour({ open, onComplete }: GuidedTourProps) {
     }
   }, [step.target, open, showCompletion]);
 
+  // Navigate to the step's route if needed
   useEffect(() => {
     if (!open || showCompletion) return;
     if (step.route && location.pathname !== step.route) {
@@ -144,6 +149,7 @@ export function GuidedTour({ open, onComplete }: GuidedTourProps) {
     }
   }, [currentStep, step.route, location.pathname, navigate, open, showCompletion]);
 
+  // Poll for target element
   useEffect(() => {
     if (!open || showCompletion) return;
     const t = setTimeout(updateTargetRect, 350);
@@ -158,6 +164,7 @@ export function GuidedTour({ open, onComplete }: GuidedTourProps) {
     };
   }, [updateTargetRect, open, showCompletion]);
 
+  // Measure tooltip
   useEffect(() => {
     if (tooltipRef.current) {
       const { offsetWidth, offsetHeight } = tooltipRef.current;
@@ -167,6 +174,7 @@ export function GuidedTour({ open, onComplete }: GuidedTourProps) {
 
   const handleNext = useCallback(() => {
     if (isLast) {
+      // Show completion screen instead of immediately closing
       setShowCompletion(true);
       setTargetRect(null);
       navigate('/', { replace: true });
@@ -193,6 +201,7 @@ export function GuidedTour({ open, onComplete }: GuidedTourProps) {
     setCurrentStep(0);
   }, []);
 
+  // Keyboard
   useEffect(() => {
     if (!open) return;
     const handler = (e: KeyboardEvent) => {
@@ -206,6 +215,7 @@ export function GuidedTour({ open, onComplete }: GuidedTourProps) {
     return () => window.removeEventListener('keydown', handler);
   }, [open, handleSkip, handleNext, handlePrev, showCompletion]);
 
+  // Reset when opening
   useEffect(() => {
     if (open) {
       setCurrentStep(0);
@@ -266,7 +276,7 @@ export function GuidedTour({ open, onComplete }: GuidedTourProps) {
             width: targetRect.width + (spotPad + 2) * 2,
             height: targetRect.height + (spotPad + 2) * 2,
             borderRadius: spotRadius + 2,
-            boxShadow: '0 0 0 2px hsla(var(--primary) / 0.4), 0 0 20px hsla(var(--primary) / 0.12)',
+            boxShadow: '0 0 0 2px rgba(94,161,191,0.4), 0 0 20px rgba(94,161,191,0.12)',
             transition: 'left 0.4s ease, top 0.4s ease, width 0.4s ease, height 0.4s ease',
           }}
         />
@@ -274,33 +284,37 @@ export function GuidedTour({ open, onComplete }: GuidedTourProps) {
 
       <AnimatePresence mode="wait">
         {showCompletion ? (
+          /* ── Completion card ── */
           <motion.div
             key="completion"
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -10 }}
             transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] bg-card border border-border rounded-2xl overflow-hidden"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] bg-white border border-black/[0.08] rounded-2xl overflow-hidden"
             style={{
               boxShadow: '0 24px 64px rgba(0,0,0,0.14), 0 8px 20px rgba(0,0,0,0.06)',
               zIndex: 10000,
               pointerEvents: 'auto',
             }}
           >
-            <div className="h-[2px] bg-primary" />
+            {/* Completed progress bar */}
+            <div className="h-[2px] bg-[#5ea1bf]" />
+
             <div className="px-7 pt-8 pb-7 text-center">
+              {/* Success icon with animation */}
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ type: 'spring', stiffness: 400, damping: 20, delay: 0.15 }}
-                className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-5"
+                className="w-14 h-14 rounded-2xl bg-[#5ea1bf]/10 flex items-center justify-center mx-auto mb-5"
               >
                 <motion.div
                   initial={{ opacity: 0, scale: 0.5 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.35, duration: 0.3 }}
                 >
-                  <Check className="w-7 h-7 text-primary" strokeWidth={2.5} />
+                  <Check className="w-7 h-7 text-[#5ea1bf]" strokeWidth={2.5} />
                 </motion.div>
               </motion.div>
 
@@ -308,16 +322,17 @@ export function GuidedTour({ open, onComplete }: GuidedTourProps) {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: 0.3 }}
-                className="text-[20px] text-foreground mb-2"
+                className="text-[20px] text-[#1c1c1c] mb-2"
                 style={{ fontWeight: 600, letterSpacing: '-0.01em' }}
               >
                 You're all set!
               </motion.h2>
+
               <motion.p
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.3 }}
-                className="text-[14px] text-muted-foreground leading-relaxed max-w-xs mx-auto mb-7"
+                className="text-[14px] text-[#78716c] leading-relaxed max-w-xs mx-auto mb-7"
               >
                 You've seen the core of Aurelo. Take your time exploring the demo data, or clear it out and start building your own workspace.
               </motion.p>
@@ -330,15 +345,16 @@ export function GuidedTour({ open, onComplete }: GuidedTourProps) {
               >
                 <button
                   onClick={handleFinishFromCompletion}
-                  className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-foreground text-background text-[14px] hover:opacity-90 transition-all"
+                  className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#1c1c1c] text-white text-[14px] hover:bg-[#2c2c2c] active:bg-[#0c0c0c] transition-all"
                   style={{ fontWeight: 500 }}
                 >
                   Continue exploring
                   <ArrowRight className="w-4 h-4" />
                 </button>
+
                 <button
                   onClick={handleRestartFromCompletion}
-                  className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-border text-[14px] text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-all"
+                  className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-black/[0.08] text-[14px] text-[#78716c] hover:text-[#1c1c1c] hover:bg-stone-50 transition-all"
                   style={{ fontWeight: 500 }}
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
@@ -350,13 +366,14 @@ export function GuidedTour({ open, onComplete }: GuidedTourProps) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.6, duration: 0.3 }}
-                className="mt-5 text-[11px] text-muted-foreground/60"
+                className="mt-5 text-[11px] text-[#a8a29e]"
               >
                 You can clear demo data anytime from the banner below
               </motion.p>
             </div>
           </motion.div>
         ) : (
+          /* ── Step tooltip ── */
           <motion.div
             key={currentStep}
             ref={tooltipRef}
@@ -364,7 +381,7 @@ export function GuidedTour({ open, onComplete }: GuidedTourProps) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.97 }}
             transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
-            className="absolute w-[340px] bg-card border border-border rounded-xl overflow-hidden"
+            className="absolute w-[340px] bg-white border border-black/[0.08] rounded-xl overflow-hidden"
             style={{
               ...tooltipStyle,
               boxShadow: '0 16px 48px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06)',
@@ -372,9 +389,11 @@ export function GuidedTour({ open, onComplete }: GuidedTourProps) {
               pointerEvents: 'auto',
             }}
           >
-            <div className="h-[2px] bg-border">
+            {/* Progress bar */}
+            <div className="h-[2px] bg-black/[0.04]">
               <motion.div
-                className="h-full bg-primary"
+                className="h-full"
+                style={{ backgroundColor: '#5ea1bf' }}
                 initial={{ width: `${((currentStep) / TOUR_STEPS.length) * 100}%` }}
                 animate={{ width: `${progress}%` }}
                 transition={{ duration: 0.4, ease: 'easeOut' }}
@@ -382,16 +401,17 @@ export function GuidedTour({ open, onComplete }: GuidedTourProps) {
             </div>
 
             <div className="px-5 pt-4 pb-5">
+              {/* Step counter & skip */}
               <div className="flex items-center justify-between mb-3">
                 <span
-                  className="text-[11px] text-muted-foreground tracking-wide"
+                  className="text-[11px] text-[#9a9aac] tracking-wide"
                   style={{ fontWeight: 600, letterSpacing: '0.06em' }}
                 >
                   {currentStep + 1} OF {TOUR_STEPS.length}
                 </span>
                 <button
                   onClick={handleSkip}
-                  className="text-[12px] text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+                  className="text-[12px] text-[#9a9aac] hover:text-[#1c1c1c] transition-colors flex items-center gap-1"
                   style={{ fontWeight: 500 }}
                 >
                   Skip tour
@@ -399,29 +419,32 @@ export function GuidedTour({ open, onComplete }: GuidedTourProps) {
                 </button>
               </div>
 
+              {/* Content */}
               <h3
-                className="text-[16px] text-foreground mb-1.5"
+                className="text-[16px] text-[#1c1c1c] mb-1.5"
                 style={{ fontWeight: 600, letterSpacing: '-0.01em' }}
               >
                 {step.title}
               </h3>
-              <p className="text-[13px] text-muted-foreground leading-relaxed mb-5">
+              <p className="text-[13px] text-[#78716c] leading-relaxed mb-5">
                 {step.description}
               </p>
 
+              {/* Navigation */}
               <div className="flex items-center justify-between">
                 <button
                   onClick={handlePrev}
                   disabled={currentStep === 0}
-                  className="flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground disabled:opacity-0 disabled:pointer-events-none transition-all"
+                  className="flex items-center gap-1.5 text-[13px] text-[#78716c] hover:text-[#1c1c1c] disabled:opacity-0 disabled:pointer-events-none transition-all"
                   style={{ fontWeight: 500 }}
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
                   Back
                 </button>
+
                 <button
                   onClick={handleNext}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-foreground text-background text-[13px] hover:opacity-90 transition-all"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#1c1c1c] text-white text-[13px] hover:bg-[#2c2c2c] active:bg-[#0c0c0c] transition-all"
                   style={{ fontWeight: 500 }}
                 >
                   {isLast ? (
