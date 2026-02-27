@@ -1,6 +1,6 @@
 import { motion } from "motion/react";
 import { containerVariants, itemVariants } from "@/lib/motion";
-import { useParams } from "react-router-dom";
+import { useParams } from "react-router";
 import AureloLogo from "@/components/AureloLogo";
 
 export default function ClientPortal() {
