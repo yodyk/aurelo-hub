@@ -13,6 +13,15 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Onboarding from "./pages/Onboarding";
 import ClientPortal from "./pages/ClientPortal";
+import { AuthProvider } from "./data/AuthContext";
+
+function OnboardingWithAuth() {
+  return (
+    <AuthProvider>
+      <Onboarding />
+    </AuthProvider>
+  );
+}
 
 function RootErrorBoundary() {
   return (
@@ -37,7 +46,7 @@ function RootErrorBoundary() {
 export const router = createBrowserRouter([
   { path: "/login", Component: Login },
   { path: "/signup", Component: Signup },
-  { path: "/onboarding", Component: Onboarding },
+  { path: "/onboarding", Component: OnboardingWithAuth },
   { path: "/portal/:token", Component: ClientPortal },
   {
     path: "/",
