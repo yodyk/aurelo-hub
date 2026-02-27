@@ -31,6 +31,9 @@ interface PlanContextValue {
   atLimit: (key: LimitKey, count: number) => boolean;
   wouldExceed: (key: LimitKey, count: number) => boolean;
   isAtLeast: (required: PlanId) => boolean;
+  requiredPlan: (feature: FeatureKey) => PlanId;
+  upgradePlan: (limit: LimitKey) => PlanId | null;
+  formatLimitValue: (v: number | null) => string;
   isTrial: boolean;
   trialDaysRemaining: number;
   trialExpired: boolean;
@@ -67,10 +70,34 @@ export function PlanProvider({ children, initialPlan }: { children: ReactNode; i
     setPlan(prev => ({ ...prev, isTrial: true, trialEnd }));
   }, []);
 
+  const requiredPlanFn = useCallback((feature: FeatureKey): PlanId => {
+    const order: PlanId[] = ['starter', 'pro', 'studio'];
+    for (const p of order) {
+      if (PLANS[p].features[feature]) return p;
+    }
+    return 'studio';
+  }, []);
+
+  const upgradePlanFn = useCallback((key: LimitKey): PlanId | null => {
+    const order: PlanId[] = ['starter', 'pro', 'studio'];
+    const currentIdx = order.indexOf(effectivePlanId);
+    for (let i = currentIdx + 1; i < order.length; i++) {
+      const lim = PLANS[order[i]].limits[key];
+      if (lim === null || (lim !== null && lim > (PLANS[effectivePlanId].limits[key] ?? 0))) return order[i];
+    }
+    return null;
+  }, [effectivePlanId]);
+
+  const formatLimitValue = useCallback((v: number | null): string => {
+    if (v === null) return 'unlimited';
+    return v.toString();
+  }, []);
+
   return (
     <PlanContext.Provider value={{
       plan, planId, planDef, setPlan,
       can: canFn, limit: limitFn, atLimit: atLimitFn, wouldExceed: wouldExceedFn, isAtLeast: isAtLeastFn,
+      requiredPlan: requiredPlanFn, upgradePlan: upgradePlanFn, formatLimitValue,
       isTrial, trialDaysRemaining, trialExpired, startTrial,
     }}>
       {children}
