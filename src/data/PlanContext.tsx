@@ -1,5 +1,9 @@
-import { createContext, useContext, useState, useCallback, useMemo, type ReactNode } from 'react';
-import { type PlanId, type FeatureKey, type LimitKey, PLANS, canAccess, getLimit, atLimit, wouldExceed, isAtLeast } from './plans';
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+import {
+  type PlanId, type FeatureKey, type LimitKey,
+  PLANS, hasFeature, getLimit, isAtLimit, wouldExceedLimit,
+  minimumPlanFor, upgradePlanForLimit, formatLimit,
+} from './plans';
 
 export interface WorkspacePlan {
   planId: PlanId;
@@ -11,7 +15,7 @@ export interface WorkspacePlan {
   trialEnd: string | null;
 }
 
-const defaultPlan: WorkspacePlan = {
+const DEFAULT_PLAN: WorkspacePlan = {
   planId: 'starter',
   activatedAt: new Date().toISOString(),
   periodEnd: null,
@@ -21,92 +25,96 @@ const defaultPlan: WorkspacePlan = {
   trialEnd: null,
 };
 
-interface PlanContextValue {
+interface PlanContextType {
   plan: WorkspacePlan;
   planId: PlanId;
-  planDef: typeof PLANS[PlanId];
-  setPlan: (plan: WorkspacePlan) => void;
+  planDef: typeof PLANS['starter'];
+  effectivePlanId: PlanId;
   can: (feature: FeatureKey) => boolean;
   limit: (key: LimitKey) => number | null;
   atLimit: (key: LimitKey, count: number) => boolean;
   wouldExceed: (key: LimitKey, count: number) => boolean;
-  isAtLeast: (required: PlanId) => boolean;
   requiredPlan: (feature: FeatureKey) => PlanId;
   upgradePlan: (limit: LimitKey) => PlanId | null;
-  formatLimitValue: (v: number | null) => string;
+  formatLimitValue: (value: number | null) => string;
+  isAtLeast: (tier: PlanId) => boolean;
+  isExactly: (tier: PlanId) => boolean;
+  setPlan: (plan: WorkspacePlan) => void;
+  setPlanId: (id: PlanId) => void;
   isTrial: boolean;
   trialDaysRemaining: number;
   trialExpired: boolean;
   startTrial: () => void;
 }
 
-const PlanContext = createContext<PlanContextValue | null>(null);
+const TIER_ORDER: PlanId[] = ['starter', 'pro', 'studio'];
 
-export function PlanProvider({ children, initialPlan }: { children: ReactNode; initialPlan?: WorkspacePlan }) {
-  const [plan, setPlan] = useState<WorkspacePlan>(initialPlan || defaultPlan);
+const PlanContext = createContext<PlanContextType | null>(null);
 
-  const planId = plan.planId;
-  const planDef = PLANS[planId];
+const safeDefaults: PlanContextType = {
+  plan: DEFAULT_PLAN, planId: 'starter', planDef: PLANS.starter, effectivePlanId: 'starter',
+  can: (f) => hasFeature('starter', f),
+  limit: (k) => getLimit('starter', k),
+  atLimit: (k, c) => isAtLimit('starter', k, c),
+  wouldExceed: (k, c) => wouldExceedLimit('starter', k, c),
+  requiredPlan: minimumPlanFor,
+  upgradePlan: (k) => upgradePlanForLimit(k, 'starter'),
+  formatLimitValue: formatLimit,
+  isAtLeast: (tier) => TIER_ORDER.indexOf('starter') >= TIER_ORDER.indexOf(tier),
+  isExactly: (tier) => tier === 'starter',
+  setPlan: () => {}, setPlanId: () => {},
+  isTrial: false, trialDaysRemaining: 0, trialExpired: false, startTrial: () => {},
+};
 
-  const isTrial = plan.isTrial && plan.trialEnd !== null;
-  const trialDaysRemaining = useMemo(() => {
-    if (!plan.trialEnd) return 0;
-    const diff = new Date(plan.trialEnd).getTime() - Date.now();
-    return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
-  }, [plan.trialEnd]);
-  const trialExpired = isTrial && trialDaysRemaining <= 0;
+export function usePlan(): PlanContextType {
+  const ctx = useContext(PlanContext);
+  if (!ctx) return safeDefaults;
+  return ctx;
+}
 
-  // During active trial, grant Pro-level access
-  const effectivePlanId = (isTrial && !trialExpired) ? 'pro' : planId;
+export function PlanProvider({ children, initialPlan }: { children: ReactNode; initialPlan?: WorkspacePlan | null }) {
+  const [plan, setPlanState] = useState<WorkspacePlan>(initialPlan || DEFAULT_PLAN);
 
-  const canFn = useCallback((feature: FeatureKey) => canAccess(effectivePlanId, feature), [effectivePlanId]);
+  useEffect(() => {
+    if (initialPlan && initialPlan.planId) setPlanState(initialPlan);
+  }, [initialPlan?.planId]);
+
+  const planId: PlanId = (plan.planId as PlanId) || 'starter';
+  const planDef = PLANS[planId] || PLANS.starter;
+  const trialActive = plan.isTrial && plan.trialEnd && new Date(plan.trialEnd) > new Date();
+  const effectivePlanId: PlanId = trialActive ? 'pro' : planId;
+
+  const can = useCallback((feature: FeatureKey) => hasFeature(effectivePlanId, feature), [effectivePlanId]);
   const limitFn = useCallback((key: LimitKey) => getLimit(effectivePlanId, key), [effectivePlanId]);
-  const atLimitFn = useCallback((key: LimitKey, count: number) => atLimit(effectivePlanId, key, count), [effectivePlanId]);
-  const wouldExceedFn = useCallback((key: LimitKey, count: number) => wouldExceed(effectivePlanId, key, count), [effectivePlanId]);
-  const isAtLeastFn = useCallback((required: PlanId) => isAtLeast(effectivePlanId, required), [effectivePlanId]);
+  const atLimitFn = useCallback((key: LimitKey, count: number) => isAtLimit(effectivePlanId, key, count), [effectivePlanId]);
+  const wouldExceedFn = useCallback((key: LimitKey, count: number) => wouldExceedLimit(effectivePlanId, key, count), [effectivePlanId]);
+  const requiredPlanFn = useCallback((feature: FeatureKey) => minimumPlanFor(feature), []);
+  const upgradePlanFn = useCallback((key: LimitKey) => upgradePlanForLimit(key, planId), [planId]);
+  const isAtLeastFn = useCallback((tier: PlanId) => TIER_ORDER.indexOf(effectivePlanId) >= TIER_ORDER.indexOf(tier), [effectivePlanId]);
+  const isExactlyFn = useCallback((tier: PlanId) => effectivePlanId === tier, [effectivePlanId]);
+
+  const setPlan = useCallback((newPlan: WorkspacePlan) => setPlanState(newPlan), []);
+  const setPlanIdOnly = useCallback((id: PlanId) => setPlanState(prev => ({ ...prev, planId: id })), []);
+
+  const isTrial = !!trialActive;
+  const trialDaysRemaining = plan.trialEnd ? Math.max(0, Math.ceil((new Date(plan.trialEnd).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))) : 0;
+  const trialExpired = plan.isTrial && plan.trialEnd ? new Date(plan.trialEnd) <= new Date() : false;
 
   const startTrial = useCallback(() => {
     const trialEnd = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-    setPlan(prev => ({ ...prev, isTrial: true, trialEnd }));
-  }, []);
-
-  const requiredPlanFn = useCallback((feature: FeatureKey): PlanId => {
-    const order: PlanId[] = ['starter', 'pro', 'studio'];
-    for (const p of order) {
-      if (PLANS[p].features[feature]) return p;
-    }
-    return 'studio';
-  }, []);
-
-  const upgradePlanFn = useCallback((key: LimitKey): PlanId | null => {
-    const order: PlanId[] = ['starter', 'pro', 'studio'];
-    const currentIdx = order.indexOf(effectivePlanId);
-    for (let i = currentIdx + 1; i < order.length; i++) {
-      const lim = PLANS[order[i]].limits[key];
-      if (lim === null || (lim !== null && lim > (PLANS[effectivePlanId].limits[key] ?? 0))) return order[i];
-    }
-    return null;
-  }, [effectivePlanId]);
-
-  const formatLimitValue = useCallback((v: number | null): string => {
-    if (v === null) return 'unlimited';
-    return v.toString();
+    setPlanState(prev => ({ ...prev, isTrial: true, trialEnd }));
   }, []);
 
   return (
     <PlanContext.Provider value={{
-      plan, planId, planDef, setPlan,
-      can: canFn, limit: limitFn, atLimit: atLimitFn, wouldExceed: wouldExceedFn, isAtLeast: isAtLeastFn,
-      requiredPlan: requiredPlanFn, upgradePlan: upgradePlanFn, formatLimitValue,
+      plan, planId, planDef, effectivePlanId,
+      can, limit: limitFn, atLimit: atLimitFn, wouldExceed: wouldExceedFn,
+      requiredPlan: requiredPlanFn, upgradePlan: upgradePlanFn, formatLimitValue: formatLimit,
+      isAtLeast: isAtLeastFn, isExactly: isExactlyFn,
+      setPlan, setPlanId: setPlanIdOnly,
       isTrial, trialDaysRemaining, trialExpired, startTrial,
     }}>
       {children}
     </PlanContext.Provider>
   );
-}
-
-export function usePlan() {
-  const ctx = useContext(PlanContext);
-  if (!ctx) throw new Error('usePlan must be used within PlanProvider');
-  return ctx;
 }

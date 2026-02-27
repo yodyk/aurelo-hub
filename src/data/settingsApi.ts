@@ -19,3 +19,9 @@ export async function updatePlan(planId: PlanId): Promise<{
     trialEnd: null,
   };
 }
+
+// Generic settings persistence stub
+export async function saveSetting(key: string, value: any): Promise<void> {
+  // Stub — will be replaced with backend call
+  console.log(`[settingsApi] saveSetting: ${key}`, value);
+}
