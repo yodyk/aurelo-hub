@@ -1,10 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router";
-import { FolderKanban, Plus, DollarSign, Clock, CheckCircle2, ChevronDown, Search } from "lucide-react";
+import { FolderKanban, Plus, DollarSign, Clock, CheckCircle2, ChevronDown, Search, Loader2 } from "lucide-react";
 import { motion } from "motion/react";
 import { useData } from "../data/DataContext";
 import { AddProjectModal } from "../components/Modals";
-import { clientProjects as mockProjects } from "../data/mockData";
 import { toast } from "sonner";
 import { usePlan } from "../data/PlanContext";
 import { LimitEnforcementModal } from "../components/PlanEnforcement";
@@ -21,10 +20,23 @@ const item = {
 
 const statusColors: Record<string, { bg: string; text: string; dot: string }> = {
   "In Progress": { bg: "bg-primary/8", text: "text-primary", dot: "bg-primary" },
-  "Not Started": { bg: "bg-stone-100", text: "text-stone-600", dot: "bg-stone-400" },
-  "On Hold": { bg: "bg-stone-100", text: "text-stone-500", dot: "bg-stone-400" },
-  Complete: { bg: "bg-zinc-100", text: "text-zinc-500", dot: "bg-zinc-400" },
+  "Active": { bg: "bg-primary/8", text: "text-primary", dot: "bg-primary" },
+  "Not Started": { bg: "bg-stone-100 dark:bg-stone-800", text: "text-stone-600 dark:text-stone-400", dot: "bg-stone-400" },
+  "On Hold": { bg: "bg-stone-100 dark:bg-stone-800", text: "text-stone-500 dark:text-stone-400", dot: "bg-stone-400" },
+  Complete: { bg: "bg-zinc-100 dark:bg-zinc-800", text: "text-zinc-500 dark:text-zinc-400", dot: "bg-zinc-400" },
+  Archived: { bg: "bg-zinc-100 dark:bg-zinc-800", text: "text-zinc-500 dark:text-zinc-400", dot: "bg-zinc-400" },
 };
+
+function formatProjectDate(d: string | undefined): string {
+  if (!d) return "";
+  try {
+    const date = new Date(d);
+    if (isNaN(date.getTime())) return d;
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  } catch {
+    return d;
+  }
+}
 
 export default function Projects() {
   const navigate = useNavigate();
@@ -39,11 +51,8 @@ export default function Projects() {
   const [limitModalCount, setLimitModalCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  // Aggregate projects: remote first, fall back to mock
-  const [localProjects, setLocalProjects] = useState<any[]>([]);
 
   useEffect(() => {
-    // Wait for DataContext to finish its initial load before fetching projects
     if (dataLoading) return;
     loadAllProjects()
       .then(() => setLoading(false))
@@ -53,33 +62,17 @@ export default function Projects() {
       });
   }, [loadAllProjects, dataLoading]);
 
-  // Build the display list from allProjects + mock fallback
-  const projectsList = useMemo(() => {
-    // If we got remote projects, use them. Otherwise, flatten mock data.
-    if (allProjects.length > 0) {
-      return [...allProjects, ...localProjects];
-    }
-    // Flatten mock data
-    const mocked: any[] = [];
-    for (const [cid, projects] of Object.entries(mockProjects)) {
-      for (const p of projects as any[]) {
-        mocked.push({ ...p, clientId: cid });
-      }
-    }
-    return [...mocked, ...localProjects];
-  }, [allProjects, localProjects]);
-
   // Enrich with client name
   const enrichedProjects = useMemo(() => {
-    return projectsList.map((p) => {
+    return allProjects.map((p) => {
       const client = clients.find((c) => c.id === p.clientId);
       return {
         ...p,
-        clientName: client?.name || p.clientId || "Unknown",
+        clientName: client?.name || "Unknown",
         clientRate: client?.rate || 0,
       };
     });
-  }, [projectsList, clients]);
+  }, [allProjects, clients]);
 
   // Apply filters
   const filteredProjects = useMemo(() => {
@@ -138,12 +131,21 @@ export default function Projects() {
         return;
       }
     }
-    const saved = await addProject(clientId, project);
-    setLocalProjects((prev) => [...prev, { ...saved, clientId }]);
-    // Reload from server
+    await addProject(clientId, project);
     loadAllProjects();
     toast.success("Project added");
+    toast.success("Project added");
   };
+
+  if (loading || dataLoading) {
+    return (
+      <div className="max-w-7xl mx-auto px-6 lg:px-12 py-12">
+        <div className="flex items-center justify-center py-24">
+          <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -174,7 +176,7 @@ export default function Projects() {
       </motion.div>
 
       {/* Summary Cards */}
-      <motion.div variants={item} className="grid grid-cols-4 gap-4 mb-8">
+      <motion.div variants={item} className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <div className="bg-card border border-border rounded-xl p-6 group hover:-translate-y-0.5 transition-all duration-300 shadow-[0_1px_4px_rgba(0,0,0,0.03),0_1px_2px_rgba(0,0,0,0.02)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.05),0_1px_3px_rgba(0,0,0,0.03)]">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-8 h-8 rounded-lg bg-accent/60 flex items-center justify-center group-hover:bg-primary/8 transition-colors">
@@ -423,8 +425,8 @@ export default function Projects() {
                       </td>
                       <td className="px-4 py-4">
                         <div className="text-[13px] text-muted-foreground">
-                          {project.startDate}
-                          {project.endDate ? ` \u2014 ${project.endDate}` : ""}
+                          {formatProjectDate(project.startDate)}
+                          {project.endDate ? ` — ${formatProjectDate(project.endDate)}` : ""}
                         </div>
                       </td>
                     </motion.tr>
