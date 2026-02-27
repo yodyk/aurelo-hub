@@ -85,3 +85,15 @@ export async function updateProject(clientId: string, projectId: string, updates
 export async function loadAllProjects() {
   return Object.values(sampleProjects).flat();
 }
+
+export async function loadFiles(_clientId: string) {
+  return [] as any[];
+}
+
+export async function uploadFile(_clientId: string, _file: File) {
+  return { name: _file.name, size: _file.size, url: URL.createObjectURL(_file), createdAt: new Date().toISOString() };
+}
+
+export async function deleteFile(_clientId: string, _fileName: string) {
+  // stub
+}
