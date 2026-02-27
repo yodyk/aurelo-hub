@@ -59,6 +59,7 @@ import {
 } from "../data/mockData";
 import * as api from "../data/settingsApi";
 import { useTheme } from "../data/ThemeContext";
+import { useAuth } from "../data/AuthContext";
 import { useData } from "../data/DataContext";
 import {
   type IdentityType,
@@ -217,16 +218,31 @@ function useSettingsSection<T>(section: string, fallback: T): [T, boolean, (v: T
   return [data, loading, setData];
 }
 
+// ── Role-based tab access ────────────────────────────────────────────
+const TAB_ACCESS: Record<TabId, string[]> = {
+  profile: ["Owner", "Admin", "Member"],
+  workspace: ["Owner", "Admin"],
+  financial: ["Owner", "Admin"],
+  billing: ["Owner"],
+  team: ["Owner", "Admin"],
+  notifications: ["Owner", "Admin", "Member"],
+  integrations: ["Owner", "Admin"],
+  data: ["Owner"],
+};
+
 // ── Main Settings ───────────────────────────────────────────────────
 export default function Settings() {
+  const { workspaceRole } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
+  const role = workspaceRole || "Member";
+  const visibleTabs = tabs.filter((t) => TAB_ACCESS[t.id].includes(role));
   const initialTab = (searchParams.get("tab") as TabId) || "profile";
-  const [activeTab, setActiveTab] = useState<TabId>(tabs.some((t) => t.id === initialTab) ? initialTab : "profile");
+  const [activeTab, setActiveTab] = useState<TabId>(visibleTabs.some((t) => t.id === initialTab) ? initialTab : "profile");
 
   // Sync from URL → state (when navigating to /settings?tab=billing from elsewhere)
   useEffect(() => {
     const urlTab = searchParams.get("tab") as TabId;
-    if (urlTab && tabs.some((t) => t.id === urlTab) && urlTab !== activeTab) {
+    if (urlTab && visibleTabs.some((t) => t.id === urlTab) && urlTab !== activeTab) {
       setActiveTab(urlTab);
     }
   }, [searchParams]);
@@ -253,7 +269,7 @@ export default function Settings() {
         {/* Vertical tab nav */}
         <motion.nav variants={item} className="w-52 flex-shrink-0">
           <div className="sticky top-[80px] space-y-0.5">
-            {tabs.map((tab) => {
+            {visibleTabs.map((tab) => {
               const isActive = activeTab === tab.id;
               return (
                 <button
