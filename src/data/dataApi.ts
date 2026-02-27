@@ -1,6 +1,6 @@
 // ── Data API — real Supabase queries ─────────────────────────────────
 import { supabase } from '@/integrations/supabase/client';
-
+import * as storage from './storageApi';
 // ── Helpers ─────────────────────────────────────────────────────────
 
 function snakeToCamel(row: Record<string, any>): Record<string, any> {
@@ -92,10 +92,12 @@ function formatSessionRow(row: any): any {
 // ── Init (bulk load) ────────────────────────────────────────────────
 
 export async function loadInitData(workspaceId: string) {
-  const [clientsRes, sessionsRes, settingsRes] = await Promise.all([
+  const [clientsRes, sessionsRes, settingsRes, avatarUrl, logoUrls] = await Promise.all([
     supabase.from('clients').select('*').eq('workspace_id', workspaceId).order('name'),
     supabase.from('sessions').select('*, clients!inner(name)').eq('workspace_id', workspaceId).order('date', { ascending: false }).limit(500),
     supabase.from('workspace_settings').select('section, data').eq('workspace_id', workspaceId),
+    storage.getAvatarUrl(workspaceId),
+    storage.getLogoUrls(workspaceId),
   ]);
 
   const clients = (clientsRes.data || []).map(snakeToCamel);
@@ -124,8 +126,11 @@ export async function loadInitData(workspaceId: string) {
   return {
     clients,
     sessions,
-    avatar: null, // TODO: storage integration
-    logos: { app: null, email: null },
+    avatar: avatarUrl ? { url: avatarUrl, fileName: 'avatar' } : null,
+    logos: {
+      app: logoUrls.app ? { url: logoUrls.app, fileName: logoUrls.app.split('/').pop() || 'app.png' } : null,
+      email: logoUrls.email ? { url: logoUrls.email, fileName: logoUrls.email.split('/').pop() || 'email.png' } : null,
+    },
     settings: {
       financial: settingsMap.financial || null,
       identity: settingsMap.identity || null,
