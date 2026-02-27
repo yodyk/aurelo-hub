@@ -79,7 +79,7 @@ const container = {
 };
 const item = {
   hidden: { opacity: 0, y: 8 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.25, 0.1, 0.25, 1] } },
+  show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.25, 0.1, 0.25, 1] as const } },
 };
 
 // ── Tab definitions ────────────────────────────────────────────────
@@ -766,13 +766,14 @@ function WorkspaceTab() {
 
 // ── Identity & Work Categories Section ──────────────────────────────
 const IDENTITY_ICONS: Record<IdentityType, typeof Palette> = {
-  Designer: Palette,
-  Developer: Code2,
-  Marketer: Megaphone,
-  Creative: Sparkles,
-  Consultant: MessageCircle,
-  Product: Box,
-  Agency: Building,
+  designer: Palette,
+  developer: Code2,
+  copywriter: Pencil,
+  consultant: MessageCircle,
+  photographer: ImageIcon,
+  videographer: Sparkles,
+  marketer: Megaphone,
+  other: Box,
 };
 
 function IdentitySection() {
@@ -791,7 +792,7 @@ function IdentitySection() {
 
   // Normalize identity to match IdentityType casing (e.g. "designer" → "Designer")
   const normalizedIdentity = identity
-    ? ((IDENTITY_OPTIONS.find((o) => o.id.toLowerCase() === identity.toLowerCase())?.id ?? identity) as IdentityType)
+    ? ((IDENTITY_OPTIONS.find((o) => o.value.toLowerCase() === identity.toLowerCase())?.value ?? identity) as IdentityType)
     : null;
 
   const handleSelectPreset = (preset: IdentityType) => {
@@ -897,7 +898,7 @@ function IdentitySection() {
                   {normalizedIdentity}
                 </div>
                 <div className="text-[12px] text-muted-foreground">
-                  {IDENTITY_OPTIONS.find((o) => o.id === normalizedIdentity)?.description}
+                  {IDENTITY_OPTIONS.find((o) => o.value === normalizedIdentity)?.label}
                 </div>
               </div>
             </div>
@@ -937,12 +938,12 @@ function IdentitySection() {
           >
             <div className="grid grid-cols-2 gap-2">
               {IDENTITY_OPTIONS.map((option) => {
-                const OptIcon = IDENTITY_ICONS[option.id];
-                const isActive = normalizedIdentity === option.id;
+                const OptIcon = IDENTITY_ICONS[option.value];
+                const isActive = normalizedIdentity === option.value;
                 return (
                   <button
-                    key={option.id}
-                    onClick={() => handleSelectPreset(option.id)}
+                    key={option.value}
+                    onClick={() => handleSelectPreset(option.value)}
                     disabled={saving}
                     className={`text-left px-4 py-3 rounded-lg border transition-all ${
                       isActive
@@ -956,7 +957,7 @@ function IdentitySection() {
                         <div className="text-[13px]" style={{ fontWeight: 500 }}>
                           {option.label}
                         </div>
-                        <div className="text-[11px] text-muted-foreground">{option.description}</div>
+                        <div className="text-[11px] text-muted-foreground">{option.emoji} {option.label}</div>
                       </div>
                     </div>
                   </button>
@@ -1983,7 +1984,7 @@ function DataTab() {
   const [seeding, setSeeding] = useState(false);
   const { refresh } = useData();
   const { can, planId: currentPlanId, setPlan, plan: currentPlan } = usePlan();
-  const canExport = can("dataExport");
+  const canExport = can("pdfExport");
 
   const handleExport = async (type: string, label: string) => {
     setExporting(type);
