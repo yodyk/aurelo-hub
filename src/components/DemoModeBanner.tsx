@@ -39,6 +39,7 @@ export function DemoModeBanner({ onClearDemo, onRestartTour }: DemoModeBannerPro
       >
         {/* Main pill row */}
         <div className="flex items-center gap-3 px-4 py-2.5">
+          {/* Demo indicator dot */}
           <div className="flex items-center gap-2">
             <div className="relative">
               <div className="w-2 h-2 rounded-full bg-[#5ea1bf]" />
@@ -54,6 +55,7 @@ export function DemoModeBanner({ onClearDemo, onRestartTour }: DemoModeBannerPro
 
           <div className="w-px h-4 bg-black/[0.06]" />
 
+          {/* Replay tour */}
           <button
             onClick={onRestartTour}
             className="flex items-center gap-1.5 text-[12px] text-[#78716c] hover:text-[#1c1c1c] transition-colors whitespace-nowrap"
@@ -65,6 +67,7 @@ export function DemoModeBanner({ onClearDemo, onRestartTour }: DemoModeBannerPro
 
           <div className="w-px h-4 bg-black/[0.06]" />
 
+          {/* Start workspace CTA */}
           {!confirming ? (
             <button
               onClick={handleClear}
