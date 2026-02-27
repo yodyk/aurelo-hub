@@ -711,6 +711,14 @@ export type Database = {
     }
     Functions: {
       get_user_workspace_ids: { Args: never; Returns: string[] }
+      recalculate_all_client_aggregates: {
+        Args: { p_workspace_id: string }
+        Returns: undefined
+      }
+      recalculate_client_aggregates: {
+        Args: { p_client_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
