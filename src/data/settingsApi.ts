@@ -31,3 +31,8 @@ export async function loadSetting(key: string): Promise<any> {
   console.log(`[settingsApi] loadSetting: ${key}`);
   return null;
 }
+
+export async function clearDemoData(): Promise<void> {
+  // Stub — will clear demo data from backend when connected
+  console.log('[settingsApi] clearDemoData called');
+}
