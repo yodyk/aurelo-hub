@@ -1,5 +1,4 @@
-import { BASE, authHeaders } from './apiHeaders';
-import { getAccessToken } from './authService';
+import { supabase } from '@/integrations/supabase/client';
 
 // ── Invoice Types ──────────────────────────────────────────────────
 
@@ -11,13 +10,12 @@ export interface LineItem {
   quantity: number;
   rate: number;
   amount: number;
-  /** Session IDs this line was generated from (for traceability) */
   sessionIds?: string[];
 }
 
 export interface Invoice {
   id: string;
-  number: string;                   // e.g. "INV-1001"
+  number: string;
   clientId: string;
   clientName: string;
   clientEmail?: string;
@@ -26,153 +24,200 @@ export interface Invoice {
   status: InvoiceStatus;
   lineItems: LineItem[];
   subtotal: number;
-  taxRate: number;                  // decimal, e.g. 0.10
+  taxRate: number;
   taxAmount: number;
   total: number;
   currency: string;
-  dueDate: string;                  // ISO string
-  issuedDate: string;               // ISO string
+  dueDate: string;
+  issuedDate: string;
   paidDate?: string;
   notes?: string;
   paymentTerms?: string;
-
-  // ── Stripe integration fields (nullable until connected) ──────
   stripeInvoiceId: string | null;
   stripeCustomerId: string | null;
   stripePaymentUrl: string | null;
-
-  // ── Branding (pulled from workspace settings) ─────────────────
   fromName?: string;
   fromEmail?: string;
   fromAddress?: string;
-
-  // ── Metadata ──────────────────────────────────────────────────
   createdAt: string;
   updatedAt: string;
-  /** Session IDs used to create this invoice (for "already invoiced" tracking) */
   createdFromSessions?: string[];
+}
+
+// ── Helpers ────────────────────────────────────────────────────────
+
+async function getWorkspaceId(): Promise<string | null> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+  const { data } = await supabase
+    .from('workspace_members')
+    .select('workspace_id')
+    .eq('user_id', user.id)
+    .eq('status', 'active')
+    .limit(1)
+    .maybeSingle();
+  return data?.workspace_id ?? null;
+}
+
+function rowToInvoice(r: any): Invoice {
+  return {
+    id: r.id,
+    number: r.number,
+    clientId: r.client_id,
+    clientName: r.client_name || '',
+    clientEmail: r.client_email || undefined,
+    projectId: r.project_id || undefined,
+    projectName: r.project_name || undefined,
+    status: r.status as InvoiceStatus,
+    lineItems: (Array.isArray(r.line_items) ? r.line_items : []) as LineItem[],
+    subtotal: Number(r.subtotal) || 0,
+    taxRate: Number(r.tax_rate) || 0,
+    taxAmount: Number(r.tax_amount) || 0,
+    total: Number(r.total) || 0,
+    currency: r.currency || 'USD',
+    dueDate: r.due_date || '',
+    issuedDate: r.issued_date || '',
+    paidDate: r.paid_date || undefined,
+    notes: r.notes || undefined,
+    paymentTerms: r.payment_terms || undefined,
+    stripeInvoiceId: r.stripe_invoice_id,
+    stripeCustomerId: r.stripe_customer_id,
+    stripePaymentUrl: r.stripe_payment_url,
+    fromName: r.from_name || undefined,
+    fromEmail: r.from_email || undefined,
+    fromAddress: r.from_address || undefined,
+    createdAt: r.created_at,
+    updatedAt: r.updated_at,
+    createdFromSessions: r.created_from_sessions || undefined,
+  };
+}
+
+function invoiceToRow(inv: Partial<Invoice>): Record<string, any> {
+  const row: Record<string, any> = {};
+  if (inv.number !== undefined) row.number = inv.number;
+  if (inv.clientId !== undefined) row.client_id = inv.clientId;
+  if (inv.clientName !== undefined) row.client_name = inv.clientName;
+  if (inv.clientEmail !== undefined) row.client_email = inv.clientEmail;
+  if (inv.projectId !== undefined) row.project_id = inv.projectId;
+  if (inv.projectName !== undefined) row.project_name = inv.projectName;
+  if (inv.status !== undefined) row.status = inv.status;
+  if (inv.lineItems !== undefined) row.line_items = inv.lineItems;
+  if (inv.subtotal !== undefined) row.subtotal = inv.subtotal;
+  if (inv.taxRate !== undefined) row.tax_rate = inv.taxRate;
+  if (inv.taxAmount !== undefined) row.tax_amount = inv.taxAmount;
+  if (inv.total !== undefined) row.total = inv.total;
+  if (inv.currency !== undefined) row.currency = inv.currency;
+  if (inv.dueDate !== undefined) row.due_date = inv.dueDate;
+  if (inv.issuedDate !== undefined) row.issued_date = inv.issuedDate;
+  if (inv.paidDate !== undefined) row.paid_date = inv.paidDate;
+  if (inv.notes !== undefined) row.notes = inv.notes;
+  if (inv.paymentTerms !== undefined) row.payment_terms = inv.paymentTerms;
+  if (inv.fromName !== undefined) row.from_name = inv.fromName;
+  if (inv.fromEmail !== undefined) row.from_email = inv.fromEmail;
+  if (inv.fromAddress !== undefined) row.from_address = inv.fromAddress;
+  if (inv.createdFromSessions !== undefined) row.created_from_sessions = inv.createdFromSessions;
+  return row;
 }
 
 // ── API functions ──────────────────────────────────────────────────
 
 export async function loadInvoices(): Promise<Invoice[]> {
-  const token = await getAccessToken();
-  if (!token) return [];
-  const res = await fetch(`${BASE}/invoices`, { headers: await authHeaders(false) });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    console.error('[invoiceApi] loadInvoices failed:', res.status, err);
+  const wsId = await getWorkspaceId();
+  if (!wsId) return [];
+  const { data, error } = await supabase
+    .from('invoices')
+    .select('*')
+    .eq('workspace_id', wsId)
+    .order('created_at', { ascending: false });
+  if (error) {
+    console.error('[invoiceApi] loadInvoices failed:', error);
     return [];
   }
-  const { data } = await res.json();
-  return data || [];
+  return (data || []).map(rowToInvoice);
 }
 
 export async function getInvoice(invoiceId: string): Promise<Invoice | null> {
-  const res = await fetch(`${BASE}/invoices/${invoiceId}`, { headers: await authHeaders(false) });
-  if (!res.ok) return null;
-  const { data } = await res.json();
-  return data || null;
+  const { data, error } = await supabase
+    .from('invoices')
+    .select('*')
+    .eq('id', invoiceId)
+    .maybeSingle();
+  if (error || !data) return null;
+  return rowToInvoice(data);
 }
 
 export async function createInvoice(invoice: Partial<Invoice>): Promise<Invoice> {
-  const res = await fetch(`${BASE}/invoices`, {
-    method: 'POST',
-    headers: await authHeaders(),
-    body: JSON.stringify(invoice),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || 'Failed to create invoice');
-  }
-  const { data } = await res.json();
-  return data;
+  const wsId = await getWorkspaceId();
+  if (!wsId) throw new Error('No workspace found');
+  const row = invoiceToRow(invoice);
+  row.workspace_id = wsId;
+  const { data, error } = await supabase
+    .from('invoices')
+    .insert(row as any)
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return rowToInvoice(data);
 }
 
 export async function updateInvoice(invoiceId: string, updates: Partial<Invoice>): Promise<Invoice> {
-  const res = await fetch(`${BASE}/invoices/${invoiceId}`, {
-    method: 'PUT',
-    headers: await authHeaders(),
-    body: JSON.stringify(updates),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || 'Failed to update invoice');
-  }
-  const { data } = await res.json();
-  return data;
+  const row = invoiceToRow(updates);
+  row.updated_at = new Date().toISOString();
+  const { data, error } = await supabase
+    .from('invoices')
+    .update(row)
+    .eq('id', invoiceId)
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return rowToInvoice(data);
 }
 
 export async function deleteInvoice(invoiceId: string): Promise<void> {
-  const res = await fetch(`${BASE}/invoices/${invoiceId}`, {
-    method: 'DELETE',
-    headers: await authHeaders(),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || 'Failed to delete invoice');
-  }
+  const { error } = await supabase
+    .from('invoices')
+    .delete()
+    .eq('id', invoiceId);
+  if (error) throw new Error(error.message);
 }
 
-/**
- * Mark invoice as sent.
- * 
- * STRIPE INTEGRATION POINT:
- * When Stripe is connected, this will:
- *   1. Create/finalize the Stripe invoice via API
- *   2. Send the invoice email via Stripe
- *   3. Store the stripeInvoiceId back on our record
- * 
- * Until then, this just updates status to 'sent' and sets issuedDate.
- */
 export async function sendInvoice(invoiceId: string): Promise<Invoice> {
-  const res = await fetch(`${BASE}/invoices/${invoiceId}/send`, {
-    method: 'POST',
-    headers: await authHeaders(),
+  return updateInvoice(invoiceId, {
+    status: 'sent',
+    issuedDate: new Date().toISOString(),
   });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || 'Failed to send invoice');
-  }
-  const { data } = await res.json();
-  return data;
 }
 
-/** Manually mark as paid (or via Stripe webhook when connected) */
 export async function markPaid(invoiceId: string): Promise<Invoice> {
-  const res = await fetch(`${BASE}/invoices/${invoiceId}/mark-paid`, {
-    method: 'POST',
-    headers: await authHeaders(),
+  return updateInvoice(invoiceId, {
+    status: 'paid',
+    paidDate: new Date().toISOString(),
   });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || 'Failed to mark invoice as paid');
-  }
-  const { data } = await res.json();
-  return data;
 }
 
-/** Void an invoice */
 export async function voidInvoice(invoiceId: string): Promise<Invoice> {
-  const res = await fetch(`${BASE}/invoices/${invoiceId}/void`, {
-    method: 'POST',
-    headers: await authHeaders(),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || 'Failed to void invoice');
-  }
-  const { data } = await res.json();
-  return data;
+  return updateInvoice(invoiceId, { status: 'voided' });
 }
 
-/**
- * Get next invoice number for the workspace.
- * Returns the next sequential number like "INV-1001".
- */
 export async function getNextInvoiceNumber(): Promise<string> {
-  const res = await fetch(`${BASE}/invoices/next-number`, { headers: await authHeaders(false) });
-  if (!res.ok) return `INV-${Date.now().toString().slice(-4)}`;
-  const { data } = await res.json();
-  return data?.number || `INV-${Date.now().toString().slice(-4)}`;
+  const wsId = await getWorkspaceId();
+  if (!wsId) return `INV-${Date.now().toString().slice(-4)}`;
+
+  const { data, error } = await supabase
+    .from('invoice_sequences')
+    .select('next_number')
+    .eq('workspace_id', wsId)
+    .maybeSingle();
+
+  if (error || !data) return `INV-${Date.now().toString().slice(-4)}`;
+
+  const num = data.next_number;
+
+  // Increment
+  await supabase
+    .from('invoice_sequences')
+    .update({ next_number: num + 1 })
+    .eq('workspace_id', wsId);
+
+  return `INV-${num}`;
 }
