@@ -1,4 +1,4 @@
-const AureloLogo = ({ collapsed = false }: { collapsed?: boolean }) => {
+export function AureloLogo({ className = "h-5", collapsed = false }: { className?: string; collapsed?: boolean }) {
   if (collapsed) {
     return (
       <svg viewBox="0 0 32 32" fill="none" className="h-8 w-8" xmlns="http://www.w3.org/2000/svg">
@@ -9,14 +9,25 @@ const AureloLogo = ({ collapsed = false }: { collapsed?: boolean }) => {
   }
 
   return (
-    <div className="flex items-center gap-2.5">
-      <svg viewBox="0 0 32 32" fill="none" className="h-7 w-7 shrink-0" xmlns="http://www.w3.org/2000/svg">
-        <rect width="32" height="32" rx="8" className="fill-primary" />
-        <text x="16" y="22" textAnchor="middle" className="fill-primary-foreground" style={{ fontSize: 18, fontWeight: 700, fontFamily: 'Inter' }}>A</text>
-      </svg>
-      <span className="text-lg font-semibold tracking-tight text-foreground">aurelo</span>
-    </div>
+    <svg
+      className={className}
+      viewBox="0 0 218.26 58.48"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="currentColor"
+    >
+      <g>
+        <path d="M0,46.59c0-7.03,5.1-11.43,14.14-12.13l11.43-.85v-.85c0-5.18-3.09-7.26-7.88-7.26-5.56,0-8.65,2.32-8.65,6.33H1c0-8.27,6.8-13.67,17.15-13.67s16.61,5.56,16.61,16.15v23.18h-8.27l-.7-5.64c-1.62,3.94-6.8,6.64-12.75,6.64-8.11,0-13.06-4.71-13.06-11.9ZM25.65,42.03v-2.01l-7.96.62c-5.87.54-8.11,2.47-8.11,5.56,0,3.48,2.32,5.18,6.57,5.18,5.79,0,9.5-3.48,9.5-9.35Z"/>
+        <path d="M75.39,19.31v38.16h-8.73l-.7-5.1c-2.32,3.63-7.26,6.1-12.36,6.1-8.81,0-13.98-5.95-13.98-15.3v-23.87h9.43v20.55c0,7.26,2.86,10.2,8.11,10.2,5.95,0,8.81-3.48,8.81-10.74v-20.01h9.42Z"/>
+        <path d="M105.04,27.89h-3.48c-6.8,0-11.05,3.63-11.05,11.05v18.54h-9.42V19.39h8.88l.54,5.56c1.62-3.79,5.25-6.33,10.35-6.33,1.31,0,2.63.15,4.17.54v8.73Z"/>
+        <path d="M104.93,38.4c0-11.97,7.8-20.24,19-20.24s18.7,7.65,18.7,19.55v2.86l-28.74.08c.7,6.72,4.25,10.12,10.51,10.12,5.18,0,8.58-2.01,9.66-5.64h8.73c-1.62,8.34-8.58,13.37-18.54,13.37-11.36,0-19.31-8.27-19.31-20.09ZM114.12,34.61h19.16c0-5.25-3.63-8.73-9.27-8.73s-8.96,3.01-9.89,8.73Z"/>
+        <path d="M146.63,57.48V0h9.35v57.48h-9.35Z"/>
+        <path d="M180.05,18.23c11.82,0,20.39,8.19,20.39,20.09s-8.58,20.09-20.39,20.09-20.4-8.19-20.4-20.09,8.58-20.09,20.4-20.09ZM180.05,49.98c6.49,0,10.97-4.71,10.97-11.67s-4.48-11.67-10.97-11.67-10.97,4.71-10.97,11.67,4.48,11.67,10.97,11.67Z"/>
+        <polygon points="190.25 1.91 187.59 14.92 182.58 14.11 185.23 1.1 190.25 1.91"/>
+        <polygon points="209.53 13.07 199.5 22.93 195.94 19.31 205.96 9.46 209.53 13.07"/>
+        <polygon points="218.26 34.73 204.49 36.29 203.75 31.27 217.53 29.7 218.26 34.73"/>
+      </g>
+    </svg>
   );
-};
+}
 
 export default AureloLogo;
