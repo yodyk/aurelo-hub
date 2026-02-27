@@ -5,9 +5,11 @@ import { Menu } from "lucide-react";
 import { AuthProvider } from "@/data/AuthContext";
 import { DataProvider } from "@/data/DataContext";
 import { PlanProvider } from "@/data/PlanContext";
+import { ThemeProvider } from "@/data/ThemeContext";
 
 export default function Root() {
   return (
+    <ThemeProvider>
     <AuthProvider>
       <DataProvider>
         <PlanProvider>
@@ -29,5 +31,6 @@ export default function Root() {
         </PlanProvider>
       </DataProvider>
     </AuthProvider>
+    </ThemeProvider>
   );
 }
