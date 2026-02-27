@@ -142,7 +142,7 @@ const TABS: { id: TabId; label: string; icon: any }[] = [
 export default function ProjectDetail() {
   const { clientId, projectId } = useParams();
   const navigate = useNavigate();
-  const { clients, sessions, allProjects, loadAllProjects, loadProjectsForClient, updateProject } = useData();
+  const { workspaceId, clients, sessions, allProjects, loadAllProjects, loadProjectsForClient, updateProject } = useData();
   const { can } = usePlan();
 
   const [loading, setLoading] = useState(true);
@@ -181,7 +181,7 @@ export default function ProjectDetail() {
 
     loadAllProjects().catch(() => {});
 
-    Promise.all([loadProjectsForClient(clientId), dataApi.loadFiles(clientId)])
+    Promise.all([loadProjectsForClient(clientId), workspaceId ? dataApi.loadFiles(workspaceId, clientId) : Promise.resolve([])])
       .then(([loadedProjects, loadedFiles]) => {
         if (!mounted) return;
         setProjects(loadedProjects);
@@ -405,7 +405,7 @@ export default function ProjectDetail() {
     if (!file || !clientId) return;
     setUploading(true);
     try {
-      const saved = await dataApi.uploadFile(clientId, file);
+      const saved = await dataApi.uploadFile(workspaceId!, clientId, file);
       setFiles((prev) => [...prev, saved]);
       toast.success("File uploaded");
     } catch (err) {

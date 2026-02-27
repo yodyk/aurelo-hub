@@ -14,6 +14,7 @@ export interface FinancialDefaults {
 }
 
 interface DataContextType {
+  workspaceId: string | null;
   clients: any[];
   sessions: any[];
   loading: boolean;
@@ -61,7 +62,7 @@ const FALLBACK_CATEGORIES: WorkCategory[] = [
 const DataContext = createContext<DataContextType | null>(null);
 
 const safeDefaults: DataContextType = {
-  clients: [], sessions: [], loading: true,
+  workspaceId: null, clients: [], sessions: [], loading: true,
   financialDefaults: DEFAULT_FINANCIALS,
   netMultiplier: 1 - DEFAULT_FINANCIALS.taxRate - DEFAULT_FINANCIALS.processingFeeRate,
   identity: null, identityLoaded: false,
@@ -288,7 +289,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   return (
     <DataContext.Provider value={{
-      clients, sessions, loading, financialDefaults, netMultiplier,
+      workspaceId, clients, sessions, loading, financialDefaults, netMultiplier,
       identity, identityLoaded, workCategories, workCategoryNames,
       setIdentityAndCategories: handleSetIdentityAndCategories,
       updateWorkCategories: handleUpdateWorkCategories,

@@ -263,16 +263,6 @@ export async function loadAllProjects(workspaceId: string) {
   return (data || []).map(snakeToCamel);
 }
 
-// ── Files (storage — stub until buckets configured) ─────────────────
+// ── Files (delegated to storageApi) ─────────────────────────────────
 
-export async function loadFiles(_clientId: string) {
-  return [] as any[];
-}
-
-export async function uploadFile(_clientId: string, _file: File) {
-  return { name: _file.name, size: _file.size, url: URL.createObjectURL(_file), createdAt: new Date().toISOString() };
-}
-
-export async function deleteFile(_clientId: string, _fileName: string) {
-  // stub until storage buckets are set up
-}
+export { loadFiles, uploadFile, deleteFile } from './storageApi';
