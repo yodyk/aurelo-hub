@@ -20,13 +20,14 @@ import { seedDemoData } from "../data/settingsApi";
 import { type IdentityType, IDENTITY_OPTIONS, getCategoriesForIdentity } from "../data/identityPresets";
 
 const IDENTITY_ICONS: Record<IdentityType, typeof Palette> = {
-  Designer: Palette,
-  Developer: Code2,
-  Marketer: Megaphone,
-  Creative: Sparkles,
-  Consultant: MessageCircle,
-  Product: Box,
-  Agency: Building,
+  designer: Palette,
+  developer: Code2,
+  copywriter: Sparkles,
+  consultant: MessageCircle,
+  photographer: Box,
+  videographer: Building,
+  marketer: Megaphone,
+  other: Code2,
 };
 
 const container = {
@@ -36,7 +37,7 @@ const container = {
 
 const item = {
   hidden: { opacity: 0, y: 10 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.25, 0.1, 0.25, 1] } },
+  show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.25, 0.1, 0.25, 1] as const } },
 };
 
 export default function Onboarding() {
@@ -148,14 +149,14 @@ export default function Onboarding() {
                   initial="hidden"
                   animate="show"
                 >
-                  {IDENTITY_OPTIONS.map((option) => {
-                    const Icon = IDENTITY_ICONS[option.id];
-                    const isSelected = selected === option.id;
+                {IDENTITY_OPTIONS.map((option) => {
+                    const Icon = IDENTITY_ICONS[option.value];
+                    const isSelected = selected === option.value;
                     return (
                       <motion.button
-                        key={option.id}
+                        key={option.value}
                         variants={item}
-                        onClick={() => setSelected(option.id)}
+                        onClick={() => setSelected(option.value)}
                         className={`relative text-left px-5 py-4 rounded-xl border-[1.5px] transition-all duration-200 group ${
                           isSelected
                             ? "bg-white border-[#5ea1bf]/40 ring-2 ring-[#5ea1bf]/10"
@@ -194,7 +195,7 @@ export default function Onboarding() {
                             >
                               {option.label}
                             </div>
-                            <div className="text-[12px] text-[#78716c] leading-snug">{option.description}</div>
+                            <div className="text-[12px] text-[#78716c] leading-snug">{option.emoji} {option.label}</div>
                           </div>
                         </div>
                       </motion.button>
