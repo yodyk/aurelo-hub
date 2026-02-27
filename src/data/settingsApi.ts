@@ -15,7 +15,7 @@ async function resolveWorkspaceId(): Promise<string | null> {
     .eq('user_id', user.id)
     .eq('status', 'active')
     .limit(1)
-    .single();
+    .maybeSingle();
   return data?.workspace_id || null;
 }
 
@@ -56,7 +56,7 @@ export async function loadSetting(key: string, workspaceId?: string): Promise<an
     .select('data')
     .eq('workspace_id', wsId)
     .eq('section', key)
-    .single();
+    .maybeSingle();
   if (error) return null;
   return data?.data || null;
 }
