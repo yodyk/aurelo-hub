@@ -1,6 +1,6 @@
 import { motion } from "motion/react";
 import { containerVariants, itemVariants } from "@/lib/motion";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link } from "react-router";
 import { ArrowLeft } from "lucide-react";
 
 export default function ClientDetail() {
