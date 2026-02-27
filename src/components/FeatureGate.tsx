@@ -6,38 +6,65 @@ import { usePlan } from '../data/PlanContext';
 import { type FeatureKey, type LimitKey, type PlanId, PLANS } from '../data/plans';
 
 // ── FeatureGate ────────────────────────────────────────────────────
+// Wraps content that requires a specific feature. If the feature isn't
+// available on the current plan, shows an upgrade prompt instead.
+
 interface FeatureGateProps {
+  /** The feature key to check */
   feature: FeatureKey;
+  /** Content to render if the feature is available */
   children: ReactNode;
+  /** Optional: custom fallback instead of the default upgrade card */
   fallback?: ReactNode;
+  /** If true, renders nothing instead of an upgrade prompt (for subtle hiding) */
   hideIfLocked?: boolean;
+  /** Optional: label to show in the upgrade prompt */
   featureLabel?: string;
 }
 
 export function FeatureGate({ feature, children, fallback, hideIfLocked, featureLabel }: FeatureGateProps) {
   const { can, requiredPlan } = usePlan();
-  if (can(feature)) return <>{children}</>;
+
+  if (can(feature)) {
+    return <>{children}</>;
+  }
+
   if (hideIfLocked) return null;
   if (fallback) return <>{fallback}</>;
+
   const required = requiredPlan(feature);
   return <UpgradePrompt feature={feature} requiredPlan={required} label={featureLabel} />;
 }
 
 // ── LimitGate ──────────────────────────────────────────────────────
+// Checks if adding an item would exceed a plan limit. Wraps the "add"
+// action (e.g., "Add Client" button) to show upgrade prompt instead.
+
 interface LimitGateProps {
+  /** The limit key to check */
   limit: LimitKey;
+  /** Current count of items */
   currentCount: number;
+  /** The "add" button/action to render if within limits */
   children: ReactNode;
+  /** Optional: custom fallback */
   fallback?: ReactNode;
+  /** Optional: label for the upgrade prompt */
   limitLabel?: string;
 }
 
 export function LimitGate({ limit, currentCount, children, fallback, limitLabel }: LimitGateProps) {
   const { wouldExceed, upgradePlan, planId, formatLimitValue, limit: getLimit } = usePlan();
-  if (!wouldExceed(limit, currentCount)) return <>{children}</>;
+
+  if (!wouldExceed(limit, currentCount)) {
+    return <>{children}</>;
+  }
+
   if (fallback) return <>{fallback}</>;
+
   const nextPlan = upgradePlan(limit);
   const currentMax = getLimit(limit);
+
   return (
     <LimitUpgradePrompt
       limitLabel={limitLabel || limit}
@@ -50,6 +77,8 @@ export function LimitGate({ limit, currentCount, children, fallback, limitLabel 
 }
 
 // ── UpgradePrompt ──────────────────────────────────────────────────
+// The default card shown when a feature is locked.
+
 function UpgradePrompt({ feature, requiredPlan, label }: { feature: FeatureKey; requiredPlan: PlanId; label?: string }) {
   const navigate = useNavigate();
   const plan = PLANS[requiredPlan];
@@ -63,8 +92,8 @@ function UpgradePrompt({ feature, requiredPlan, label }: { feature: FeatureKey; 
       className="border border-border rounded-xl p-6 bg-card text-center max-w-md mx-auto"
       style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}
     >
-      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-        <Lock className="w-4.5 h-4.5 text-primary" />
+      <div className="w-10 h-10 rounded-xl bg-[#5ea1bf]/10 flex items-center justify-center mx-auto mb-4">
+        <Lock className="w-4.5 h-4.5 text-[#5ea1bf]" />
       </div>
       <h3 className="text-[15px] text-foreground mb-1.5" style={{ fontWeight: 600 }}>
         {displayLabel}
@@ -86,6 +115,7 @@ function UpgradePrompt({ feature, requiredPlan, label }: { feature: FeatureKey; 
 }
 
 // ── LimitUpgradePrompt ─────────────────────────────────────────────
+
 function LimitUpgradePrompt({
   limitLabel,
   currentMax,
@@ -108,10 +138,10 @@ function LimitUpgradePrompt({
       initial={{ opacity: 0, scale: 0.97 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.2 }}
-      className="border border-accent/20 bg-accent/[0.04] rounded-xl px-5 py-4 flex items-center gap-4"
+      className="border border-[#bfa044]/20 bg-[#bfa044]/[0.04] rounded-xl px-5 py-4 flex items-center gap-4"
     >
-      <div className="w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
-        <Lock className="w-4 h-4 text-accent-foreground" />
+      <div className="w-9 h-9 rounded-lg bg-[#bfa044]/10 flex items-center justify-center flex-shrink-0">
+        <Lock className="w-4 h-4 text-[#bfa044]" />
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-[13px] text-foreground" style={{ fontWeight: 500 }}>
@@ -137,7 +167,10 @@ function LimitUpgradePrompt({
   );
 }
 
-// ── UpgradeNudge ───────────────────────────────────────────────────
+// ── Inline upgrade nudge ───────────────────────────────────────────
+// A smaller, inline prompt for use inside existing panels (e.g., a
+// "Custom categories" row in Settings that's locked).
+
 interface UpgradeNudgeProps {
   feature: FeatureKey;
   label?: string;
@@ -147,6 +180,7 @@ interface UpgradeNudgeProps {
 export function UpgradeNudge({ feature, label, compact }: UpgradeNudgeProps) {
   const navigate = useNavigate();
   const { can, requiredPlan } = usePlan();
+
   if (can(feature)) return null;
 
   const required = requiredPlan(feature);
@@ -156,7 +190,7 @@ export function UpgradeNudge({ feature, label, compact }: UpgradeNudgeProps) {
     return (
       <button
         onClick={() => navigate('/settings?tab=billing')}
-        className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] rounded-md bg-primary/10 text-primary hover:bg-primary/15 transition-colors"
+        className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] rounded-md bg-[#5ea1bf]/10 text-[#5ea1bf] hover:bg-[#5ea1bf]/15 transition-colors"
         style={{ fontWeight: 600, letterSpacing: '0.02em' }}
       >
         <Lock className="w-2.5 h-2.5" />
@@ -168,7 +202,7 @@ export function UpgradeNudge({ feature, label, compact }: UpgradeNudgeProps) {
   return (
     <button
       onClick={() => navigate('/settings?tab=billing')}
-      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] rounded-lg border border-primary/20 text-primary hover:bg-primary/5 transition-colors"
+      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] rounded-lg border border-[#5ea1bf]/20 text-[#5ea1bf] hover:bg-[#5ea1bf]/5 transition-colors"
       style={{ fontWeight: 500 }}
     >
       <Lock className="w-3 h-3" />
@@ -178,12 +212,15 @@ export function UpgradeNudge({ feature, label, compact }: UpgradeNudgeProps) {
 }
 
 // ── PlanBadge ──────────────────────────────────────────────────────
+// Small badge showing the current plan name, for display in sidebar/settings.
+
 export function PlanBadge({ className = '' }: { className?: string }) {
   const { planId } = usePlan();
+
   const colors: Record<PlanId, string> = {
-    starter: 'bg-muted text-muted-foreground',
-    pro: 'bg-primary/10 text-primary',
-    studio: 'bg-accent/10 text-accent-foreground',
+    starter: 'bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400',
+    pro: 'bg-[#5ea1bf]/10 text-[#5ea1bf]',
+    studio: 'bg-[#bfa044]/10 text-[#bfa044]',
   };
 
   return (
