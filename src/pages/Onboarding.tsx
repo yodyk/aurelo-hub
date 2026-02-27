@@ -2,27 +2,56 @@ import { motion } from "motion/react";
 import { containerVariants, itemVariants } from "@/lib/motion";
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 import AureloLogo from "@/components/AureloLogo";
-import { Palette, Code, Megaphone, Sparkles, Briefcase, Box, Building2 } from "lucide-react";
+import { Palette, Code, Megaphone, Sparkles, Briefcase, Box, Building2, Camera } from "lucide-react";
+import { useAuth } from "@/data/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { type IdentityType, getCategoriesForIdentity } from "@/data/identityPresets";
 
-const identityTypes = [
-  { id: "Designer", label: "Designer", icon: Palette },
-  { id: "Developer", label: "Developer", icon: Code },
-  { id: "Marketer", label: "Marketer", icon: Megaphone },
-  { id: "Creative", label: "Creative", icon: Sparkles },
-  { id: "Consultant", label: "Consultant", icon: Briefcase },
-  { id: "Product", label: "Product", icon: Box },
-  { id: "Agency", label: "Agency", icon: Building2 },
+const identityTypes: { id: IdentityType; label: string; icon: any }[] = [
+  { id: "designer", label: "Designer", icon: Palette },
+  { id: "developer", label: "Developer", icon: Code },
+  { id: "marketer", label: "Marketer", icon: Megaphone },
+  { id: "copywriter", label: "Copywriter", icon: Sparkles },
+  { id: "consultant", label: "Consultant", icon: Briefcase },
+  { id: "photographer", label: "Photographer", icon: Camera },
+  { id: "videographer", label: "Videographer", icon: Box },
+  { id: "other", label: "Other", icon: Building2 },
 ];
 
 export default function Onboarding() {
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selected, setSelected] = useState<IdentityType | null>(null);
+  const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
+  const { workspaceId } = useAuth();
 
-  const handleContinue = () => {
-    if (selected) {
-      navigate("/");
+  const handleContinue = async () => {
+    if (!selected || !workspaceId) return;
+    setSaving(true);
+
+    try {
+      const categories = getCategoriesForIdentity(selected);
+
+      // Save identity setting
+      await supabase.from('workspace_settings').upsert(
+        { workspace_id: workspaceId, section: 'identity', data: { type: selected } },
+        { onConflict: 'workspace_id,section' }
+      );
+
+      // Save categories
+      await supabase.from('workspace_settings').upsert(
+        { workspace_id: workspaceId, section: 'categories', data: categories as any },
+        { onConflict: 'workspace_id,section' }
+      );
+
+      navigate("/", { replace: true });
+    } catch (err) {
+      console.error("Failed to save identity:", err);
+      // Navigate anyway — non-fatal
+      navigate("/", { replace: true });
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -42,7 +71,7 @@ export default function Onboarding() {
           <p className="text-sm text-muted-foreground">This helps us set up the right categories for your workflow.</p>
         </motion.div>
 
-        <motion.div variants={itemVariants} className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <motion.div variants={itemVariants} className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {identityTypes.map((type) => (
             <button
               key={type.id}
@@ -64,9 +93,14 @@ export default function Onboarding() {
         </motion.div>
 
         <motion.div variants={itemVariants} className="flex justify-center">
-          <Button size="sm" disabled={!selected} onClick={handleContinue}>
-            Continue
-          </Button>
+          <button
+            disabled={!selected || saving}
+            onClick={handleContinue}
+            className="inline-flex items-center gap-2 px-6 py-2.5 text-[14px] rounded-lg bg-foreground text-background hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            style={{ fontWeight: 500 }}
+          >
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Continue"}
+          </button>
         </motion.div>
       </motion.div>
     </div>
