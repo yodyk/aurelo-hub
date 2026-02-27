@@ -103,6 +103,8 @@ export const EXPORT_FORMATS: Record<PlanId, string[]> = {
   studio: ['CSV', 'PDF'],
 };
 
+export const STARTER_NOTIFICATION_TYPES = ['email'] as const;
+
 // ── Helper functions ────────────────────────────────────────────────
 
 const TIER_ORDER: PlanId[] = ['starter', 'pro', 'studio'];

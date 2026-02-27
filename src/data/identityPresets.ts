@@ -90,6 +90,22 @@ export function getCategoryNames(categories: WorkCategory[]): string[] {
   return categories.map(c => c.name);
 }
 
+export function mergeCategories(
+  existing: WorkCategory[],
+  incoming: WorkCategory[],
+  mode: 'replace' | 'merge',
+): WorkCategory[] {
+  if (mode === 'replace') return incoming;
+  const existingNames = new Set(existing.map(c => c.name.toLowerCase()));
+  const merged = [...existing];
+  for (const cat of incoming) {
+    if (!existingNames.has(cat.name.toLowerCase())) {
+      merged.push(cat);
+    }
+  }
+  return merged;
+}
+
 export const IDENTITY_OPTIONS: { value: IdentityType; label: string; emoji: string }[] = [
   { value: 'designer', label: 'Designer', emoji: '🎨' },
   { value: 'developer', label: 'Developer', emoji: '💻' },
