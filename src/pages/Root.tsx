@@ -3,7 +3,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { Menu } from "lucide-react";
 
-export default function AppLayout() {
+export default function Root() {
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
