@@ -54,7 +54,7 @@ function getUsageTextColor(usagePct: number): string {
 export default function ClientDetail() {
   const { clientId } = useParams();
   const navigate = useNavigate();
-  const { clients, sessions, updateClient, addSession, getProjects, loadProjectsForClient, addProject, netMultiplier } =
+  const { workspaceId, clients, sessions, updateClient, addSession, getProjects, loadProjectsForClient, addProject, netMultiplier } =
     useData();
   const [viewMode, setViewMode] = useState<"gross" | "net">("gross");
   const [expandedSections, setExpandedSections] = useState({
@@ -95,7 +95,7 @@ export default function ClientDetail() {
   // Load files, projects
   useEffect(() => {
     if (!clientId) return;
-    dataApi.loadFiles(clientId).then(setFiles);
+    if (workspaceId) dataApi.loadFiles(workspaceId, clientId).then(setFiles);
     loadProjectsForClient(clientId).then((p) => {
       setProjects(p);
       setProjectsLoaded(true);
@@ -224,7 +224,7 @@ export default function ClientDetail() {
     if (!clientId) return;
     setUploading(true);
     try {
-      const result = await dataApi.uploadFile(clientId, file);
+      const result = await dataApi.uploadFile(workspaceId!, clientId, file);
       setFiles((prev) => [...prev, result]);
       toast.success("File uploaded");
     } catch (err: any) {
@@ -237,7 +237,7 @@ export default function ClientDetail() {
   const handleFileDelete = async (fileName: string) => {
     if (!clientId) return;
     try {
-      await dataApi.deleteFile(clientId, fileName);
+      await dataApi.deleteFile(workspaceId!, clientId, fileName);
       setFiles((prev) => prev.filter((f) => f.name !== fileName));
       toast.success("File deleted");
     } catch (err: any) {
