@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
 
 interface Client {
   id: string;
@@ -34,11 +34,26 @@ interface Session {
   allocationType?: 'project' | 'retainer' | 'general';
 }
 
+interface Project {
+  id: string | number;
+  clientId: string;
+  name: string;
+  status: 'Not Started' | 'In Progress' | 'On Hold' | 'Complete';
+  hours: number;
+  estimatedHours: number;
+  revenue: number;
+  totalValue: number;
+  startDate?: string;
+  endDate?: string;
+  description?: string;
+}
+
 interface DataContextValue {
   clients: Client[];
   sessions: Session[];
-  allProjects: any[];
+  allProjects: Project[];
   workCategories: any[];
+  workCategoryNames: string[];
   financialDefaults: {
     taxRate: number;
     processingFeeRate: number;
@@ -49,6 +64,8 @@ interface DataContextValue {
   identity: string | null;
   setClients: (clients: Client[]) => void;
   setSessions: (sessions: Session[]) => void;
+  getProjects: (clientId: string) => Project[];
+  loadProjectsForClient: (clientId: string) => Promise<Project[]>;
   refresh: () => Promise<void>;
 }
 
@@ -71,20 +88,40 @@ const sampleSessions: Session[] = [
   { id: 5, clientId: '2', client: 'Meridian Labs', projectId: 'p2', date: '2026-02-24', task: 'Internal sync meeting', duration: 0.5, revenue: 0, billable: false, workTags: ['Admin'] },
 ];
 
+const sampleProjects: Project[] = [
+  { id: 'p1', clientId: '1', name: 'Brand Refresh', status: 'In Progress', hours: 14, estimatedHours: 30, revenue: 2100, totalValue: 4500, startDate: '2026-01-15' },
+  { id: 'p2', clientId: '2', name: 'Dashboard Redesign', status: 'In Progress', hours: 8, estimatedHours: 20, revenue: 1200, totalValue: 3000, startDate: '2026-02-01' },
+  { id: 'p3', clientId: '3', name: 'Website Launch', status: 'In Progress', hours: 12, estimatedHours: 40, revenue: 1800, totalValue: 8000, startDate: '2026-01-20' },
+  { id: 'p4', clientId: '1', name: 'Logo Package', status: 'Complete', hours: 10, estimatedHours: 10, revenue: 1500, totalValue: 1500, startDate: '2025-12-01', endDate: '2026-01-10' },
+];
+
+const defaultCategories = ['Design', 'Development', 'Meetings', 'Strategy', 'Admin', 'Prospecting'];
+
 export function DataProvider({ children }: { children: ReactNode }) {
   const [clients, setClients] = useState<Client[]>(sampleClients);
   const [sessions, setSessions] = useState<Session[]>(sampleSessions);
+  const [projects] = useState<Project[]>(sampleProjects);
 
   const refresh = async () => {
-    // Will be replaced with Supabase queries
+    // Will be replaced with backend queries
   };
+
+  const getProjects = useCallback((clientId: string): Project[] => {
+    return projects.filter(p => p.clientId === clientId);
+  }, [projects]);
+
+  const loadProjectsForClient = useCallback(async (clientId: string): Promise<Project[]> => {
+    // Stub — returns cached data; will be replaced with API call
+    return projects.filter(p => p.clientId === clientId);
+  }, [projects]);
 
   return (
     <DataContext.Provider value={{
       clients,
       sessions,
-      allProjects: [],
-      workCategories: [],
+      allProjects: projects,
+      workCategories: defaultCategories.map((name, i) => ({ id: String(i), name })),
+      workCategoryNames: defaultCategories,
       financialDefaults: {
         taxRate: 0.25,
         processingFeeRate: 0.029,
@@ -95,6 +132,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
       identity: null,
       setClients,
       setSessions,
+      getProjects,
+      loadProjectsForClient,
       refresh,
     }}>
       {children}
