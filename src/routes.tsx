@@ -23,6 +23,14 @@ function OnboardingWithAuth() {
   );
 }
 
+function SignupWithAuth() {
+  return (
+    <AuthProvider>
+      <Signup />
+    </AuthProvider>
+  );
+}
+
 function RootErrorBoundary() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
@@ -45,7 +53,7 @@ function RootErrorBoundary() {
 
 export const router = createBrowserRouter([
   { path: "/login", Component: Login },
-  { path: "/signup", Component: Signup },
+  { path: "/signup", Component: SignupWithAuth },
   { path: "/onboarding", Component: OnboardingWithAuth },
   { path: "/portal/:token", Component: ClientPortal },
   {
