@@ -1152,8 +1152,8 @@ export function AddProjectModal({ open, onClose, onSave, clients, preSelectedCli
         revenue: 0,
         estimatedHours: hoursNum,
         totalValue: valueNum,
-        startDate: startDate ? formatDateDisplay(startDate) : new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        endDate: endDate ? formatDateDisplay(endDate) : '',
+        startDate: startDate || new Date().toISOString().split('T')[0],
+        endDate: endDate || null,
       }, resolvedClientId);
       reset();
       onClose();
