@@ -5,6 +5,7 @@ export interface AuthUser {
   id: string;
   email: string;
   name: string;
+  initials?: string;
 }
 
 // Demo user for local development
