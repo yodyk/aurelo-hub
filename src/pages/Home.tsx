@@ -1,149 +1,183 @@
-import { motion } from "motion/react";
-import { containerVariants, itemVariants } from "@/lib/motion";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { DollarSign, Clock, Users, TrendingUp, Plus, ArrowUpRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { useState, useMemo, useEffect, useRef } from 'react';
+import { Clock } from 'lucide-react';
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
+} from 'recharts';
 
-const earningsData = [
-  { month: "Sep", earnings: 4200 },
-  { month: "Oct", earnings: 5800 },
-  { month: "Nov", earnings: 4900 },
-  { month: "Dec", earnings: 6400 },
-  { month: "Jan", earnings: 7200 },
-  { month: "Feb", earnings: 5600 },
+/* ── Animated number (count-up) ── */
+function AnimatedNumber({ value, prefix = '', suffix = '' }: { value: number; prefix?: string; suffix?: string }) {
+  const [display, setDisplay] = useState(0);
+  const prev = useRef(0);
+
+  useEffect(() => {
+    const start = prev.current;
+    const diff = value - start;
+    if (diff === 0) { setDisplay(value); return; }
+    const duration = 600;
+    const startTime = performance.now();
+
+    const tick = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplay(Math.round(start + diff * eased));
+      if (progress < 1) requestAnimationFrame(tick);
+      else prev.current = value;
+    };
+    requestAnimationFrame(tick);
+  }, [value]);
+
+  return <>{prefix}{display.toLocaleString('en-US')}{suffix}</>;
+}
+
+/* ── Temporary demo data ── */
+const demoSessions = [
+  { id: '1', date: new Date().toISOString().split('T')[0], duration_minutes: 210, description: 'Brand guidelines v2', billable: true, client: 'Arcadia Design' },
+  { id: '2', date: new Date().toISOString().split('T')[0], duration_minutes: 120, description: 'Dashboard wireframes', billable: true, client: 'Meridian Labs' },
+  { id: '3', date: new Date(Date.now() - 86400000).toISOString().split('T')[0], duration_minutes: 90, description: 'Client presentation', billable: true, client: 'Beacon Studio' },
+  { id: '4', date: new Date(Date.now() - 86400000).toISOString().split('T')[0], duration_minutes: 240, description: 'Logo explorations', billable: true, client: 'Arcadia Design' },
+  { id: '5', date: new Date(Date.now() - 2 * 86400000).toISOString().split('T')[0], duration_minutes: 60, description: 'Strategy call', billable: false, client: 'Meridian Labs' },
 ];
 
-const recentSessions = [
-  { id: 1, client: "Arcadia Design", task: "Brand guidelines v2", duration: 3.5, revenue: 525, date: "Today" },
-  { id: 2, client: "Meridian Labs", task: "Dashboard wireframes", duration: 2.0, revenue: 300, date: "Today" },
-  { id: 3, client: "Beacon Studio", task: "Client presentation", duration: 1.5, revenue: 225, date: "Yesterday" },
-  { id: 4, client: "Arcadia Design", task: "Logo explorations", duration: 4.0, revenue: 600, date: "Yesterday" },
+const demoMonthlyTrend = [
+  { month: 'Sep', revenue: 4200 },
+  { month: 'Oct', revenue: 5800 },
+  { month: 'Nov', revenue: 4900 },
+  { month: 'Dec', revenue: 6400 },
+  { month: 'Jan', revenue: 7200 },
+  { month: 'Feb', revenue: 5600 },
 ];
 
-const topClients = [
-  { name: "Arcadia Design", earnings: 3200, hours: 21 },
-  { name: "Meridian Labs", earnings: 2400, hours: 16 },
-  { name: "Beacon Studio", earnings: 1800, hours: 12 },
+const demoAlerts = [
+  { id: 'ret-1', type: 'retainer' as const, message: 'Arcadia Design: 18 of 20 retainer hours used (90%) — 2 hours remaining this cycle.' },
 ];
 
 export default function Home() {
-  const navigate = useNavigate();
+  const displayRevenue = 5600;
+  const totalHours = useMemo(() => demoSessions.reduce((sum, s) => sum + s.duration_minutes, 0) / 60, []);
+  const ehr = useMemo(() => totalHours > 0 ? Math.round(displayRevenue / totalHours) : null, [totalHours]);
+  const billablePercent = useMemo(() => {
+    const billable = demoSessions.filter(s => s.billable).length;
+    return Math.round((billable / demoSessions.length) * 100);
+  }, []);
+
+  const paceMessage = 'On pace for $8,960 — ahead of last month by 12%.';
+
+  const recentSessions = demoSessions.slice(0, 5);
 
   return (
-    <div className="page-container">
-      <motion.div variants={containerVariants} initial="hidden" animate="show" className="space-y-8">
-        <motion.div variants={itemVariants} className="flex items-center justify-between">
+    <div className="space-y-12">
+      {/* ── Monthly Pulse Panel ── */}
+      <section className="card-ambient p-6 space-y-6 bg-card border border-border/30 rounded-[4px] shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+        <div className="flex items-center justify-between">
+          <p className="type-caption fg-tertiary">
+            Earnings this month
+          </p>
+        </div>
+        <div>
+          <p className="type-display text-5xl text-primary">
+            $<AnimatedNumber value={displayRevenue} />
+          </p>
+          <p className="type-body mt-2">{paceMessage}</p>
+        </div>
+
+        {/* Secondary metrics inline within panel */}
+        <div className="flex items-center gap-8 flex-wrap pt-2 border-t border-border/20">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Dashboard</h1>
-            <p className="text-sm text-muted-foreground mt-1">Welcome back. Here's your business snapshot.</p>
+            <p className="type-caption fg-tertiary">Time invested</p>
+            <p className="type-heading mt-0.5">{totalHours.toFixed(1)}h</p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => navigate("/time")} className="gap-1.5">
-              <Clock className="h-3.5 w-3.5" />
-              Log Time
-            </Button>
-            <Button size="sm" onClick={() => navigate("/clients")} className="gap-1.5">
-              <Plus className="h-3.5 w-3.5" />
-              Add Client
-            </Button>
+          <div className="w-px h-8 bg-border/20" />
+          <div>
+            <p className="type-caption fg-tertiary">True hourly rate</p>
+            {ehr !== null ? (
+              <p className="text-2xl font-semibold tracking-tighter tabular-nums text-primary mt-0.5">${ehr}</p>
+            ) : (
+              <p className="type-body mt-0.5">Insufficient time data.</p>
+            )}
           </div>
-        </motion.div>
-
-        <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <MetricCard icon={DollarSign} label="Monthly Earnings" value="$5,600" change="+12%" />
-          <MetricCard icon={TrendingUp} label="True Hourly Rate" value="$142" change="+8%" />
-          <MetricCard icon={Clock} label="Hours This Month" value="39.5" change="-3%" negative />
-          <MetricCard icon={Users} label="Active Clients" value="4" />
-        </motion.div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <motion.div variants={itemVariants} className="lg:col-span-2 card-surface p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-sm font-medium text-foreground">Earnings (6 months)</h2>
-              <span className="text-xs text-muted-foreground">Gross</span>
-            </div>
-            <ResponsiveContainer width="100%" height={240}>
-              <AreaChart data={earningsData}>
-                <defs>
-                  <linearGradient id="earningsGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="hsl(197, 40%, 56%)" stopOpacity={0.2} />
-                    <stop offset="100%" stopColor="hsl(197, 40%, 56%)" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(40, 6%, 88%)" />
-                <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke="hsl(240, 7%, 48%)" />
-                <YAxis tick={{ fontSize: 12 }} stroke="hsl(240, 7%, 48%)" tickFormatter={(v) => `$${v / 1000}k`} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "hsl(0, 0%, 100%)",
-                    border: "1px solid hsl(40, 6%, 88%)",
-                    borderRadius: 8,
-                    fontSize: 13,
-                  }}
-                  formatter={(value: number) => [`$${value.toLocaleString()}`, "Earnings"]}
-                />
-                <Area type="monotone" dataKey="earnings" stroke="hsl(197, 40%, 56%)" strokeWidth={2} fill="url(#earningsGrad)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </motion.div>
-
-          <motion.div variants={itemVariants} className="card-surface p-6">
-            <h2 className="text-sm font-medium text-foreground mb-4">Top Clients</h2>
-            <div className="space-y-4">
-              {topClients.map((client, i) => (
-                <div key={client.name} className="flex items-center gap-3">
-                  <span className="text-xs font-medium text-muted-foreground w-4">{i + 1}</span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate text-foreground">{client.name}</p>
-                    <p className="text-xs text-muted-foreground">{client.hours}h logged</p>
-                  </div>
-                  <span className="text-sm font-semibold tabular-nums text-foreground">${client.earnings.toLocaleString()}</span>
-                </div>
-              ))}
-            </div>
-          </motion.div>
+          <div className="w-px h-8 bg-border/20" />
+          <div>
+            <p className="type-caption fg-tertiary">Billable</p>
+            <p className="type-heading mt-0.5">{billablePercent}%</p>
+          </div>
         </div>
 
-        <motion.div variants={itemVariants} className="card-surface p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-medium text-foreground">Recent Sessions</h2>
-            <Button variant="ghost" size="sm" onClick={() => navigate("/time")} className="text-xs gap-1 text-primary">
-              View all <ArrowUpRight className="h-3 w-3" />
-            </Button>
-          </div>
-          <div className="divide-y divide-border">
-            {recentSessions.map((session) => (
-              <div key={session.id} className="flex items-center gap-4 py-3">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground">{session.task}</p>
-                  <p className="text-xs text-muted-foreground">{session.client}</p>
-                </div>
-                <span className="text-xs text-muted-foreground">{session.date}</span>
-                <span className="text-sm tabular-nums text-muted-foreground">{session.duration}h</span>
-                <span className="text-sm font-medium tabular-nums text-foreground">${session.revenue}</span>
+        {/* 6-month trend inline within panel */}
+        <div className="pt-2">
+          <p className="type-caption fg-tertiary mb-3">6-month trend</p>
+          <ResponsiveContainer width="100%" height={120}>
+            <BarChart data={demoMonthlyTrend} barCategoryGap="24%">
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border)/0.5)" vertical={false} horizontal={true} />
+              <XAxis
+                dataKey="month"
+                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                axisLine={false}
+                tickLine={false}
+                dy={4}
+              />
+              <YAxis
+                tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground)/0.4)' }}
+                axisLine={false}
+                tickLine={false}
+                width={40}
+                tickFormatter={(v: number) => v >= 1000 ? `$${(v / 1000).toFixed(0)}k` : `$${v}`}
+              />
+              <Tooltip
+                formatter={(value: number) => [`$${value.toLocaleString()}`, 'Earnings']}
+                contentStyle={{
+                  background: 'hsl(var(--popover))',
+                  border: '1px solid hsl(var(--border))',
+                  borderRadius: '4px',
+                  fontSize: '12px',
+                  padding: '6px 10px',
+                }}
+                itemStyle={{ color: 'hsl(var(--foreground))' }}
+                cursor={{ fill: 'hsl(var(--muted)/0.3)' }}
+              />
+              <Bar dataKey="revenue" fill="hsl(var(--muted-foreground)/0.6)" radius={[2, 2, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </section>
+
+      {/* Needs attention */}
+      {demoAlerts.length > 0 && (
+        <section className="space-y-1.5">
+          <p className="type-caption fg-tertiary mb-2">
+            Needs attention
+          </p>
+          {demoAlerts.map(alert => (
+            <div
+              key={alert.id}
+              className="flex items-start gap-3 py-2.5 text-sm fg-secondary leading-relaxed animate-in fade-in-0 duration-300"
+            >
+              <div className="h-1.5 w-1.5 rounded-full bg-warning flex-shrink-0 mt-1.5" />
+              <span>{alert.message}</span>
+            </div>
+          ))}
+        </section>
+      )}
+
+      {/* Recent work */}
+      <section>
+        <p className="type-caption fg-tertiary mb-3">
+          Recent work
+        </p>
+        <div className="bg-card border border-border/50 rounded-[4px] divide-y divide-border/40 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+          {recentSessions.map(s => (
+            <div key={s.id} className="flex items-center justify-between px-4 py-3">
+              <div className="flex items-center gap-4 min-w-0">
+                <span className="type-caption fg-tertiary tabular-nums w-[72px] flex-shrink-0">{s.date}</span>
+                <span className="text-sm font-medium text-foreground truncate">{s.client}</span>
               </div>
-            ))}
-          </div>
-        </motion.div>
-      </motion.div>
-    </div>
-  );
-}
-
-function MetricCard({ icon: Icon, label, value, change, negative }: { icon: React.ElementType; label: string; value: string; change?: string; negative?: boolean }) {
-  return (
-    <div className="card-surface p-5">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
-          <Icon className="h-4 w-4 text-primary" />
+              <div className="flex items-center gap-5 flex-shrink-0">
+                <span className="type-caption fg-tertiary tabular-nums">{s.duration_minutes}m</span>
+              </div>
+            </div>
+          ))}
         </div>
-        {change && (
-          <span className={`text-xs font-medium tabular-nums ${negative ? "text-destructive" : "text-primary"}`}>{change}</span>
-        )}
-      </div>
-      <p className="metric-value text-foreground">{value}</p>
-      <p className="metric-label mt-1">{label}</p>
+      </section>
     </div>
   );
 }

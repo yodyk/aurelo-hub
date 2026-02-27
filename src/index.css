@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,103 +6,115 @@
 
 @layer base {
   :root {
-    --background: 40 6% 97.6%;
-    --foreground: 0 0% 9%;
+    --font-sans: 'Inter', -apple-system, sans-serif;
+
+    /* ── Surfaces (3-tier layering) ── */
+    --background: 220 14% 96%;
+    --foreground: 220 14% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 9%;
+    --card-foreground: 220 14% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 9%;
+    --popover-foreground: 220 14% 10%;
 
-    --primary: 197 40% 56%;
-    --primary-foreground: 0 0% 100%;
+    /* ── Brand primary: refined slate-blue ── */
+    --primary: 220 14% 20%;
+    --primary-foreground: 0 0% 98%;
 
-    --secondary: 249 14% 95%;
-    --secondary-foreground: 249 75% 5%;
+    --secondary: 220 10% 95%;
+    --secondary-foreground: 220 14% 20%;
 
-    --muted: 230 8% 93%;
-    --muted-foreground: 240 7% 48%;
+    --muted: 220 10% 93%;
+    --muted-foreground: 220 8% 46%;
 
-    --accent: 220 10% 92%;
-    --accent-foreground: 249 75% 5%;
+    --accent: 220 10% 93%;
+    --accent-foreground: 220 14% 20%;
 
-    --destructive: 349 82% 47%;
+    --destructive: 0 50% 45%;
     --destructive-foreground: 0 0% 100%;
 
-    --warning: 44 48% 51%;
-    --warning-foreground: 0 0% 100%;
+    --success: 152 36% 36%;
+    --success-foreground: 152 36% 14%;
 
-    --border: 0 0% 0% / 0.1;
-    --input: 0 0% 0% / 0;
-    --input-background: 240 8% 95%;
-    --switch-background: 216 8% 81%;
-    --ring: 197 40% 56%;
+    --warning: 38 55% 45%;
+    --warning-foreground: 38 55% 18%;
+
+    --border: 220 10% 87%;
+    --input: 220 10% 87%;
+    --ring: 220 14% 20%;
 
     --radius: 0.25rem;
 
-    --sidebar-background: 0 0% 99%;
-    --sidebar-foreground: 0 0% 9%;
-    --sidebar-primary: 249 75% 5%;
-    --sidebar-primary-foreground: 0 0% 99%;
-    --sidebar-accent: 0 0% 97%;
-    --sidebar-accent-foreground: 0 0% 13%;
-    --sidebar-border: 0 0% 92%;
-    --sidebar-ring: 0 0% 44%;
+    /* Sidebar: slightly lighter than bg in light mode for contrast */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 220 8% 46%;
+    --sidebar-primary: 220 14% 20%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 220 10% 95%;
+    --sidebar-accent-foreground: 220 14% 20%;
+    --sidebar-border: 220 10% 90%;
+    --sidebar-ring: 220 14% 20%;
 
-    --chart-1: 197 40% 56%;
-    --chart-2: 44 48% 51%;
-    --chart-3: 0 37% 60%;
-    --chart-4: 197 40% 70%;
-    --chart-5: 44 48% 65%;
-
-    /* Shadows */
-    --shadow-card: 0 1px 4px rgba(0,0,0,0.03), 0 1px 2px rgba(0,0,0,0.02);
-    --shadow-card-hover: 0 4px 16px rgba(0,0,0,0.05);
+    --chart-1: 220 14% 20%;
+    --chart-2: 152 36% 36%;
+    --chart-3: 220 8% 46%;
+    --chart-4: 220 10% 65%;
+    --chart-5: 220 10% 78%;
   }
 
   .dark {
-    --background: 60 3% 10%;
-    --foreground: 20 6% 90%;
+    /* ── Surfaces (3-tier layering) ── */
+    --background: 220 14% 7%;
+    --foreground: 220 10% 93%;
 
-    --card: 60 2% 15%;
-    --card-foreground: 20 6% 90%;
+    --card: 220 14% 10%;
+    --card-foreground: 220 10% 93%;
 
-    --popover: 60 2% 15%;
-    --popover-foreground: 20 6% 90%;
+    --popover: 220 14% 10%;
+    --popover-foreground: 220 10% 93%;
 
-    --primary: 197 40% 56%;
-    --primary-foreground: 0 0% 100%;
+    /* ── Brand primary ── */
+    --primary: 220 10% 90%;
+    --primary-foreground: 220 14% 10%;
 
-    --secondary: 60 2% 20%;
-    --secondary-foreground: 20 6% 90%;
+    --secondary: 220 10% 14%;
+    --secondary-foreground: 220 10% 90%;
 
-    --muted: 60 2% 20%;
-    --muted-foreground: 30 6% 64%;
+    --muted: 220 10% 14%;
+    --muted-foreground: 220 8% 55%;
 
-    --accent: 60 2% 20%;
-    --accent-foreground: 20 6% 90%;
+    --accent: 220 10% 14%;
+    --accent-foreground: 220 10% 90%;
 
-    --destructive: 0 30% 62%;
+    --destructive: 0 45% 42%;
     --destructive-foreground: 0 0% 100%;
 
-    --warning: 44 48% 51%;
-    --warning-foreground: 0 0% 100%;
+    --success: 152 30% 38%;
+    --success-foreground: 152 30% 80%;
 
-    --border: 0 0% 100% / 0.1;
-    --input: 0 0% 0% / 0;
-    --input-background: 60 2% 20%;
-    --switch-background: 25 6% 33%;
-    --ring: 197 40% 56%;
+    --warning: 38 45% 42%;
+    --warning-foreground: 38 45% 85%;
 
-    --sidebar-background: 60 3% 12%;
-    --sidebar-foreground: 20 6% 90%;
-    --sidebar-primary: 197 40% 56%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 60 2% 20%;
-    --sidebar-accent-foreground: 20 6% 90%;
-    --sidebar-border: 0 0% 100% / 0.08;
-    --sidebar-ring: 197 40% 56%;
+    --border: 220 10% 18%;
+    --input: 220 10% 18%;
+    --ring: 220 10% 90%;
+
+    /* Sidebar: slightly darker than bg */
+    --sidebar-background: 220 14% 5.5%;
+    --sidebar-foreground: 220 8% 55%;
+    --sidebar-primary: 220 10% 90%;
+    --sidebar-primary-foreground: 220 14% 10%;
+    --sidebar-accent: 220 10% 12%;
+    --sidebar-accent-foreground: 220 10% 90%;
+    --sidebar-border: 220 10% 14%;
+    --sidebar-ring: 220 10% 90%;
+
+    --chart-1: 220 10% 90%;
+    --chart-2: 152 30% 38%;
+    --chart-3: 220 8% 55%;
+    --chart-4: 220 10% 40%;
+    --chart-5: 220 10% 28%;
   }
 }
 
@@ -110,60 +122,165 @@
   * {
     @apply border-border;
   }
-
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    letter-spacing: -0.015em;
   }
-
-  .tabular-nums {
-    font-variant-numeric: tabular-nums;
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight text-foreground;
   }
 }
 
-@layer components {
-  .section-label {
-    @apply text-[13px] font-medium uppercase tracking-[0.02em] text-muted-foreground;
+@layer utilities {
+  /*
+   * ─── 5-LEVEL TYPOGRAPHY SCALE ───
+   */
+  .type-display {
+    @apply text-4xl font-semibold tabular-nums text-foreground leading-none;
+    letter-spacing: -0.04em;
+  }
+  .type-title {
+    @apply text-xl font-semibold text-foreground;
+    letter-spacing: -0.02em;
+  }
+  .type-heading {
+    @apply text-base font-medium text-foreground tabular-nums;
+    letter-spacing: -0.01em;
+  }
+  .type-body {
+    @apply text-sm leading-relaxed text-muted-foreground;
+  }
+  .type-caption {
+    @apply text-[11px] font-medium tracking-wide;
   }
 
+  /*
+   * ─── 3-TIER FOREGROUND SCALE ───
+   */
+  .fg-primary {
+    @apply text-foreground;
+  }
+  .fg-secondary {
+    @apply text-muted-foreground;
+  }
+  .fg-tertiary {
+    @apply text-muted-foreground/40;
+  }
+
+  /* ── Card surfaces ── */
+  .premium-card {
+    @apply bg-card border border-border/50 shadow-[0_1px_3px_rgba(0,0,0,0.04)]
+           rounded-[4px] p-5 transition-all duration-300 hover:border-border;
+  }
+
+  .card-flat {
+    @apply bg-card border border-border/50 shadow-[0_1px_3px_rgba(0,0,0,0.04)]
+           rounded-[4px];
+  }
+
+  .card-premium {
+    @apply premium-card;
+  }
+
+  .card-elevated {
+    @apply bg-card border border-border/50 shadow-[0_1px_3px_rgba(0,0,0,0.04)]
+           rounded-[4px];
+  }
+
+  .card-ambient {
+    @apply bg-card border border-border/30 rounded-[4px] shadow-[0_1px_2px_rgba(0,0,0,0.02)];
+  }
+
+  /* ── Legacy card surface (used in existing components) ── */
   .card-surface {
-    @apply bg-card rounded-xl border;
-    box-shadow: var(--shadow-card);
-    transition: box-shadow 0.2s ease, transform 0.2s ease;
-  }
-
-  .card-surface:hover {
-    box-shadow: var(--shadow-card-hover);
+    @apply card-flat;
   }
 
   .card-interactive {
-    @apply card-surface cursor-pointer;
-  }
-
-  .card-interactive:hover {
-    transform: translateY(-1px);
+    @apply card-flat cursor-pointer hover:border-border transition-all duration-300;
   }
 
   .page-container {
-    @apply px-6 lg:px-12 py-8 max-w-7xl mx-auto w-full;
+    @apply px-4 sm:px-6 lg:px-8 py-8 max-w-7xl mx-auto w-full;
+  }
+
+  /* ── Typography utilities ── */
+  .metric-large {
+    @apply text-3xl font-semibold tracking-tighter tabular-nums;
+  }
+
+  .label-muted {
+    @apply type-caption fg-tertiary;
+  }
+
+  .heading-display {
+    @apply type-title;
+  }
+
+  .heading-section {
+    @apply text-sm font-medium text-foreground;
+  }
+
+  .text-metadata {
+    @apply type-caption fg-tertiary;
+  }
+
+  .text-heading-xl {
+    @apply type-title;
+  }
+  .text-heading-lg {
+    @apply text-lg font-semibold leading-snug;
+  }
+  .text-heading-md {
+    @apply text-sm font-medium;
+  }
+  .text-body {
+    @apply type-body;
+  }
+  .text-body-lg {
+    @apply text-base leading-relaxed;
+  }
+  .text-caption {
+    @apply type-caption fg-tertiary;
   }
 
   .metric-value {
-    @apply text-2xl font-semibold tabular-nums tracking-tight;
+    @apply text-2xl font-semibold tracking-tighter tabular-nums;
   }
 
   .metric-label {
     @apply text-sm text-muted-foreground;
   }
 
+  .section-label {
+    @apply type-caption fg-tertiary;
+  }
+
+  .transition-default {
+    @apply transition-colors duration-150 ease-out;
+  }
+
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .animate-pulse-soft {
+    animation: pulse-soft 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-soft {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  /* Legacy status badges */
   .status-active {
     @apply bg-primary/10 text-primary;
   }
-
   .status-prospect {
     @apply bg-warning/10 text-warning;
   }
-
   .status-archived {
     @apply bg-muted text-muted-foreground;
   }

@@ -14,13 +14,11 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
+        sans: ['Inter', 'var(--font-sans)'],
       },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
-        "input-background": "hsl(var(--input-background))",
-        "switch-background": "hsl(var(--switch-background))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
@@ -35,6 +33,10 @@ export default {
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
+        },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
         },
         warning: {
           DEFAULT: "hsl(var(--warning))",
@@ -66,13 +68,22 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        chart: {
+          "1": "hsl(var(--chart-1))",
+          "2": "hsl(var(--chart-2))",
+          "3": "hsl(var(--chart-3))",
+          "4": "hsl(var(--chart-4))",
+          "5": "hsl(var(--chart-5))",
+        },
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
-        xl: "calc(var(--radius) * 3)",
-        "2xl": "calc(var(--radius) * 4)",
+        xl: "4px",
+        lg: "4px",
+        md: "3px",
+        sm: "3px",
+      },
+      boxShadow: {
+        'whisper': '0 1px 2px rgba(0,0,0,0.03)',
       },
       keyframes: {
         "accordion-down": {
