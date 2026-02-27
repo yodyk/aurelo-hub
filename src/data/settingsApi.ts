@@ -1,6 +1,26 @@
+// ── Settings API — real Supabase queries ────────────────────────────
+import { supabase } from '@/integrations/supabase/client';
 import { type PlanId } from './plans';
 
-// Stub — will be replaced with Supabase queries
+// ── Workspace ID helper ─────────────────────────────────────────────
+// Most settings functions receive workspaceId from the caller (DataContext).
+// For functions called outside DataContext, we resolve it from workspace_members.
+
+async function resolveWorkspaceId(): Promise<string | null> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+  const { data } = await supabase
+    .from('workspace_members')
+    .select('workspace_id')
+    .eq('user_id', user.id)
+    .eq('status', 'active')
+    .limit(1)
+    .single();
+  return data?.workspace_id || null;
+}
+
+// ── Plan ────────────────────────────────────────────────────────────
+
 export async function updatePlan(planId: PlanId): Promise<{
   activatedAt?: string;
   stripeSubscriptionId?: string | null;
@@ -9,97 +29,136 @@ export async function updatePlan(planId: PlanId): Promise<{
   isTrial?: boolean;
   trialEnd?: string | null;
 }> {
-  // Simulate API call
-  return {
-    activatedAt: new Date().toISOString(),
-    stripeSubscriptionId: null,
-    stripeCustomerId: null,
-    periodEnd: null,
-    isTrial: false,
-    trialEnd: null,
-  };
+  const wsId = await resolveWorkspaceId();
+  if (!wsId) throw new Error('No workspace found');
+  const now = new Date().toISOString();
+  const { error } = await supabase.from('workspaces').update({ plan_id: planId, plan_activated_at: now }).eq('id', wsId);
+  if (error) throw new Error(`Failed to update plan: ${error.message}`);
+  return { activatedAt: now, isTrial: false, trialEnd: null };
 }
 
-// Generic settings persistence stub
-export async function saveSetting(key: string, value: any): Promise<void> {
-  // Stub — will be replaced with backend call
-  console.log(`[settingsApi] saveSetting: ${key}`, value);
+// ── Generic settings persistence ────────────────────────────────────
+
+export async function saveSetting(key: string, value: any, workspaceId?: string): Promise<void> {
+  const wsId = workspaceId || await resolveWorkspaceId();
+  if (!wsId) { console.warn('[settingsApi] No workspace, skipping save'); return; }
+  const { error } = await supabase
+    .from('workspace_settings')
+    .upsert({ workspace_id: wsId, section: key, data: value, updated_at: new Date().toISOString() }, { onConflict: 'workspace_id,section' });
+  if (error) console.error('[settingsApi] saveSetting failed:', error);
 }
 
-export async function loadSetting(key: string): Promise<any> {
-  // Stub — will be replaced with backend call
-  console.log(`[settingsApi] loadSetting: ${key}`);
-  return null;
+export async function loadSetting(key: string, workspaceId?: string): Promise<any> {
+  const wsId = workspaceId || await resolveWorkspaceId();
+  if (!wsId) return null;
+  const { data, error } = await supabase
+    .from('workspace_settings')
+    .select('data')
+    .eq('workspace_id', wsId)
+    .eq('section', key)
+    .single();
+  if (error) return null;
+  return data?.data || null;
 }
 
 export async function clearDemoData(): Promise<void> {
-  console.log('[settingsApi] clearDemoData called');
+  console.log('[settingsApi] clearDemoData — not yet implemented');
 }
 
-// ── Avatar stubs ────────────────────────────────────────────────────
+// ── Avatar stubs (until storage buckets set up) ─────────────────────
+
 export async function loadAvatar(): Promise<{ url: string } | null> {
-  console.log('[settingsApi] loadAvatar');
   return null;
 }
 
 export async function uploadAvatar(file: File): Promise<{ url: string }> {
-  console.log('[settingsApi] uploadAvatar', file.name);
   const url = URL.createObjectURL(file);
   return { url };
 }
 
-export async function deleteAvatar(): Promise<void> {
-  console.log('[settingsApi] deleteAvatar');
-}
+export async function deleteAvatar(): Promise<void> {}
 
 // ── Logo stubs ──────────────────────────────────────────────────────
+
 export async function loadLogos(): Promise<{
   app: { url: string; fileName: string } | null;
   email: { url: string; fileName: string } | null;
 }> {
-  console.log('[settingsApi] loadLogos');
   return { app: null, email: null };
 }
 
-export async function uploadLogo(file: File, type: 'app' | 'email'): Promise<{ url: string; fileName: string }> {
-  console.log('[settingsApi] uploadLogo', type, file.name);
+export async function uploadLogo(file: File, _type: 'app' | 'email'): Promise<{ url: string; fileName: string }> {
   return { url: URL.createObjectURL(file), fileName: file.name };
 }
 
-export async function deleteLogo(type: 'app' | 'email'): Promise<void> {
-  console.log('[settingsApi] deleteLogo', type);
-}
+export async function deleteLogo(_type: 'app' | 'email'): Promise<void> {}
 
-// ── Team stubs ──────────────────────────────────────────────────────
+// ── Team ────────────────────────────────────────────────────────────
+
 export async function inviteTeamMember(email: string, role: string): Promise<any> {
-  console.log('[settingsApi] inviteTeamMember', email, role);
-  return { id: crypto.randomUUID(), email, role, status: 'invited', joinedAt: new Date().toISOString() };
+  const wsId = await resolveWorkspaceId();
+  if (!wsId) throw new Error('No workspace found');
+  const { data: { user } } = await supabase.auth.getUser();
+  const { data, error } = await supabase.from('pending_invites').insert({
+    workspace_id: wsId,
+    email,
+    role,
+    invited_by: user!.id,
+  }).select().single();
+  if (error) throw new Error(`Failed to invite: ${error.message}`);
+  return data;
 }
 
 export async function removeTeamMember(id: string): Promise<void> {
-  console.log('[settingsApi] removeTeamMember', id);
+  const { error } = await supabase.from('workspace_members').delete().eq('id', id);
+  if (error) throw new Error(`Failed to remove member: ${error.message}`);
 }
 
-// ── API key stub ────────────────────────────────────────────────────
+// ── API key ─────────────────────────────────────────────────────────
+
 export async function regenerateApiKey(): Promise<string> {
-  console.log('[settingsApi] regenerateApiKey');
-  return `ak_${crypto.randomUUID().replace(/-/g, '')}`;
+  const wsId = await resolveWorkspaceId();
+  if (!wsId) throw new Error('No workspace found');
+  const key = `ak_${crypto.randomUUID().replace(/-/g, '')}`;
+  // Delete old keys, insert new
+  await supabase.from('api_keys').delete().eq('workspace_id', wsId);
+  const { error } = await supabase.from('api_keys').insert({ workspace_id: wsId, key });
+  if (error) throw new Error(`Failed to regenerate API key: ${error.message}`);
+  return key;
 }
 
-// ── Data / danger zone stubs ────────────────────────────────────────
-export async function exportData(type: string): Promise<void> {
-  console.log('[settingsApi] exportData', type);
+// ── Data / danger zone ──────────────────────────────────────────────
+
+export async function exportData(_type: string): Promise<void> {
+  console.log('[settingsApi] exportData — client-side CSV generation');
 }
 
 export async function resetFinancialData(): Promise<void> {
-  console.log('[settingsApi] resetFinancialData');
+  const wsId = await resolveWorkspaceId();
+  if (!wsId) return;
+  await supabase.from('sessions').delete().eq('workspace_id', wsId);
+  await supabase.from('clients').update({ monthly_earnings: 0, lifetime_revenue: 0, hours_logged: 0, true_hourly_rate: 0 }).eq('workspace_id', wsId);
 }
 
 export async function deleteWorkspace(): Promise<void> {
-  console.log('[settingsApi] deleteWorkspace');
+  const wsId = await resolveWorkspaceId();
+  if (!wsId) return;
+  // Delete in order: sessions, projects, notes, invoices, clients, settings, members, workspace
+  await supabase.from('sessions').delete().eq('workspace_id', wsId);
+  await supabase.from('notes').delete().eq('workspace_id', wsId);
+  await supabase.from('invoices').delete().eq('workspace_id', wsId);
+  await supabase.from('projects').delete().eq('workspace_id', wsId);
+  await supabase.from('clients').delete().eq('workspace_id', wsId);
+  await supabase.from('workspace_settings').delete().eq('workspace_id', wsId);
+  await supabase.from('invoice_sequences').delete().eq('workspace_id', wsId);
+  await supabase.from('pending_invites').delete().eq('workspace_id', wsId);
+  await supabase.from('api_keys').delete().eq('workspace_id', wsId);
+  await supabase.from('portal_tokens').delete().eq('workspace_id', wsId);
+  await supabase.from('workspace_members').delete().eq('workspace_id', wsId);
+  await supabase.from('workspaces').delete().eq('id', wsId);
 }
 
 export async function seedDemoData(): Promise<{ summary?: { clients?: number; sessions?: number; projects?: number } }> {
-  console.log('[settingsApi] seedDemoData');
-  return { summary: { clients: 9, sessions: 200, projects: 20 } };
+  console.log('[settingsApi] seedDemoData — not yet implemented with live DB');
+  return { summary: { clients: 0, sessions: 0, projects: 0 } };
 }

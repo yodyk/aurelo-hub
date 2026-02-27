@@ -1,90 +1,269 @@
-// ── Data API stub ───────────────────────────────────────────────────
-// Local-only stubs returning sample data. Will be replaced with
-// Supabase/Cloud calls when backend is enabled.
+// ── Data API — real Supabase queries ─────────────────────────────────
+import { supabase } from '@/integrations/supabase/client';
 
-const sampleClients = [
-  { id: '1', name: 'Arcadia Design', status: 'Active', model: 'Hourly', rate: 150, monthlyEarnings: 3200, lifetimeRevenue: 18400, hoursLogged: 21, retainerRemaining: 0, retainerTotal: 0, trueHourlyRate: 152, contactName: 'Sarah Chen', contactEmail: 'sarah@arcadia.co', website: 'arcadia.co', showPortalCosts: true, lastSessionDate: '2026-02-26' },
-  { id: '2', name: 'Meridian Labs', status: 'Active', model: 'Retainer', rate: 150, monthlyEarnings: 2400, lifetimeRevenue: 32000, hoursLogged: 16, retainerRemaining: 24, retainerTotal: 40, trueHourlyRate: 150, contactName: 'Jake Morrison', contactEmail: 'jake@meridian.io', website: 'meridian.io', showPortalCosts: true, lastSessionDate: '2026-02-26' },
-  { id: '3', name: 'Beacon Studio', status: 'Active', model: 'Project', rate: 150, monthlyEarnings: 1800, lifetimeRevenue: 12600, hoursLogged: 12, retainerRemaining: 0, retainerTotal: 0, trueHourlyRate: 150, contactName: 'Emily Park', contactEmail: 'emily@beacon.studio', website: 'beacon.studio', showPortalCosts: false, lastSessionDate: '2026-02-25' },
-  { id: '4', name: 'Novatech', status: 'Prospect', model: 'Hourly', rate: 125, monthlyEarnings: 0, lifetimeRevenue: 0, hoursLogged: 0, retainerRemaining: 0, retainerTotal: 0, trueHourlyRate: 0, contactName: 'David Kim', contactEmail: 'david@novatech.com', website: '', showPortalCosts: true, lastSessionDate: null },
-];
+// ── Helpers ─────────────────────────────────────────────────────────
 
-const sampleSessions = [
-  { id: '1', clientId: '1', client: 'Arcadia Design', projectId: 'p1', date: 'Feb 26, 2026', dateGroup: 'Today', task: 'Brand guidelines v2', duration: 3.5, revenue: 525, billable: true, workTags: ['Design', 'Branding'], allocationType: 'project' },
-  { id: '2', clientId: '2', client: 'Meridian Labs', projectId: 'p2', date: 'Feb 26, 2026', dateGroup: 'Today', task: 'Dashboard wireframes', duration: 2.0, revenue: 300, billable: true, workTags: ['Design'], allocationType: 'retainer' },
-  { id: '3', clientId: '3', client: 'Beacon Studio', projectId: 'p3', date: 'Feb 25, 2026', dateGroup: 'Yesterday', task: 'Client presentation', duration: 1.5, revenue: 225, billable: true, workTags: ['Meetings'], allocationType: 'project' },
-  { id: '4', clientId: '1', client: 'Arcadia Design', projectId: 'p1', date: 'Feb 25, 2026', dateGroup: 'Yesterday', task: 'Logo explorations', duration: 4.0, revenue: 600, billable: true, workTags: ['Design'], allocationType: 'project' },
-  { id: '5', clientId: '2', client: 'Meridian Labs', date: 'Feb 24, 2026', dateGroup: 'This week', task: 'Internal sync meeting', duration: 0.5, revenue: 0, billable: false, workTags: ['Admin'], allocationType: 'general' },
-];
+function snakeToCamel(row: Record<string, any>): Record<string, any> {
+  const map: Record<string, string> = {
+    contact_name: 'contactName',
+    contact_email: 'contactEmail',
+    show_portal_costs: 'showPortalCosts',
+    monthly_earnings: 'monthlyEarnings',
+    lifetime_revenue: 'lifetimeRevenue',
+    hours_logged: 'hoursLogged',
+    retainer_remaining: 'retainerRemaining',
+    retainer_total: 'retainerTotal',
+    true_hourly_rate: 'trueHourlyRate',
+    last_session_date: 'lastSessionDate',
+    external_links: 'externalLinks',
+    workspace_id: 'workspaceId',
+    created_at: 'createdAt',
+    updated_at: 'updatedAt',
+    client_id: 'clientId',
+    project_id: 'projectId',
+    allocation_type: 'allocationType',
+    work_tags: 'workTags',
+    timer_start: 'timerStart',
+    timer_end: 'timerEnd',
+    estimated_hours: 'estimatedHours',
+    total_value: 'totalValue',
+    start_date: 'startDate',
+    end_date: 'endDate',
+    budget_type: 'budgetType',
+    budget_amount: 'budgetAmount',
+  };
+  const out: Record<string, any> = {};
+  for (const [k, v] of Object.entries(row)) {
+    out[map[k] || k] = v;
+  }
+  return out;
+}
 
-const sampleProjects: Record<string, any[]> = {
-  '1': [
-    { id: 'p1', clientId: '1', name: 'Brand Refresh', status: 'In Progress', hours: 14, estimatedHours: 30, revenue: 2100, totalValue: 4500, startDate: '2026-01-15' },
-    { id: 'p4', clientId: '1', name: 'Logo Package', status: 'Complete', hours: 10, estimatedHours: 10, revenue: 1500, totalValue: 1500, startDate: '2025-12-01', endDate: '2026-01-10' },
-  ],
-  '2': [
-    { id: 'p2', clientId: '2', name: 'Dashboard Redesign', status: 'In Progress', hours: 8, estimatedHours: 20, revenue: 1200, totalValue: 3000, startDate: '2026-02-01' },
-  ],
-  '3': [
-    { id: 'p3', clientId: '3', name: 'Website Launch', status: 'In Progress', hours: 12, estimatedHours: 40, revenue: 1800, totalValue: 8000, startDate: '2026-01-20' },
-  ],
-};
+function camelToSnake(obj: Record<string, any>): Record<string, any> {
+  const map: Record<string, string> = {
+    contactName: 'contact_name',
+    contactEmail: 'contact_email',
+    showPortalCosts: 'show_portal_costs',
+    monthlyEarnings: 'monthly_earnings',
+    lifetimeRevenue: 'lifetime_revenue',
+    hoursLogged: 'hours_logged',
+    retainerRemaining: 'retainer_remaining',
+    retainerTotal: 'retainer_total',
+    trueHourlyRate: 'true_hourly_rate',
+    lastSessionDate: 'last_session_date',
+    externalLinks: 'external_links',
+    workspaceId: 'workspace_id',
+    clientId: 'client_id',
+    projectId: 'project_id',
+    allocationType: 'allocation_type',
+    workTags: 'work_tags',
+    timerStart: 'timer_start',
+    timerEnd: 'timer_end',
+    estimatedHours: 'estimated_hours',
+    totalValue: 'total_value',
+    startDate: 'start_date',
+    endDate: 'end_date',
+    budgetType: 'budget_type',
+    budgetAmount: 'budget_amount',
+  };
+  const out: Record<string, any> = {};
+  for (const [k, v] of Object.entries(obj)) {
+    if (v === undefined) continue;
+    out[map[k] || k] = v;
+  }
+  return out;
+}
 
-// Simulates the /init bulk endpoint
-export async function loadInitData() {
+function formatSessionRow(row: any): any {
+  const s = snakeToCamel(row);
+  // Add derived fields the UI expects
+  const client = row._client_name; // joined
+  const dateObj = new Date(s.date);
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+  const isToday = dateObj.toDateString() === today.toDateString();
+  const isYesterday = dateObj.toDateString() === yesterday.toDateString();
+  s.dateGroup = isToday ? 'Today' : isYesterday ? 'Yesterday' : 'This week';
+  s.date = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  return s;
+}
+
+// ── Init (bulk load) ────────────────────────────────────────────────
+
+export async function loadInitData(workspaceId: string) {
+  const [clientsRes, sessionsRes, settingsRes] = await Promise.all([
+    supabase.from('clients').select('*').eq('workspace_id', workspaceId).order('name'),
+    supabase.from('sessions').select('*, clients!inner(name)').eq('workspace_id', workspaceId).order('date', { ascending: false }).limit(500),
+    supabase.from('workspace_settings').select('section, data').eq('workspace_id', workspaceId),
+  ]);
+
+  const clients = (clientsRes.data || []).map(snakeToCamel);
+  const sessions = (sessionsRes.data || []).map((row: any) => {
+    const s = snakeToCamel(row);
+    s.client = row.clients?.name || '';
+    delete s.clients;
+    const dateObj = new Date(row.date);
+    const today = new Date();
+    const yesterday = new Date(); yesterday.setDate(today.getDate() - 1);
+    s.dateGroup = dateObj.toDateString() === today.toDateString() ? 'Today'
+      : dateObj.toDateString() === yesterday.toDateString() ? 'Yesterday' : 'This week';
+    s.date = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return s;
+  });
+
+  // Parse settings sections into a flat object
+  const settingsMap: Record<string, any> = {};
+  for (const row of settingsRes.data || []) {
+    settingsMap[row.section] = row.data;
+  }
+
+  // Load workspace plan info
+  const { data: ws } = await supabase.from('workspaces').select('plan_id, plan_activated_at, is_trial, trial_end').eq('id', workspaceId).single();
+
   return {
-    clients: [...sampleClients],
-    sessions: [...sampleSessions],
-    avatar: null,
+    clients,
+    sessions,
+    avatar: null, // TODO: storage integration
     logos: { app: null, email: null },
     settings: {
-      financial: { taxRate: '25', processingFee: '2.9', costRate: '45', currency: 'USD', weeklyTarget: '40' },
-      identity: { type: 'designer' },
-      categories: null,
+      financial: settingsMap.financial || null,
+      identity: settingsMap.identity || null,
+      categories: settingsMap.categories || null,
     },
-    plan: { planId: 'starter', activatedAt: new Date().toISOString(), isTrial: false, trialEnd: null },
+    plan: ws ? { planId: ws.plan_id, activatedAt: ws.plan_activated_at, isTrial: ws.is_trial, trialEnd: ws.trial_end } : null,
   };
 }
 
-export async function loadClients() { return [...sampleClients]; }
-export async function loadSessions() { return [...sampleSessions]; }
+// ── Clients ─────────────────────────────────────────────────────────
 
-export async function addClient(client: any) {
-  return { ...client, id: 'c' + Date.now() };
+export async function loadClients(workspaceId: string) {
+  const { data, error } = await supabase.from('clients').select('*').eq('workspace_id', workspaceId).order('name');
+  if (error) { console.error('[dataApi] loadClients:', error); return []; }
+  return (data || []).map(snakeToCamel);
 }
 
-export async function updateClient(clientId: string, updates: any) {
-  // stub
+export async function addClient(workspaceId: string, client: any) {
+  const slug = client.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  const snaked = camelToSnake(client);
+  const row: Record<string, any> = { ...snaked, workspace_id: workspaceId, slug, name: client.name };
+  // Remove fields that shouldn't be inserted
+  delete row.id;
+  delete row.createdAt;
+  delete row.updatedAt;
+  const { data, error } = await supabase.from('clients').insert(row as any).select().single();
+  if (error) throw new Error(`Failed to add client: ${error.message}`);
+  return snakeToCamel(data);
 }
 
-export async function addSession(session: any) {
-  return { ...session, id: 's' + Date.now() };
+export async function updateClient(workspaceId: string, clientId: string, updates: any) {
+  const row = camelToSnake(updates);
+  delete row.id;
+  delete row.workspace_id;
+  const { error } = await supabase.from('clients').update(row).eq('id', clientId).eq('workspace_id', workspaceId);
+  if (error) throw new Error(`Failed to update client: ${error.message}`);
 }
 
-export async function loadProjects(clientId: string) {
-  return sampleProjects[clientId] ? [...sampleProjects[clientId]] : [];
+// ── Sessions ────────────────────────────────────────────────────────
+
+export async function loadSessions(workspaceId: string) {
+  const { data, error } = await supabase
+    .from('sessions')
+    .select('*, clients!inner(name)')
+    .eq('workspace_id', workspaceId)
+    .order('date', { ascending: false })
+    .limit(500);
+  if (error) { console.error('[dataApi] loadSessions:', error); return []; }
+  return (data || []).map((row: any) => {
+    const s = snakeToCamel(row);
+    s.client = row.clients?.name || '';
+    delete s.clients;
+    const dateObj = new Date(row.date);
+    const today = new Date();
+    const yesterday = new Date(); yesterday.setDate(today.getDate() - 1);
+    s.dateGroup = dateObj.toDateString() === today.toDateString() ? 'Today'
+      : dateObj.toDateString() === yesterday.toDateString() ? 'Yesterday' : 'This week';
+    s.date = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return s;
+  });
 }
 
-export async function saveProjects(clientId: string, projects: any[]) {
-  sampleProjects[clientId] = projects;
+export async function addSession(workspaceId: string, session: any) {
+  const row: any = {
+    workspace_id: workspaceId,
+    client_id: session.clientId,
+    date: session.rawDate || new Date().toISOString().split('T')[0],
+    duration: session.duration || 0,
+    revenue: session.revenue || 0,
+    billable: session.billable ?? true,
+    task: session.task || null,
+    work_tags: session.workTags || [],
+    allocation_type: session.allocationType || null,
+    project_id: session.projectId || null,
+  };
+  const { data, error } = await supabase.from('sessions').insert(row).select('*, clients!inner(name)').single();
+  if (error) throw new Error(`Failed to add session: ${error.message}`);
+  const s = snakeToCamel(data);
+  s.client = data.clients?.name || session.client || '';
+  delete s.clients;
+  const dateObj = new Date(data.date);
+  const today = new Date();
+  const yesterday = new Date(); yesterday.setDate(today.getDate() - 1);
+  s.dateGroup = dateObj.toDateString() === today.toDateString() ? 'Today'
+    : dateObj.toDateString() === yesterday.toDateString() ? 'Yesterday' : 'This week';
+  s.date = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  return s;
 }
 
-export async function addProject(clientId: string, project: any) {
-  const saved = { ...project, id: 'p' + Date.now(), clientId };
-  if (!sampleProjects[clientId]) sampleProjects[clientId] = [];
-  sampleProjects[clientId].push(saved);
-  return saved;
+// ── Projects ────────────────────────────────────────────────────────
+
+export async function loadProjects(workspaceId: string, clientId: string) {
+  const { data, error } = await supabase.from('projects').select('*').eq('workspace_id', workspaceId).eq('client_id', clientId).order('created_at', { ascending: false });
+  if (error) { console.error('[dataApi] loadProjects:', error); return []; }
+  return (data || []).map(snakeToCamel);
 }
 
-export async function updateProject(clientId: string, projectId: string, updates: any) {
-  const projects = sampleProjects[clientId] || [];
-  const idx = projects.findIndex(p => String(p.id) === String(projectId));
-  if (idx !== -1) projects[idx] = { ...projects[idx], ...updates };
+export async function saveProjects(_workspaceId: string, _clientId: string, _projects: any[]) {
+  // Batch update not commonly needed; individual updateProject calls handle this
 }
 
-export async function loadAllProjects() {
-  return Object.values(sampleProjects).flat();
+export async function addProject(workspaceId: string, clientId: string, project: any) {
+  const row: any = {
+    workspace_id: workspaceId,
+    client_id: clientId,
+    name: project.name,
+    status: project.status || 'In Progress',
+    hours: project.hours || 0,
+    estimated_hours: project.estimatedHours || 0,
+    revenue: project.revenue || 0,
+    total_value: project.totalValue || 0,
+    start_date: project.startDate || null,
+    end_date: project.endDate || null,
+    description: project.description || null,
+    budget_type: project.budgetType || null,
+    budget_amount: project.budgetAmount || 0,
+  };
+  const { data, error } = await supabase.from('projects').insert(row).select().single();
+  if (error) throw new Error(`Failed to add project: ${error.message}`);
+  return snakeToCamel(data);
 }
+
+export async function updateProject(workspaceId: string, _clientId: string, projectId: string, updates: any) {
+  const row = camelToSnake(updates);
+  delete row.id;
+  delete row.workspace_id;
+  delete row.client_id;
+  const { error } = await supabase.from('projects').update(row).eq('id', projectId).eq('workspace_id', workspaceId);
+  if (error) throw new Error(`Failed to update project: ${error.message}`);
+}
+
+export async function loadAllProjects(workspaceId: string) {
+  const { data, error } = await supabase.from('projects').select('*').eq('workspace_id', workspaceId).order('created_at', { ascending: false });
+  if (error) { console.error('[dataApi] loadAllProjects:', error); return []; }
+  return (data || []).map(snakeToCamel);
+}
+
+// ── Files (storage — stub until buckets configured) ─────────────────
 
 export async function loadFiles(_clientId: string) {
   return [] as any[];
@@ -95,5 +274,5 @@ export async function uploadFile(_clientId: string, _file: File) {
 }
 
 export async function deleteFile(_clientId: string, _fileName: string) {
-  // stub
+  // stub until storage buckets are set up
 }

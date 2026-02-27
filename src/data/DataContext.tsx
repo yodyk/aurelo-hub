@@ -93,7 +93,7 @@ export function useData() {
 }
 
 export function DataProvider({ children }: { children: ReactNode }) {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, workspaceId } = useAuth();
   const [clients, setClients] = useState<any[]>([]);
   const [sessions, setSessions] = useState<any[]>([]);
   const [projectsCache, setProjectsCache] = useState<Record<string, any[]>>({});
@@ -114,10 +114,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
   clientsRef.current = clients;
   const projectsCacheRef = useRef(projectsCache);
   projectsCacheRef.current = projectsCache;
+  const workspaceIdRef = useRef(workspaceId);
+  workspaceIdRef.current = workspaceId;
 
   useEffect(() => {
     if (authLoading) return;
-    if (!user) {
+    if (!user || !workspaceId) {
       setClients([]); setSessions([]); setProjectsCache({}); setAllProjects([]);
       setIdentity(null); setIdentityLoaded(false); setWorkCategories(FALLBACK_CATEGORIES);
       setFinancialDefaults(DEFAULT_FINANCIALS);
@@ -132,7 +134,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setClients([]); setSessions([]); setProjectsCache({}); setAllProjects([]);
     setIdentity(null); setIdentityLoaded(false);
 
-    api.loadInitData()
+    api.loadInitData(workspaceId)
       .then(initData => {
         if (!mounted || !initData) return;
         setClients(initData.clients || []);
@@ -172,29 +174,37 @@ export function DataProvider({ children }: { children: ReactNode }) {
       .finally(() => { if (mounted) setLoading(false); });
 
     return () => { mounted = false; };
-  }, [user?.id, authLoading]);
+  }, [user?.id, authLoading, workspaceId]);
 
   const refresh = useCallback(async () => {
-    const [cl, se] = await Promise.all([api.loadClients(), api.loadSessions()]);
+    const wsId = workspaceIdRef.current;
+    if (!wsId) return;
+    const [cl, se] = await Promise.all([api.loadClients(wsId), api.loadSessions(wsId)]);
     setClients(cl?.length ? cl : []);
     setSessions(se?.length ? se : []);
   }, []);
 
   const handleAddClient = useCallback(async (client: any) => {
-    const saved = await api.addClient(client);
+    const wsId = workspaceIdRef.current;
+    if (!wsId) throw new Error('No workspace');
+    const saved = await api.addClient(wsId, client);
     setClients(prev => [...prev, saved]);
     return saved;
   }, []);
 
   const handleUpdateClient = useCallback(async (clientId: string, updates: any) => {
-    await api.updateClient(clientId, updates);
+    const wsId = workspaceIdRef.current;
+    if (!wsId) return;
+    await api.updateClient(wsId, clientId, updates);
     setClients(prev => prev.map(c => c.id === clientId ? { ...c, ...updates } : c));
   }, []);
 
   const getProjectsForClient = useCallback((clientId: string) => projectsCacheRef.current[clientId] || [], []);
 
   const handleAddSession = useCallback(async (session: any) => {
-    const saved = await api.addSession(session);
+    const wsId = workspaceIdRef.current;
+    if (!wsId) throw new Error('No workspace');
+    const saved = await api.addSession(wsId, session);
     setSessions(prev => [saved, ...prev]);
     const cid = session.clientId;
     if (!cid) return saved;
@@ -205,15 +215,16 @@ export function DataProvider({ children }: { children: ReactNode }) {
         const idx = projects.findIndex((p: any) => String(p.id) === pid);
         if (idx !== -1) {
           const updated = projects.map((p: any, i: number) => i !== idx ? p : { ...p, hours: (p.hours || 0) + (session.duration || 0), revenue: (p.revenue || 0) + (session.revenue || 0) });
-          await api.saveProjects(cid, updated);
           setProjectsCache(prev => ({ ...prev, [cid]: updated }));
+          // Update the project in the DB too
+          await api.updateProject(wsId, cid, pid, { hours: updated[idx].hours, revenue: updated[idx].revenue });
         }
       }
       if (session.allocationType === 'retainer' && session.billable) {
         const client = clientsRef.current.find((c: any) => c.id === cid);
         if (client && client.model === 'Retainer') {
           const newRemaining = Math.max(0, (client.retainerRemaining || 0) - (session.duration || 0));
-          await api.updateClient(cid, { retainerRemaining: newRemaining });
+          await api.updateClient(wsId, cid, { retainerRemaining: newRemaining });
           setClients(prev => prev.map(c => c.id === cid ? { ...c, retainerRemaining: newRemaining } : c));
         }
       }
@@ -226,38 +237,51 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const getProjects = useCallback((clientId: string) => projectsCacheRef.current[clientId] || [], []);
 
   const loadProjectsForClient = useCallback(async (clientId: string) => {
-    const remote = await api.loadProjects(clientId);
+    const wsId = workspaceIdRef.current;
+    if (!wsId) return [];
+    const remote = await api.loadProjects(wsId, clientId);
     const result = remote?.length ? remote : [];
     setProjectsCache(prev => ({ ...prev, [clientId]: result }));
     return result;
   }, []);
 
   const handleAddProject = useCallback(async (clientId: string, project: any) => {
-    const saved = await api.addProject(clientId, project);
+    const wsId = workspaceIdRef.current;
+    if (!wsId) throw new Error('No workspace');
+    const saved = await api.addProject(wsId, clientId, project);
     setProjectsCache(prev => ({ ...prev, [clientId]: [...(prev[clientId] || []), saved] }));
     setAllProjects(prev => prev.length > 0 ? [...prev, { ...saved, clientId }] : prev);
     return saved;
   }, []);
 
   const handleUpdateProject = useCallback(async (clientId: string, projectId: string, updates: any) => {
-    await api.updateProject(clientId, projectId, updates);
+    const wsId = workspaceIdRef.current;
+    if (!wsId) return;
+    await api.updateProject(wsId, clientId, projectId, updates);
     setProjectsCache(prev => ({ ...prev, [clientId]: prev[clientId]?.map((p: any) => String(p.id) === String(projectId) ? { ...p, ...updates } : p) || [] }));
     setAllProjects(prev => prev.map(p => String(p.id) === String(projectId) && p.clientId === clientId ? { ...p, ...updates } : p));
   }, []);
 
   const loadAllProjects = useCallback(async () => {
-    const remote = await api.loadAllProjects();
+    const wsId = workspaceIdRef.current;
+    if (!wsId) return;
+    const remote = await api.loadAllProjects(wsId);
     setAllProjects(remote);
   }, []);
 
   const handleSetIdentityAndCategories = useCallback(async (newIdentity: IdentityType, categories: WorkCategory[]) => {
+    const wsId = workspaceIdRef.current;
     setIdentity(newIdentity); setWorkCategories(categories);
-    await Promise.all([settingsApi.saveSetting('identity', { type: newIdentity }), settingsApi.saveSetting('categories', categories)]);
+    await Promise.all([
+      settingsApi.saveSetting('identity', { type: newIdentity }, wsId || undefined),
+      settingsApi.saveSetting('categories', categories, wsId || undefined),
+    ]);
   }, []);
 
   const handleUpdateWorkCategories = useCallback(async (categories: WorkCategory[]) => {
+    const wsId = workspaceIdRef.current;
     setWorkCategories(categories);
-    await settingsApi.saveSetting('categories', categories);
+    await settingsApi.saveSetting('categories', categories, wsId || undefined);
   }, []);
 
   const insightsMetrics = useMemo(() => computeInsightsMetrics(sessions, clients, netMultiplier), [sessions, clients, netMultiplier]);
