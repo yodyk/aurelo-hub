@@ -29,6 +29,8 @@ interface DataContextType {
   addClient: (client: any) => Promise<any>;
   updateClient: (clientId: string, updates: any) => Promise<void>;
   addSession: (session: any) => Promise<any>;
+  updateSession: (sessionId: string, updates: any) => Promise<any>;
+  deleteSession: (sessionId: string) => Promise<void>;
   getProjects: (clientId: string) => any[];
   loadProjectsForClient: (clientId: string) => Promise<any[]>;
   addProject: (clientId: string, project: any) => Promise<any>;
@@ -75,6 +77,8 @@ const safeDefaults: DataContextType = {
   addClient: async () => ({}),
   updateClient: async () => {},
   addSession: async () => ({}),
+  updateSession: async () => ({}),
+  deleteSession: async () => {},
   getProjects: () => [],
   loadProjectsForClient: async () => [],
   addProject: async () => ({}),
@@ -239,6 +243,21 @@ export function DataProvider({ children }: { children: ReactNode }) {
     return saved;
   }, [getProjectsForClient]);
 
+  const handleUpdateSession = useCallback(async (sessionId: string, updates: any) => {
+    const wsId = workspaceIdRef.current;
+    if (!wsId) throw new Error('No workspace');
+    const saved = await api.updateSession(wsId, sessionId, updates);
+    setSessions(prev => prev.map(s => s.id === sessionId ? saved : s));
+    return saved;
+  }, []);
+
+  const handleDeleteSession = useCallback(async (sessionId: string) => {
+    const wsId = workspaceIdRef.current;
+    if (!wsId) throw new Error('No workspace');
+    await api.deleteSession(wsId, sessionId);
+    setSessions(prev => prev.filter(s => s.id !== sessionId));
+  }, []);
+
   const getProjects = useCallback((clientId: string) => projectsCacheRef.current[clientId] || [], []);
 
   const loadProjectsForClient = useCallback(async (clientId: string) => {
@@ -298,7 +317,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       setIdentityAndCategories: handleSetIdentityAndCategories,
       updateWorkCategories: handleUpdateWorkCategories,
       addClient: handleAddClient, updateClient: handleUpdateClient,
-      addSession: handleAddSession,
+      addSession: handleAddSession, updateSession: handleUpdateSession, deleteSession: handleDeleteSession,
       getProjects, loadProjectsForClient,
       addProject: handleAddProject, updateProject: handleUpdateProject,
       allProjects, loadAllProjects,

@@ -220,6 +220,47 @@ export async function addSession(workspaceId: string, session: any) {
   return s;
 }
 
+export async function updateSession(workspaceId: string, sessionId: string, updates: any) {
+  const row: any = {};
+  if (updates.task !== undefined) row.task = updates.task;
+  if (updates.duration !== undefined) row.duration = updates.duration;
+  if (updates.revenue !== undefined) row.revenue = updates.revenue;
+  if (updates.billable !== undefined) row.billable = updates.billable;
+  if (updates.workTags !== undefined) row.work_tags = updates.workTags;
+  if (updates.rawDate !== undefined) row.date = updates.rawDate;
+  if (updates.allocationType !== undefined) row.allocation_type = updates.allocationType;
+  if (updates.projectId !== undefined) row.project_id = updates.projectId || null;
+  if (updates.clientId !== undefined) row.client_id = updates.clientId;
+
+  const { data, error } = await supabase
+    .from('sessions')
+    .update(row)
+    .eq('id', sessionId)
+    .eq('workspace_id', workspaceId)
+    .select('*, clients!inner(name)')
+    .single();
+  if (error) throw new Error(`Failed to update session: ${error.message}`);
+  const s = snakeToCamel(data);
+  s.client = data.clients?.name || '';
+  delete s.clients;
+  const dateObj = new Date(data.date);
+  const today = new Date();
+  const yesterday = new Date(); yesterday.setDate(today.getDate() - 1);
+  s.dateGroup = dateObj.toDateString() === today.toDateString() ? 'Today'
+    : dateObj.toDateString() === yesterday.toDateString() ? 'Yesterday' : 'This week';
+  s.date = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  return s;
+}
+
+export async function deleteSession(workspaceId: string, sessionId: string) {
+  const { error } = await supabase
+    .from('sessions')
+    .delete()
+    .eq('id', sessionId)
+    .eq('workspace_id', workspaceId);
+  if (error) throw new Error(`Failed to delete session: ${error.message}`);
+}
+
 // ── Projects ────────────────────────────────────────────────────────
 
 export async function loadProjects(workspaceId: string, clientId: string) {

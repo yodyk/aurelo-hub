@@ -1,9 +1,9 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router";
-import { Calendar, Filter, Plus, Clock, DollarSign, ChevronDown, Download, FolderKanban, Repeat } from "lucide-react";
+import { Calendar, Filter, Plus, Clock, DollarSign, ChevronDown, Download, FolderKanban, Repeat, Pencil, Trash2, MoreHorizontal } from "lucide-react";
 import { motion } from "motion/react";
 import { useData } from "../data/DataContext";
-import { LogSessionModal } from "../components/Modals";
+import { LogSessionModal, EditSessionModal } from "../components/Modals";
 import { toast } from "sonner";
 
 const container = {
@@ -18,11 +18,12 @@ const item = {
 
 export default function TimeLog() {
   const navigate = useNavigate();
-  const { sessions, clients, addSession, workCategoryNames } = useData();
+  const { sessions, clients, addSession, updateSession, deleteSession, workCategoryNames } = useData();
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [selectedClient, setSelectedClient] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState("This Month");
   const [showLogModal, setShowLogModal] = useState(false);
+  const [editingSession, setEditingSession] = useState<any>(null);
 
   const filteredSessions = useMemo(() => {
     let s = sessions;
@@ -85,6 +86,16 @@ export default function TimeLog() {
   const handleLogSession = async (session: any) => {
     await addSession(session);
     toast.success("Session logged");
+  };
+
+  const handleUpdateSession = async (sessionId: string, updates: any) => {
+    await updateSession(sessionId, updates);
+    toast.success("Session updated");
+  };
+
+  const handleDeleteSession = async (sessionId: string) => {
+    await deleteSession(sessionId);
+    toast.success("Session deleted");
   };
 
   const allTags = [
@@ -259,85 +270,100 @@ export default function TimeLog() {
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.1 + groupIndex * 0.05 + index * 0.03 }}
                   className="flex items-center gap-4 px-6 py-4 border-b border-border last:border-0 hover:bg-accent/30 transition-colors cursor-pointer group"
-                  onClick={() => {
-                    if (session.clientId) navigate(`/clients/${session.clientId}`);
-                  }}
                 >
-                  <div className="w-8 h-8 rounded-lg bg-primary/8 flex items-center justify-center flex-shrink-0">
-                    <span className="text-[11px] text-primary" style={{ fontWeight: 600 }}>
-                      {session.client?.charAt(0) || "?"}
-                    </span>
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[14px] mb-0.5" style={{ fontWeight: 500 }}>
-                      {session.client}
-                    </div>
-                    <div className="text-[13px] text-muted-foreground truncate">{session.task}</div>
-                  </div>
-
-                  {/* Allocation badge */}
-                  {session.allocationType && session.allocationType !== "general" && (
-                    <div className="flex-shrink-0">
-                      <span
-                        className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/6 text-[10px] rounded-full text-primary border border-primary/10"
-                        style={{ fontWeight: 500 }}
-                      >
-                        {session.allocationType === "retainer" ? (
-                          <>
-                            <Repeat className="w-2.5 h-2.5" />
-                            Retainer
-                          </>
-                        ) : (
-                          <>
-                            <FolderKanban className="w-2.5 h-2.5" />
-                            {session.projectName || "Project"}
-                          </>
-                        )}
+                  <div
+                    className="flex-1 flex items-center gap-4 min-w-0"
+                    onClick={() => {
+                      if (session.clientId) navigate(`/clients/${session.clientId}`);
+                    }}
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-primary/8 flex items-center justify-center flex-shrink-0">
+                      <span className="text-[11px] text-primary" style={{ fontWeight: 600 }}>
+                        {session.client?.charAt(0) || "?"}
                       </span>
                     </div>
-                  )}
 
-                  <div className="flex gap-1.5 flex-shrink-0">
-                    {(session.workTags || []).map((tag: string) => (
-                      <span
-                        key={tag}
-                        className="px-2 py-0.5 bg-accent/80 text-[11px] rounded-full text-muted-foreground"
-                        style={{ fontWeight: 500 }}
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-
-                  <div className="text-right flex-shrink-0 w-16">
-                    <div className="text-[14px] tabular-nums" style={{ fontWeight: 500 }}>
-                      {session.duration}h
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[14px] mb-0.5" style={{ fontWeight: 500 }}>
+                        {session.client}
+                      </div>
+                      <div className="text-[13px] text-muted-foreground truncate">{session.task}</div>
                     </div>
-                  </div>
-                  <div className="text-right flex-shrink-0 w-16">
-                    <div className="text-[14px] tabular-nums" style={{ fontWeight: 500 }}>
-                      ${session.revenue}
-                    </div>
-                  </div>
 
-                  <div className="flex-shrink-0">
-                    {session.billable ? (
-                      <span
-                        className="px-2 py-0.5 bg-primary/8 text-primary text-[10px] rounded-full"
-                        style={{ fontWeight: 500 }}
-                      >
-                        Billable
-                      </span>
-                    ) : (
-                      <span
-                        className="px-2 py-0.5 bg-accent/80 text-muted-foreground text-[10px] rounded-full"
-                        style={{ fontWeight: 500 }}
-                      >
-                        Non-billable
-                      </span>
+                    {session.allocationType && session.allocationType !== "general" && (
+                      <div className="flex-shrink-0">
+                        <span
+                          className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/6 text-[10px] rounded-full text-primary border border-primary/10"
+                          style={{ fontWeight: 500 }}
+                        >
+                          {session.allocationType === "retainer" ? (
+                            <>
+                              <Repeat className="w-2.5 h-2.5" />
+                              Retainer
+                            </>
+                          ) : (
+                            <>
+                              <FolderKanban className="w-2.5 h-2.5" />
+                              {session.projectName || "Project"}
+                            </>
+                          )}
+                        </span>
+                      </div>
                     )}
+
+                    <div className="flex gap-1.5 flex-shrink-0">
+                      {(session.workTags || []).map((tag: string) => (
+                        <span
+                          key={tag}
+                          className="px-2 py-0.5 bg-accent/80 text-[11px] rounded-full text-muted-foreground"
+                          style={{ fontWeight: 500 }}
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+
+                    <div className="text-right flex-shrink-0 w-16">
+                      <div className="text-[14px] tabular-nums" style={{ fontWeight: 500 }}>
+                        {session.duration}h
+                      </div>
+                    </div>
+                    <div className="text-right flex-shrink-0 w-16">
+                      <div className="text-[14px] tabular-nums" style={{ fontWeight: 500 }}>
+                        ${session.revenue}
+                      </div>
+                    </div>
+
+                    <div className="flex-shrink-0">
+                      {session.billable ? (
+                        <span
+                          className="px-2 py-0.5 bg-primary/8 text-primary text-[10px] rounded-full"
+                          style={{ fontWeight: 500 }}
+                        >
+                          Billable
+                        </span>
+                      ) : (
+                        <span
+                          className="px-2 py-0.5 bg-accent/80 text-muted-foreground text-[10px] rounded-full"
+                          style={{ fontWeight: 500 }}
+                        >
+                          Non-billable
+                        </span>
+                      )}
+                    </div>
                   </div>
+
+                  {/* Edit button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingSession(session);
+                    }}
+                    className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg opacity-0 group-hover:opacity-100 hover:bg-accent/60 text-muted-foreground hover:text-foreground transition-all"
+                    title="Edit session"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
                 </motion.div>
               ))}
             </div>
@@ -349,6 +375,15 @@ export default function TimeLog() {
         open={showLogModal}
         onClose={() => setShowLogModal(false)}
         onSave={handleLogSession}
+        clients={clients}
+      />
+
+      <EditSessionModal
+        open={!!editingSession}
+        onClose={() => setEditingSession(null)}
+        session={editingSession}
+        onSave={handleUpdateSession}
+        onDelete={handleDeleteSession}
         clients={clients}
       />
     </motion.div>
