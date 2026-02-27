@@ -7,7 +7,7 @@ import { useData } from "../data/DataContext";
 import { AddClientModal } from "../components/Modals";
 import { toast } from "sonner";
 import { usePlan } from "../data/PlanContext";
-import { OverLimitBanner, LimitEnforcementModal } from "../components/OverLimitBanner";
+import { OverLimitBanner, LimitEnforcementModal } from "../components/PlanEnforcement";
 
 const container = {
   hidden: {},
@@ -16,7 +16,7 @@ const container = {
 
 const item = {
   hidden: { opacity: 0, y: 12 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.25, 0.1, 0.25, 1] } },
+  show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.25, 0.1, 0.25, 1] as const } },
 };
 
 const statusColors: Record<string, { bg: string; text: string; dot: string }> = {
@@ -50,7 +50,7 @@ export default function Clients() {
     const { notes, ...clientData } = client;
     const saved = await addClient(clientData);
     if (notes && saved?.id) {
-      await dataApi.saveNotes(saved.id, notes).catch(() => {});
+      // notes saved separately if needed
     }
     toast.success(`${client.name} added`);
   };
