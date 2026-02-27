@@ -18,7 +18,7 @@ import * as settingsApi from '../data/settingsApi';
 
 const item = {
   hidden: { opacity: 0, y: 8 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.25, 0.1, 0.25, 1] as const } },
+  show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.25, 0.1, 0.25, 1] } },
 };
 
 function SectionCard({ children, className = '' }: { children: React.ReactNode; className?: string }) {
@@ -34,6 +34,7 @@ function SectionCard({ children, className = '' }: { children: React.ReactNode; 
 }
 
 // ── Usage Meter ────────────────────────────────────────────────────
+
 function UsageMeter({ label, icon: Icon, current, max, color }: {
   label: string;
   icon: any;
@@ -76,6 +77,7 @@ function UsageMeter({ label, icon: Icon, current, max, color }: {
 }
 
 // ── Plan Card ──────────────────────────────────────────────────────
+
 function PlanCard({ planId, isCurrent, isOwner, onSelect, selecting }: {
   planId: PlanId;
   isCurrent: boolean;
@@ -95,6 +97,7 @@ function PlanCard({ planId, isCurrent, isOwner, onSelect, selecting }: {
   };
   const accent = accentColors[planId];
 
+  // Key features to highlight per plan
   const highlights: Record<PlanId, string[]> = {
     starter: [
       '1 seat',
@@ -143,6 +146,7 @@ function PlanCard({ planId, isCurrent, isOwner, onSelect, selecting }: {
         backgroundColor: isCurrent ? `${accent}08` : undefined,
       }}
     >
+      {/* Current badge */}
       {isCurrent && (
         <div
           className="absolute -top-2.5 left-4 px-2.5 py-0.5 rounded-full text-[10px] text-white"
@@ -152,6 +156,7 @@ function PlanCard({ planId, isCurrent, isOwner, onSelect, selecting }: {
         </div>
       )}
 
+      {/* Plan header */}
       <div className="mb-4 pt-1">
         <h3 className="text-[17px] text-foreground" style={{ fontWeight: 600 }}>
           {plan.name}
@@ -159,6 +164,7 @@ function PlanCard({ planId, isCurrent, isOwner, onSelect, selecting }: {
         <p className="text-[12px] text-muted-foreground mt-0.5">{plan.tagline}</p>
       </div>
 
+      {/* Price */}
       <div className="mb-5">
         {plan.price === 0 ? (
           <div className="text-[28px] text-foreground" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
@@ -174,6 +180,7 @@ function PlanCard({ planId, isCurrent, isOwner, onSelect, selecting }: {
         )}
       </div>
 
+      {/* Feature list */}
       <ul className="space-y-2.5 flex-1">
         {highlights[planId].map((feat) => (
           <li key={feat} className="flex items-start gap-2">
@@ -183,6 +190,7 @@ function PlanCard({ planId, isCurrent, isOwner, onSelect, selecting }: {
         ))}
       </ul>
 
+      {/* Action button — pinned to bottom */}
       <div className="mt-6">
         {isOwner && !isCurrent && (
           <button
@@ -207,11 +215,13 @@ function PlanCard({ planId, isCurrent, isOwner, onSelect, selecting }: {
             )}
           </button>
         )}
+
         {isCurrent && (
           <div className="w-full py-2.5 rounded-lg text-[13px] text-center text-muted-foreground border border-border/50 bg-accent/20" style={{ fontWeight: 500 }}>
             Your current plan
           </div>
         )}
+
         {!isOwner && !isCurrent && (
           <div className="w-full py-2.5 rounded-lg text-[13px] text-center text-muted-foreground" style={{ fontWeight: 500 }}>
             Contact your workspace owner
@@ -223,6 +233,7 @@ function PlanCard({ planId, isCurrent, isOwner, onSelect, selecting }: {
 }
 
 // ── Main BillingTab ────────────────────────────────────────────────
+
 export default function BillingTab() {
   const { plan, planId, planDef, setPlan, limit, isTrial, trialDaysRemaining, trialExpired, startTrial } = usePlan();
   const { clients } = useData();
@@ -240,11 +251,15 @@ export default function BillingTab() {
     'Just testing — not ready to commit yet',
   ];
 
+  // Determine if current user is workspace owner
+  // For now, we treat all users as owners since we don't have workspace role in auth context yet.
+  // This will be refined when workspace role is piped through from /init.
   const isOwner = true;
 
+  // Usage counts
   const activeClients = clients.filter((c: any) => c.status !== 'Archived').length;
   const totalClients = clients.length;
-  const teamMembers = 1;
+  const teamMembers = 1; // Will come from settings when wired
   const maxSeats = limit('seats');
   const maxClients = limit('activeClients');
 
@@ -281,6 +296,7 @@ export default function BillingTab() {
 
   const handleSelectPlan = useCallback((newPlanId: PlanId) => {
     if (!isOwner) return;
+    // If downgrading to Starter, show confirmation modal
     if (newPlanId === 'starter' && planId !== 'starter') {
       setShowDowngradeModal(true);
       return;
@@ -334,6 +350,7 @@ export default function BillingTab() {
           </div>
         </div>
 
+        {/* Change plan button */}
         {isOwner && (
           <div className="mt-5 pt-5 border-t border-border">
             <button
@@ -518,6 +535,7 @@ export default function BillingTab() {
           <p className="text-[12px] text-muted-foreground mt-0.5">Features available on your {planDef.name} plan</p>
         </div>
         <div className="space-y-5">
+          {/* Pro features */}
           <div>
             <div className="text-[12px] text-muted-foreground mb-2.5" style={{ fontWeight: 600, letterSpacing: '0.04em' }}>
               PRO FEATURES
@@ -541,6 +559,7 @@ export default function BillingTab() {
             </div>
           </div>
 
+          {/* Studio features */}
           <div>
             <div className="text-[12px] text-muted-foreground mb-2.5" style={{ fontWeight: 600, letterSpacing: '0.04em' }}>
               STUDIO FEATURES
@@ -565,6 +584,7 @@ export default function BillingTab() {
           </div>
         </div>
 
+        {/* Support & exports */}
         <div className="mt-5 pt-4 border-t border-border flex items-center gap-6">
           <div className="flex items-center gap-2">
             <Shield className="w-3.5 h-3.5 text-muted-foreground" />
@@ -632,6 +652,7 @@ export default function BillingTab() {
                   : 'Your existing data will be preserved, but gated features will become read-only.'}
               </p>
 
+              {/* Reason checkboxes */}
               <div className="mb-5">
                 <label className="text-[12px] text-foreground mb-2.5 block" style={{ fontWeight: 600 }}>
                   Reason for downgrading <span className="text-muted-foreground font-normal">(select at least one)</span>
