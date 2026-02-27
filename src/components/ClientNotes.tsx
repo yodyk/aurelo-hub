@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useAuth } from '../data/AuthContext';
 import {
   Plus, Pin, PinOff, Check, CheckCircle2, Circle, Trash2, X,
   MessageSquare, Gavel, CircleCheckBig, MessageCircle, StickyNote,
@@ -63,6 +64,7 @@ interface ClientNotesProps {
 }
 
 export default function ClientNotes({ clientId, projects, filterProjectId, filterProjectName }: ClientNotesProps) {
+  const { workspaceId } = useAuth();
   const [notes, setNotes] = useState<ClientNote[]>([]);
   const [loading, setLoading] = useState(true);
   const [composerOpen, setComposerOpen] = useState(false);
@@ -85,7 +87,7 @@ export default function ClientNotes({ clientId, projects, filterProjectId, filte
 
   const handleAddNote = useCallback(async (note: Partial<ClientNote>) => {
     try {
-      const saved = await notesApi.addNote(clientId, note);
+      const saved = await notesApi.addNote(clientId, note, workspaceId || '');
       setNotes(prev => [saved, ...prev]);
       setComposerOpen(false);
       toast.success('Note added');
