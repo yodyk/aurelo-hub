@@ -21,28 +21,29 @@ function ModalShell({ open, onClose, title, subtitle, children, wide }: {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
-          className="fixed inset-0 z-50 flex items-start justify-center bg-black/30 backdrop-blur-[2px] pt-[8vh] overflow-y-auto pb-8"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
           onClick={onClose}
         >
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" />
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 12 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 12 }}
+            initial={{ opacity: 0, y: 16, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 8, scale: 0.98 }}
             transition={{ duration: 0.2 }}
-            className={`bg-card border border-border rounded-2xl overflow-hidden ${wide ? 'w-full max-w-xl' : 'w-full max-w-md'} mx-4`}
-            style={{ boxShadow: '0 16px 48px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06)' }}
+            className={`relative bg-card border border-border rounded-xl ${wide ? 'w-full max-w-[600px]' : 'w-full max-w-md'} max-h-[90vh] overflow-y-auto`}
+            style={{ boxShadow: '0 16px 48px rgba(0,0,0,0.12), 0 4px 16px rgba(0,0,0,0.06)' }}
             onClick={e => e.stopPropagation()}
           >
-            <div className="flex items-start justify-between px-6 pt-5 pb-3">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border">
               <div>
-                <h2 className="text-[17px] text-foreground" style={{ fontWeight: 600 }}>{title}</h2>
+                <h2 className="text-[16px]" style={{ fontWeight: 600 }}>{title}</h2>
                 {subtitle && <p className="text-[12px] text-muted-foreground mt-0.5">{subtitle}</p>}
               </div>
-              <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-accent/40 text-muted-foreground hover:text-foreground transition-colors">
+              <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-accent/60 text-muted-foreground hover:text-foreground transition-all">
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="px-6 pb-6">{children}</div>
+            <div className="p-6">{children}</div>
           </motion.div>
         </motion.div>
       )}
@@ -54,9 +55,9 @@ function ModalShell({ open, onClose, title, subtitle, children, wide }: {
 
 function SectionDivider({ icon: Icon, label }: { icon: typeof User; label: string }) {
   return (
-    <div className="flex items-center gap-2 pt-2">
+    <div className="flex items-center gap-2 pt-2 pb-1">
       <Icon className="w-3.5 h-3.5 text-muted-foreground" />
-      <span className="text-[12px] text-muted-foreground" style={{ fontWeight: 600, letterSpacing: '0.04em' }}>{label}</span>
+      <span className="text-[12px] text-muted-foreground" style={{ fontWeight: 600, letterSpacing: '0.03em' }}>{label}</span>
       <div className="flex-1 h-px bg-border" />
     </div>
   );
@@ -64,9 +65,9 @@ function SectionDivider({ icon: Icon, label }: { icon: typeof User; label: strin
 
 function Label({ children, hint }: { children: React.ReactNode; hint?: string }) {
   return (
-    <label className="block text-[13px] text-foreground mb-1" style={{ fontWeight: 500 }}>
+    <label className="block text-[13px] text-muted-foreground mb-1.5" style={{ fontWeight: 500 }}>
       {children}
-      {hint && <span className="text-muted-foreground ml-1 text-[11px]" style={{ fontWeight: 400 }}>({hint})</span>}
+      {hint && <span className="text-[11px] text-muted-foreground/60 ml-1">({hint})</span>}
     </label>
   );
 }
@@ -74,6 +75,7 @@ function Label({ children, hint }: { children: React.ReactNode; hint?: string })
 function Input({ value, onChange, className = '', ...props }: React.InputHTMLAttributes<HTMLInputElement> & { value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }) {
   return (
     <input
+      type="text"
       value={value}
       onChange={onChange}
       className={`w-full px-3 py-2 text-[14px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all ${className}`}
@@ -87,7 +89,7 @@ function Select({ value, onChange, children, className = '' }: { value: string; 
     <select
       value={value}
       onChange={onChange}
-      className={`w-full px-3 py-2 text-[14px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all appearance-none cursor-pointer ${className}`}
+      className={`w-full px-3 py-2 text-[14px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all ${className}`}
     >
       {children}
     </select>
@@ -96,16 +98,19 @@ function Select({ value, onChange, children, className = '' }: { value: string; 
 
 function Toggle({ checked, onChange, label, description }: { checked: boolean; onChange: (v: boolean) => void; label: string; description: string }) {
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between py-2">
       <div>
         <div className="text-[13px]" style={{ fontWeight: 500 }}>{label}</div>
         <div className="text-[12px] text-muted-foreground">{description}</div>
       </div>
       <button
         onClick={() => onChange(!checked)}
-        className={`relative w-9 h-5 rounded-full transition-colors duration-200 flex-shrink-0 ${checked ? 'bg-primary' : 'bg-muted'}`}
+        className={`relative w-9 h-5 rounded-full transition-colors duration-200 flex-shrink-0 ${checked ? 'bg-primary' : 'bg-zinc-300'}`}
       >
-        <div className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform duration-200 ${checked ? 'translate-x-4' : 'translate-x-0'}`} style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.12)' }} />
+        <div
+          className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform duration-200 ${checked ? 'translate-x-4' : 'translate-x-0'}`}
+          style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.12)' }}
+        />
       </button>
     </div>
   );
@@ -113,7 +118,12 @@ function Toggle({ checked, onChange, label, description }: { checked: boolean; o
 
 function PrimaryBtn({ onClick, disabled, children }: { onClick: () => void; disabled?: boolean; children: React.ReactNode }) {
   return (
-    <button onClick={onClick} disabled={disabled} className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all" style={{ fontWeight: 500 }}>
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className="px-4 py-2 bg-primary text-primary-foreground text-[13px] rounded-lg hover:bg-primary/90 transition-all disabled:opacity-60 flex items-center gap-2"
+      style={{ fontWeight: 500, boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}
+    >
       {disabled && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
       {children}
     </button>
@@ -126,15 +136,17 @@ function ModelButton({ active, onClick, icon: Icon, label, description }: {
   return (
     <button
       onClick={onClick}
-      className={`flex-1 flex flex-col items-center gap-1 p-3 rounded-lg border transition-all duration-200 ${
-        active ? 'bg-primary/6 border-primary/25 text-primary ring-1 ring-primary/15' : 'border-border text-muted-foreground hover:text-foreground hover:bg-accent/40'
+      className={`flex-1 text-left px-3.5 py-3 rounded-lg border transition-all duration-200 ${
+        active
+          ? 'bg-primary/6 border-primary/25 ring-1 ring-primary/15'
+          : 'border-border hover:bg-accent/40 hover:border-border'
       }`}
     >
-      <div className="flex items-center gap-1.5">
-        <Icon className="w-3.5 h-3.5" />
-        <span className="text-[13px]" style={{ fontWeight: 500 }}>{label}</span>
+      <div className="flex items-center gap-2 mb-1">
+        <Icon className={`w-3.5 h-3.5 ${active ? 'text-primary' : 'text-muted-foreground'}`} />
+        <span className={`text-[13px] ${active ? 'text-primary' : 'text-foreground'}`} style={{ fontWeight: 600 }}>{label}</span>
       </div>
-      <span className="text-[11px] opacity-70">{description}</span>
+      <div className="text-[11px] text-muted-foreground leading-snug">{description}</div>
     </button>
   );
 }
@@ -143,12 +155,14 @@ function StatusPill({ active, onClick, label, dot }: { active: boolean; onClick:
   return (
     <button
       onClick={onClick}
-      className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] rounded-lg border transition-all duration-200 ${
-        active ? 'bg-primary/6 border-primary/25 text-primary ring-1 ring-primary/15' : 'border-border text-muted-foreground hover:text-foreground hover:bg-accent/40'
+      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[13px] transition-all duration-200 ${
+        active
+          ? 'bg-primary/6 border-primary/25 text-primary ring-1 ring-primary/15'
+          : 'border-border text-muted-foreground hover:text-foreground hover:bg-accent/40'
       }`}
       style={{ fontWeight: 500 }}
     >
-      <div className={`w-2 h-2 rounded-full ${dot}`} />
+      <div className={`w-1.5 h-1.5 rounded-full ${active ? dot : 'bg-zinc-400'}`} />
       {label}
     </button>
   );
@@ -178,9 +192,15 @@ export function AddClientModal({ open, onClose, onSave }: {
     setProjectBudget(''); setShowPortalCosts(true); setNotes('');
   };
 
+  // Derive the rate label/unit based on model
+  const rateLabel = model === 'Project' ? 'Effective rate' : 'Hourly rate';
+  const rateHint = model === 'Project' ? 'used for time-value tracking' : undefined;
+
+  // Compute the retainer monthly value for the summary
   const rateNum = Number(rate) || 0;
   const retainerNum = Number(retainerTotal) || 0;
   const retainerMonthlyValue = rateNum * retainerNum;
+
   const canSave = name.trim().length > 0;
 
   const handleSave = async () => {
@@ -188,11 +208,22 @@ export function AddClientModal({ open, onClose, onSave }: {
     setSaving(true);
     try {
       await onSave({
-        name: name.trim(), contactName: contactName.trim(), contactEmail: contactEmail.trim(),
-        website: website.trim(), model, rate: rateNum, status, monthlyEarnings: 0, lifetimeRevenue: 0,
-        hoursLogged: 0, retainerRemaining: model === 'Retainer' ? retainerNum : 0,
-        retainerTotal: model === 'Retainer' ? retainerNum : 0, trueHourlyRate: rateNum,
-        showPortalCosts, lastSessionDate: null, notes: notes.trim(),
+        name: name.trim(),
+        contactName: contactName.trim(),
+        contactEmail: contactEmail.trim(),
+        website: website.trim(),
+        model,
+        rate: rateNum,
+        status,
+        monthlyEarnings: 0,
+        lifetimeRevenue: 0,
+        hoursLogged: 0,
+        retainerRemaining: model === 'Retainer' ? retainerNum : 0,
+        retainerTotal: model === 'Retainer' ? retainerNum : 0,
+        trueHourlyRate: rateNum,
+        showPortalCosts,
+        lastSessionDate: null,
+        notes: notes.trim(),
       });
       reset();
       onClose();
@@ -204,8 +235,9 @@ export function AddClientModal({ open, onClose, onSave }: {
   };
 
   return (
-    <ModalShell open={open} onClose={onClose} title="Add client" subtitle="New client or prospect" wide>
+    <ModalShell open={open} onClose={onClose} title="Add client" subtitle="Set up a new client relationship" wide>
       <div className="space-y-5">
+        {/* ── Identity ────────────────────────── */}
         <SectionDivider icon={User} label="Identity" />
         <div>
           <Label>Client or company name</Label>
@@ -222,21 +254,26 @@ export function AddClientModal({ open, onClose, onSave }: {
           </div>
         </div>
         <div>
-          <Label>Website</Label>
+          <Label hint="no https needed">Website</Label>
           <Input value={website} onChange={e => setWebsite(e.target.value)} placeholder="acme.com" />
         </div>
 
+        {/* ── Engagement ──────────────────────── */}
         <SectionDivider icon={FolderKanban} label="Engagement" />
+
         <div>
           <Label>Status</Label>
           <div className="flex gap-2">
             <StatusPill active={status === 'Active'} onClick={() => setStatus('Active')} label="Active" dot="bg-primary" />
-            <StatusPill active={status === 'Prospect'} onClick={() => setStatus('Prospect')} label="Prospect" dot="bg-muted-foreground" />
+            <StatusPill active={status === 'Prospect'} onClick={() => setStatus('Prospect')} label="Prospect" dot="bg-stone-400" />
           </div>
           <div className="text-[11px] text-muted-foreground mt-1.5">
-            {status === 'Prospect' ? "Prospect clients appear in your pipeline but won't affect revenue metrics." : 'Active clients contribute to revenue dashboards and time tracking.'}
+            {status === 'Prospect'
+              ? 'Prospect clients appear in your pipeline but won\'t affect revenue metrics.'
+              : 'Active clients contribute to revenue dashboards and time tracking.'}
           </div>
         </div>
+
         <div>
           <Label>Billing model</Label>
           <div className="flex gap-2">
@@ -246,46 +283,69 @@ export function AddClientModal({ open, onClose, onSave }: {
           </div>
         </div>
 
+        {/* ── Financial terms ─────────────────── */}
         <SectionDivider icon={DollarSign} label="Financial terms" />
-        <div>
-          <Label hint={model === 'Project' ? 'used for time-value tracking' : undefined}>
-            {model === 'Project' ? 'Effective rate' : 'Hourly rate'} ($/hr)
-          </Label>
-          <Input value={rate} onChange={e => setRate(e.target.value)} placeholder="150" className="tabular-nums" />
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <Label hint={rateHint}>{rateLabel} ($/hr)</Label>
+            <Input value={rate} onChange={e => setRate(e.target.value)} placeholder="150" className="tabular-nums" />
+          </div>
+
+          {model === 'Retainer' && (
+            <div>
+              <Label>Hours per month</Label>
+              <Input value={retainerTotal} onChange={e => setRetainerTotal(e.target.value)} placeholder="40" className="tabular-nums" />
+            </div>
+          )}
+
+          {model === 'Project' && (
+            <div>
+              <Label>Project budget ($)</Label>
+              <Input value={projectBudget} onChange={e => setProjectBudget(e.target.value)} placeholder="12,000" className="tabular-nums" />
+            </div>
+          )}
         </div>
-        {model === 'Retainer' && (
-          <div>
-            <Label>Hours per month</Label>
-            <Input value={retainerTotal} onChange={e => setRetainerTotal(e.target.value)} placeholder="40" className="tabular-nums" />
-          </div>
-        )}
-        {model === 'Project' && (
-          <div>
-            <Label>Project budget ($)</Label>
-            <Input value={projectBudget} onChange={e => setProjectBudget(e.target.value)} placeholder="12,000" className="tabular-nums" />
-          </div>
-        )}
+
+        {/* Retainer summary line */}
         {model === 'Retainer' && rateNum > 0 && retainerNum > 0 && (
-          <div className="flex items-center justify-between text-[13px] px-3 py-2 bg-accent/30 rounded-lg">
+          <div className="bg-accent/30 rounded-lg px-3.5 py-2.5 flex items-center justify-between text-[13px]">
             <span className="text-muted-foreground">Monthly retainer value</span>
-            <span className="tabular-nums" style={{ fontWeight: 600 }}>${retainerMonthlyValue.toLocaleString()}/mo</span>
+            <span className="tabular-nums text-primary" style={{ fontWeight: 600 }}>${retainerMonthlyValue.toLocaleString()}/mo</span>
           </div>
         )}
+
+        {/* Project summary line */}
         {model === 'Project' && rateNum > 0 && Number(projectBudget) > 0 && (
-          <div className="flex items-center justify-between text-[13px] px-3 py-2 bg-accent/30 rounded-lg">
+          <div className="bg-accent/30 rounded-lg px-3.5 py-2.5 flex items-center justify-between text-[13px]">
             <span className="text-muted-foreground">Estimated hours at rate</span>
             <span className="tabular-nums" style={{ fontWeight: 600 }}>~{Math.round(Number(projectBudget) / rateNum)}h</span>
           </div>
         )}
 
+        {/* ── Settings ────────────────────────── */}
         <SectionDivider icon={Eye} label="Portal & visibility" />
-        <Toggle checked={showPortalCosts} onChange={setShowPortalCosts} label="Show costs in client portal" description="When off, the client sees hours and activity but not dollar amounts" />
 
+        <Toggle
+          checked={showPortalCosts}
+          onChange={setShowPortalCosts}
+          label="Show costs in client portal"
+          description="When off, the client sees hours and activity but not dollar amounts"
+        />
+
+        {/* ── Notes ──────────────────────────── */}
         <div>
-          <Label>Internal notes</Label>
-          <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="How you met, referral source, scope ideas, anything useful..." rows={2} className="w-full px-3 py-2 text-[14px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all resize-none" />
+          <Label hint="optional">Internal notes</Label>
+          <textarea
+            value={notes}
+            onChange={e => setNotes(e.target.value)}
+            placeholder="How you met, referral source, scope ideas, anything useful..."
+            rows={2}
+            className="w-full px-3 py-2 text-[14px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all resize-none"
+          />
         </div>
 
+        {/* ── Footer ─────────────────────────── */}
         <div className="flex items-center justify-between pt-3 border-t border-border">
           <div className="text-[12px] text-muted-foreground">
             {status === 'Prospect' ? 'Will be added to your prospect pipeline' : 'Will appear in active clients'}
@@ -319,10 +379,14 @@ export function EditClientModal({ open, onClose, client, onSave }: {
 
   useEffect(() => {
     if (client) {
-      setName(client.name || ''); setContactName(client.contactName || '');
-      setContactEmail(client.contactEmail || ''); setWebsite(client.website || '');
-      setModel(client.model || 'Hourly'); setRate(String(client.rate || ''));
-      setStatus(client.status || 'Active'); setRetainerTotal(String(client.retainerTotal || ''));
+      setName(client.name || '');
+      setContactName(client.contactName || '');
+      setContactEmail(client.contactEmail || '');
+      setWebsite(client.website || '');
+      setModel(client.model || 'Hourly');
+      setRate(String(client.rate || ''));
+      setStatus(client.status || 'Active');
+      setRetainerTotal(String(client.retainerTotal || ''));
       setRetainerRemaining(String(client.retainerRemaining || ''));
       setShowPortalCosts(client.showPortalCosts !== false);
     }
@@ -334,21 +398,35 @@ export function EditClientModal({ open, onClose, client, onSave }: {
   const retainerMonthlyValue = rateNum * retainerTotalNum;
   const retainerUsedPct = retainerTotalNum > 0 ? Math.round(((retainerTotalNum - retainerRemainingNum) / retainerTotalNum) * 100) : 0;
 
+  // Track what changed for the save summary
   const hasChanges = client && (
-    name !== (client.name || '') || contactName !== (client.contactName || '') ||
-    contactEmail !== (client.contactEmail || '') || website !== (client.website || '') ||
-    model !== (client.model || 'Hourly') || rate !== String(client.rate || '') ||
-    status !== (client.status || 'Active') || retainerTotal !== String(client.retainerTotal || '') ||
-    retainerRemaining !== String(client.retainerRemaining || '') || showPortalCosts !== (client.showPortalCosts !== false)
+    name !== (client.name || '') ||
+    contactName !== (client.contactName || '') ||
+    contactEmail !== (client.contactEmail || '') ||
+    website !== (client.website || '') ||
+    model !== (client.model || 'Hourly') ||
+    rate !== String(client.rate || '') ||
+    status !== (client.status || 'Active') ||
+    retainerTotal !== String(client.retainerTotal || '') ||
+    retainerRemaining !== String(client.retainerRemaining || '') ||
+    showPortalCosts !== (client.showPortalCosts !== false)
   );
 
   const handleSave = async () => {
     setSaving(true);
     try {
       const updates: any = {
-        name: name.trim(), contactName: contactName.trim(), contactEmail: contactEmail.trim(),
-        website: website.trim(), model, rate: rateNum, status, showPortalCosts, trueHourlyRate: rateNum,
+        name: name.trim(),
+        contactName: contactName.trim(),
+        contactEmail: contactEmail.trim(),
+        website: website.trim(),
+        model,
+        rate: rateNum,
+        status,
+        showPortalCosts,
+        trueHourlyRate: rateNum,
       };
+
       if (model === 'Retainer') {
         updates.retainerTotal = retainerTotalNum;
         updates.retainerRemaining = retainerRemainingNum;
@@ -356,6 +434,7 @@ export function EditClientModal({ open, onClose, client, onSave }: {
         updates.retainerTotal = 0;
         updates.retainerRemaining = 0;
       }
+
       await onSave(updates);
       onClose();
     } catch (err) {
@@ -368,6 +447,7 @@ export function EditClientModal({ open, onClose, client, onSave }: {
   return (
     <ModalShell open={open} onClose={onClose} title="Edit client" subtitle={client?.name ? `Editing ${client.name}` : undefined} wide>
       <div className="space-y-5">
+        {/* ── Identity ────────────────────────── */}
         <SectionDivider icon={User} label="Identity" />
         <div>
           <Label>Client or company name</Label>
@@ -388,18 +468,23 @@ export function EditClientModal({ open, onClose, client, onSave }: {
           <Input value={website} onChange={e => setWebsite(e.target.value)} />
         </div>
 
+        {/* ── Engagement ──────────────────────── */}
         <SectionDivider icon={FolderKanban} label="Engagement" />
+
         <div>
           <Label>Status</Label>
           <div className="flex gap-2">
             <StatusPill active={status === 'Active'} onClick={() => setStatus('Active')} label="Active" dot="bg-primary" />
-            <StatusPill active={status === 'Prospect'} onClick={() => setStatus('Prospect')} label="Prospect" dot="bg-muted-foreground" />
-            <StatusPill active={status === 'Archived'} onClick={() => setStatus('Archived')} label="Archived" dot="bg-muted" />
+            <StatusPill active={status === 'Prospect'} onClick={() => setStatus('Prospect')} label="Prospect" dot="bg-stone-400" />
+            <StatusPill active={status === 'Archived'} onClick={() => setStatus('Archived')} label="Archived" dot="bg-zinc-400" />
           </div>
           {status === 'Archived' && (
-            <div className="text-[11px] text-muted-foreground mt-1.5">Archived clients are hidden from active views. All data is preserved.</div>
+            <div className="text-[11px] text-muted-foreground mt-1.5">
+              Archived clients are hidden from active views. All data is preserved.
+            </div>
           )}
         </div>
+
         <div>
           <Label>Billing model</Label>
           <div className="flex gap-2">
@@ -409,14 +494,19 @@ export function EditClientModal({ open, onClose, client, onSave }: {
           </div>
         </div>
 
+        {/* ── Financial terms ─────────────────── */}
         <SectionDivider icon={DollarSign} label="Financial terms" />
+
         <div>
           <Label>{model === 'Project' ? 'Effective rate' : 'Hourly rate'} ($/hr)</Label>
           <Input value={rate} onChange={e => setRate(e.target.value)} className="tabular-nums" />
           {client && rateNum > 0 && rateNum !== (client.rate || 0) && (
-            <div className="text-[11px] text-muted-foreground mt-1">Changed from ${client.rate}/hr — future sessions will use this rate</div>
+            <div className="text-[11px] text-muted-foreground mt-1">
+              Changed from ${client.rate}/hr — future sessions will use this rate
+            </div>
           )}
         </div>
+
         {model === 'Retainer' && (
           <>
             <div className="grid grid-cols-2 gap-3">
@@ -429,14 +519,23 @@ export function EditClientModal({ open, onClose, client, onSave }: {
                 <Input value={retainerRemaining} onChange={e => setRetainerRemaining(e.target.value)} className="tabular-nums" />
               </div>
             </div>
+
             {retainerTotalNum > 0 && (
               <div className="bg-accent/30 rounded-lg px-3.5 py-3">
                 <div className="flex items-center justify-between text-[13px] mb-2">
                   <span className="text-muted-foreground">Retainer usage</span>
-                  <span className="tabular-nums" style={{ fontWeight: 600 }}>{retainerRemainingNum}h remaining · {retainerUsedPct}% used</span>
+                  <span className="tabular-nums" style={{ fontWeight: 600 }}>
+                    {retainerRemainingNum}h remaining · {retainerUsedPct}% used
+                  </span>
                 </div>
                 <div className="h-1.5 bg-accent/60 rounded-full overflow-hidden">
-                  <div className="h-full rounded-full bg-primary transition-all duration-300" style={{ width: `${Math.max(0, Math.min(100, ((retainerTotalNum - retainerRemainingNum) / retainerTotalNum) * 100))}%` }} />
+                  <div
+                    className="h-full rounded-full transition-all duration-300"
+                    style={{
+                      width: `${Math.max(0, Math.min(100, ((retainerTotalNum - retainerRemainingNum) / retainerTotalNum) * 100))}%`,
+                      background: retainerUsedPct > 85 ? '#5ea1bf' : 'linear-gradient(90deg, #5ea1bf, #7fb8d1)',
+                    }}
+                  />
                 </div>
                 <div className="flex items-center justify-between text-[11px] text-muted-foreground mt-1.5">
                   <span>${retainerMonthlyValue.toLocaleString()}/mo</span>
@@ -447,11 +546,21 @@ export function EditClientModal({ open, onClose, client, onSave }: {
           </>
         )}
 
+        {/* ── Settings ────────────────────────── */}
         <SectionDivider icon={Eye} label="Portal & visibility" />
-        <Toggle checked={showPortalCosts} onChange={setShowPortalCosts} label="Show costs in client portal" description="When off, the client sees hours and activity but not dollar amounts" />
 
+        <Toggle
+          checked={showPortalCosts}
+          onChange={setShowPortalCosts}
+          label="Show costs in client portal"
+          description="When off, the client sees hours and activity but not dollar amounts"
+        />
+
+        {/* ── Footer ─────────────────────────── */}
         <div className="flex items-center justify-between pt-3 border-t border-border">
-          <div className="text-[12px] text-muted-foreground">{hasChanges ? 'Unsaved changes' : 'No changes'}</div>
+          <div className="text-[12px] text-muted-foreground">
+            {hasChanges ? 'Unsaved changes' : 'No changes'}
+          </div>
           <div className="flex gap-2">
             <button onClick={onClose} className="px-4 py-2 text-[13px] rounded-lg border border-border text-muted-foreground hover:bg-accent/40 transition-all" style={{ fontWeight: 500 }}>Cancel</button>
             <PrimaryBtn onClick={handleSave} disabled={saving || !hasChanges}>{saving ? 'Saving...' : 'Save changes'}</PrimaryBtn>
@@ -479,15 +588,20 @@ export function LogSessionModal({ open, onClose, onSave, clients, preSelectedCli
   const [sessionDate, setSessionDate] = useState('');
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
+
+  // ── Allocation state ──
   const [allocationType, setAllocationType] = useState<'general' | 'retainer' | 'project'>('general');
   const [selectedProjectId, setSelectedProjectId] = useState<string>('');
   const [clientProjects, setClientProjects] = useState<any[]>([]);
   const [loadingProjects, setLoadingProjects] = useState(false);
 
-  const allTags = workCategoryNames.length > 0 ? workCategoryNames : ['Design', 'Development', 'Meetings', 'Strategy', 'Prospecting'];
+  const allTags = workCategoryNames.length > 0
+    ? workCategoryNames
+    : ['Design', 'Development', 'Meetings', 'Strategy', 'Prospecting'];
+
+  // Initialize selected tags with first category when tags load
   const firstTag = allTags[0] || 'Design';
   const initializedRef = useRef(false);
-
   useEffect(() => {
     if (!initializedRef.current && allTags.length > 0) {
       setSelectedTags([firstTag]);
@@ -495,8 +609,12 @@ export function LogSessionModal({ open, onClose, onSave, clients, preSelectedCli
     }
   }, [firstTag]);
 
+  // Initialize date to today on open
   useEffect(() => {
-    if (open && !sessionDate) setSessionDate(new Date().toISOString().split('T')[0]);
+    if (open && !sessionDate) {
+      const now = new Date();
+      setSessionDate(now.toISOString().split('T')[0]);
+    }
   }, [open]);
 
   useEffect(() => {
@@ -504,26 +622,44 @@ export function LogSessionModal({ open, onClose, onSave, clients, preSelectedCli
     if (prefilledDuration) setDuration((prefilledDuration / 3600).toFixed(1));
   }, [preSelectedClient, prefilledDuration, open]);
 
+  // Load projects when client changes
   useEffect(() => {
     if (!clientId) {
-      setClientProjects([]); setAllocationType('general'); setSelectedProjectId('');
+      setClientProjects([]);
+      setAllocationType('general');
+      setSelectedProjectId('');
       return;
     }
+
+    // Get cached projects first
     const cached = getProjects(clientId);
     setClientProjects(cached);
+
+    // Set smart default allocation
     const client = clients.find(c => c.id === clientId);
     if (client?.model === 'Retainer') {
-      setAllocationType('retainer'); setSelectedProjectId('');
+      setAllocationType('retainer');
+      setSelectedProjectId('');
     } else if (cached.length > 0) {
       const activeProject = cached.find((p: any) => p.status === 'In Progress');
-      if (activeProject) { setAllocationType('project'); setSelectedProjectId(String(activeProject.id)); }
-      else { setAllocationType('general'); setSelectedProjectId(''); }
+      if (activeProject) {
+        setAllocationType('project');
+        setSelectedProjectId(String(activeProject.id));
+      } else {
+        setAllocationType('general');
+        setSelectedProjectId('');
+      }
     } else {
-      setAllocationType('general'); setSelectedProjectId('');
+      setAllocationType('general');
+      setSelectedProjectId('');
     }
+
+    // Also load from server in background
     setLoadingProjects(true);
     loadProjectsForClient(clientId)
-      .then(projects => setClientProjects(projects))
+      .then(projects => {
+        setClientProjects(projects);
+      })
       .catch(err => console.error('Failed to load projects for client:', err))
       .finally(() => setLoadingProjects(false));
   }, [clientId]);
@@ -535,39 +671,57 @@ export function LogSessionModal({ open, onClose, onSave, clients, preSelectedCli
   };
 
   const toggleTag = (tag: string) => {
-    setSelectedTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
+    setSelectedTags(prev =>
+      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+    );
   };
 
   const activeClients = clients.filter(c => c.status === 'Active' || c.status === 'Prospect');
   const selectedClient = clients.find(c => c.id === clientId);
   const durationNum = parseFloat(duration) || 0;
   const revenue = billable && selectedClient ? Math.round(durationNum * selectedClient.rate) : 0;
-  const selectedProject = allocationType === 'project' && selectedProjectId ? clientProjects.find((p: any) => String(p.id) === selectedProjectId) : null;
 
+  // Selected project for preview
+  const selectedProject = allocationType === 'project' && selectedProjectId
+    ? clientProjects.find((p: any) => String(p.id) === selectedProjectId)
+    : null;
+
+  // Compute date display info
   const parsedDate = sessionDate ? new Date(sessionDate + 'T12:00:00') : new Date();
   const dateStr = parsedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const dateObj = new Date(sessionDate + 'T00:00:00');
   const diffDays = Math.round((today.getTime() - dateObj.getTime()) / (1000 * 60 * 60 * 24));
   const dateGroupLabel = diffDays === 0 ? 'Today' : diffDays === 1 ? 'Yesterday' : dateStr;
+  const isBackdated = diffDays > 0;
 
-  const canSave = !!clientId && task.trim().length > 0 && durationNum > 0 && (allocationType !== 'project' || !!selectedProjectId);
-  const selectableProjects = clientProjects.filter((p: any) => p.status !== 'Complete');
-  const completedProjects = clientProjects.filter((p: any) => p.status === 'Complete');
-  const allocationLabel = allocationType === 'retainer' ? 'retainer' : allocationType === 'project' && selectedProject ? selectedProject.name : 'general';
+  const canSave = clientId && task.trim() && durationNum > 0
+    && (allocationType !== 'project' || selectedProjectId);
 
   const handleSave = async () => {
     if (!canSave) return;
     setSaving(true);
     try {
-      await onSave({
-        date: dateStr, dateGroup: dateGroupLabel, client: selectedClient?.name || '', clientId,
-        task: task.trim(), tags: selectedTags, workTags: selectedTags, duration: durationNum,
-        revenue, billable, notes: notes.trim(), allocationType,
+      const session: any = {
+        date: dateStr,
+        dateGroup: dateGroupLabel,
+        client: selectedClient?.name || '',
+        clientId,
+        task: task.trim(),
+        tags: selectedTags,
+        workTags: selectedTags,
+        duration: durationNum,
+        revenue,
+        billable,
+        notes: notes.trim(),
+        allocationType,
         projectId: allocationType === 'project' ? selectedProjectId : null,
         projectName: selectedProject?.name || null,
-      });
-      reset(); onClose();
+      };
+      await onSave(session);
+      reset();
+      onClose();
     } catch (err) {
       console.error(err);
     } finally {
@@ -575,16 +729,37 @@ export function LogSessionModal({ open, onClose, onSave, clients, preSelectedCli
     }
   };
 
+  // Allocation label for footer
+  const allocationLabel = allocationType === 'retainer'
+    ? 'retainer'
+    : allocationType === 'project' && selectedProject
+      ? selectedProject.name
+      : 'general';
+
+  // Active (non-complete) projects for the selector
+  const selectableProjects = clientProjects.filter((p: any) => p.status !== 'Complete');
+  const completedProjects = clientProjects.filter((p: any) => p.status === 'Complete');
+
   return (
     <ModalShell open={open} onClose={onClose} title="Log session" subtitle="Record work you've completed" wide>
       <div className="space-y-5">
+        {/* ── When & where ──────────────────── */}
         <SectionDivider icon={Calendar} label="When & where" />
+
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label>Date</Label>
-            <input type="date" value={sessionDate} onChange={e => setSessionDate(e.target.value)} max={new Date().toISOString().split('T')[0]} className="w-full px-3 py-2 text-[14px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all tabular-nums" />
-            {diffDays > 0 && sessionDate && (
-              <div className="text-[11px] text-muted-foreground mt-1">Backdating {diffDays} day{diffDays !== 1 ? 's' : ''} — will appear under "{dateGroupLabel}"</div>
+            <input
+              type="date"
+              value={sessionDate}
+              onChange={e => setSessionDate(e.target.value)}
+              max={new Date().toISOString().split('T')[0]}
+              className="w-full px-3 py-2 text-[14px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all tabular-nums"
+            />
+            {isBackdated && sessionDate && (
+              <div className="text-[11px] text-muted-foreground mt-1">
+                Backdating {diffDays} day{diffDays !== 1 ? 's' : ''} — will appear under "{dateGroupLabel}"
+              </div>
             )}
           </div>
           <div>
@@ -592,12 +767,15 @@ export function LogSessionModal({ open, onClose, onSave, clients, preSelectedCli
             <Select value={clientId} onChange={e => setClientId(e.target.value)}>
               <option value="">Select a client</option>
               {activeClients.map(c => (
-                <option key={c.id} value={c.id}>{c.name} · {c.model}{c.rate ? ` · $${c.rate}/hr` : ''}</option>
+                <option key={c.id} value={c.id}>
+                  {c.name} · {c.model}{c.rate ? ` · $${c.rate}/hr` : ''}
+                </option>
               ))}
             </Select>
           </div>
         </div>
 
+        {/* Client context line */}
         {selectedClient && (
           <div className="flex items-center gap-3 text-[12px] text-muted-foreground">
             <div className="w-6 h-6 rounded-md bg-primary/8 flex items-center justify-center flex-shrink-0">
@@ -607,37 +785,100 @@ export function LogSessionModal({ open, onClose, onSave, clients, preSelectedCli
             <span>·</span>
             <span className="tabular-nums">${selectedClient.rate}/hr</span>
             {selectedClient.model === 'Retainer' && selectedClient.retainerRemaining > 0 && (
-              <><span>·</span><span className="tabular-nums">{selectedClient.retainerRemaining}h remaining this month</span></>
+              <>
+                <span>·</span>
+                <span className="tabular-nums">{selectedClient.retainerRemaining}h remaining this month</span>
+              </>
             )}
           </div>
         )}
 
+        {/* ── Apply to (allocation) ─────────── */}
         {selectedClient && (
           <>
             <SectionDivider icon={FolderKanban} label="Apply to" />
+
             <div className="flex flex-wrap gap-1.5">
-              <button onClick={() => { setAllocationType('general'); setSelectedProjectId(''); }} className={`flex items-center gap-1.5 px-3 py-2 text-[13px] rounded-lg border transition-all duration-200 ${allocationType === 'general' ? 'bg-primary/6 border-primary/25 text-primary ring-1 ring-primary/15' : 'border-border text-muted-foreground hover:text-foreground hover:bg-accent/40'}`} style={{ fontWeight: 500 }}>
-                <Clock className="w-3.5 h-3.5" /> General time
+              {/* General time option */}
+              <button
+                onClick={() => { setAllocationType('general'); setSelectedProjectId(''); }}
+                className={`flex items-center gap-1.5 px-3 py-2 text-[13px] rounded-lg border transition-all duration-200 ${
+                  allocationType === 'general'
+                    ? 'bg-primary/6 border-primary/25 text-primary ring-1 ring-primary/15'
+                    : 'border-border text-muted-foreground hover:text-foreground hover:bg-accent/40'
+                }`}
+                style={{ fontWeight: 500 }}
+              >
+                <Clock className="w-3.5 h-3.5" />
+                General time
               </button>
+
+              {/* Retainer option — only for retainer clients */}
               {selectedClient.model === 'Retainer' && (
-                <button onClick={() => { setAllocationType('retainer'); setSelectedProjectId(''); }} className={`flex items-center gap-1.5 px-3 py-2 text-[13px] rounded-lg border transition-all duration-200 ${allocationType === 'retainer' ? 'bg-primary/6 border-primary/25 text-primary ring-1 ring-primary/15' : 'border-border text-muted-foreground hover:text-foreground hover:bg-accent/40'}`} style={{ fontWeight: 500 }}>
-                  <Repeat className="w-3.5 h-3.5" /> Retainer
-                  {selectedClient.retainerRemaining > 0 && <span className="text-[11px] opacity-70 tabular-nums ml-0.5">{selectedClient.retainerRemaining}h left</span>}
+                <button
+                  onClick={() => { setAllocationType('retainer'); setSelectedProjectId(''); }}
+                  className={`flex items-center gap-1.5 px-3 py-2 text-[13px] rounded-lg border transition-all duration-200 ${
+                    allocationType === 'retainer'
+                      ? 'bg-primary/6 border-primary/25 text-primary ring-1 ring-primary/15'
+                      : 'border-border text-muted-foreground hover:text-foreground hover:bg-accent/40'
+                  }`}
+                  style={{ fontWeight: 500 }}
+                >
+                  <Repeat className="w-3.5 h-3.5" />
+                  Retainer
+                  {selectedClient.retainerRemaining > 0 && (
+                    <span className="text-[11px] opacity-70 tabular-nums ml-0.5">{selectedClient.retainerRemaining}h left</span>
+                  )}
                 </button>
               )}
+
+              {/* Project options */}
               {selectableProjects.map((proj: any) => (
-                <button key={proj.id} onClick={() => { setAllocationType('project'); setSelectedProjectId(String(proj.id)); }} className={`flex items-center gap-1.5 px-3 py-2 text-[13px] rounded-lg border transition-all duration-200 ${allocationType === 'project' && selectedProjectId === String(proj.id) ? 'bg-primary/6 border-primary/25 text-primary ring-1 ring-primary/15' : 'border-border text-muted-foreground hover:text-foreground hover:bg-accent/40'}`} style={{ fontWeight: 500 }}>
-                  <FolderKanban className="w-3.5 h-3.5" /> {proj.name}
-                  {proj.estimatedHours > 0 && <span className="text-[11px] opacity-70 tabular-nums ml-0.5">{proj.hours || 0}/{proj.estimatedHours}h</span>}
+                <button
+                  key={proj.id}
+                  onClick={() => { setAllocationType('project'); setSelectedProjectId(String(proj.id)); }}
+                  className={`flex items-center gap-1.5 px-3 py-2 text-[13px] rounded-lg border transition-all duration-200 ${
+                    allocationType === 'project' && selectedProjectId === String(proj.id)
+                      ? 'bg-primary/6 border-primary/25 text-primary ring-1 ring-primary/15'
+                      : 'border-border text-muted-foreground hover:text-foreground hover:bg-accent/40'
+                  }`}
+                  style={{ fontWeight: 500 }}
+                >
+                  <FolderKanban className="w-3.5 h-3.5" />
+                  {proj.name}
+                  {proj.estimatedHours > 0 && (
+                    <span className="text-[11px] opacity-70 tabular-nums ml-0.5">{proj.hours || 0}/{proj.estimatedHours}h</span>
+                  )}
                 </button>
               ))}
+
+              {/* Completed projects in a muted group */}
               {completedProjects.map((proj: any) => (
-                <button key={proj.id} onClick={() => { setAllocationType('project'); setSelectedProjectId(String(proj.id)); }} className={`flex items-center gap-1.5 px-3 py-2 text-[13px] rounded-lg border transition-all duration-200 ${allocationType === 'project' && selectedProjectId === String(proj.id) ? 'bg-primary/6 border-primary/25 text-primary ring-1 ring-primary/15' : 'border-border text-muted-foreground/50 hover:text-muted-foreground hover:bg-accent/40'}`} style={{ fontWeight: 500 }}>
-                  <CheckCircle2 className="w-3.5 h-3.5" /> {proj.name} <span className="text-[10px] opacity-60">done</span>
+                <button
+                  key={proj.id}
+                  onClick={() => { setAllocationType('project'); setSelectedProjectId(String(proj.id)); }}
+                  className={`flex items-center gap-1.5 px-3 py-2 text-[13px] rounded-lg border transition-all duration-200 ${
+                    allocationType === 'project' && selectedProjectId === String(proj.id)
+                      ? 'bg-primary/6 border-primary/25 text-primary ring-1 ring-primary/15'
+                      : 'border-border text-zinc-400 hover:text-zinc-500 hover:bg-accent/40'
+                  }`}
+                  style={{ fontWeight: 500 }}
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  {proj.name}
+                  <span className="text-[10px] opacity-60">done</span>
                 </button>
               ))}
-              {loadingProjects && <div className="flex items-center gap-1.5 px-3 py-2 text-[12px] text-muted-foreground"><Loader2 className="w-3 h-3 animate-spin" /> Loading...</div>}
+
+              {loadingProjects && (
+                <div className="flex items-center gap-1.5 px-3 py-2 text-[12px] text-muted-foreground">
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  Loading...
+                </div>
+              )}
             </div>
+
+            {/* Allocation context */}
             <div className="text-[11px] text-muted-foreground">
               {allocationType === 'general' && 'Tracked as general client time — not applied to a specific project or retainer.'}
               {allocationType === 'retainer' && `This session's hours will be deducted from ${selectedClient.name}'s retainer balance.`}
@@ -647,64 +888,172 @@ export function LogSessionModal({ open, onClose, onSave, clients, preSelectedCli
           </>
         )}
 
+        {/* ── What you did ─────────────────── */}
         <SectionDivider icon={FileText} label="What you did" />
+
         <div>
           <Label>Description</Label>
-          <input value={task} onChange={e => setTask(e.target.value)} placeholder="Brand refresh — icon exploration" className="w-full px-3 py-2 text-[14px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all" />
+          <input
+            value={task}
+            onChange={e => setTask(e.target.value)}
+            placeholder="Brand refresh — icon exploration"
+            className="w-full px-3 py-2 text-[14px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
+          />
         </div>
+
         <div>
           <Label>Categories</Label>
           <div className="flex flex-wrap gap-1.5">
             {allTags.map(tag => (
-              <button key={tag} onClick={() => toggleTag(tag)} className={`px-2.5 py-1.5 text-[12px] rounded-lg border transition-all duration-200 ${selectedTags.includes(tag) ? 'bg-primary/8 border-primary/20 text-primary ring-1 ring-primary/10' : 'border-border text-muted-foreground hover:text-foreground hover:bg-accent/40'}`} style={{ fontWeight: 500 }}>{tag}</button>
+              <button
+                key={tag}
+                onClick={() => toggleTag(tag)}
+                className={`px-2.5 py-1.5 text-[12px] rounded-lg border transition-all duration-200 ${
+                  selectedTags.includes(tag)
+                    ? 'bg-primary/8 border-primary/20 text-primary ring-1 ring-primary/10'
+                    : 'border-border text-muted-foreground hover:text-foreground hover:bg-accent/40'
+                }`}
+                style={{ fontWeight: 500 }}
+              >
+                {tag}
+              </button>
             ))}
           </div>
+          {selectedTags.length === 0 && (
+            <div className="text-[11px] text-muted-foreground mt-1">Select at least one category for time allocation reports</div>
+          )}
         </div>
+
         <div>
           <Label>Duration (hours)</Label>
           <div className="grid grid-cols-4 gap-2">
             <Input value={duration} onChange={e => setDuration(e.target.value)} placeholder="2.5" className="tabular-nums col-span-1" />
             <div className="col-span-3 flex gap-1.5">
               {[0.5, 1, 1.5, 2, 3, 4].map(preset => (
-                <button key={preset} onClick={() => setDuration(String(preset))} className={`flex-1 py-2 text-[12px] rounded-lg border transition-all duration-200 tabular-nums ${duration === String(preset) ? 'bg-primary/8 border-primary/20 text-primary' : 'border-border text-muted-foreground hover:text-foreground hover:bg-accent/40'}`} style={{ fontWeight: 500 }}>{preset}h</button>
+                <button
+                  key={preset}
+                  onClick={() => setDuration(String(preset))}
+                  className={`flex-1 py-2 text-[12px] rounded-lg border transition-all duration-200 tabular-nums ${
+                    duration === String(preset)
+                      ? 'bg-primary/8 border-primary/20 text-primary'
+                      : 'border-border text-muted-foreground hover:text-foreground hover:bg-accent/40'
+                  }`}
+                  style={{ fontWeight: 500 }}
+                >
+                  {preset}h
+                </button>
               ))}
             </div>
           </div>
         </div>
+
         <div>
           <Label hint="optional">Session notes</Label>
-          <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Key decisions, blockers, next steps..." rows={2} className="w-full px-3 py-2 text-[14px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all resize-none" />
+          <textarea
+            value={notes}
+            onChange={e => setNotes(e.target.value)}
+            placeholder="Key decisions, blockers, next steps..."
+            rows={2}
+            className="w-full px-3 py-2 text-[14px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all resize-none"
+          />
         </div>
 
+        {/* ── Billing ────────────────────────── */}
         <SectionDivider icon={DollarSign} label="Billing" />
-        <Toggle checked={billable} onChange={setBillable} label="Billable time" description={billable ? 'This session will count toward client revenue' : 'Non-billable — internal or pro-bono work'} />
 
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-[13px]" style={{ fontWeight: 500 }}>Billable time</div>
+            <div className="text-[12px] text-muted-foreground">
+              {billable ? 'This session will count toward client revenue' : 'Non-billable — internal or pro-bono work'}
+            </div>
+          </div>
+          <button
+            onClick={() => setBillable(b => !b)}
+            className={`relative w-9 h-5 rounded-full transition-colors duration-200 flex-shrink-0 ${billable ? 'bg-primary' : 'bg-zinc-300'}`}
+          >
+            <div
+              className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform duration-200 ${billable ? 'translate-x-4' : 'translate-x-0'}`}
+              style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.12)' }}
+            />
+          </button>
+        </div>
+
+        {/* Revenue & allocation impact preview */}
         {selectedClient && durationNum > 0 && (
           <div className="bg-accent/30 rounded-lg px-3.5 py-3">
             <div className="flex items-center justify-between text-[13px]">
-              <span className="text-muted-foreground">{billable ? 'Estimated revenue' : 'Time value'}{selectedClient.rate ? ` @ $${selectedClient.rate}/hr` : ''}</span>
-              <span className={`tabular-nums ${billable ? 'text-primary' : 'text-muted-foreground'}`} style={{ fontWeight: 600 }}>{billable ? `$${revenue.toLocaleString()}` : '$0 (non-billable)'}</span>
+              <span className="text-muted-foreground">
+                {billable ? 'Estimated revenue' : 'Time value'}{selectedClient.rate ? ` @ $${selectedClient.rate}/hr` : ''}
+              </span>
+              <span className={`tabular-nums ${billable ? 'text-primary' : 'text-muted-foreground'}`} style={{ fontWeight: 600 }}>
+                {billable ? `$${revenue.toLocaleString()}` : `$0 (non-billable)`}
+              </span>
             </div>
+
+            {/* Retainer impact */}
             {allocationType === 'retainer' && billable && selectedClient.model === 'Retainer' && selectedClient.retainerTotal > 0 && (
               <div className="mt-2 pt-2 border-t border-border/40">
                 <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-1.5">
                   <span>Retainer after this session</span>
-                  <span className="tabular-nums" style={{ fontWeight: 500 }}>{Math.max(0, (selectedClient.retainerRemaining || 0) - durationNum).toFixed(1)}h of {selectedClient.retainerTotal}h remaining</span>
+                  <span className="tabular-nums" style={{ fontWeight: 500 }}>
+                    {Math.max(0, (selectedClient.retainerRemaining || 0) - durationNum).toFixed(1)}h of {selectedClient.retainerTotal}h remaining
+                  </span>
                 </div>
                 <div className="h-1.5 bg-accent/60 rounded-full overflow-hidden">
-                  <div className="h-full rounded-full bg-primary transition-all duration-300" style={{ width: `${Math.max(0, Math.min(100, ((selectedClient.retainerTotal - Math.max(0, (selectedClient.retainerRemaining || 0) - durationNum)) / selectedClient.retainerTotal) * 100))}%` }} />
+                  <div
+                    className="h-full rounded-full transition-all duration-300"
+                    style={{
+                      width: `${Math.max(0, Math.min(100, ((selectedClient.retainerTotal - Math.max(0, (selectedClient.retainerRemaining || 0) - durationNum)) / selectedClient.retainerTotal) * 100))}%`,
+                      background: ((selectedClient.retainerTotal - Math.max(0, (selectedClient.retainerRemaining || 0) - durationNum)) / selectedClient.retainerTotal) > 0.85
+                        ? '#5ea1bf'
+                        : 'linear-gradient(90deg, #5ea1bf, #7fb8d1)',
+                    }}
+                  />
                 </div>
+                {(selectedClient.retainerRemaining || 0) - durationNum < 0 && (
+                  <div className="text-[11px] text-primary mt-1" style={{ fontWeight: 500 }}>
+                    {Math.abs((selectedClient.retainerRemaining || 0) - durationNum).toFixed(1)}h over retainer — will be billed as overage
+                  </div>
+                )}
               </div>
             )}
+
+            {/* Project impact */}
             {allocationType === 'project' && selectedProject && (
               <div className="mt-2 pt-2 border-t border-border/40">
                 <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-1.5">
                   <span>"{selectedProject.name}" after this session</span>
-                  <span className="tabular-nums" style={{ fontWeight: 500 }}>{((selectedProject.hours || 0) + durationNum).toFixed(1)}h{selectedProject.estimatedHours > 0 ? ` of ${selectedProject.estimatedHours}h` : ''}</span>
+                  <span className="tabular-nums" style={{ fontWeight: 500 }}>
+                    {((selectedProject.hours || 0) + durationNum).toFixed(1)}h{selectedProject.estimatedHours > 0 ? ` of ${selectedProject.estimatedHours}h` : ''}
+                  </span>
                 </div>
                 {selectedProject.estimatedHours > 0 && (
-                  <div className="h-1.5 bg-accent/60 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full bg-primary transition-all duration-300" style={{ width: `${Math.min(100, (((selectedProject.hours || 0) + durationNum) / selectedProject.estimatedHours) * 100)}%` }} />
+                  <>
+                    <div className="h-1.5 bg-accent/60 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-300"
+                        style={{
+                          width: `${Math.min(100, (((selectedProject.hours || 0) + durationNum) / selectedProject.estimatedHours) * 100)}%`,
+                          background: (((selectedProject.hours || 0) + durationNum) / selectedProject.estimatedHours) > 0.9
+                            ? '#5ea1bf'
+                            : 'linear-gradient(90deg, #5ea1bf, #7fb8d1)',
+                        }}
+                      />
+                    </div>
+                    {((selectedProject.hours || 0) + durationNum) > selectedProject.estimatedHours && (
+                      <div className="text-[11px] text-primary mt-1" style={{ fontWeight: 500 }}>
+                        {(((selectedProject.hours || 0) + durationNum) - selectedProject.estimatedHours).toFixed(1)}h over estimated scope
+                      </div>
+                    )}
+                  </>
+                )}
+                {billable && selectedProject.totalValue > 0 && (
+                  <div className="flex items-center justify-between text-[11px] text-muted-foreground mt-1">
+                    <span>Revenue earned</span>
+                    <span className="tabular-nums" style={{ fontWeight: 500 }}>
+                      ${((selectedProject.revenue || 0) + revenue).toLocaleString()} of ${selectedProject.totalValue.toLocaleString()}
+                    </span>
                   </div>
                 )}
               </div>
@@ -712,9 +1061,14 @@ export function LogSessionModal({ open, onClose, onSave, clients, preSelectedCli
           </div>
         )}
 
+        {/* ── Footer ─────────────────────────── */}
         <div className="flex items-center justify-between pt-3 border-t border-border">
           <div className="text-[12px] text-muted-foreground">
-            {canSave ? `${durationNum}h ${billable ? 'billable' : 'non-billable'} · ${allocationLabel} · ${dateGroupLabel}` : allocationType === 'project' && !selectedProjectId ? 'Select a project to apply this time to' : 'Fill in client, description, and duration'}
+            {canSave
+              ? `${durationNum}h ${billable ? 'billable' : 'non-billable'} · ${allocationLabel} · ${dateGroupLabel}`
+              : allocationType === 'project' && !selectedProjectId
+                ? 'Select a project to apply this time to'
+                : 'Fill in client, description, and duration'}
           </div>
           <div className="flex gap-2">
             <button onClick={() => { reset(); onClose(); }} className="px-4 py-2 text-[13px] rounded-lg border border-border text-muted-foreground hover:bg-accent/40 transition-all" style={{ fontWeight: 500 }}>Cancel</button>
@@ -746,6 +1100,7 @@ export function AddProjectModal({ open, onClose, onSave, clients, preSelectedCli
   const showClientSelector = clients && clients.length > 0 && !preSelectedClientId;
   const activeClients = clients?.filter(c => c.status === 'Active' || c.status === 'Prospect') || [];
 
+  // Initialize on open
   useEffect(() => {
     if (open) {
       if (!startDate) setStartDate(new Date().toISOString().split('T')[0]);
@@ -761,18 +1116,47 @@ export function AddProjectModal({ open, onClose, onSave, clients, preSelectedCli
   const hoursNum = Number(estimatedHours) || 0;
   const valueNum = Number(totalValue) || 0;
   const effectiveRate = hoursNum > 0 && valueNum > 0 ? Math.round(valueNum / hoursNum) : 0;
-  const canSave = name.trim().length > 0;
+
+  // Compute timeline duration
+  const timelineDays = startDate && endDate
+    ? Math.round((new Date(endDate + 'T00:00:00').getTime() - new Date(startDate + 'T00:00:00').getTime()) / (1000 * 60 * 60 * 24))
+    : 0;
+  const timelineWeeks = timelineDays > 0 ? Math.round(timelineDays / 7) : 0;
+  const weeklyHours = timelineWeeks > 0 && hoursNum > 0 ? (hoursNum / timelineWeeks).toFixed(1) : null;
+
+  const formatDateDisplay = (dateStr: string) => {
+    if (!dateStr) return '';
+    const d = new Date(dateStr + 'T12:00:00');
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
+
+  const statusConfig: Record<string, { icon: typeof Play; dot: string; description: string }> = {
+    'Not Started': { icon: CircleDot, dot: 'bg-stone-400', description: 'Scoped but not yet begun' },
+    'In Progress': { icon: Play, dot: 'bg-primary', description: 'Actively being worked on' },
+    'On Hold': { icon: Pause, dot: 'bg-stone-400', description: 'Paused — awaiting input or decision' },
+    'Complete': { icon: CheckCircle2, dot: 'bg-zinc-400', description: 'Delivered and closed' },
+  };
+
+  const canSave = name.trim().length > 0 && (preSelectedClientId || !showClientSelector || clientId);
 
   const handleSave = async () => {
     if (!canSave) return;
     setSaving(true);
     try {
+      const resolvedClientId = preSelectedClientId || clientId;
       await onSave({
-        name: name.trim(), description: description.trim(), status,
-        estimatedHours: hoursNum, totalValue: valueNum, hours: 0, revenue: 0,
-        startDate: startDate || undefined, endDate: endDate || undefined,
-      }, clientId || preSelectedClientId || undefined);
-      reset(); onClose();
+        name: name.trim(),
+        description: description.trim(),
+        status,
+        hours: 0,
+        revenue: 0,
+        estimatedHours: hoursNum,
+        totalValue: valueNum,
+        startDate: startDate ? formatDateDisplay(startDate) : new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        endDate: endDate ? formatDateDisplay(endDate) : '',
+      }, resolvedClientId);
+      reset();
+      onClose();
     } catch (err) {
       console.error(err);
     } finally {
@@ -781,39 +1165,99 @@ export function AddProjectModal({ open, onClose, onSave, clients, preSelectedCli
   };
 
   return (
-    <ModalShell open={open} onClose={onClose} title="Add project" subtitle="Create a new project" wide>
+    <ModalShell open={open} onClose={onClose} title="Add project" subtitle="Define scope and timeline for a new project" wide>
       <div className="space-y-5">
+        {/* ── Project details ───────────────── */}
         <SectionDivider icon={FolderKanban} label="Project details" />
-        <div>
-          <Label>Project name</Label>
-          <Input value={name} onChange={e => setName(e.target.value)} placeholder="Brand Refresh" autoFocus />
-        </div>
-        <div>
-          <Label hint="optional">Description</Label>
-          <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Brief project scope..." rows={2} className="w-full px-3 py-2 text-[14px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all resize-none" />
-        </div>
 
         {showClientSelector && (
           <div>
             <Label>Client</Label>
             <Select value={clientId} onChange={e => setClientId(e.target.value)}>
               <option value="">Select a client</option>
-              {activeClients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              {activeClients.map(c => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
             </Select>
           </div>
         )}
 
         <div>
+          <Label>Project name</Label>
+          <Input value={name} onChange={e => setName(e.target.value)} placeholder="Website redesign" autoFocus />
+        </div>
+
+        <div>
+          <Label hint="optional">Description</Label>
+          <textarea
+            value={description}
+            onChange={e => setDescription(e.target.value)}
+            placeholder="Scope summary, deliverables, key milestones..."
+            rows={2}
+            className="w-full px-3 py-2 text-[14px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all resize-none"
+          />
+        </div>
+
+        <div>
           <Label>Status</Label>
-          <div className="flex gap-2 flex-wrap">
-            <StatusPill active={status === 'Not Started'} onClick={() => setStatus('Not Started')} label="Not Started" dot="bg-muted-foreground" />
-            <StatusPill active={status === 'In Progress'} onClick={() => setStatus('In Progress')} label="In Progress" dot="bg-primary" />
-            <StatusPill active={status === 'On Hold'} onClick={() => setStatus('On Hold')} label="On Hold" dot="bg-yellow-500" />
-            <StatusPill active={status === 'Complete'} onClick={() => setStatus('Complete')} label="Complete" dot="bg-green-500" />
+          <div className="grid grid-cols-4 gap-2">
+            {(Object.keys(statusConfig) as Array<keyof typeof statusConfig>).map(key => {
+              const cfg = statusConfig[key];
+              const active = status === key;
+              return (
+                <button
+                  key={key}
+                  onClick={() => setStatus(key as typeof status)}
+                  className={`flex flex-col items-center gap-1.5 px-2 py-2.5 rounded-lg border text-center transition-all duration-200 ${
+                    active
+                      ? 'bg-primary/6 border-primary/25 ring-1 ring-primary/15'
+                      : 'border-border hover:bg-accent/40'
+                  }`}
+                >
+                  <cfg.icon className={`w-3.5 h-3.5 ${active ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <span className={`text-[11px] leading-tight ${active ? 'text-primary' : 'text-foreground'}`} style={{ fontWeight: 600 }}>{key}</span>
+                </button>
+              );
+            })}
+          </div>
+          <div className="text-[11px] text-muted-foreground mt-1.5">{statusConfig[status]?.description}</div>
+        </div>
+
+        {/* ── Timeline ──────────────────────── */}
+        <SectionDivider icon={Calendar} label="Timeline" />
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <Label>Start date</Label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={e => setStartDate(e.target.value)}
+              className="w-full px-3 py-2 text-[14px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all tabular-nums"
+            />
+          </div>
+          <div>
+            <Label hint="optional">End date</Label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={e => setEndDate(e.target.value)}
+              min={startDate}
+              className="w-full px-3 py-2 text-[14px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all tabular-nums"
+            />
           </div>
         </div>
 
-        <SectionDivider icon={DollarSign} label="Budget & timeline" />
+        {timelineDays > 0 && (
+          <div className="text-[11px] text-muted-foreground">
+            {timelineDays} days ({timelineWeeks} week{timelineWeeks !== 1 ? 's' : ''})
+            {weeklyHours && <> · ~{weeklyHours}h/week at estimated scope</>}
+          </div>
+        )}
+
+        {/* ── Budget & scope ─────────────────── */}
+        <SectionDivider icon={DollarSign} label="Budget & scope" />
+
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label>Estimated hours</Label>
@@ -824,28 +1268,33 @@ export function AddProjectModal({ open, onClose, onSave, clients, preSelectedCli
             <Input value={totalValue} onChange={e => setTotalValue(e.target.value)} placeholder="6,000" className="tabular-nums" />
           </div>
         </div>
-        {effectiveRate > 0 && (
-          <div className="flex items-center justify-between text-[13px] px-3 py-2 bg-accent/30 rounded-lg">
-            <span className="text-muted-foreground">Effective rate</span>
-            <span className="tabular-nums" style={{ fontWeight: 600 }}>${effectiveRate}/hr</span>
+
+        {/* Budget summary */}
+        {(effectiveRate > 0 || (hoursNum > 0 && valueNum > 0)) && (
+          <div className="bg-accent/30 rounded-lg px-3.5 py-3">
+            <div className="flex items-center justify-between text-[13px]">
+              <span className="text-muted-foreground">Effective hourly rate</span>
+              <span className="tabular-nums text-primary" style={{ fontWeight: 600 }}>${effectiveRate}/hr</span>
+            </div>
+            {hoursNum > 0 && (
+              <div className="flex items-center justify-between text-[11px] text-muted-foreground mt-1.5 pt-1.5 border-t border-border/40">
+                <span>Scope utilization at 0h logged</span>
+                <span className="tabular-nums" style={{ fontWeight: 500 }}>0% · {hoursNum}h remaining</span>
+              </div>
+            )}
           </div>
         )}
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <Label>Start date</Label>
-            <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-full px-3 py-2 text-[14px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all tabular-nums" />
-          </div>
-          <div>
-            <Label hint="optional">End date</Label>
-            <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-full px-3 py-2 text-[14px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all tabular-nums" />
-          </div>
-        </div>
 
+        {/* ── Footer ─────────────────────────── */}
         <div className="flex items-center justify-between pt-3 border-t border-border">
-          <div className="text-[12px] text-muted-foreground">{canSave ? `${status} · ${hoursNum > 0 ? `${hoursNum}h estimated` : 'No estimate'}` : 'Enter a project name'}</div>
+          <div className="text-[12px] text-muted-foreground">
+            {canSave
+              ? `${status}${valueNum > 0 ? ` · $${valueNum.toLocaleString()}` : ''}${hoursNum > 0 ? ` · ${hoursNum}h estimated` : ''}`
+              : 'Enter a project name to continue'}
+          </div>
           <div className="flex gap-2">
             <button onClick={() => { reset(); onClose(); }} className="px-4 py-2 text-[13px] rounded-lg border border-border text-muted-foreground hover:bg-accent/40 transition-all" style={{ fontWeight: 500 }}>Cancel</button>
-            <PrimaryBtn onClick={handleSave} disabled={saving || !canSave}>{saving ? 'Creating...' : 'Add project'}</PrimaryBtn>
+            <PrimaryBtn onClick={handleSave} disabled={saving || !canSave}>{saving ? 'Adding...' : 'Add project'}</PrimaryBtn>
           </div>
         </div>
       </div>
