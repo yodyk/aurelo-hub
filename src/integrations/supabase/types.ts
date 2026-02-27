@@ -711,6 +711,14 @@ export type Database = {
     }
     Functions: {
       get_user_workspace_ids: { Args: never; Returns: string[] }
+      has_workspace_role: {
+        Args: { _role: string; _workspace_id: string }
+        Returns: boolean
+      }
+      is_workspace_admin_or_owner: {
+        Args: { _workspace_id: string }
+        Returns: boolean
+      }
       recalculate_all_client_aggregates: {
         Args: { p_workspace_id: string }
         Returns: undefined
