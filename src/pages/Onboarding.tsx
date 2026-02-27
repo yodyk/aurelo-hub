@@ -1,7 +1,7 @@
 import { motion } from "motion/react";
 import { containerVariants, itemVariants } from "@/lib/motion";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
 import AureloLogo from "@/components/AureloLogo";
 import { Palette, Code, Megaphone, Sparkles, Briefcase, Box, Building2 } from "lucide-react";
