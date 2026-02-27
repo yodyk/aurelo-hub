@@ -75,7 +75,7 @@ async function resolveWorkspace(userId: string): Promise<{ workspaceId: string |
     .eq('user_id', userId)
     .eq('status', 'active')
     .limit(1)
-    .single();
+    .maybeSingle();
 
   if (error || !data) return { workspaceId: null, role: null };
   return { workspaceId: data.workspace_id, role: data.role };
