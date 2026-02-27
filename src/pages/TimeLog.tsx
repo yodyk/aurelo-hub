@@ -5,7 +5,7 @@ import { motion } from "motion/react";
 import { useData } from "../data/DataContext";
 import { LogSessionModal, EditSessionModal } from "../components/Modals";
 import BulkSessionActions from "../components/BulkSessionActions";
-import * as invoiceApi from "../data/invoiceApi";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { startOfDay, subDays, startOfMonth, startOfQuarter, startOfYear, isBefore, isAfter } from "date-fns";
 
@@ -224,36 +224,65 @@ export default function TimeLog() {
     const client = clients.find((c: any) => c.id === clientId);
     if (!client) return;
 
-    // Build line items from selected sessions
-    const lineItems = selectedSessions.map((s: any) => ({
-      id: crypto.randomUUID(),
-      description: `${s.task || "Work session"} (${s.date})`,
-      quantity: s.duration,
-      rate: s.duration > 0 ? s.revenue / s.duration : 0,
-      amount: s.revenue,
-      sessionIds: [s.id],
-    }));
-
-    const subtotal = lineItems.reduce((sum: number, li: any) => sum + li.amount, 0);
-
     try {
-      const number = await invoiceApi.getNextInvoiceNumber();
-      const invoice = await invoiceApi.createInvoice({
+      // Get workspace ID from auth context
+      const { data: memberData } = await supabase
+        .from('workspace_members')
+        .select('workspace_id')
+        .limit(1)
+        .single();
+      if (!memberData) throw new Error('No workspace found');
+      const wsId = memberData.workspace_id;
+
+      // Get next invoice number
+      const { data: seqData } = await supabase
+        .from('invoice_sequences')
+        .select('next_number')
+        .eq('workspace_id', wsId)
+        .single();
+
+      let nextNum = seqData?.next_number || 1001;
+      const number = `INV-${nextNum}`;
+
+      // Build line items from selected sessions
+      const lineItems = selectedSessions.map((s: any) => ({
+        id: crypto.randomUUID(),
+        description: `${s.task || "Work session"} (${s.date})`,
+        quantity: s.duration,
+        rate: s.duration > 0 ? s.revenue / s.duration : 0,
+        amount: s.revenue,
+        sessionIds: [s.id],
+      }));
+
+      const subtotal = lineItems.reduce((sum: number, li: any) => sum + li.amount, 0);
+
+      // Insert invoice
+      const { error: insertErr } = await supabase.from('invoices').insert({
+        workspace_id: wsId,
         number,
-        clientId,
-        clientName: client.name,
-        clientEmail: client.contactEmail || "",
-        lineItems,
+        client_id: clientId,
+        client_name: client.name,
+        client_email: client.contactEmail || null,
+        line_items: lineItems as any,
         subtotal,
-        taxRate: 0,
-        taxAmount: 0,
+        tax_rate: 0,
+        tax_amount: 0,
         total: subtotal,
-        currency: "USD",
-        status: "draft",
-        dueDate: new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0],
-        issuedDate: new Date().toISOString().split("T")[0],
-        createdFromSessions: Array.from(selectedIds),
+        currency: 'USD',
+        status: 'draft',
+        due_date: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
+        issued_date: new Date().toISOString().split('T')[0],
+        created_from_sessions: Array.from(selectedIds),
       });
+      if (insertErr) throw new Error(insertErr.message);
+
+      // Increment sequence
+      if (seqData) {
+        await supabase.from('invoice_sequences').update({ next_number: nextNum + 1 }).eq('workspace_id', wsId);
+      } else {
+        await supabase.from('invoice_sequences').insert({ workspace_id: wsId, next_number: nextNum + 1 });
+      }
+
       setSelectedIds(new Set());
       toast.success(`Draft invoice ${number} created`);
       navigate("/invoicing");
