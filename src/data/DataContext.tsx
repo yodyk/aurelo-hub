@@ -36,7 +36,9 @@ interface DataContextType {
   allProjects: any[];
   loadAllProjects: () => Promise<void>;
   initAvatar: { url: string; fileName: string } | null;
+  setInitAvatar: (avatar: { url: string; fileName: string } | null) => void;
   initLogos: { app: any; email: any };
+  setInitLogos: (logos: { app: any; email: any }) => void;
   initSettings: Record<string, any>;
   initPlan: any;
   refresh: () => Promise<void>;
@@ -80,7 +82,9 @@ const safeDefaults: DataContextType = {
   allProjects: [],
   loadAllProjects: async () => {},
   initAvatar: null,
+  setInitAvatar: () => {},
   initLogos: { app: null, email: null },
+  setInitLogos: () => {},
   initSettings: {},
   initPlan: null,
   refresh: async () => {},
@@ -298,7 +302,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       getProjects, loadProjectsForClient,
       addProject: handleAddProject, updateProject: handleUpdateProject,
       allProjects, loadAllProjects,
-      initAvatar, initLogos, initSettings, initPlan,
+      initAvatar, setInitAvatar, initLogos, setInitLogos, initSettings, initPlan,
       refresh, insightsMetrics,
     }}>
       {children}

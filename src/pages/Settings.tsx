@@ -326,6 +326,7 @@ function ProfileTab() {
   const [avatarUploading, setAvatarUploading] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const { theme: currentTheme, setTheme: applyTheme } = useTheme();
+  const { setInitAvatar } = useData();
 
   // Load avatar on mount
   useEffect(() => {
@@ -414,6 +415,7 @@ function ProfileTab() {
                 try {
                   const result = await api.uploadAvatar(file);
                   setAvatarUrl(result.url);
+                  setInitAvatar({ url: result.url, fileName: file.name });
                   toast.success("Profile picture updated");
                 } catch (err: any) {
                   toast.error(err.message || "Upload failed");
@@ -429,6 +431,7 @@ function ProfileTab() {
                   try {
                     await api.deleteAvatar();
                     setAvatarUrl(null);
+                    setInitAvatar(null);
                     toast.success("Profile picture removed");
                   } catch (err: any) {
                     toast.error(err.message || "Failed to remove");
@@ -529,6 +532,7 @@ function WorkspaceTab() {
   const [uploadingEmail, setUploadingEmail] = useState(false);
   const appInputRef = useRef<HTMLInputElement>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
+  const { initLogos, setInitLogos } = useData();
 
   // Load existing logos
   useEffect(() => {
@@ -562,6 +566,7 @@ function WorkspaceTab() {
     try {
       const result = await api.uploadLogo(file, type);
       setLogo(result);
+      setInitLogos({ ...initLogos, [type]: result });
       toast.success(`${type === "app" ? "App" : "Email"} logo uploaded`);
     } catch (err: any) {
       toast.error(err.message || "Upload failed");
@@ -575,6 +580,7 @@ function WorkspaceTab() {
     try {
       await api.deleteLogo(type);
       setLogo(null);
+      setInitLogos({ ...initLogos, [type]: null });
       toast.success("Logo removed");
     } catch (err: any) {
       toast.error(err.message || "Failed to remove logo");
