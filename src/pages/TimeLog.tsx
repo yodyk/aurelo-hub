@@ -1,9 +1,11 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router";
-import { Calendar, Filter, Plus, Clock, DollarSign, ChevronDown, Download, FolderKanban, Repeat, Pencil, Trash2, MoreHorizontal, Search, X } from "lucide-react";
+import { Calendar, Filter, Plus, Clock, DollarSign, ChevronDown, Download, FolderKanban, Repeat, Pencil, Trash2, MoreHorizontal, Search, X, CheckSquare, Square } from "lucide-react";
 import { motion } from "motion/react";
 import { useData } from "../data/DataContext";
 import { LogSessionModal, EditSessionModal } from "../components/Modals";
+import BulkSessionActions from "../components/BulkSessionActions";
+import * as invoiceApi from "../data/invoiceApi";
 import { toast } from "sonner";
 import { startOfDay, subDays, startOfMonth, startOfQuarter, startOfYear, isBefore, isAfter } from "date-fns";
 
@@ -35,6 +37,7 @@ export default function TimeLog() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showLogModal, setShowLogModal] = useState(false);
   const [editingSession, setEditingSession] = useState<any>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const filteredSessions = useMemo(() => {
     let s = sessions;
@@ -158,6 +161,105 @@ export default function TimeLog() {
   const handleDeleteSession = async (sessionId: string) => {
     await deleteSession(sessionId);
     toast.success("Session deleted");
+  };
+
+  // ── Bulk selection helpers ──
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const toggleSelectAll = useCallback(() => {
+    if (selectedIds.size === filteredSessions.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredSessions.map((s: any) => s.id)));
+    }
+  }, [filteredSessions, selectedIds.size]);
+
+  const selectedSessions = useMemo(
+    () => filteredSessions.filter((s: any) => selectedIds.has(s.id)),
+    [filteredSessions, selectedIds],
+  );
+
+  const handleBulkDelete = async () => {
+    if (!confirm(`Delete ${selectedIds.size} sessions? This cannot be undone.`)) return;
+    for (const id of selectedIds) {
+      await deleteSession(id);
+    }
+    setSelectedIds(new Set());
+    toast.success(`${selectedIds.size} sessions deleted`);
+  };
+
+  const handleBulkExport = () => {
+    const headers = "Date,Client,Description,Tags,Duration (hrs),Revenue,Billable,Applied To,Project\n";
+    const rows = selectedSessions
+      .map(
+        (s: any) =>
+          `"${s.date}","${s.client}","${s.task}","${(s.workTags || []).join(", ")}",${s.duration},${s.revenue},${s.billable},"${s.allocationType || "general"}","${s.projectName || ""}"`,
+      )
+      .join("\n");
+    const blob = new Blob([headers + rows], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "aurelo-selected-sessions.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success(`${selectedSessions.length} sessions exported`);
+  };
+
+  const handleBulkInvoice = async () => {
+    const uniqueClients = new Set(selectedSessions.map((s: any) => s.clientId));
+    if (uniqueClients.size !== 1) {
+      toast.error("Select sessions from only one client to generate an invoice");
+      return;
+    }
+
+    const clientId = selectedSessions[0].clientId;
+    const client = clients.find((c: any) => c.id === clientId);
+    if (!client) return;
+
+    // Build line items from selected sessions
+    const lineItems = selectedSessions.map((s: any) => ({
+      id: crypto.randomUUID(),
+      description: `${s.task || "Work session"} (${s.date})`,
+      quantity: s.duration,
+      rate: s.duration > 0 ? s.revenue / s.duration : 0,
+      amount: s.revenue,
+      sessionIds: [s.id],
+    }));
+
+    const subtotal = lineItems.reduce((sum: number, li: any) => sum + li.amount, 0);
+
+    try {
+      const number = await invoiceApi.getNextInvoiceNumber();
+      const invoice = await invoiceApi.createInvoice({
+        number,
+        clientId,
+        clientName: client.name,
+        clientEmail: client.contactEmail || "",
+        lineItems,
+        subtotal,
+        taxRate: 0,
+        taxAmount: 0,
+        total: subtotal,
+        currency: "USD",
+        status: "draft",
+        dueDate: new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0],
+        issuedDate: new Date().toISOString().split("T")[0],
+        createdFromSessions: Array.from(selectedIds),
+      });
+      setSelectedIds(new Set());
+      toast.success(`Draft invoice ${number} created`);
+      navigate("/invoicing");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to create invoice");
+    }
   };
 
   const allTags = [
@@ -359,6 +461,24 @@ export default function TimeLog() {
         </div>
       </motion.div>
 
+      {/* Select all toggle */}
+      {filteredSessions.length > 0 && (
+        <motion.div variants={item} className="flex items-center gap-2 mb-2 px-1">
+          <button
+            onClick={toggleSelectAll}
+            className="flex items-center gap-2 text-[13px] text-muted-foreground hover:text-foreground transition-colors"
+            style={{ fontWeight: 500 }}
+          >
+            {selectedIds.size === filteredSessions.length && filteredSessions.length > 0 ? (
+              <CheckSquare className="w-4 h-4 text-primary" />
+            ) : (
+              <Square className="w-4 h-4" />
+            )}
+            {selectedIds.size > 0 ? `${selectedIds.size} of ${filteredSessions.length} selected` : "Select all"}
+          </button>
+        </motion.div>
+      )}
+
       {/* Grouped Time Sessions */}
       <motion.div variants={item} className="space-y-6">
         {groupedSessions.map((group, groupIndex) => (
@@ -373,14 +493,31 @@ export default function TimeLog() {
               className="bg-card border border-border rounded-xl overflow-hidden"
               style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.03), 0 1px 2px rgba(0,0,0,0.02)" }}
             >
-              {group.sessions.map((session: any, index: number) => (
+              {group.sessions.map((session: any, index: number) => {
+                const isSelected = selectedIds.has(session.id);
+                return (
                 <motion.div
                   key={session.id}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.1 + groupIndex * 0.05 + index * 0.03 }}
-                  className="flex items-center gap-4 px-6 py-4 border-b border-border last:border-0 hover:bg-accent/30 transition-colors cursor-pointer group"
+                  className={`flex items-center gap-4 px-6 py-4 border-b border-border last:border-0 hover:bg-accent/30 transition-colors cursor-pointer group ${isSelected ? "bg-primary/4" : ""}`}
                 >
+                  {/* Checkbox */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleSelect(session.id);
+                    }}
+                    className="flex-shrink-0 w-5 h-5 flex items-center justify-center"
+                  >
+                    {isSelected ? (
+                      <CheckSquare className="w-4 h-4 text-primary" />
+                    ) : (
+                      <Square className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                    )}
+                  </button>
+
                   <div
                     className="flex-1 flex items-center gap-4 min-w-0"
                     onClick={() => {
@@ -475,7 +612,8 @@ export default function TimeLog() {
                     <Pencil className="w-3.5 h-3.5" />
                   </button>
                 </motion.div>
-              ))}
+                );
+              })}
             </div>
           </div>
         ))}
@@ -495,6 +633,15 @@ export default function TimeLog() {
         onSave={handleUpdateSession}
         onDelete={handleDeleteSession}
         clients={clients}
+      />
+
+      <BulkSessionActions
+        selectedCount={selectedIds.size}
+        selectedSessions={selectedSessions}
+        onClearSelection={() => setSelectedIds(new Set())}
+        onDeleteSelected={handleBulkDelete}
+        onExportSelected={handleBulkExport}
+        onGenerateInvoice={handleBulkInvoice}
       />
     </motion.div>
   );
