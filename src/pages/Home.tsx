@@ -74,7 +74,7 @@ const RED_BG = "rgba(194, 114, 114, 0.08)";
 // ── Computed data helpers ────────────────────────────────────────────
 
 function getMonthSessions(sessions: any[], monthsAgo: number = 0) {
-  const now = new Date(2026, 1, 25);
+  const now = new Date();
   const target = new Date(now.getFullYear(), now.getMonth() - monthsAgo, 1);
   const targetMonth = target.getMonth();
   const targetYear = target.getFullYear();
@@ -85,7 +85,7 @@ function getMonthSessions(sessions: any[], monthsAgo: number = 0) {
 }
 
 function getWeekSessions(sessions: any[]) {
-  const now = new Date(2026, 1, 25);
+  const now = new Date();
   const dayOfWeek = now.getDay();
   const startOfWeek = new Date(now);
   startOfWeek.setDate(now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
@@ -98,7 +98,7 @@ function getWeekSessions(sessions: any[]) {
 
 function getDayLabel(dateStr: string) {
   const d = new Date(dateStr);
-  const now = new Date(2026, 1, 25);
+  const now = new Date();
   const diff = Math.floor((now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24));
   if (diff === 0) return "Today";
   if (diff === 1) return "Yesterday";
@@ -194,8 +194,9 @@ export default function Home() {
   const currentEarnings = viewMode === "gross" ? grossEarnings : Math.round(netEarnings);
   const lastMonthEarnings = viewMode === "gross" ? lastMonthGross : Math.round(lastMonthGross * netMultiplier);
 
-  const dayOfMonth = 25;
-  const daysInMonth = 28;
+  const now = new Date();
+  const dayOfMonth = now.getDate();
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
   const projectedEarnings = Math.round(grossEarnings * (daysInMonth / Math.max(dayOfMonth, 1)));
   const projectedDisplay = viewMode === "gross" ? projectedEarnings : Math.round(projectedEarnings * netMultiplier);
 
@@ -214,9 +215,10 @@ export default function Home() {
   // 6-month chart
   const chartData = useMemo(() => {
     const months: { month: string; earnings: number; net: number }[] = [];
+    const today = new Date();
     for (let i = 5; i >= 0; i--) {
       const ms = getMonthSessions(sessions, i);
-      const d = new Date(2026, 1 - i, 1);
+      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
       const gross = ms.reduce((sum, s) => sum + (s.revenue || 0), 0);
       months.push({
         month: d.toLocaleDateString("en-US", { month: "short" }),
@@ -344,9 +346,9 @@ export default function Home() {
     for (const p of clients.filter((c) => c.status === "Prospect")) {
       const prospectSessions = sessions.filter((s) => s.clientId === p.id);
       const lastSession = prospectSessions[0];
-      const now = new Date(2026, 1, 25);
+      const pNow = new Date();
       const hasRecent = prospectSessions.some(
-        (s) => now.getTime() - new Date(s.date).getTime() < 7 * 24 * 60 * 60 * 1000,
+        (s) => pNow.getTime() - new Date(s.date).getTime() < 7 * 24 * 60 * 60 * 1000,
       );
       if (!hasRecent) {
         signals.push({
@@ -415,10 +417,10 @@ export default function Home() {
   // Week days
   const weekDays = useMemo(() => {
     const days = ["Mon", "Tue", "Wed", "Thu", "Fri"];
-    const now = new Date(2026, 1, 25);
-    const dow = now.getDay();
-    const monday = new Date(now);
-    monday.setDate(now.getDate() - (dow === 0 ? 6 : dow - 1));
+    const wNow = new Date();
+    const dow = wNow.getDay();
+    const monday = new Date(wNow);
+    monday.setDate(wNow.getDate() - (dow === 0 ? 6 : dow - 1));
     return days.map((label, i) => {
       const day = new Date(monday);
       day.setDate(monday.getDate() + i);
@@ -426,7 +428,7 @@ export default function Home() {
       const hours = sessions
         .filter((s) => s.date === dayStr)
         .reduce((sum: number, s: any) => sum + (s.duration || 0), 0);
-      return { label, hours, isFuture: day > now, isToday: day.toDateString() === now.toDateString() };
+      return { label, hours, isFuture: day > wNow, isToday: day.toDateString() === wNow.toDateString() };
     });
   }, [sessions]);
 
@@ -455,7 +457,7 @@ export default function Home() {
         </h1>
         <div className="flex items-center gap-2">
           {workspaceLogo && <img src={workspaceLogo} alt="" className="w-5 h-5 rounded object-contain flex-shrink-0" />}
-          <p className="text-[14px] text-muted-foreground">{workspaceName}'s monthly pulse for February 2026</p>
+          <p className="text-[14px] text-muted-foreground">{workspaceName}'s monthly pulse for {new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })}</p>
         </div>
       </motion.div>
 
@@ -682,7 +684,7 @@ export default function Home() {
               </div>
               <div className="flex items-baseline gap-1.5 mb-1.5">
                 <span className="text-[36px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600 }}>
-                  <AnimatedNumber value={Math.round(totalHoursThisMonth)} />
+                  <AnimatedNumber value={Math.round(totalHoursThisMonth * 10) / 10} />
                 </span>
                 <span className="text-[14px] text-muted-foreground" style={{ fontWeight: 500 }}>
                   hours
@@ -1420,7 +1422,7 @@ export default function Home() {
                     className="text-[11px] text-muted-foreground mb-3"
                     style={{ fontWeight: 600, letterSpacing: "0.04em" }}
                   >
-                    FEBRUARY TOTALS
+                    {new Date().toLocaleDateString("en-US", { month: "long" }).toUpperCase()} TOTALS
                   </div>
                   <div className="grid grid-cols-2 gap-x-6 gap-y-2.5">
                     <div className="flex items-center justify-between">
