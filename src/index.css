@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -16,35 +18,37 @@
     --primary: 197 40% 56%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 40 6% 93%;
-    --secondary-foreground: 0 0% 15%;
+    --secondary: 249 14% 95%;
+    --secondary-foreground: 249 75% 5%;
 
-    --muted: 40 6% 94%;
+    --muted: 230 8% 93%;
     --muted-foreground: 240 7% 48%;
 
-    --accent: 40 6% 93%;
-    --accent-foreground: 0 0% 12%;
+    --accent: 220 10% 92%;
+    --accent-foreground: 249 75% 5%;
 
-    --destructive: 0 37% 60%;
+    --destructive: 349 82% 47%;
     --destructive-foreground: 0 0% 100%;
 
     --warning: 44 48% 51%;
     --warning-foreground: 0 0% 100%;
 
-    --border: 40 6% 88%;
-    --input: 40 6% 88%;
+    --border: 0 0% 0% / 0.1;
+    --input: 0 0% 0% / 0;
+    --input-background: 240 8% 95%;
+    --switch-background: 216 8% 81%;
     --ring: 197 40% 56%;
 
     --radius: 0.25rem;
 
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 0 0% 20%;
-    --sidebar-primary: 197 40% 56%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 197 30% 95%;
-    --sidebar-accent-foreground: 197 40% 30%;
-    --sidebar-border: 40 6% 92%;
-    --sidebar-ring: 197 40% 56%;
+    --sidebar-background: 0 0% 99%;
+    --sidebar-foreground: 0 0% 9%;
+    --sidebar-primary: 249 75% 5%;
+    --sidebar-primary-foreground: 0 0% 99%;
+    --sidebar-accent: 0 0% 97%;
+    --sidebar-accent-foreground: 0 0% 13%;
+    --sidebar-border: 0 0% 92%;
+    --sidebar-ring: 0 0% 44%;
 
     --chart-1: 197 40% 56%;
     --chart-2: 44 48% 51%;
@@ -79,23 +83,25 @@
     --accent: 60 2% 20%;
     --accent-foreground: 20 6% 90%;
 
-    --destructive: 0 37% 45%;
-    --destructive-foreground: 20 6% 90%;
+    --destructive: 0 30% 62%;
+    --destructive-foreground: 0 0% 100%;
 
     --warning: 44 48% 51%;
     --warning-foreground: 0 0% 100%;
 
-    --border: 60 2% 20%;
-    --input: 60 2% 20%;
+    --border: 0 0% 100% / 0.1;
+    --input: 0 0% 0% / 0;
+    --input-background: 60 2% 20%;
+    --switch-background: 25 6% 33%;
     --ring: 197 40% 56%;
 
-    --sidebar-background: 60 3% 10%;
-    --sidebar-foreground: 20 6% 85%;
+    --sidebar-background: 60 3% 12%;
+    --sidebar-foreground: 20 6% 90%;
     --sidebar-primary: 197 40% 56%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 197 20% 15%;
-    --sidebar-accent-foreground: 197 40% 70%;
-    --sidebar-border: 60 2% 18%;
+    --sidebar-accent: 60 2% 20%;
+    --sidebar-accent-foreground: 20 6% 90%;
+    --sidebar-border: 0 0% 100% / 0.08;
     --sidebar-ring: 197 40% 56%;
   }
 }
