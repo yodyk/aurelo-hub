@@ -11,6 +11,7 @@ import type { ClientNote, NoteType } from '../data/notesApi';
 import { usePlan } from '../data/PlanContext';
 
 // ── Note type config ───────────────────────────────────────────────
+
 const NOTE_TYPES: { value: NoteType; label: string; icon: any; color: string; bg: string }[] = [
   { value: 'general', label: 'General', icon: StickyNote, color: 'text-stone-500', bg: 'bg-stone-100' },
   { value: 'meeting', label: 'Meeting', icon: MessageSquare, color: 'text-[#5ea1bf]', bg: 'bg-[#5ea1bf]/10' },
@@ -24,12 +25,14 @@ function getNoteTypeConfig(type: NoteType) {
 }
 
 // ── Suggested tags ─────────────────────────────────────────────────
+
 const SUGGESTED_TAGS = [
   'billing', 'scope', 'deadline', 'deliverable', 'revision', 'approval',
   'follow-up', 'blocker', 'idea', 'priority', 'contract', 'onboarding',
 ];
 
 // ── Time helpers ───────────────────────────────────────────────────
+
 function timeAgo(dateStr: string): string {
   const now = new Date();
   const d = new Date(dateStr);
@@ -51,6 +54,7 @@ function formatDate(dateStr: string): string {
 }
 
 // ── Main component ─────────────────────────────────────────────────
+
 interface ClientNotesProps {
   clientId: string;
   projects: any[];
@@ -78,6 +82,7 @@ export default function ClientNotes({ clientId, projects, filterProjectId, filte
   }, [clientId]);
 
   // ── CRUD handlers ──────────────────────────────────────────────
+
   const handleAddNote = useCallback(async (note: Partial<ClientNote>) => {
     try {
       const saved = await notesApi.addNote(clientId, note);
@@ -118,6 +123,8 @@ export default function ClientNotes({ clientId, projects, filterProjectId, filte
   }, [handleUpdateNote]);
 
   // ── Filtering & sorting ────────────────────────────────────────
+
+  // First apply project scope — all counts/stats should respect this
   const scopedNotes = filterProjectId
     ? notes.filter(n => n.projectId === filterProjectId)
     : notes;
@@ -134,12 +141,14 @@ export default function ClientNotes({ clientId, projects, filterProjectId, filte
       );
     });
 
+  // Pinned first, then by date
   const sorted = [...filtered].sort((a, b) => {
     if (a.isPinned && !b.isPinned) return -1;
     if (!a.isPinned && b.isPinned) return 1;
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
 
+  // Stats for filter badges — scoped to project when applicable
   const typeCount = (type: NoteType) => scopedNotes.filter(n => n.type === type).length;
   const openActionItems = scopedNotes.filter(n => n.type === 'action-item' && !n.isResolved).length;
 
@@ -148,6 +157,7 @@ export default function ClientNotes({ clientId, projects, filterProjectId, filte
       {/* Toolbar */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-1.5 flex-wrap">
+          {/* Filter pills */}
           <button
             onClick={() => setFilterType('all')}
             className={`px-2.5 py-1 text-[12px] rounded-md transition-all ${
@@ -183,6 +193,7 @@ export default function ClientNotes({ clientId, projects, filterProjectId, filte
         </div>
 
         <div className="flex items-center gap-1.5">
+          {/* Search toggle */}
           <button
             onClick={() => { setShowSearch(s => !s); if (showSearch) setSearchQuery(''); }}
             className={`w-7 h-7 flex items-center justify-center rounded-md transition-colors ${
@@ -191,6 +202,8 @@ export default function ClientNotes({ clientId, projects, filterProjectId, filte
           >
             <Search className="w-3.5 h-3.5" />
           </button>
+
+          {/* Add note button */}
           <button
             onClick={() => setComposerOpen(true)}
             className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[12px] bg-primary/8 text-primary rounded-md hover:bg-primary/12 transition-all"
@@ -314,6 +327,7 @@ export default function ClientNotes({ clientId, projects, filterProjectId, filte
 }
 
 // ── Note Composer ──────────────────────────────────────────────────
+
 function NoteComposer({
   projects,
   onSave,
@@ -332,7 +346,6 @@ function NoteComposer({
   const { can } = usePlan();
   const hasRichNotes = can('richNotes');
   const availableTypes = hasRichNotes ? NOTE_TYPES : NOTE_TYPES.filter(t => t.value === 'general');
-
   const [content, setContent] = useState(initialNote?.content || '');
   const [type, setType] = useState<NoteType>(initialNote?.type || 'general');
   const [tags, setTags] = useState<string[]>(initialNote?.tags || []);
@@ -347,6 +360,7 @@ function NoteComposer({
     textareaRef.current?.focus();
   }, []);
 
+  // Auto-resize textarea
   useEffect(() => {
     const ta = textareaRef.current;
     if (ta) {
@@ -504,6 +518,7 @@ function NoteComposer({
       {/* Footer */}
       <div className="flex items-center justify-between px-4 py-3 border-t border-border bg-accent/15">
         <div className="flex items-center gap-2">
+          {/* Project link — locked when preset from project page */}
           {presetProjectId ? (
             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-accent/60 rounded-md text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>
               <FolderKanban className="w-3 h-3" />
@@ -550,6 +565,7 @@ function NoteComposer({
 }
 
 // ── Note Card ──────────────────────────────────────────────────────
+
 function NoteCard({
   note,
   projects,
@@ -577,6 +593,7 @@ function NoteCard({
   const typeConfig = getNoteTypeConfig(note.type);
   const TypeIcon = typeConfig.icon;
 
+  // Close menu on outside click
   useEffect(() => {
     if (!menuOpen) return;
     const handler = (e: MouseEvent) => {
@@ -623,16 +640,21 @@ function NoteCard({
         {/* Top row: type badge + meta */}
         <div className="flex items-start justify-between gap-3 mb-2">
           <div className="flex items-center gap-2 flex-wrap">
+            {/* Type badge */}
             <span className={`inline-flex items-center gap-1 px-2 py-0.5 ${typeConfig.bg} ${typeConfig.color} text-[11px] rounded-md`} style={{ fontWeight: 500 }}>
               <TypeIcon className="w-3 h-3" />
               {typeConfig.label}
             </span>
+
+            {/* Pinned indicator */}
             {note.isPinned && (
               <span className="inline-flex items-center gap-0.5 text-[11px] text-primary" style={{ fontWeight: 500 }}>
                 <Pin className="w-3 h-3" />
                 Pinned
               </span>
             )}
+
+            {/* Project link */}
             {note.projectName && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-accent/60 text-[11px] rounded-md text-muted-foreground" style={{ fontWeight: 500 }}>
                 <FolderKanban className="w-3 h-3" />
@@ -663,6 +685,8 @@ function NoteCard({
             >
               {note.isPinned ? <PinOff className="w-3.5 h-3.5" /> : <Pin className="w-3.5 h-3.5" />}
             </button>
+
+            {/* More menu */}
             <div className="relative" ref={menuRef}>
               <button
                 onClick={() => { setMenuOpen(o => !o); setConfirmDelete(false); }}
