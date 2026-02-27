@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import AureloLogo from "@/components/AureloLogo";
 import { Link } from "react-router-dom";
 
-export default function Login() {
+export default function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -22,8 +22,8 @@ export default function Login() {
           <div className="flex justify-center mb-6">
             <AureloLogo />
           </div>
-          <h1 className="text-xl font-semibold text-foreground">Welcome back</h1>
-          <p className="text-sm text-muted-foreground">Sign in to your workspace.</p>
+          <h1 className="text-xl font-semibold text-foreground">Create your account</h1>
+          <p className="text-sm text-muted-foreground">Start managing your freelance business.</p>
         </div>
 
         <div className="card-surface p-6 space-y-4">
@@ -48,14 +48,14 @@ export default function Login() {
             />
           </div>
           <Button className="w-full" size="sm">
-            Sign In
+            Create Account
           </Button>
         </div>
 
         <p className="text-center text-sm text-muted-foreground">
-          Don't have an account?{" "}
-          <Link to="/signup" className="text-primary font-medium hover:underline">
-            Create one
+          Already have an account?{" "}
+          <Link to="/login" className="text-primary font-medium hover:underline">
+            Sign in
           </Link>
         </p>
       </motion.div>
