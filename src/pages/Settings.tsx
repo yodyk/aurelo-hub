@@ -1988,7 +1988,8 @@ function DataTab() {
   const [resetting, setResetting] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [seeding, setSeeding] = useState(false);
-  const { refresh } = useData();
+  const [recalculating, setRecalculating] = useState(false);
+  const { refresh, workspaceId } = useData();
   const { can, planId: currentPlanId, setPlan, plan: currentPlan } = usePlan();
   const canExport = can("pdfExport");
 
@@ -2148,6 +2149,45 @@ function DataTab() {
             >
               {seeding ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
               {seeding ? "Seeding..." : "Seed demo data"}
+            </button>
+          </div>
+        </div>
+      </SectionCard>
+
+      <SectionCard>
+        <SectionHeader title="Data integrity" description="Recalculate aggregated client statistics from actual session data" />
+        <div className="py-3 px-4 rounded-lg border border-border bg-accent/20">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-[14px]" style={{ fontWeight: 500 }}>
+                Recalculate all client stats
+              </div>
+              <div className="text-[12px] text-muted-foreground">
+                Recomputes hours logged, lifetime revenue, monthly earnings, and true hourly rate for every client
+              </div>
+            </div>
+            <button
+              onClick={async () => {
+                setRecalculating(true);
+                try {
+                  const { supabase } = await import("@/integrations/supabase/client");
+                  if (!workspaceId) throw new Error("No workspace found");
+                  const { error } = await supabase.rpc("recalculate_all_client_aggregates", { p_workspace_id: workspaceId });
+                  if (error) throw error;
+                  await refresh();
+                  toast.success("All client stats recalculated");
+                } catch (err: any) {
+                  toast.error(err.message || "Recalculation failed");
+                } finally {
+                  setRecalculating(false);
+                }
+              }}
+              disabled={recalculating}
+              className="flex items-center gap-1.5 px-4 py-2 text-[12px] rounded-lg bg-primary/10 border border-primary/25 text-primary hover:bg-primary/20 transition-all disabled:opacity-60"
+              style={{ fontWeight: 500 }}
+            >
+              {recalculating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+              {recalculating ? "Recalculating..." : "Recalculate all"}
             </button>
           </div>
         </div>
