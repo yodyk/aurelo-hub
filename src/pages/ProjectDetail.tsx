@@ -176,12 +176,13 @@ export default function ProjectDetail() {
 
   // Load project data
   useEffect(() => {
-    if (!clientId) return;
+    if (!clientId || !workspaceId) return;
     let mounted = true;
+    setLoading(true);
 
     loadAllProjects().catch(() => {});
 
-    Promise.all([loadProjectsForClient(clientId), workspaceId ? dataApi.loadFiles(workspaceId, clientId) : Promise.resolve([])])
+    Promise.all([loadProjectsForClient(clientId), dataApi.loadFiles(workspaceId, clientId)])
       .then(([loadedProjects, loadedFiles]) => {
         if (!mounted) return;
         setProjects(loadedProjects);
@@ -198,7 +199,7 @@ export default function ProjectDetail() {
     return () => {
       mounted = false;
     };
-  }, [clientId, projectId, loadProjectsForClient, loadAllProjects]);
+  }, [clientId, projectId, workspaceId, loadProjectsForClient, loadAllProjects]);
 
   // Close status menu on outside click
   useEffect(() => {
