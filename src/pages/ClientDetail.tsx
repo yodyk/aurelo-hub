@@ -18,11 +18,12 @@ import {
   Loader2,
   Trash2,
   Download,
+  Pencil,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
 import { useData } from "../data/DataContext";
-import { EditClientModal, LogSessionModal, AddProjectModal } from "../components/Modals";
+import { EditClientModal, LogSessionModal, AddProjectModal, EditSessionModal } from "../components/Modals";
 import * as dataApi from "../data/dataApi";
 import * as portalApi from "../data/portalApi";
 import ClientNotes from "../components/ClientNotes";
@@ -54,7 +55,7 @@ function getUsageTextColor(usagePct: number): string {
 export default function ClientDetail() {
   const { clientId } = useParams();
   const navigate = useNavigate();
-  const { workspaceId, clients, sessions, updateClient, addSession, getProjects, loadProjectsForClient, addProject, netMultiplier } =
+  const { workspaceId, clients, sessions, updateClient, addSession, updateSession, deleteSession, getProjects, loadProjectsForClient, addProject, netMultiplier, workCategoryNames } =
     useData();
   const [viewMode, setViewMode] = useState<"gross" | "net">("gross");
   const [expandedSections, setExpandedSections] = useState({
@@ -85,6 +86,9 @@ export default function ClientDetail() {
 
   // Confirm archive
   const [confirmArchive, setConfirmArchive] = useState(false);
+
+  // Edit session
+  const [editingSession, setEditingSession] = useState<any>(null);
 
   // Portal
   const [portalConfig, setPortalConfig] = useState<any>(null);
@@ -211,6 +215,16 @@ export default function ClientDetail() {
   const handleLogSession = async (session: any) => {
     await addSession(session);
     toast.success("Session logged");
+  };
+
+  const handleUpdateSession = async (sessionId: string, updates: any) => {
+    await updateSession(sessionId, updates);
+    toast.success("Session updated");
+  };
+
+  const handleDeleteSession = async (sessionId: string) => {
+    await deleteSession(sessionId);
+    toast.success("Session deleted");
   };
 
   const handleAddProject = async (project: any) => {
@@ -723,13 +737,14 @@ export default function ClientDetail() {
                     >
                       Cost
                     </th>
+                    <th className="w-10 px-2 py-2.5" />
                   </tr>
                 </thead>
                 <tbody>
                   {clientSessions.map((session: any) => (
                     <tr
                       key={session.id}
-                      className="border-b border-border last:border-0 hover:bg-accent/30 transition-colors"
+                      className="group border-b border-border last:border-0 hover:bg-accent/30 transition-colors"
                     >
                       <td className="px-4 py-3 text-[13px] text-muted-foreground tabular-nums">{session.date}</td>
                       <td className="px-4 py-3 text-[14px]">
@@ -777,6 +792,17 @@ export default function ClientDetail() {
                               Non-billable
                             </span>
                           )}
+                        </div>
+                      </td>
+                      <td className="px-2 py-3">
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setEditingSession(session); }}
+                            className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-accent/60 text-muted-foreground hover:text-foreground transition-all"
+                            title="Edit session"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -1033,6 +1059,14 @@ export default function ClientDetail() {
         preSelectedClient={clientId}
       />
       <AddProjectModal open={showProjectModal} onClose={() => setShowProjectModal(false)} onSave={handleAddProject} />
+      <EditSessionModal
+        open={!!editingSession}
+        onClose={() => setEditingSession(null)}
+        session={editingSession}
+        onSave={handleUpdateSession}
+        onDelete={handleDeleteSession}
+        clients={clients}
+      />
     </motion.div>
   );
 }
