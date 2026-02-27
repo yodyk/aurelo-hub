@@ -25,3 +25,9 @@ export async function saveSetting(key: string, value: any): Promise<void> {
   // Stub — will be replaced with backend call
   console.log(`[settingsApi] saveSetting: ${key}`, value);
 }
+
+export async function loadSetting(key: string): Promise<any> {
+  // Stub — will be replaced with backend call
+  console.log(`[settingsApi] loadSetting: ${key}`);
+  return null;
+}
