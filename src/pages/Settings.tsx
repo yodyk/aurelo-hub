@@ -1547,7 +1547,14 @@ function TeamTab({ readOnly = false }: { readOnly?: boolean }) {
   return (
     <motion.div className="space-y-6" variants={container} initial="hidden" animate="show">
       <SectionCard>
-        <SectionHeader title="Members" description={`${members.length} people in this workspace`} />
+        <div className="flex items-center justify-between">
+          <SectionHeader title="Members" description={`${members.length} people in this workspace`} />
+          {readOnly && (
+            <span className="text-[11px] font-medium tracking-wide text-muted-foreground bg-accent/60 px-2.5 py-1 rounded-md">
+              View only
+            </span>
+          )}
+        </div>
         <div className="space-y-1 mb-6">
           {members.map((member: any) => (
             <div
