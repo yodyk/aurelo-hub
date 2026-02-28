@@ -1550,7 +1550,10 @@ function TeamTab({ readOnly = false }: { readOnly?: boolean }) {
         <div className="flex items-center justify-between">
           <SectionHeader title="Members" description={`${members.length} people in this workspace`} />
           {readOnly && (
-            <span className="text-[11px] font-medium tracking-wide text-muted-foreground bg-accent/60 px-2.5 py-1 rounded-md">
+            <span
+              className="text-[11px] font-medium tracking-wide text-muted-foreground bg-accent/60 px-2.5 py-1 rounded-md cursor-default"
+              title="Members can view the team list but cannot invite or remove members"
+            >
               View only
             </span>
           )}
