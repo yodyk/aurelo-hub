@@ -5,12 +5,15 @@ import * as React from 'npm:react@18.3.1'
 import {
   Body,
   Button,
+  Column,
   Container,
   Head,
   Heading,
   Hr,
   Html,
+  Img,
   Preview,
+  Row,
   Section,
   Text,
 } from 'npm:@react-email/components@0.0.22'
@@ -18,11 +21,15 @@ import {
 interface MagicLinkEmailProps {
   siteName: string
   confirmationUrl: string
+  workspaceLogoUrl?: string
 }
+
+const WORDMARK_URL = 'https://oqrqypuulgeqzjcgqruw.supabase.co/storage/v1/object/public/email-assets/aurelo-wordmark.png'
 
 export const MagicLinkEmail = ({
   siteName,
   confirmationUrl,
+  workspaceLogoUrl,
 }: MagicLinkEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head>
@@ -33,8 +40,18 @@ export const MagicLinkEmail = ({
     <Body style={main}>
       <Container style={card}>
         <Section style={header}>
-          <Text style={logoText}>aurelo</Text>
+          <Row>
+            <Column style={logoLeftCol}>
+              {workspaceLogoUrl ? (
+                <Img src={workspaceLogoUrl} alt={siteName} height="32" style={wLogo} />
+              ) : null}
+            </Column>
+            <Column style={logoRightCol}>
+              <Img src={WORDMARK_URL} alt="aurelo" height="20" style={wMark} />
+            </Column>
+          </Row>
         </Section>
+        <Hr style={headerDivider} />
         <Section style={content}>
           <Heading style={h1}>Sign in to your workspace</Heading>
           <Text style={text}>
@@ -61,13 +78,14 @@ export const MagicLinkEmail = ({
 
 export default MagicLinkEmail
 
-const main = {
-  backgroundColor: '#ffffff',
-  fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-}
+const main = { backgroundColor: '#ffffff', fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }
 const card = { maxWidth: '480px', margin: '40px auto', padding: '0' }
 const header = { padding: '32px 40px 0' }
-const logoText = { fontSize: '20px', fontWeight: '600' as const, color: '#1c1c1c', letterSpacing: '-0.03em', margin: '0' }
+const logoLeftCol = { verticalAlign: 'middle' as const }
+const logoRightCol = { verticalAlign: 'middle' as const, textAlign: 'right' as const }
+const wLogo = { display: 'inline-block', verticalAlign: 'middle' }
+const wMark = { display: 'inline-block', verticalAlign: 'middle' }
+const headerDivider = { borderColor: 'rgba(0,0,0,0.06)', margin: '20px 40px 0' }
 const content = { padding: '24px 40px' }
 const h1 = { fontSize: '22px', fontWeight: '600' as const, color: '#1c1c1c', letterSpacing: '-0.01em', margin: '0 0 16px' }
 const text = { fontSize: '14px', color: '#717182', lineHeight: '1.6', margin: '0 0 24px' }
