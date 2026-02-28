@@ -224,7 +224,7 @@ const TAB_ACCESS: Record<TabId, string[]> = {
   workspace: ["Owner", "Admin"],
   financial: ["Owner", "Admin"],
   billing: ["Owner"],
-  team: ["Owner", "Admin"],
+  team: ["Owner", "Admin", "Member"],
   notifications: ["Owner", "Admin", "Member"],
   integrations: ["Owner", "Admin"],
   data: ["Owner"],
@@ -313,7 +313,7 @@ export default function Settings() {
               {activeTab === "workspace" && <WorkspaceTab />}
               {activeTab === "financial" && <FinancialTab />}
               {activeTab === "billing" && <BillingTab />}
-              {activeTab === "team" && <TeamTab />}
+              {activeTab === "team" && <TeamTab readOnly={role === "Member"} />}
               {activeTab === "notifications" && <NotificationsTab />}
               {activeTab === "integrations" && <IntegrationsTab />}
               {activeTab === "data" && <DataTab />}
@@ -1505,7 +1505,7 @@ function FinancialTab() {
 // ═══════════════════════════════════════════════════════════════════
 // Team Tab
 // ═══════════════════════════════════════════════════════════════════
-function TeamTab() {
+function TeamTab({ readOnly = false }: { readOnly?: boolean }) {
   const [members, loading, setMembers] = useSettingsSection("team", defaultTeam);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState("Member");
@@ -1587,7 +1587,7 @@ function TeamTab() {
               >
                 {member.role}
               </div>
-              {member.role !== "Owner" && (
+              {!readOnly && member.role !== "Owner" && (
                 <button
                   onClick={() => removeMember(member.id)}
                   className="w-6 h-6 flex items-center justify-center rounded hover:bg-accent/60 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all"
@@ -1599,29 +1599,31 @@ function TeamTab() {
           ))}
         </div>
 
-        <div className="border-t border-border pt-5">
-          <div className="text-[13px] text-muted-foreground mb-3" style={{ fontWeight: 500 }}>
-            Invite member
+        {!readOnly && (
+          <div className="border-t border-border pt-5">
+            <div className="text-[13px] text-muted-foreground mb-3" style={{ fontWeight: 500 }}>
+              Invite member
+            </div>
+            <div className="flex gap-2">
+              <TextInput
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+                placeholder="Email address"
+                className="flex-1"
+              />
+              <select
+                value={inviteRole}
+                onChange={(e) => setInviteRole(e.target.value)}
+                className="px-3 py-2 text-[13px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
+                style={{ fontWeight: 500 }}
+              >
+                <option>Member</option>
+                <option>Admin</option>
+              </select>
+              <SaveButton onClick={sendInvite} label={inviting ? "Sending..." : "Send"} saving={inviting} />
+            </div>
           </div>
-          <div className="flex gap-2">
-            <TextInput
-              value={inviteEmail}
-              onChange={(e) => setInviteEmail(e.target.value)}
-              placeholder="Email address"
-              className="flex-1"
-            />
-            <select
-              value={inviteRole}
-              onChange={(e) => setInviteRole(e.target.value)}
-              className="px-3 py-2 text-[13px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
-              style={{ fontWeight: 500 }}
-            >
-              <option>Member</option>
-              <option>Admin</option>
-            </select>
-            <SaveButton onClick={sendInvite} label={inviting ? "Sending..." : "Send"} saving={inviting} />
-          </div>
-        </div>
+        )}
       </SectionCard>
     </motion.div>
   );
