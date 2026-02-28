@@ -39,6 +39,9 @@ const SITE_NAME = "Aurelo Hub"
 const SENDER_DOMAIN = "notify.getaurelo.com"
 const ROOT_DOMAIN = "getaurelo.com"
 const FROM_DOMAIN = "getaurelo.com" // Domain shown in From address (may be root or sender subdomain)
+const WORKSPACE_ID = "d1650b31-8dc3-463a-b5b7-674d20db8760"
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || ''
+const WORKSPACE_LOGO_URL = `${SUPABASE_URL}/storage/v1/object/public/logos/${WORKSPACE_ID}/email.png`
 
 // Sample data for preview mode ONLY (not used in actual email sending).
 // URLs are baked in at scaffold time from the project's real data.
@@ -53,28 +56,35 @@ const SAMPLE_DATA: Record<string, object> = {
     siteUrl: SAMPLE_PROJECT_URL,
     recipient: SAMPLE_EMAIL,
     confirmationUrl: SAMPLE_PROJECT_URL,
+    workspaceLogoUrl: WORKSPACE_LOGO_URL,
   },
   magiclink: {
     siteName: SITE_NAME,
     confirmationUrl: SAMPLE_PROJECT_URL,
+    workspaceLogoUrl: WORKSPACE_LOGO_URL,
   },
   recovery: {
     siteName: SITE_NAME,
     confirmationUrl: SAMPLE_PROJECT_URL,
+    workspaceLogoUrl: WORKSPACE_LOGO_URL,
   },
   invite: {
     siteName: SITE_NAME,
     siteUrl: SAMPLE_PROJECT_URL,
     confirmationUrl: SAMPLE_PROJECT_URL,
+    workspaceLogoUrl: WORKSPACE_LOGO_URL,
   },
   email_change: {
     siteName: SITE_NAME,
     email: SAMPLE_EMAIL,
     newEmail: SAMPLE_EMAIL,
     confirmationUrl: SAMPLE_PROJECT_URL,
+    workspaceLogoUrl: WORKSPACE_LOGO_URL,
   },
   reauthentication: {
     token: '123456',
+    siteName: SITE_NAME,
+    workspaceLogoUrl: WORKSPACE_LOGO_URL,
   },
 }
 
@@ -225,6 +235,7 @@ async function handleWebhook(req: Request): Promise<Response> {
     token: payload.data.token,
     email: payload.data.email,
     newEmail: payload.data.new_email,
+    workspaceLogoUrl: WORKSPACE_LOGO_URL,
   }
 
   // Render React Email to HTML and plain text

@@ -5,13 +5,16 @@ import * as React from 'npm:react@18.3.1'
 import {
   Body,
   Button,
+  Column,
   Container,
   Head,
   Heading,
   Hr,
   Html,
+  Img,
   Link,
   Preview,
+  Row,
   Section,
   Text,
 } from 'npm:@react-email/components@0.0.22'
@@ -21,13 +24,17 @@ interface SignupEmailProps {
   siteUrl: string
   recipient: string
   confirmationUrl: string
+  workspaceLogoUrl?: string
 }
+
+const WORDMARK_URL = 'https://oqrqypuulgeqzjcgqruw.supabase.co/storage/v1/object/public/email-assets/aurelo-wordmark.png'
 
 export const SignupEmail = ({
   siteName,
   siteUrl,
   recipient,
   confirmationUrl,
+  workspaceLogoUrl,
 }: SignupEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head>
@@ -38,13 +45,23 @@ export const SignupEmail = ({
     <Body style={main}>
       <Container style={card}>
         <Section style={header}>
-          <Text style={logoText}>aurelo</Text>
+          <Row>
+            <Column style={logoLeftCol}>
+              {workspaceLogoUrl ? (
+                <Img src={workspaceLogoUrl} alt={siteName} height="32" style={workspaceLogo} />
+              ) : null}
+            </Column>
+            <Column style={logoRightCol}>
+              <Img src={WORDMARK_URL} alt="aurelo" height="20" style={wordmark} />
+            </Column>
+          </Row>
         </Section>
+        <Hr style={headerDivider} />
         <Section style={content}>
           <Heading style={h1}>Verify your email</Heading>
           <Text style={text}>
             Thanks for creating an account with{' '}
-            <Link href={siteUrl} style={link}>{siteName}</Link>. 
+            <Link href={siteUrl} style={link}>{siteName}</Link>.
             Confirm your email address ({recipient}) to start managing your workspace.
           </Text>
           <Section style={buttonContainer}>
@@ -74,13 +91,11 @@ const main = {
 }
 const card = { maxWidth: '480px', margin: '40px auto', padding: '0' }
 const header = { padding: '32px 40px 0' }
-const logoText = {
-  fontSize: '20px',
-  fontWeight: '600' as const,
-  color: '#1c1c1c',
-  letterSpacing: '-0.03em',
-  margin: '0',
-}
+const logoLeftCol = { verticalAlign: 'middle' as const }
+const logoRightCol = { verticalAlign: 'middle' as const, textAlign: 'right' as const }
+const workspaceLogo = { display: 'inline-block', verticalAlign: 'middle' }
+const wordmark = { display: 'inline-block', verticalAlign: 'middle' }
+const headerDivider = { borderColor: 'rgba(0,0,0,0.06)', margin: '20px 40px 0' }
 const content = { padding: '24px 40px' }
 const h1 = {
   fontSize: '22px',
