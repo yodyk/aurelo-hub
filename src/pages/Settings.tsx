@@ -58,6 +58,7 @@ import {
   rateCard as defaultRateCard,
 } from "../data/mockData";
 import * as api from "../data/settingsApi";
+import { supabase } from "@/integrations/supabase/client";
 import { useTheme } from "../data/ThemeContext";
 import { useAuth } from "../data/AuthContext";
 import { useData } from "../data/DataContext";
@@ -84,10 +85,11 @@ const item = {
 };
 
 // ── Tab definitions ────────────────────────────────────────────────
-type TabId = "profile" | "workspace" | "financial" | "billing" | "team" | "notifications" | "integrations" | "data";
+type TabId = "profile" | "security" | "workspace" | "financial" | "billing" | "team" | "notifications" | "integrations" | "data";
 
 const tabs: { id: TabId; label: string; icon: typeof User; description: string }[] = [
   { id: "profile", label: "Profile", icon: User, description: "Your account details" },
+  { id: "security", label: "Account & Security", icon: Shield, description: "Email, password, sessions" },
   { id: "workspace", label: "Workspace", icon: Building2, description: "Branding and identity" },
   { id: "financial", label: "Financial", icon: DollarSign, description: "Rates, taxes, invoicing" },
   { id: "billing", label: "Billing & Plan", icon: CreditCard, description: "Plan, usage, and invoices" },
@@ -221,6 +223,7 @@ function useSettingsSection<T>(section: string, fallback: T): [T, boolean, (v: T
 // ── Role-based tab access ────────────────────────────────────────────
 const TAB_ACCESS: Record<TabId, string[]> = {
   profile: ["Owner", "Admin", "Member"],
+  security: ["Owner", "Admin", "Member"],
   workspace: ["Owner", "Admin"],
   financial: ["Owner", "Admin"],
   billing: ["Owner"],
@@ -310,6 +313,7 @@ export default function Settings() {
               transition={{ duration: 0.2 }}
             >
               {activeTab === "profile" && <ProfileTab />}
+              {activeTab === "security" && <AccountSecurityTab />}
               {activeTab === "workspace" && <WorkspaceTab />}
               {activeTab === "financial" && <FinancialTab />}
               {activeTab === "billing" && <BillingTab />}
@@ -524,6 +528,242 @@ function ProfileTab() {
             </button>
           ))}
         </div>
+      </SectionCard>
+    </motion.div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Account & Security Tab
+// ═══════════════════════════════════════════════════════════════════
+function AccountSecurityTab() {
+  const { user } = useAuth();
+  const [currentEmail, setCurrentEmail] = useState(user?.email || "");
+  const [newEmail, setNewEmail] = useState("");
+  const [emailSaving, setEmailSaving] = useState(false);
+
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordSaving, setPasswordSaving] = useState(false);
+  const [showCurrentPw, setShowCurrentPw] = useState(false);
+  const [showNewPw, setShowNewPw] = useState(false);
+  const [showConfirmPw, setShowConfirmPw] = useState(false);
+
+  useEffect(() => {
+    if (user?.email) setCurrentEmail(user.email);
+  }, [user?.email]);
+
+  // ── Change email ──────────────────────────────────────────────────
+  const handleChangeEmail = async () => {
+    if (!newEmail.trim()) {
+      toast.error("Please enter a new email address");
+      return;
+    }
+    if (newEmail.trim().toLowerCase() === currentEmail.toLowerCase()) {
+      toast.error("New email is the same as your current email");
+      return;
+    }
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(newEmail.trim())) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+    setEmailSaving(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        email: newEmail.trim(),
+      });
+      if (error) throw error;
+      toast.success("Confirmation email sent to both your current and new address. Please check your inbox.");
+      setNewEmail("");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update email");
+    } finally {
+      setEmailSaving(false);
+    }
+  };
+
+  // ── Change password ───────────────────────────────────────────────
+  const handleChangePassword = async () => {
+    if (!newPassword || !confirmPassword) {
+      toast.error("Please fill in all password fields");
+      return;
+    }
+    if (newPassword.length < 8) {
+      toast.error("Password must be at least 8 characters");
+      return;
+    }
+    if (!/[A-Z]/.test(newPassword)) {
+      toast.error("Password must contain at least one uppercase letter");
+      return;
+    }
+    if (!/[0-9]/.test(newPassword)) {
+      toast.error("Password must contain at least one number");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+    setPasswordSaving(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+      if (error) throw error;
+      toast.success("Password updated successfully");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update password");
+    } finally {
+      setPasswordSaving(false);
+    }
+  };
+
+  const passwordStrength = (() => {
+    if (!newPassword) return null;
+    let score = 0;
+    if (newPassword.length >= 8) score++;
+    if (newPassword.length >= 12) score++;
+    if (/[A-Z]/.test(newPassword)) score++;
+    if (/[0-9]/.test(newPassword)) score++;
+    if (/[^A-Za-z0-9]/.test(newPassword)) score++;
+    if (score <= 2) return { label: "Weak", color: "bg-destructive" };
+    if (score <= 3) return { label: "Fair", color: "bg-yellow-500" };
+    return { label: "Strong", color: "bg-green-500" };
+  })();
+
+  return (
+    <motion.div className="space-y-6" variants={container} initial="hidden" animate="show">
+      {/* Change Email */}
+      <SectionCard>
+        <SectionHeader title="Email address" description="Update the email associated with your account" />
+        <div className="space-y-4">
+          <div>
+            <FieldLabel>Current email</FieldLabel>
+            <div className="flex items-center gap-2">
+              <div className="flex-1 px-3 py-2 text-[14px] bg-muted/40 border border-border rounded-lg text-muted-foreground">
+                {currentEmail}
+              </div>
+              <div className="px-2 py-0.5 text-[11px] rounded-full bg-green-500/10 text-green-600" style={{ fontWeight: 500 }}>
+                Verified
+              </div>
+            </div>
+          </div>
+          <div>
+            <FieldLabel>New email address</FieldLabel>
+            <TextInput
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
+              type="email"
+              placeholder="Enter new email address"
+            />
+          </div>
+          <div className="flex items-center gap-3">
+            <SaveButton onClick={handleChangeEmail} label="Update email" saving={emailSaving} />
+            <span className="text-[12px] text-muted-foreground">
+              A confirmation link will be sent to both addresses
+            </span>
+          </div>
+        </div>
+      </SectionCard>
+
+      {/* Change Password */}
+      <SectionCard>
+        <SectionHeader title="Password" description="Update your password to keep your account secure" />
+        <div className="space-y-4">
+          <div>
+            <FieldLabel>New password</FieldLabel>
+            <div className="relative">
+              <input
+                type={showNewPw ? "text" : "password"}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Enter new password"
+                className="w-full px-3 py-2 pr-10 text-[14px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
+              />
+              <button
+                type="button"
+                onClick={() => setShowNewPw(!showNewPw)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {showNewPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+            {passwordStrength && (
+              <div className="flex items-center gap-2 mt-2">
+                <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-300 ${passwordStrength.color}`}
+                    style={{ width: passwordStrength.label === "Weak" ? "33%" : passwordStrength.label === "Fair" ? "66%" : "100%" }}
+                  />
+                </div>
+                <span className="text-[11px] text-muted-foreground" style={{ fontWeight: 500 }}>
+                  {passwordStrength.label}
+                </span>
+              </div>
+            )}
+            <p className="text-[11px] text-muted-foreground mt-1">
+              Min 8 characters, 1 uppercase letter, 1 number
+            </p>
+          </div>
+          <div>
+            <FieldLabel>Confirm new password</FieldLabel>
+            <div className="relative">
+              <input
+                type={showConfirmPw ? "text" : "password"}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirm new password"
+                className="w-full px-3 py-2 pr-10 text-[14px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPw(!showConfirmPw)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {showConfirmPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+            {confirmPassword && newPassword !== confirmPassword && (
+              <p className="text-[11px] text-destructive mt-1">Passwords do not match</p>
+            )}
+          </div>
+          <SaveButton onClick={handleChangePassword} label="Update password" saving={passwordSaving} />
+        </div>
+      </SectionCard>
+
+      {/* Active Sessions Info */}
+      <SectionCard>
+        <SectionHeader title="Sessions" description="Manage your active sessions" />
+        <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg border border-border">
+          <div className="w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center">
+            <Monitor className="w-4 h-4 text-green-600" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-[13px]" style={{ fontWeight: 500 }}>Current session</div>
+            <div className="text-[12px] text-muted-foreground">This device · Active now</div>
+          </div>
+        </div>
+        <button
+          onClick={async () => {
+            try {
+              const { error } = await supabase.auth.signOut({ scope: "others" });
+              if (error) throw error;
+              toast.success("All other sessions have been signed out");
+            } catch (err: any) {
+              toast.error(err.message || "Failed to sign out other sessions");
+            }
+          }}
+          className="mt-4 px-4 py-2 text-[13px] text-destructive border border-destructive/20 rounded-lg hover:bg-destructive/5 transition-all"
+          style={{ fontWeight: 500 }}
+        >
+          Sign out all other sessions
+        </button>
       </SectionCard>
     </motion.div>
   );
