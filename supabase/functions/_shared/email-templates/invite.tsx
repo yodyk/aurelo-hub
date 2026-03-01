@@ -103,7 +103,7 @@ export default InviteEmail
 
 const main = { backgroundColor: '#ffffff', fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }
 const card = { maxWidth: '480px', margin: '40px auto', padding: '0', border: '1px solid #e8e8e6', borderRadius: '12px', overflow: 'hidden' as const }
-const headerBar = { backgroundColor: '#1a1a19', padding: '24px 32px' }
+const headerBar = { backgroundColor: '#f8f8f7', padding: '24px 32px', borderBottom: '1px solid #e8e8e6' }
 const logoLeftCol = { verticalAlign: 'middle' as const }
 const logoRightCol = { verticalAlign: 'middle' as const, textAlign: 'right' as const }
 const wLogo = { display: 'inline-block', verticalAlign: 'middle' }
