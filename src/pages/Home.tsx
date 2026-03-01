@@ -25,6 +25,7 @@ import * as settingsApi from "../data/settingsApi";
 import { toast } from "sonner";
 import { usePlan } from "../data/PlanContext";
 import { StarterUpgradeCTA } from "../components/TrialBanner";
+import { SetupChecklist } from "../components/SetupChecklist";
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
@@ -460,6 +461,9 @@ export default function Home() {
           <p className="text-[14px] text-muted-foreground">{workspaceName}'s monthly pulse for {new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })}</p>
         </div>
       </motion.div>
+
+      {/* ── Setup checklist ── */}
+      <SetupChecklist />
 
       {/* ── Empty state ── */}
       {!dataLoading && !hasData && (
