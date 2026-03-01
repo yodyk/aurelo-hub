@@ -132,6 +132,7 @@ export async function loadInitData(workspaceId: string) {
       email: logoUrls.email ? { url: logoUrls.email, fileName: logoUrls.email.split('/').pop() || 'email.png' } : null,
     },
     settings: {
+      workspace: settingsMap.workspace || null,
       financial: settingsMap.financial || null,
       identity: settingsMap.identity || null,
       categories: settingsMap.categories || null,

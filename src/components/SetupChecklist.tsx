@@ -33,7 +33,7 @@ export function SetupChecklist() {
   const steps = useMemo<SetupStep[]>(() => {
     const wsName = initSettings?.workspace?.name || initSettings?.workspace?.workspaceName;
     const hasLogo = !!initLogos?.app?.url;
-    const hasFinancial = !!initSettings?.financial?.currency;
+    const hasFinancial = !!(initSettings?.financial?.currency || initSettings?.financial?.taxRate || initSettings?.financial?.costRate);
     const hasIdentity = !!identity;
     const hasClient = clients.length > 0;
 
