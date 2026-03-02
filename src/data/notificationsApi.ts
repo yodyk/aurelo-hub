@@ -1,6 +1,8 @@
 // ── Notifications API — real Supabase queries ──────────────────────
 import { supabase } from '@/integrations/supabase/client';
 
+const SUPABASE_PROJECT_ID = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+
 export interface Notification {
   id: string;
   workspace_id: string;
@@ -224,15 +226,63 @@ export const NotificationEvents = {
       metadata: meta || {},
     }),
 
-  retainerWarning: (wsId: string, clientName: string, pctUsed: number, meta?: Record<string, any>) =>
-    createNotification({
+  retainerWarning: async (wsId: string, clientName: string, pctUsed: number, meta?: Record<string, any>) => {
+    // Create in-app notification
+    const notif = await createNotification({
       workspaceId: wsId,
       category: 'insight',
       eventType: 'retainer_warning',
       title: `${clientName} retainer at ${Math.round(pctUsed)}%`,
       body: 'Consider discussing renewal',
       metadata: meta || {},
-    }),
+    });
+
+    // Also send email if client has an email and email prefs allow it
+    if (meta?.clientEmail) {
+      try {
+        const { data: prefs } = await supabase
+          .from('notification_preferences')
+          .select('email')
+          .eq('workspace_id', wsId)
+          .eq('category', 'insight')
+          .maybeSingle();
+
+        // Default to sending if no preference exists (email defaults to true)
+        const shouldEmail = prefs?.email !== false;
+
+        if (shouldEmail) {
+          const res = await fetch(
+            `https://${SUPABASE_PROJECT_ID}.supabase.co/functions/v1/send-retainer-email`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                clientName,
+                clientEmail: meta.clientEmail,
+                pctUsed,
+                hoursRemaining: meta.hoursRemaining ?? 0,
+                hoursTotal: meta.hoursTotal ?? 0,
+                workspaceName: meta.workspaceName,
+              }),
+            }
+          );
+          if (!res.ok) {
+            const err = await res.text();
+            console.error('[notificationsApi] retainer email failed:', err);
+          } else {
+            // Mark notification as email_sent
+            if (notif?.id) {
+              await supabase.from('notifications').update({ email_sent: true }).eq('id', notif.id);
+            }
+          }
+        }
+      } catch (e) {
+        console.error('[notificationsApi] retainer email error:', e);
+      }
+    }
+
+    return notif;
+  },
 
   insightAlert: (wsId: string, title: string, body: string, meta?: Record<string, any>) =>
     createNotification({
