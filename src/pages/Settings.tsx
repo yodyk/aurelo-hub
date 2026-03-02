@@ -1868,6 +1868,21 @@ function TeamTab({ readOnly = false }: { readOnly?: boolean }) {
     }
   };
 
+  const handleRoleChange = async (memberId: string, newRole: string) => {
+    const { error } = await supabase
+      .from("workspace_members")
+      .update({ role: newRole })
+      .eq("id", memberId);
+    if (error) {
+      toast.error("Failed to update role");
+      return;
+    }
+    setMembers((prev) =>
+      prev.map((m) => (m.id === memberId ? { ...m, role: newRole } : m))
+    );
+    toast.success(`Role updated to ${newRole}`);
+  };
+
   const roleColors: Record<string, string> = {
     Owner: "bg-primary/8 text-primary",
     Admin: "bg-primary/8 text-primary",
@@ -1999,12 +2014,24 @@ function TeamTab({ readOnly = false }: { readOnly?: boolean }) {
                     Joined {formatDate(member.joined_at || member.invited_at)}
                   </div>
                 </div>
-                <div
-                  className={`px-2 py-0.5 text-[11px] rounded-full ${roleColors[member.role] || "bg-accent/80 text-muted-foreground"}`}
-                  style={{ fontWeight: 500 }}
-                >
-                  {member.role}
-                </div>
+                {!readOnly && member.role !== "Owner" ? (
+                  <select
+                    value={member.role}
+                    onChange={(e) => handleRoleChange(member.id, e.target.value)}
+                    className={`px-2 py-0.5 text-[11px] rounded-full border-none appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary ${roleColors[member.role] || "bg-accent/80 text-muted-foreground"}`}
+                    style={{ fontWeight: 500, paddingRight: "1.25rem", backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 4px center" }}
+                  >
+                    <option value="Admin">Admin</option>
+                    <option value="Member">Member</option>
+                  </select>
+                ) : (
+                  <div
+                    className={`px-2 py-0.5 text-[11px] rounded-full ${roleColors[member.role] || "bg-accent/80 text-muted-foreground"}`}
+                    style={{ fontWeight: 500 }}
+                  >
+                    {member.role}
+                  </div>
+                )}
                 {!readOnly && member.role !== "Owner" && (
                   <button
                     onClick={() => removeMember(member.id)}
