@@ -1931,14 +1931,17 @@ function TeamTab({ readOnly = false }: { readOnly?: boolean }) {
             return (
               <div
                 key={member.id}
-                className="flex items-center gap-3 py-3 px-3 rounded-lg hover:bg-accent/30 transition-colors group"
+                className="flex flex-wrap items-center gap-x-3 gap-y-2 py-3 px-3 rounded-lg hover:bg-accent/30 transition-colors group"
               >
+                {/* Avatar */}
                 <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <span className="text-[12px] text-primary" style={{ fontWeight: 600 }}>
                     {getInitials(member)}
                   </span>
                 </div>
-                <div className="flex-1 min-w-0">
+
+                {/* Name & email — takes available space, min-width prevents squish */}
+                <div className="flex-1 min-w-[140px]">
                   <div className="flex items-center gap-2">
                     <div className="text-[14px]" style={{ fontWeight: 500 }}>
                       {member.name || member.email}
@@ -1947,99 +1950,86 @@ function TeamTab({ readOnly = false }: { readOnly?: boolean }) {
                   <div className="text-[12px] text-muted-foreground truncate">{member.email}</div>
                 </div>
 
-                {/* Capacity display / edit */}
-                <div className="flex items-center gap-2">
-                  {!readOnly && isEditing ? (
-                    <div className="flex items-center gap-1.5 bg-accent/40 rounded-lg px-2 py-1">
-                      {CAPACITY_PRESETS.map((preset) => (
+                {/* Right-side metadata: capacity · joined · role · remove — allow wrapping */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  {/* Capacity display / edit */}
+                  <div className="flex items-center gap-2 shrink-0">
+                    {!readOnly && isEditing ? (
+                      <div className="flex items-center gap-1.5 bg-accent/40 rounded-lg px-2 py-1">
+                        {CAPACITY_PRESETS.map((preset) => (
+                          <button
+                            key={preset.label}
+                            onClick={() => handleSaveCapacity(member.id, preset.hours)}
+                            className={`px-2 py-1 text-[11px] rounded-md transition-colors ${
+                              cap === preset.hours
+                                ? "bg-primary text-primary-foreground"
+                                : "hover:bg-accent"
+                            }`}
+                            style={{ fontWeight: 500 }}
+                          >
+                            {preset.label}
+                          </button>
+                        ))}
                         <button
-                          key={preset.label}
-                          onClick={() => handleSaveCapacity(member.id, preset.hours)}
-                          className={`px-2 py-1 text-[11px] rounded-md transition-colors ${
-                            cap === preset.hours
-                              ? "bg-primary text-primary-foreground"
-                              : "hover:bg-accent text-muted-foreground"
-                          }`}
-                          style={{ fontWeight: 500 }}
+                          onClick={() => setEditingCapacity(null)}
+                          className="w-5 h-5 flex items-center justify-center rounded hover:bg-accent/60 text-muted-foreground ml-1"
                         >
-                          {preset.label}
+                          <X className="w-3 h-3" />
                         </button>
-                      ))}
-                      <div className="flex items-center gap-1 ml-1">
-                        <input
-                          type="number"
-                          min={0}
-                          max={168}
-                          defaultValue={cap}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              const val = parseFloat((e.target as HTMLInputElement).value);
-                              if (!isNaN(val) && val >= 0 && val <= 168) handleSaveCapacity(member.id, val);
-                            }
-                            if (e.key === "Escape") setEditingCapacity(null);
-                          }}
-                          className="w-14 h-6 text-[12px] text-right tabular-nums bg-background border border-border rounded px-1.5 focus:outline-none focus:ring-1 focus:ring-primary"
-                          placeholder="Custom"
-                          autoFocus
-                        />
-                        <span className="text-[10px] text-muted-foreground">h/w</span>
                       </div>
+                    ) : (
                       <button
-                        onClick={() => setEditingCapacity(null)}
-                        className="ml-1 p-0.5 text-muted-foreground hover:text-foreground"
+                        onClick={() => !readOnly && setEditingCapacity(member.id)}
+                        className={`text-[12px] tabular-nums px-2 py-1 rounded-md transition-colors ${
+                          readOnly ? "cursor-default" : "hover:bg-accent/60 cursor-pointer"
+                        }`}
+                        style={{ fontWeight: 500 }}
+                        disabled={readOnly}
+                        title={readOnly ? "Capacity" : "Click to edit capacity"}
                       >
-                        <X className="w-3 h-3" />
+                        <span className="text-muted-foreground">{cap}h/w</span>
+                        {presetLabel && (
+                          <span className="text-muted-foreground/60 ml-1">· {presetLabel}</span>
+                        )}
                       </button>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => !readOnly && setEditingCapacity(member.id)}
-                      className={`text-[12px] tabular-nums px-2 py-1 rounded-md transition-colors ${
-                        readOnly ? "cursor-default" : "hover:bg-accent/60 cursor-pointer"
-                      }`}
-                      style={{ fontWeight: 500 }}
-                      disabled={readOnly}
-                      title={readOnly ? "Capacity" : "Click to edit capacity"}
+                    )}
+                  </div>
+
+                  {/* Join date */}
+                  <div className="text-[11px] text-muted-foreground whitespace-nowrap shrink-0">
+                    Joined {formatDate(member.joined_at || member.invited_at)}
+                  </div>
+
+                  {/* Role */}
+                  {!readOnly && member.role !== "Owner" ? (
+                    <select
+                      value={member.role}
+                      onChange={(e) => handleRoleChange(member.id, e.target.value)}
+                      className={`px-2 py-0.5 text-[11px] rounded-full border-none appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary shrink-0 ${roleColors[member.role] || "bg-accent/80 text-muted-foreground"}`}
+                      style={{ fontWeight: 500, paddingRight: "1.25rem", backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 4px center" }}
                     >
-                      <span className="text-muted-foreground">{cap}h/w</span>
-                      {presetLabel && (
-                        <span className="text-muted-foreground/60 ml-1">· {presetLabel}</span>
-                      )}
+                      <option value="Admin">Admin</option>
+                      <option value="Member">Member</option>
+                    </select>
+                  ) : (
+                    <div
+                      className={`px-2 py-0.5 text-[11px] rounded-full shrink-0 ${roleColors[member.role] || "bg-accent/80 text-muted-foreground"}`}
+                      style={{ fontWeight: 500 }}
+                    >
+                      {member.role}
+                    </div>
+                  )}
+
+                  {/* Remove button */}
+                  {!readOnly && member.role !== "Owner" && (
+                    <button
+                      onClick={() => removeMember(member.id)}
+                      className="w-6 h-6 flex items-center justify-center rounded hover:bg-accent/60 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all shrink-0"
+                    >
+                      <X className="w-3 h-3" />
                     </button>
                   )}
                 </div>
-
-                <div className="text-right mr-2">
-                  <div className="text-[11px] text-muted-foreground">
-                    Joined {formatDate(member.joined_at || member.invited_at)}
-                  </div>
-                </div>
-                {!readOnly && member.role !== "Owner" ? (
-                  <select
-                    value={member.role}
-                    onChange={(e) => handleRoleChange(member.id, e.target.value)}
-                    className={`px-2 py-0.5 text-[11px] rounded-full border-none appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary ${roleColors[member.role] || "bg-accent/80 text-muted-foreground"}`}
-                    style={{ fontWeight: 500, paddingRight: "1.25rem", backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 4px center" }}
-                  >
-                    <option value="Admin">Admin</option>
-                    <option value="Member">Member</option>
-                  </select>
-                ) : (
-                  <div
-                    className={`px-2 py-0.5 text-[11px] rounded-full ${roleColors[member.role] || "bg-accent/80 text-muted-foreground"}`}
-                    style={{ fontWeight: 500 }}
-                  >
-                    {member.role}
-                  </div>
-                )}
-                {!readOnly && member.role !== "Owner" && (
-                  <button
-                    onClick={() => removeMember(member.id)}
-                    className="w-6 h-6 flex items-center justify-center rounded hover:bg-accent/60 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                )}
               </div>
             );
           })}
