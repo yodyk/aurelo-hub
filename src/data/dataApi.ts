@@ -1,6 +1,7 @@
 // ── Data API — real Supabase queries ─────────────────────────────────
 import { supabase } from '@/integrations/supabase/client';
 import * as storage from './storageApi';
+import { dispatchWebhookEvent } from './webhookDispatch';
 // ── Helpers ─────────────────────────────────────────────────────────
 
 function snakeToCamel(row: Record<string, any>): Record<string, any> {
@@ -161,7 +162,9 @@ export async function addClient(workspaceId: string, client: any) {
   delete row.updatedAt;
   const { data, error } = await supabase.from('clients').insert(row as any).select().single();
   if (error) throw new Error(`Failed to add client: ${error.message}`);
-  return snakeToCamel(data);
+  const result = snakeToCamel(data);
+  dispatchWebhookEvent(workspaceId, 'client.created', { id: data.id, name: data.name });
+  return result;
 }
 
 export async function updateClient(workspaceId: string, clientId: string, updates: any) {
@@ -170,6 +173,7 @@ export async function updateClient(workspaceId: string, clientId: string, update
   delete row.workspace_id;
   const { error } = await supabase.from('clients').update(row).eq('id', clientId).eq('workspace_id', workspaceId);
   if (error) throw new Error(`Failed to update client: ${error.message}`);
+  dispatchWebhookEvent(workspaceId, 'client.updated', { id: clientId, updates });
 }
 
 // ── Sessions ────────────────────────────────────────────────────────
@@ -223,6 +227,7 @@ export async function addSession(workspaceId: string, session: any) {
   s.dateGroup = dateObj.toDateString() === today.toDateString() ? 'Today'
     : dateObj.toDateString() === yesterday.toDateString() ? 'Yesterday' : 'This week';
   s.date = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  dispatchWebhookEvent(workspaceId, 'session.created', { id: data.id, client_id: data.client_id, duration: data.duration, revenue: data.revenue });
   return s;
 }
 
@@ -255,6 +260,7 @@ export async function updateSession(workspaceId: string, sessionId: string, upda
   s.dateGroup = dateObj.toDateString() === today.toDateString() ? 'Today'
     : dateObj.toDateString() === yesterday.toDateString() ? 'Yesterday' : 'This week';
   s.date = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  dispatchWebhookEvent(workspaceId, 'session.updated', { id: data.id, client_id: data.client_id, updates });
   return s;
 }
 
@@ -265,6 +271,7 @@ export async function deleteSession(workspaceId: string, sessionId: string) {
     .eq('id', sessionId)
     .eq('workspace_id', workspaceId);
   if (error) throw new Error(`Failed to delete session: ${error.message}`);
+  dispatchWebhookEvent(workspaceId, 'session.deleted', { id: sessionId });
 }
 
 // ── Projects ────────────────────────────────────────────────────────
@@ -297,6 +304,7 @@ export async function addProject(workspaceId: string, clientId: string, project:
   };
   const { data, error } = await supabase.from('projects').insert(row).select().single();
   if (error) throw new Error(`Failed to add project: ${error.message}`);
+  dispatchWebhookEvent(workspaceId, 'project.created', { id: data.id, name: data.name, client_id: clientId });
   return snakeToCamel(data);
 }
 
@@ -305,8 +313,13 @@ export async function updateProject(workspaceId: string, _clientId: string, proj
   delete row.id;
   delete row.workspace_id;
   delete row.client_id;
+  const prevStatus = updates._prevStatus; // optional: pass previous status for status_changed detection
   const { error } = await supabase.from('projects').update(row).eq('id', projectId).eq('workspace_id', workspaceId);
   if (error) throw new Error(`Failed to update project: ${error.message}`);
+  dispatchWebhookEvent(workspaceId, 'project.updated', { id: projectId, updates });
+  if (updates.status && prevStatus && updates.status !== prevStatus) {
+    dispatchWebhookEvent(workspaceId, 'project.status_changed', { id: projectId, from: prevStatus, to: updates.status });
+  }
 }
 
 export async function loadAllProjects(workspaceId: string) {
