@@ -22,6 +22,7 @@ function snakeToCamel(row: Record<string, any>): Record<string, any> {
     client_id: 'clientId',
     project_id: 'projectId',
     allocation_type: 'allocationType',
+    logged_by: 'loggedBy',
     work_tags: 'workTags',
     timer_start: 'timerStart',
     timer_end: 'timerEnd',
@@ -56,6 +57,7 @@ function camelToSnake(obj: Record<string, any>): Record<string, any> {
     clientId: 'client_id',
     projectId: 'project_id',
     allocationType: 'allocation_type',
+    loggedBy: 'logged_by',
     workTags: 'work_tags',
     timerStart: 'timer_start',
     timerEnd: 'timer_end',
@@ -195,6 +197,8 @@ export async function loadSessions(workspaceId: string) {
 }
 
 export async function addSession(workspaceId: string, session: any) {
+  // Get current user id for logged_by
+  const { data: { user } } = await supabase.auth.getUser();
   const row: any = {
     workspace_id: workspaceId,
     client_id: session.clientId,
@@ -206,6 +210,7 @@ export async function addSession(workspaceId: string, session: any) {
     work_tags: session.workTags || [],
     allocation_type: session.allocationType || null,
     project_id: session.projectId || null,
+    logged_by: user?.id,
   };
   const { data, error } = await supabase.from('sessions').insert(row).select('*, clients!inner(name)').single();
   if (error) throw new Error(`Failed to add session: ${error.message}`);
