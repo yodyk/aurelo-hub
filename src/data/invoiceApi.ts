@@ -239,3 +239,23 @@ export async function getNextInvoiceNumber(): Promise<string> {
 
   return `INV-${num}`;
 }
+
+export async function createPaymentLink(invoiceId: string): Promise<{ url: string }> {
+  const { data, error } = await supabase.functions.invoke('create-invoice-payment', {
+    body: { invoiceId },
+  });
+  if (error) throw new Error(error.message || 'Failed to create payment link');
+  if (data?.error) throw new Error(data.error);
+  return { url: data.url };
+}
+
+export async function getStripeConnectStatus(): Promise<string | null> {
+  const wsId = await getWorkspaceId();
+  if (!wsId) return null;
+  const { data } = await supabase
+    .from('workspaces')
+    .select('stripe_connect_account_id')
+    .eq('id', wsId)
+    .maybeSingle();
+  return data?.stripe_connect_account_id ?? null;
+}

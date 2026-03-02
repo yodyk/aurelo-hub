@@ -104,8 +104,9 @@ export default function Invoicing() {
   const [showBatchBuilder, setShowBatchBuilder] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
   const [viewingInvoice, setViewingInvoice] = useState<Invoice | null>(null);
+  const [stripeConnected, setStripeConnected] = useState(false);
 
-  // Load invoices
+  // Load invoices and Stripe Connect status
   useEffect(() => {
     if (!hasInvoicing) {
       setLoading(false);
@@ -116,6 +117,10 @@ export default function Invoicing() {
       .then(setInvoices)
       .catch((err) => console.error("Failed to load invoices:", err))
       .finally(() => setLoading(false));
+    invoiceApi
+      .getStripeConnectStatus()
+      .then((id) => setStripeConnected(!!id))
+      .catch(() => {});
   }, [hasInvoicing]);
 
   // ── Stats ──────────────────────────────────────────────────────
@@ -252,7 +257,21 @@ export default function Invoicing() {
     }
   }, []);
 
-  // ── Not on Pro: show blurred preview ─────────────────────────
+  const handleGetPaymentLink = useCallback(async (inv: Invoice) => {
+    try {
+      toast.loading("Creating payment link...", { id: "payment-link" });
+      const { url } = await invoiceApi.createPaymentLink(inv.id);
+      // Update local state with the payment URL
+      setInvoices((prev) =>
+        prev.map((i) => (i.id === inv.id ? { ...i, stripePaymentUrl: url } : i)),
+      );
+      // Copy to clipboard
+      await navigator.clipboard.writeText(url);
+      toast.success("Payment link copied to clipboard!", { id: "payment-link" });
+    } catch (err: any) {
+      toast.error(err.message || "Failed to create payment link", { id: "payment-link" });
+    }
+  }, []);
 
   if (!hasInvoicing) {
     return <LockedInvoicingPreview />;
@@ -322,25 +341,49 @@ export default function Invoicing() {
 
         {/* Stripe connection banner */}
         <motion.div variants={item} className="mb-6">
-          <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-[#5ea1bf]/15 bg-[#5ea1bf]/[0.03]">
-            <div className="w-8 h-8 rounded-lg bg-[#5ea1bf]/10 flex items-center justify-center flex-shrink-0">
-              <CreditCard className="w-4 h-4 text-[#5ea1bf]" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-[13px] text-foreground" style={{ fontWeight: 500 }}>
-                Connect Stripe for payment collection
+          {stripeConnected ? (
+            <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-[#5ea1bf]/20 bg-[#5ea1bf]/[0.05]">
+              <div className="w-8 h-8 rounded-lg bg-[#5ea1bf]/15 flex items-center justify-center flex-shrink-0">
+                <CreditCard className="w-4 h-4 text-[#5ea1bf]" />
               </div>
-              <div className="text-[12px] text-muted-foreground">
-                Invoices are tracked locally. Connect Stripe to enable payment links, auto-send, and status sync.
+              <div className="flex-1 min-w-0">
+                <div className="text-[13px] text-foreground" style={{ fontWeight: 500 }}>
+                  Stripe connected
+                </div>
+                <div className="text-[12px] text-muted-foreground">
+                  You can generate payment links for invoices. Clients pay directly to your Stripe account.
+                </div>
               </div>
+              <span
+                className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] text-[#5ea1bf] bg-[#5ea1bf]/10 rounded-full flex-shrink-0"
+                style={{ fontWeight: 600 }}
+              >
+                <CheckCircle2 className="w-3 h-3" />
+                Active
+              </span>
             </div>
-            <button
-              className="px-3 py-1.5 text-[12px] text-[#5ea1bf] bg-[#5ea1bf]/8 rounded-lg hover:bg-[#5ea1bf]/14 transition-colors flex-shrink-0"
-              style={{ fontWeight: 500 }}
-            >
-              Coming soon
-            </button>
-          </div>
+          ) : (
+            <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-[#5ea1bf]/15 bg-[#5ea1bf]/[0.03]">
+              <div className="w-8 h-8 rounded-lg bg-[#5ea1bf]/10 flex items-center justify-center flex-shrink-0">
+                <CreditCard className="w-4 h-4 text-[#5ea1bf]" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-[13px] text-foreground" style={{ fontWeight: 500 }}>
+                  Connect Stripe for payment collection
+                </div>
+                <div className="text-[12px] text-muted-foreground">
+                  Generate payment links so clients can pay invoices directly to your Stripe account.
+                </div>
+              </div>
+              <button
+                onClick={() => navigate("/settings?tab=integrations")}
+                className="px-3 py-1.5 text-[12px] text-[#5ea1bf] bg-[#5ea1bf]/8 rounded-lg hover:bg-[#5ea1bf]/14 transition-colors flex-shrink-0"
+                style={{ fontWeight: 500 }}
+              >
+                Connect Stripe
+              </button>
+            </div>
+          )}
         </motion.div>
 
         {/* Filter bar */}
@@ -447,6 +490,7 @@ export default function Invoicing() {
                     <InvoiceRow
                       key={inv.id}
                       invoice={inv}
+                      stripeConnected={stripeConnected}
                       onView={() => setViewingInvoice(inv)}
                       onEdit={() => {
                         setEditingInvoice(inv);
@@ -457,6 +501,7 @@ export default function Invoicing() {
                       onVoid={() => handleVoid(inv.id)}
                       onDelete={() => handleDelete(inv.id)}
                       onDuplicate={() => handleDuplicate(inv)}
+                      onGetPaymentLink={() => handleGetPaymentLink(inv)}
                     />
                   ))}
                 </tbody>
@@ -488,6 +533,7 @@ export default function Invoicing() {
         {viewingInvoice && (
           <InvoiceDetail
             invoice={viewingInvoice}
+            stripeConnected={stripeConnected}
             onClose={() => setViewingInvoice(null)}
             onSend={() => {
               handleSend(viewingInvoice.id);
@@ -501,6 +547,7 @@ export default function Invoicing() {
               handleVoid(viewingInvoice.id);
               setViewingInvoice(null);
             }}
+            onGetPaymentLink={() => handleGetPaymentLink(viewingInvoice)}
           />
         )}
       </AnimatePresence>
@@ -528,6 +575,7 @@ export default function Invoicing() {
 
 function InvoiceRow({
   invoice,
+  stripeConnected,
   onView,
   onEdit,
   onSend,
@@ -535,8 +583,10 @@ function InvoiceRow({
   onVoid,
   onDelete,
   onDuplicate,
+  onGetPaymentLink,
 }: {
   invoice: Invoice;
+  stripeConnected: boolean;
   onView: () => void;
   onEdit: () => void;
   onSend: () => void;
@@ -544,6 +594,7 @@ function InvoiceRow({
   onVoid: () => void;
   onDelete: () => void;
   onDuplicate: () => void;
+  onGetPaymentLink: () => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -668,6 +719,19 @@ function InvoiceRow({
                   >
                     <CheckCircle2 className="w-3 h-3" />
                     Mark paid
+                  </button>
+                )}
+                {stripeConnected && (invoice.status === "sent" || invoice.status === "draft") && (
+                  <button
+                    onClick={() => {
+                      onGetPaymentLink();
+                      setMenuOpen(false);
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-[#5ea1bf] hover:bg-[#5ea1bf]/8 transition-colors"
+                    style={{ fontWeight: 500 }}
+                  >
+                    <CreditCard className="w-3 h-3" />
+                    {invoice.stripePaymentUrl ? "Copy payment link" : "Get payment link"}
                   </button>
                 )}
                 <button
@@ -1365,16 +1429,20 @@ function SessionImportOverlay({
 
 function InvoiceDetail({
   invoice,
+  stripeConnected,
   onClose,
   onSend,
   onMarkPaid,
   onVoid,
+  onGetPaymentLink,
 }: {
   invoice: Invoice;
+  stripeConnected: boolean;
   onClose: () => void;
   onSend: () => void;
   onMarkPaid: () => void;
   onVoid: () => void;
+  onGetPaymentLink: () => void;
 }) {
   const sc = STATUS_CONFIG[invoice.status];
   const StatusIcon = sc.icon;
@@ -1539,8 +1607,38 @@ function InvoiceDetail({
           </div>
         </div>
 
+        {/* Payment link */}
+        {invoice.stripePaymentUrl && (
+          <div className="px-6 pb-2">
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#5ea1bf]/6 border border-[#5ea1bf]/12">
+              <CreditCard className="w-3.5 h-3.5 text-[#5ea1bf] flex-shrink-0" />
+              <span className="text-[12px] text-muted-foreground truncate flex-1">{invoice.stripePaymentUrl}</span>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(invoice.stripePaymentUrl!);
+                  toast.success("Payment link copied!");
+                }}
+                className="text-[11px] text-[#5ea1bf] hover:underline flex-shrink-0"
+                style={{ fontWeight: 500 }}
+              >
+                Copy
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Actions */}
         <div className="px-6 py-4 border-t border-border flex items-center justify-end gap-2">
+          {stripeConnected && (invoice.status === "draft" || invoice.status === "sent") && (
+            <button
+              onClick={onGetPaymentLink}
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-[13px] text-[#5ea1bf] border border-[#5ea1bf]/20 rounded-lg hover:bg-[#5ea1bf]/8 transition-all"
+              style={{ fontWeight: 500 }}
+            >
+              <CreditCard className="w-3.5 h-3.5" />
+              {invoice.stripePaymentUrl ? "Refresh link" : "Get payment link"}
+            </button>
+          )}
           {invoice.status === "draft" && (
             <button
               onClick={onSend}
