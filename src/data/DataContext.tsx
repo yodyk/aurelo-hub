@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo, type ReactNode } from 'react';
 import * as api from './dataApi';
+import { NotificationEvents } from './notificationsApi';
 import * as settingsApi from './settingsApi';
 import { useAuth } from './AuthContext';
 import { type IdentityType, type WorkCategory, getCategoriesForIdentity, getCategoryNames } from './identityPresets';
@@ -198,6 +199,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     if (!wsId) throw new Error('No workspace');
     const saved = await api.addClient(wsId, client);
     setClients(prev => [...prev, saved]);
+    NotificationEvents.clientAdded(wsId, saved.name || client.name, { clientId: saved.id });
     return saved;
   }, []);
 

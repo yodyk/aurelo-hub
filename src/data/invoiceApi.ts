@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { NotificationEvents } from './notificationsApi';
 
 // ── Invoice Types ──────────────────────────────────────────────────
 
@@ -157,7 +158,9 @@ export async function createInvoice(invoice: Partial<Invoice>): Promise<Invoice>
     .select()
     .single();
   if (error) throw new Error(error.message);
-  return rowToInvoice(data);
+  const saved = rowToInvoice(data);
+  NotificationEvents.invoiceCreated(wsId, saved.number, saved.clientName || '', saved.total, { invoiceId: saved.id, clientId: saved.clientId });
+  return saved;
 }
 
 export async function updateInvoice(invoiceId: string, updates: Partial<Invoice>): Promise<Invoice> {
@@ -189,10 +192,13 @@ export async function sendInvoice(invoiceId: string): Promise<Invoice> {
 }
 
 export async function markPaid(invoiceId: string): Promise<Invoice> {
-  return updateInvoice(invoiceId, {
+  const result = await updateInvoice(invoiceId, {
     status: 'paid',
     paidDate: new Date().toISOString(),
   });
+  const wsId = await getWorkspaceId();
+  if (wsId) NotificationEvents.invoicePaid(wsId, result.number, result.clientName || '', result.total, { invoiceId: result.id, clientId: result.clientId });
+  return result;
 }
 
 export async function voidInvoice(invoiceId: string): Promise<Invoice> {

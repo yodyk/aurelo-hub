@@ -331,6 +331,94 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          category: string
+          email: boolean
+          id: string
+          in_app: boolean
+          updated_at: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          category: string
+          email?: boolean
+          id?: string
+          in_app?: boolean
+          updated_at?: string
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          category?: string
+          email?: boolean
+          id?: string
+          in_app?: boolean
+          updated_at?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          category: string
+          created_at: string
+          email_sent: boolean
+          event_type: string
+          id: string
+          is_read: boolean
+          metadata: Json | null
+          title: string
+          user_id: string | null
+          workspace_id: string
+        }
+        Insert: {
+          body?: string | null
+          category: string
+          created_at?: string
+          email_sent?: boolean
+          event_type: string
+          id?: string
+          is_read?: boolean
+          metadata?: Json | null
+          title: string
+          user_id?: string | null
+          workspace_id: string
+        }
+        Update: {
+          body?: string | null
+          category?: string
+          created_at?: string
+          email_sent?: boolean
+          event_type?: string
+          id?: string
+          is_read?: boolean
+          metadata?: Json | null
+          title?: string
+          user_id?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pending_invites: {
         Row: {
           email: string
