@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import { format } from "date-fns";
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@radix-ui/react-tooltip";
 import { useParams, Link, useNavigate } from "react-router";
 import {
   ChevronLeft,
@@ -103,8 +105,8 @@ export default function ClientDetail() {
   const [portalConfig, setPortalConfig] = useState<any>(null);
   const [portalLoading, setPortalLoading] = useState(false);
 
-  // Retainer warning thresholds that have been sent
-  const [sentThresholds, setSentThresholds] = useState<number[]>([]);
+  // Retainer warning thresholds that have been sent (with timestamps)
+  const [sentThresholds, setSentThresholds] = useState<Record<number, string>>({});
 
   const client = clients.find((c) => c.id === clientId);
 
@@ -126,23 +128,23 @@ export default function ClientDetail() {
     if (!clientId || !workspaceId) return;
     supabase
       .from('notifications')
-      .select('title')
+      .select('title, created_at')
       .eq('workspace_id', workspaceId)
       .eq('event_type', 'retainer_warning')
       .like('title', `%${clients.find(c => c.id === clientId)?.name || ''}%`)
+      .order('created_at', { ascending: false })
       .then(({ data }) => {
         if (!data) return;
-        const thresholds: number[] = [];
+        const map: Record<number, string> = {};
         for (const n of data) {
           const match = n.title.match(/(\d+)%/);
           if (match) {
             const pct = parseInt(match[1]);
-            if (pct >= 90) thresholds.push(90);
-            if (pct >= 85 && pct < 90) thresholds.push(85);
-            if (pct >= 70 && pct < 85) thresholds.push(70);
+            const bucket = pct >= 90 ? 90 : pct >= 85 ? 85 : pct >= 70 ? 70 : null;
+            if (bucket && !map[bucket]) map[bucket] = n.created_at;
           }
         }
-        setSentThresholds([...new Set(thresholds)]);
+        setSentThresholds(map);
       });
   }, [clientId, workspaceId, clients]);
 
@@ -609,41 +611,55 @@ export default function ClientDetail() {
                     ))}
                   </div>
                   {/* Sent threshold indicators */}
-                  {sentThresholds.length > 0 && (
-                    <div className="mt-2 flex items-center gap-2">
-                      {[70, 85, 90].map(t => {
-                        const sent = sentThresholds.includes(t);
-                        return (
-                          <div
-                            key={t}
-                            className="flex items-center gap-1"
-                            title={sent ? `${t}% warning sent` : `${t}% warning not yet sent`}
-                          >
+                  {Object.keys(sentThresholds).length > 0 && (
+                    <TooltipProvider delayDuration={200}>
+                      <div className="mt-2 flex items-center gap-2">
+                        {[70, 85, 90].map(t => {
+                          const sentAt = sentThresholds[t];
+                          const sent = !!sentAt;
+                          const color = t >= 90 ? 'hsl(var(--destructive))' : t >= 85 ? 'hsl(45 60% 50%)' : 'hsl(var(--primary))';
+                          const dot = (
                             <div
-                              className="w-1.5 h-1.5 rounded-full"
-                              style={{
-                                background: sent
-                                  ? t >= 90 ? '#c27272' : t >= 85 ? '#bfa044' : '#5ea1bf'
-                                  : 'var(--muted-foreground)',
-                                opacity: sent ? 1 : 0.2,
-                              }}
-                            />
-                            <span
-                              className="text-[10px]"
-                              style={{
-                                fontWeight: 500,
-                                color: sent
-                                  ? t >= 90 ? '#c27272' : t >= 85 ? '#bfa044' : '#5ea1bf'
-                                  : 'var(--muted-foreground)',
-                                opacity: sent ? 1 : 0.4,
-                              }}
+                              className="flex items-center gap-1 cursor-default"
                             >
-                              {t}%
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
+                              <div
+                                className="w-1.5 h-1.5 rounded-full"
+                                style={{
+                                  background: sent ? color : 'hsl(var(--muted-foreground))',
+                                  opacity: sent ? 1 : 0.2,
+                                }}
+                              />
+                              <span
+                                className="text-[10px]"
+                                style={{
+                                  fontWeight: 500,
+                                  color: sent ? color : 'hsl(var(--muted-foreground))',
+                                  opacity: sent ? 1 : 0.4,
+                                }}
+                              >
+                                {t}%
+                              </span>
+                            </div>
+                          );
+                          if (!sent) return <span key={t}>{dot}</span>;
+                          return (
+                            <Tooltip key={t}>
+                              <TooltipTrigger asChild>{dot}</TooltipTrigger>
+                              <TooltipContent
+                                side="bottom"
+                                className="bg-popover text-popover-foreground border border-border rounded-lg px-3 py-2 text-[11px] shadow-md z-50"
+                              >
+                                <span style={{ fontWeight: 600 }}>{t}% warning sent</span>
+                                <br />
+                                <span className="text-muted-foreground">
+                                  {format(new Date(sentAt), 'MMM d, yyyy · h:mm a')}
+                                </span>
+                              </TooltipContent>
+                            </Tooltip>
+                          );
+                        })}
+                      </div>
+                    </TooltipProvider>
                   )}
                 </div>
               );
