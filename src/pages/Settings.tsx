@@ -70,6 +70,7 @@ import {
   mergeCategories,
 } from "../data/identityPresets";
 import BillingTab from "../components/BillingTab";
+import EmailActivityLog from "../components/EmailActivityLog";
 import { usePlan } from "../data/PlanContext";
 import { FeatureGate } from "../components/FeatureGate";
 import { STARTER_NOTIFICATION_TYPES, PLANS } from "../data/plans";
@@ -2074,6 +2075,12 @@ function NotificationsTab() {
           </div>
         </div>
         <SaveButton onClick={save} saving={saving} />
+      </SectionCard>
+
+      {/* Email Activity Log — all clients */}
+      <SectionCard>
+        <SectionHeader title="Email activity log" description="All retainer warning emails sent across your workspace with delivery tracking" />
+        <EmailActivityLog />
       </SectionCard>
     </motion.div>
   );
