@@ -11,3 +11,9 @@ project_id = "oqrqypuulgeqzjcgqruw"
     verify_jwt = false
   [functions.portal-view]
     verify_jwt = false
+  [functions.check-subscription]
+    verify_jwt = false
+  [functions.create-checkout]
+    verify_jwt = false
+  [functions.customer-portal]
+    verify_jwt = false

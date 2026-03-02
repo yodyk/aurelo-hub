@@ -1,9 +1,11 @@
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode } from 'react';
 import {
   type PlanId, type FeatureKey, type LimitKey,
   PLANS, hasFeature, getLimit, isAtLimit, wouldExceedLimit,
   minimumPlanFor, upgradePlanForLimit, formatLimit,
 } from './plans';
+import { planIdFromProductId } from './stripePlans';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface WorkspacePlan {
   planId: PlanId;
@@ -45,6 +47,8 @@ interface PlanContextType {
   trialDaysRemaining: number;
   trialExpired: boolean;
   startTrial: () => void;
+  checkSubscription: () => Promise<void>;
+  subscriptionLoading: boolean;
 }
 
 const TIER_ORDER: PlanId[] = ['starter', 'pro', 'studio', 'legacy'];
@@ -64,6 +68,7 @@ const safeDefaults: PlanContextType = {
   isExactly: (tier) => tier === 'starter',
   setPlan: () => {}, setPlanId: () => {},
   isTrial: false, trialDaysRemaining: 0, trialExpired: false, startTrial: () => {},
+  checkSubscription: async () => {}, subscriptionLoading: false,
 };
 
 export function usePlan(): PlanContextType {
@@ -72,8 +77,11 @@ export function usePlan(): PlanContextType {
   return ctx;
 }
 
-export function PlanProvider({ children, initialPlan }: { children: ReactNode; initialPlan?: WorkspacePlan | null }) {
+export function PlanProvider({ children, initialPlan, workspaceId }: { children: ReactNode; initialPlan?: WorkspacePlan | null; workspaceId?: string | null }) {
   const [plan, setPlanState] = useState<WorkspacePlan>(initialPlan || DEFAULT_PLAN);
+  const [subscriptionLoading, setSubscriptionLoading] = useState(false);
+  const wsIdRef = useRef(workspaceId);
+  wsIdRef.current = workspaceId;
 
   useEffect(() => {
     if (initialPlan && initialPlan.planId) setPlanState(initialPlan);
@@ -83,6 +91,96 @@ export function PlanProvider({ children, initialPlan }: { children: ReactNode; i
   const planDef = PLANS[planId] || PLANS.starter;
   const trialActive = plan.isTrial && plan.trialEnd && new Date(plan.trialEnd) > new Date();
   const effectivePlanId: PlanId = trialActive ? 'pro' : planId;
+
+  // ── Stripe subscription check ──────────────────────────────────
+  const checkSubscription = useCallback(async () => {
+    setSubscriptionLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('check-subscription');
+      if (error) {
+        console.warn('[PlanContext] check-subscription error:', error.message);
+        return;
+      }
+
+      if (!data) return;
+
+      if (data.subscribed && data.product_id) {
+        const stripePlan = planIdFromProductId(data.product_id);
+        if (stripePlan && stripePlan !== planId) {
+          // Sync plan to DB
+          const wsId = wsIdRef.current;
+          if (wsId) {
+            await supabase.from('workspaces').update({
+              plan_id: stripePlan,
+              stripe_customer_id: data.stripe_customer_id || null,
+              stripe_subscription_id: data.stripe_subscription_id || null,
+              plan_period_end: data.subscription_end || null,
+            }).eq('id', wsId);
+          }
+          setPlanState(prev => ({
+            ...prev,
+            planId: stripePlan,
+            stripeCustomerId: data.stripe_customer_id || null,
+            stripeSubscriptionId: data.stripe_subscription_id || null,
+            periodEnd: data.subscription_end || null,
+            isTrial: false,
+            trialEnd: null,
+          }));
+        } else if (stripePlan) {
+          // Same plan but update Stripe metadata
+          setPlanState(prev => ({
+            ...prev,
+            stripeCustomerId: data.stripe_customer_id || prev.stripeCustomerId,
+            stripeSubscriptionId: data.stripe_subscription_id || prev.stripeSubscriptionId,
+            periodEnd: data.subscription_end || prev.periodEnd,
+          }));
+        }
+      } else if (!data.subscribed && planId !== 'starter' && planId !== 'legacy') {
+        // Subscription lapsed — downgrade to starter (but not if legacy)
+        const wsId = wsIdRef.current;
+        if (wsId) {
+          await supabase.from('workspaces').update({
+            plan_id: 'starter',
+            stripe_subscription_id: null,
+            plan_period_end: null,
+          }).eq('id', wsId);
+        }
+        setPlanState(prev => ({
+          ...prev,
+          planId: 'starter',
+          stripeSubscriptionId: null,
+          periodEnd: null,
+        }));
+      }
+    } catch (err) {
+      console.warn('[PlanContext] check-subscription failed:', err);
+    } finally {
+      setSubscriptionLoading(false);
+    }
+  }, [planId]);
+
+  // Poll on mount and every 60s
+  useEffect(() => {
+    if (!workspaceId) return;
+    // Check after a short delay to avoid racing with auth
+    const timeout = setTimeout(() => checkSubscription(), 2000);
+    const interval = setInterval(() => checkSubscription(), 60_000);
+    return () => { clearTimeout(timeout); clearInterval(interval); };
+  }, [workspaceId, checkSubscription]);
+
+  // Check on URL change (e.g. returning from checkout)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('checkout') === 'success') {
+      // Small delay for Stripe to process
+      setTimeout(() => checkSubscription(), 3000);
+      // Clean URL
+      params.delete('checkout');
+      const newUrl = `${window.location.pathname}${params.toString() ? '?' + params.toString() : ''}`;
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, [checkSubscription]);
 
   const can = useCallback((feature: FeatureKey) => hasFeature(effectivePlanId, feature), [effectivePlanId]);
   const limitFn = useCallback((key: LimitKey) => getLimit(effectivePlanId, key), [effectivePlanId]);
@@ -113,6 +211,7 @@ export function PlanProvider({ children, initialPlan }: { children: ReactNode; i
       isAtLeast: isAtLeastFn, isExactly: isExactlyFn,
       setPlan, setPlanId: setPlanIdOnly,
       isTrial, trialDaysRemaining, trialExpired, startTrial,
+      checkSubscription, subscriptionLoading,
     }}>
       {children}
     </PlanContext.Provider>
