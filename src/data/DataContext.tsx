@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo, type ReactNode } from 'react';
 import * as api from './dataApi';
+import { supabase } from '@/integrations/supabase/client';
 import { NotificationEvents } from './notificationsApi';
 import * as settingsApi from './settingsApi';
 import { useAuth } from './AuthContext';
@@ -237,6 +238,37 @@ export function DataProvider({ children }: { children: ReactNode }) {
           const newRemaining = Math.max(0, (client.retainerRemaining || 0) - (session.duration || 0));
           await api.updateClient(wsId, cid, { retainerRemaining: newRemaining });
           setClients(prev => prev.map(c => c.id === cid ? { ...c, retainerRemaining: newRemaining } : c));
+
+          // Check retainer thresholds and fire warning
+          if (client.retainerTotal > 0) {
+            const pctUsed = ((client.retainerTotal - newRemaining) / client.retainerTotal) * 100;
+            const prevRemaining = client.retainerRemaining || 0;
+            const prevPct = ((client.retainerTotal - prevRemaining) / client.retainerTotal) * 100;
+            const thresholds = [90, 85, 70];
+            const crossedThreshold = thresholds.find(t => pctUsed >= t && prevPct < t);
+            if (crossedThreshold) {
+              // Fire async — don't block session save
+              (async () => {
+                try {
+                  // Fetch workspace name + logo for the email
+                  const [wsRes, logoUrls] = await Promise.all([
+                    supabase.from('workspaces').select('name').eq('id', wsId).single(),
+                    import('./storageApi').then(m => m.getLogoUrls(wsId)),
+                  ]);
+                  await NotificationEvents.retainerWarning(wsId, client.name, pctUsed, {
+                    clientEmail: client.contactEmail,
+                    hoursRemaining: newRemaining,
+                    hoursTotal: client.retainerTotal,
+                    workspaceName: wsRes.data?.name,
+                    workspaceLogoUrl: logoUrls.app,
+                    clientId: cid,
+                  });
+                } catch (e) {
+                  console.error('[DataContext] Retainer warning side-effect error:', e);
+                }
+              })();
+            }
+          }
         }
       }
     } catch (err) {
