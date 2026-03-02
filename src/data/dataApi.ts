@@ -176,6 +176,12 @@ export async function updateClient(workspaceId: string, clientId: string, update
   dispatchWebhookEvent(workspaceId, 'client.updated', { id: clientId, updates });
 }
 
+export async function deleteClient(workspaceId: string, clientId: string) {
+  const { error } = await supabase.from('clients').delete().eq('id', clientId).eq('workspace_id', workspaceId);
+  if (error) throw new Error(`Failed to delete client: ${error.message}`);
+  dispatchWebhookEvent(workspaceId, 'client.deleted', { id: clientId });
+}
+
 // ── Sessions ────────────────────────────────────────────────────────
 
 export async function loadSessions(workspaceId: string) {
@@ -326,6 +332,12 @@ export async function loadAllProjects(workspaceId: string) {
   const { data, error } = await supabase.from('projects').select('*').eq('workspace_id', workspaceId).order('created_at', { ascending: false });
   if (error) { console.error('[dataApi] loadAllProjects:', error); return []; }
   return (data || []).map(snakeToCamel);
+}
+
+export async function deleteProject(workspaceId: string, projectId: string) {
+  const { error } = await supabase.from('projects').delete().eq('id', projectId).eq('workspace_id', workspaceId);
+  if (error) throw new Error(`Failed to delete project: ${error.message}`);
+  dispatchWebhookEvent(workspaceId, 'project.deleted', { id: projectId });
 }
 
 // ── Files (delegated to storageApi) ─────────────────────────────────
