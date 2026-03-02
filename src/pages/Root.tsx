@@ -175,9 +175,13 @@ function RootLayout() {
     setTimerSeconds(0);
     // Create notification
     if (workspaceId) {
-      const clientName = clients.find(c => c.id === session.clientId)?.name || 'Client';
-      const hours = (session.duration || 0) / 3600;
-      NotificationEvents.sessionLogged(workspaceId, clientName, hours, { clientId: session.clientId });
+      try {
+        const clientName = clients.find(c => c.id === session.clientId)?.name || 'Client';
+        const hours = typeof session.duration === 'number' ? session.duration : 0;
+        await NotificationEvents.sessionLogged(workspaceId, clientName, hours, { clientId: session.clientId });
+      } catch (err) {
+        console.error('[Root] Failed to create session notification:', err);
+      }
     }
   };
 
