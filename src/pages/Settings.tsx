@@ -770,6 +770,43 @@ function AccountSecurityTab() {
 }
 
 // ═══════════════════════════════════════════════════════════════════
+// ── Setup Checklist Toggle ──────────────────────────────────────────
+function SetupChecklistToggle() {
+  const [isDismissed, setIsDismissed] = useState(
+    () => localStorage.getItem("aurelo_setup_dismissed") === "true"
+  );
+
+  if (!isDismissed) return null;
+
+  const handleReshow = () => {
+    localStorage.removeItem("aurelo_setup_dismissed");
+    setIsDismissed(false);
+    toast.success("Setup checklist restored — check your Home dashboard");
+  };
+
+  return (
+    <SectionCard>
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="text-[13px] text-muted-foreground" style={{ fontWeight: 500 }}>
+            Setup checklist
+          </div>
+          <div className="text-[12px] text-muted-foreground/70">
+            You dismissed the onboarding checklist from your dashboard
+          </div>
+        </div>
+        <button
+          onClick={handleReshow}
+          className="px-3 py-1.5 text-[12px] border border-border rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-all"
+          style={{ fontWeight: 500 }}
+        >
+          Show again
+        </button>
+      </div>
+    </SectionCard>
+  );
+}
+
 // Workspace Tab
 // ═══════════════════════════════════════════════════════════════════
 function WorkspaceTab() {
@@ -1022,6 +1059,9 @@ function WorkspaceTab() {
 
       {/* Identity & Categories */}
       <IdentitySection />
+
+      {/* Re-show setup checklist */}
+      <SetupChecklistToggle />
     </motion.div>
   );
 }
