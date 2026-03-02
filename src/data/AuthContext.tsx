@@ -49,8 +49,8 @@ export function useAuth() {
  * After signup, create the user's first workspace + owner member row.
  * Returns the workspace id.
  */
-async function createWorkspaceForUser(userId: string, email: string, name: string): Promise<string> {
-  const workspaceName = name ? `${name}'s Workspace` : 'My Workspace';
+async function createWorkspaceForUser(userId: string, email: string, name: string, useRawName = false): Promise<string> {
+  const workspaceName = useRawName ? name : (name ? `${name}'s Workspace` : 'My Workspace');
 
   const { data: ws, error: wsErr } = await supabase
     .from('workspaces')
@@ -200,7 +200,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const handleCreateWorkspace = useCallback(async (name: string) => {
     if (!user) throw new Error('Not authenticated');
-    const wsId = await createWorkspaceForUser(user.id, user.email, name);
+    const wsId = await createWorkspaceForUser(user.id, user.email, name, true);
     const ws: WorkspaceInfo = { id: wsId, name, role: 'Owner', planId: 'starter' };
     setAllWorkspaces(prev => [...prev, ws]);
     setWorkspaceId(wsId);

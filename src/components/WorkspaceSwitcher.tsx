@@ -142,7 +142,7 @@ export function WorkspaceSwitcher({ collapsed, wsName, wsLogoUrl, wsInitial, pla
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.97 }}
             transition={{ duration: 0.12 }}
-            className="absolute left-3 right-3 top-full mt-1 bg-card border border-border rounded-xl overflow-hidden z-50"
+            className="absolute left-3 right-3 top-full mt-1 bg-card border border-border rounded-xl overflow-hidden z-50 overflow-x-hidden"
             style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04)' }}
           >
             <div className="p-1 max-h-60 overflow-y-auto">
