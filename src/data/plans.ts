@@ -1,6 +1,6 @@
 // ── Plan definitions ────────────────────────────────────────────────
 
-export type PlanId = 'starter' | 'pro' | 'studio';
+export type PlanId = 'starter' | 'pro' | 'studio' | 'legacy';
 
 export type FeatureKey =
   | 'fullInsights'
@@ -68,6 +68,19 @@ export const PLANS: Record<PlanId, PlanDef> = {
       webhooks: true, customInvoiceTemplates: true,
     },
   },
+  legacy: {
+    name: 'Legacy',
+    tagline: 'Early tester — full access',
+    price: 0,
+    limits: { seats: null, activeClients: null, projectsPerClient: null, dataRetentionDays: null },
+    features: {
+      fullInsights: true, clientInvoicing: true, batchInvoicing: true,
+      richNotes: true, customCategories: true, integrations: true,
+      pdfExport: true, advancedNotifications: true, whiteLabelPortal: true,
+      teamUtilization: true, multiWorkspace: true, apiAccess: true,
+      webhooks: true, customInvoiceTemplates: true,
+    },
+  },
 };
 
 export const FEATURE_CATEGORIES = {
@@ -95,19 +108,21 @@ export const SUPPORT_TIERS: Record<PlanId, string> = {
   starter: 'Email support',
   pro: 'Priority support',
   studio: 'Dedicated support',
+  legacy: 'Dedicated support',
 };
 
 export const EXPORT_FORMATS: Record<PlanId, string[]> = {
   starter: ['CSV'],
   pro: ['CSV', 'PDF'],
   studio: ['CSV', 'PDF'],
+  legacy: ['CSV', 'PDF'],
 };
 
 export const STARTER_NOTIFICATION_TYPES = ['email'] as const;
 
 // ── Helper functions ────────────────────────────────────────────────
 
-const TIER_ORDER: PlanId[] = ['starter', 'pro', 'studio'];
+const TIER_ORDER: PlanId[] = ['starter', 'pro', 'studio', 'legacy'];
 
 // Legacy aliases (kept for backward compat)
 export const canAccess = hasFeature;

@@ -47,7 +47,7 @@ interface PlanContextType {
   startTrial: () => void;
 }
 
-const TIER_ORDER: PlanId[] = ['starter', 'pro', 'studio'];
+const TIER_ORDER: PlanId[] = ['starter', 'pro', 'studio', 'legacy'];
 
 const PlanContext = createContext<PlanContextType | null>(null);
 

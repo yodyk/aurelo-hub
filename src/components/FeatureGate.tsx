@@ -221,6 +221,7 @@ export function PlanBadge({ className = '' }: { className?: string }) {
     starter: 'bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400',
     pro: 'bg-[#5ea1bf]/10 text-[#5ea1bf]',
     studio: 'bg-[#bfa044]/10 text-[#bfa044]',
+    legacy: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
   };
 
   return (
