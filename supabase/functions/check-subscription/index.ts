@@ -73,19 +73,14 @@ serve(async (req) => {
 
     if (hasActive) {
       const sub = subscriptions.data[0];
-      logStep("Sub keys", { keys: Object.keys(sub).join(",") });
+      // billing_cycle_anchor available in basil API; current_period_end removed
       try {
-        // Try multiple possible field names for period end
-        const endVal = (sub as any).current_period_end
-          ?? (sub as any).billing_cycle_anchor
-          ?? null;
-        if (typeof endVal === "number") {
-          subscriptionEnd = new Date(endVal * 1000).toISOString();
-        } else if (typeof endVal === "string") {
-          subscriptionEnd = new Date(endVal).toISOString();
+        const anchor = (sub as any).billing_cycle_anchor;
+        if (typeof anchor === "number") {
+          subscriptionEnd = new Date(anchor * 1000).toISOString();
         }
       } catch {
-        logStep("Could not parse period end, skipping");
+        // non-critical — subscriptionEnd stays null
       }
       productId = sub.items.data[0].price.product as string;
       stripeSubscriptionId = sub.id;
