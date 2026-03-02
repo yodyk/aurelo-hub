@@ -529,7 +529,7 @@ export default function ClientDetail() {
           <div className="flex items-start gap-4">
             <div className="w-14 h-14 bg-primary/8 rounded-xl flex items-center justify-center overflow-hidden">
               {clientFaviconUrl ? (
-                <img src={clientFaviconUrl} alt={client.name} className="w-full h-full object-contain p-1" />
+                <img src={clientFaviconUrl} alt={client.name} className="w-full h-full object-cover rounded-xl" />
               ) : (
                 <div className="text-[20px] text-primary" style={{ fontWeight: 600 }}>
                   {client.name.charAt(0)}

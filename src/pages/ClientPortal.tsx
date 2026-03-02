@@ -188,7 +188,7 @@ export default function ClientPortal() {
           <motion.div variants={itemVariants} className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               {branding.clientFaviconUrl ? (
-                <img src={branding.clientFaviconUrl} alt={client.name} className="h-12 w-12 rounded-xl object-contain border border-border bg-white p-1" />
+                <img src={branding.clientFaviconUrl} alt={client.name} className="h-12 w-12 rounded-xl object-cover" />
               ) : (
                 <div className="w-12 h-12 rounded-xl flex items-center justify-center border border-border bg-white">
                   <span className="text-[20px] font-semibold" style={{ color: accent }}>{client.name.charAt(0)}</span>
