@@ -109,6 +109,7 @@ export default function ClientDetail() {
   // Retainer warning thresholds that have been sent (with timestamps)
   const [sentThresholds, setSentThresholds] = useState<Record<number, string>>({});
   const [resending, setResending] = useState<number | null>(null);
+  const [sendingManualUpdate, setSendingManualUpdate] = useState(false);
 
   const client = clients.find((c) => c.id === clientId);
 
@@ -978,6 +979,45 @@ export default function ClientDetail() {
                         1st of month
                       </div>
                     </div>
+                  </div>
+                  {/* Manual send retainer update */}
+                  <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
+                    <div>
+                      <div className="text-[13px]" style={{ fontWeight: 500 }}>Send retainer update</div>
+                      <div className="text-[12px] text-muted-foreground">
+                        Manually send a usage summary {client.contactEmail ? `to ${client.contactEmail}` : '(no client email set)'}
+                      </div>
+                    </div>
+                    <button
+                      disabled={sendingManualUpdate || !client.contactEmail}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                      style={{ fontWeight: 500 }}
+                      onClick={async () => {
+                        if (!workspaceId || !client) return;
+                        setSendingManualUpdate(true);
+                        try {
+                          const hoursUsed = (client.retainerTotal || 0) - (client.retainerRemaining || 0);
+                          const currentPct = client.retainerTotal ? (hoursUsed / client.retainerTotal) * 100 : 0;
+                          const { data: wsData } = await supabase.from('workspaces').select('name').eq('id', workspaceId).maybeSingle();
+                          await NotificationEvents.retainerWarning(workspaceId, client.name, currentPct, {
+                            clientEmail: client.contactEmail,
+                            hoursRemaining: client.retainerRemaining || 0,
+                            hoursTotal: client.retainerTotal || 0,
+                            workspaceName: wsData?.name,
+                            clientId: client.id,
+                          });
+                          toast.success('Retainer update sent');
+                        } catch (err) {
+                          console.error('Manual retainer update failed:', err);
+                          toast.error('Failed to send retainer update');
+                        } finally {
+                          setSendingManualUpdate(false);
+                        }
+                      }}
+                    >
+                      {sendingManualUpdate ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                      {sendingManualUpdate ? 'Sending…' : 'Send update'}
+                    </button>
                   </div>
                 </div>
               );
