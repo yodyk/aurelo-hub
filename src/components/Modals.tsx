@@ -580,7 +580,7 @@ export function EditClientModal({ open, onClose, client, onSave, workspaceId, is
                   <div className="group relative">
                     <Info className="w-3.5 h-3.5 text-muted-foreground/60 cursor-help" />
                     <div className="absolute top-full left-0 mt-1.5 px-2.5 py-1.5 rounded-lg bg-foreground text-background text-[11px] leading-relaxed whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 shadow-lg">
-                      SVG (best), PNG, or JPG · 1:1 ratio · 1080×1080px ideal
+                      SVG (best), PNG, or JPG · 1:1 ratio · 1080×1080px ideal<br/>White logo on a colored background works best
                     </div>
                   </div>
                 </div>
