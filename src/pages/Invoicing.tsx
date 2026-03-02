@@ -747,6 +747,7 @@ function InvoiceBuilder({
     existingInvoice?.lineItems || [{ id: "1", description: "", quantity: 1, rate: 0, amount: 0 }],
   );
   const [taxRate, setTaxRate] = useState(existingInvoice?.taxRate || 0);
+  const [taxInclusive, setTaxInclusive] = useState(false);
   const [dueDate, setDueDate] = useState(
     existingInvoice?.dueDate
       ? new Date(existingInvoice.dueDate).toISOString().split("T")[0]
@@ -783,9 +784,14 @@ function InvoiceBuilder({
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [sessions, clientId, invoicedSessionIds]);
 
-  const subtotal = lineItems.reduce((sum, li) => sum + li.amount, 0);
-  const taxAmount = Math.round(subtotal * taxRate * 100) / 100;
-  const total = subtotal + taxAmount;
+  const lineItemsTotal = lineItems.reduce((sum, li) => sum + li.amount, 0);
+  const subtotal = taxInclusive && taxRate > 0
+    ? Math.round((lineItemsTotal / (1 + taxRate)) * 100) / 100
+    : lineItemsTotal;
+  const taxAmount = taxInclusive && taxRate > 0
+    ? Math.round((lineItemsTotal - subtotal) * 100) / 100
+    : Math.round(lineItemsTotal * taxRate * 100) / 100;
+  const total = taxInclusive ? lineItemsTotal : lineItemsTotal + taxAmount;
 
   const handleLineItemChange = (idx: number, field: keyof LineItem, value: any) => {
     setLineItems((prev) =>
@@ -973,6 +979,34 @@ function InvoiceBuilder({
             </div>
           </div>
 
+          {/* Tax inclusive toggle */}
+          {taxRate > 0 && (
+            <div className="flex items-center justify-between px-3 py-2.5 rounded-lg border border-border bg-accent/10">
+              <div>
+                <div className="text-[12px] text-foreground" style={{ fontWeight: 500 }}>
+                  Tax included in prices
+                </div>
+                <div className="text-[11px] text-muted-foreground">
+                  {taxInclusive
+                    ? "Line item amounts already include tax"
+                    : "Tax will be added on top of line item amounts"}
+                </div>
+              </div>
+              <button
+                onClick={() => setTaxInclusive((v) => !v)}
+                className={`relative w-9 h-5 rounded-full transition-colors ${
+                  taxInclusive ? "bg-primary" : "bg-muted-foreground/25"
+                }`}
+              >
+                <span
+                  className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${
+                    taxInclusive ? "translate-x-4" : "translate-x-0"
+                  }`}
+                />
+              </button>
+            </div>
+          )}
+
           {/* Line Items */}
           <div>
             <div className="flex items-center justify-between mb-3">
@@ -1060,14 +1094,18 @@ function InvoiceBuilder({
             <div className="flex justify-end">
               <div className="w-64 space-y-2">
                 <div className="flex justify-between text-[13px]">
-                  <span className="text-muted-foreground">Subtotal</span>
+                  <span className="text-muted-foreground">
+                    {taxInclusive && taxRate > 0 ? "Subtotal (excl. tax)" : "Subtotal"}
+                  </span>
                   <span className="tabular-nums" style={{ fontWeight: 500 }}>
                     {formatCurrency(subtotal)}
                   </span>
                 </div>
                 {taxRate > 0 && (
                   <div className="flex justify-between text-[13px]">
-                    <span className="text-muted-foreground">Tax ({(taxRate * 100).toFixed(1)}%)</span>
+                    <span className="text-muted-foreground">
+                      Tax ({(taxRate * 100).toFixed(1)}%){taxInclusive ? " incl." : ""}
+                    </span>
                     <span className="tabular-nums" style={{ fontWeight: 500 }}>
                       {formatCurrency(taxAmount)}
                     </span>
