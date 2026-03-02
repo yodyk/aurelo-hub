@@ -103,6 +103,9 @@ export default function ClientDetail() {
   const [portalConfig, setPortalConfig] = useState<any>(null);
   const [portalLoading, setPortalLoading] = useState(false);
 
+  // Retainer warning thresholds that have been sent
+  const [sentThresholds, setSentThresholds] = useState<number[]>([]);
+
   const client = clients.find((c) => c.id === clientId);
 
   // Load files, projects
@@ -117,6 +120,31 @@ export default function ClientDetail() {
       if (config) setPortalConfig(config);
     });
   }, [clientId, loadProjectsForClient]);
+
+  // Load sent retainer warning thresholds
+  useEffect(() => {
+    if (!clientId || !workspaceId) return;
+    supabase
+      .from('notifications')
+      .select('title')
+      .eq('workspace_id', workspaceId)
+      .eq('event_type', 'retainer_warning')
+      .like('title', `%${clients.find(c => c.id === clientId)?.name || ''}%`)
+      .then(({ data }) => {
+        if (!data) return;
+        const thresholds: number[] = [];
+        for (const n of data) {
+          const match = n.title.match(/(\d+)%/);
+          if (match) {
+            const pct = parseInt(match[1]);
+            if (pct >= 90) thresholds.push(90);
+            if (pct >= 85 && pct < 90) thresholds.push(85);
+            if (pct >= 70 && pct < 85) thresholds.push(70);
+          }
+        }
+        setSentThresholds([...new Set(thresholds)]);
+      });
+  }, [clientId, workspaceId, clients]);
 
   // Also get from context (for newly added projects)
   useEffect(() => {
@@ -563,7 +591,7 @@ export default function ClientDetail() {
                     {hoursUsed}h
                     <span className="text-[13px] text-muted-foreground ml-1">/ {client.retainerTotal || 0}h</span>
                   </div>
-                  <div className="mt-2 h-1.5 bg-accent/60 rounded-full overflow-hidden">
+                  <div className="mt-2 h-1.5 bg-accent/60 rounded-full overflow-hidden relative">
                     <motion.div
                       className="h-full rounded-full"
                       style={{ background: getUsageBarColor(usagePct) }}
@@ -571,7 +599,52 @@ export default function ClientDetail() {
                       animate={{ width: `${usagePct}%` }}
                       transition={{ delay: 0.3, duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
                     />
+                    {/* Threshold markers */}
+                    {[70, 85, 90].map(t => (
+                      <div
+                        key={t}
+                        className="absolute top-1/2 -translate-y-1/2 w-0.5 h-3"
+                        style={{ left: `${t}%`, background: 'var(--muted-foreground)', opacity: 0.25 }}
+                      />
+                    ))}
                   </div>
+                  {/* Sent threshold indicators */}
+                  {sentThresholds.length > 0 && (
+                    <div className="mt-2 flex items-center gap-2">
+                      {[70, 85, 90].map(t => {
+                        const sent = sentThresholds.includes(t);
+                        return (
+                          <div
+                            key={t}
+                            className="flex items-center gap-1"
+                            title={sent ? `${t}% warning sent` : `${t}% warning not yet sent`}
+                          >
+                            <div
+                              className="w-1.5 h-1.5 rounded-full"
+                              style={{
+                                background: sent
+                                  ? t >= 90 ? '#c27272' : t >= 85 ? '#bfa044' : '#5ea1bf'
+                                  : 'var(--muted-foreground)',
+                                opacity: sent ? 1 : 0.2,
+                              }}
+                            />
+                            <span
+                              className="text-[10px]"
+                              style={{
+                                fontWeight: 500,
+                                color: sent
+                                  ? t >= 90 ? '#c27272' : t >= 85 ? '#bfa044' : '#5ea1bf'
+                                  : 'var(--muted-foreground)',
+                                opacity: sent ? 1 : 0.4,
+                              }}
+                            >
+                              {t}%
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               );
             })()}
