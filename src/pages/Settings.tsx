@@ -1787,35 +1787,27 @@ function FinancialTab() {
 // Team Tab
 // ═══════════════════════════════════════════════════════════════════
 function TeamTab({ readOnly = false }: { readOnly?: boolean }) {
-  const [members, loading, setMembers] = useSettingsSection("team", defaultTeam);
+  const { workspaceId } = useAuth();
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState("Member");
   const [inviteCapacity, setInviteCapacity] = useState(40);
   const [inviting, setInviting] = useState(false);
   const [editingCapacity, setEditingCapacity] = useState<string | null>(null);
-  const [capacityValue, setCapacityValue] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  // Load real workspace_members for capacity data
-  const { workspaceId } = useAuth();
-  const [realMembers, setRealMembers] = useState<any[]>([]);
+  // Load real workspace_members as the source of truth
+  const [members, setMembers] = useState<any[]>([]);
   useEffect(() => {
     if (!workspaceId) return;
     supabase
       .from("workspace_members")
-      .select("id, user_id, email, weekly_capacity")
+      .select("id, user_id, name, email, role, status, weekly_capacity, joined_at, invited_at")
       .eq("workspace_id", workspaceId)
-      .then(({ data }) => setRealMembers(data || []));
+      .then(({ data }) => {
+        setMembers(data || []);
+        setLoading(false);
+      });
   }, [workspaceId]);
-
-  const getCapacity = (email: string) => {
-    const rm = realMembers.find((r) => r.email === email);
-    return rm?.weekly_capacity ?? 40;
-  };
-
-  const getMemberId = (email: string) => {
-    const rm = realMembers.find((r) => r.email === email);
-    return rm?.id;
-  };
 
   const CAPACITY_PRESETS = [
     { label: "Full-time", hours: 40, description: "40h / week" },
@@ -1825,14 +1817,12 @@ function TeamTab({ readOnly = false }: { readOnly?: boolean }) {
 
   const capacityLabel = (hours: number) => CAPACITY_PRESETS.find((p) => p.hours === hours)?.label;
 
-  const handleSaveCapacity = async (memberEmail: string, hours: number) => {
-    const memberId = getMemberId(memberEmail);
-    if (!memberId) return;
+  const handleSaveCapacity = async (memberId: string, hours: number) => {
     await supabase
       .from("workspace_members")
       .update({ weekly_capacity: hours } as any)
       .eq("id", memberId);
-    setRealMembers((prev) =>
+    setMembers((prev) =>
       prev.map((m) => (m.id === memberId ? { ...m, weekly_capacity: hours } : m))
     );
     setEditingCapacity(null);
@@ -1843,8 +1833,21 @@ function TeamTab({ readOnly = false }: { readOnly?: boolean }) {
     if (!inviteEmail) return;
     setInviting(true);
     try {
-      const newMember = await api.inviteTeamMember(inviteEmail, inviteRole);
-      setMembers([...members, newMember]);
+      await api.inviteTeamMember(inviteEmail, inviteRole);
+      // Also create workspace_member record with capacity
+      const { data: newMember } = await supabase
+        .from("workspace_members")
+        .insert({
+          workspace_id: workspaceId!,
+          email: inviteEmail,
+          role: inviteRole,
+          status: "pending",
+          weekly_capacity: inviteCapacity,
+          invited_at: new Date().toISOString(),
+        } as any)
+        .select()
+        .single();
+      if (newMember) setMembers((prev) => [...prev, newMember]);
       toast.success(`Invite sent to ${inviteEmail}`);
       setInviteEmail("");
       setInviteCapacity(40);
@@ -1871,7 +1874,24 @@ function TeamTab({ readOnly = false }: { readOnly?: boolean }) {
     Member: "bg-accent/80 text-muted-foreground",
   };
 
+  const getInitials = (m: any) => {
+    if (m.name) {
+      return m.name.split(" ").map((w: string) => w[0]).join("").toUpperCase().slice(0, 2);
+    }
+    return m.email.charAt(0).toUpperCase();
+  };
+
+  const formatDate = (d: string | null) => {
+    if (!d) return "—";
+    try {
+      return new Date(d).toLocaleDateString("en-US", { month: "short", year: "numeric" });
+    } catch { return "—"; }
+  };
+
   if (loading) return <LoadingState />;
+
+  const activeMembers = members.filter((m) => m.status === "active");
+  const pendingMembers = members.filter((m) => m.status === "pending");
 
   return (
     <motion.div className="space-y-6" variants={container} initial="hidden" animate="show">
@@ -1888,10 +1908,10 @@ function TeamTab({ readOnly = false }: { readOnly?: boolean }) {
           )}
         </div>
         <div className="space-y-1 mb-6">
-          {members.map((member: any) => {
-            const cap = getCapacity(member.email);
+          {activeMembers.map((member: any) => {
+            const cap = member.weekly_capacity ?? 40;
             const presetLabel = capacityLabel(cap);
-            const isEditing = editingCapacity === member.email;
+            const isEditing = editingCapacity === member.id;
 
             return (
               <div
@@ -1900,22 +1920,14 @@ function TeamTab({ readOnly = false }: { readOnly?: boolean }) {
               >
                 <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <span className="text-[12px] text-primary" style={{ fontWeight: 600 }}>
-                    {member.initials}
+                    {getInitials(member)}
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <div className="text-[14px]" style={{ fontWeight: 500 }}>
-                      {member.name}
+                      {member.name || member.email}
                     </div>
-                    {member.status === "pending" && (
-                      <span
-                        className="px-1.5 py-0.5 text-[10px] rounded bg-accent/80 text-muted-foreground"
-                        style={{ fontWeight: 500 }}
-                      >
-                        pending
-                      </span>
-                    )}
                   </div>
                   <div className="text-[12px] text-muted-foreground truncate">{member.email}</div>
                 </div>
@@ -1927,7 +1939,7 @@ function TeamTab({ readOnly = false }: { readOnly?: boolean }) {
                       {CAPACITY_PRESETS.map((preset) => (
                         <button
                           key={preset.label}
-                          onClick={() => handleSaveCapacity(member.email, preset.hours)}
+                          onClick={() => handleSaveCapacity(member.id, preset.hours)}
                           className={`px-2 py-1 text-[11px] rounded-md transition-colors ${
                             cap === preset.hours
                               ? "bg-primary text-primary-foreground"
@@ -1947,7 +1959,7 @@ function TeamTab({ readOnly = false }: { readOnly?: boolean }) {
                           onKeyDown={(e) => {
                             if (e.key === "Enter") {
                               const val = parseFloat((e.target as HTMLInputElement).value);
-                              if (!isNaN(val) && val >= 0 && val <= 168) handleSaveCapacity(member.email, val);
+                              if (!isNaN(val) && val >= 0 && val <= 168) handleSaveCapacity(member.id, val);
                             }
                             if (e.key === "Escape") setEditingCapacity(null);
                           }}
@@ -1966,7 +1978,7 @@ function TeamTab({ readOnly = false }: { readOnly?: boolean }) {
                     </div>
                   ) : (
                     <button
-                      onClick={() => !readOnly && setEditingCapacity(member.email)}
+                      onClick={() => !readOnly && setEditingCapacity(member.id)}
                       className={`text-[12px] tabular-nums px-2 py-1 rounded-md transition-colors ${
                         readOnly ? "cursor-default" : "hover:bg-accent/60 cursor-pointer"
                       }`}
@@ -1984,9 +1996,8 @@ function TeamTab({ readOnly = false }: { readOnly?: boolean }) {
 
                 <div className="text-right mr-2">
                   <div className="text-[11px] text-muted-foreground">
-                    {member.lastActive === "Invited" ? "Invited" : `Active ${member.lastActive.toLowerCase()}`}
+                    Joined {formatDate(member.joined_at || member.invited_at)}
                   </div>
-                  <div className="text-[11px] text-muted-foreground">Joined {member.joinedDate}</div>
                 </div>
                 <div
                   className={`px-2 py-0.5 text-[11px] rounded-full ${roleColors[member.role] || "bg-accent/80 text-muted-foreground"}`}
@@ -2005,6 +2016,52 @@ function TeamTab({ readOnly = false }: { readOnly?: boolean }) {
               </div>
             );
           })}
+
+          {/* Pending invites */}
+          {pendingMembers.length > 0 && (
+            <>
+              <div className="pt-3 mt-3 border-t border-border">
+                <span className="text-[11px] text-muted-foreground px-3" style={{ fontWeight: 600, letterSpacing: "0.04em" }}>
+                  PENDING ({pendingMembers.length})
+                </span>
+              </div>
+              {pendingMembers.map((member: any) => (
+                <div
+                  key={member.id}
+                  className="flex items-center gap-3 py-3 px-3 rounded-lg opacity-60 group"
+                >
+                  <div className="w-9 h-9 rounded-full bg-muted/50 flex items-center justify-center flex-shrink-0">
+                    <span className="text-[12px] text-muted-foreground" style={{ fontWeight: 600 }}>
+                      {member.email.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[13px] text-muted-foreground truncate">{member.email}</div>
+                  </div>
+                  <span className="text-[11px] text-muted-foreground tabular-nums">
+                    {(member.weekly_capacity ?? 40)}h/w
+                  </span>
+                  <span className="text-[11px] px-2 py-0.5 rounded-full bg-accent text-muted-foreground" style={{ fontWeight: 500 }}>
+                    Pending
+                  </span>
+                  <div
+                    className={`px-2 py-0.5 text-[11px] rounded-full ${roleColors[member.role] || "bg-accent/80 text-muted-foreground"}`}
+                    style={{ fontWeight: 500 }}
+                  >
+                    {member.role}
+                  </div>
+                  {!readOnly && (
+                    <button
+                      onClick={() => removeMember(member.id)}
+                      className="w-6 h-6 flex items-center justify-center rounded hover:bg-accent/60 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </>
+          )}
         </div>
 
         {!readOnly && (
