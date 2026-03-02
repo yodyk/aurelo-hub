@@ -1,5 +1,6 @@
 import { motion } from "motion/react";
 import TeamUtilization from "../components/TeamUtilization";
+import { FeatureGate } from "../components/FeatureGate";
 
 const container = {
   hidden: {},
@@ -29,7 +30,9 @@ export default function Team() {
       </motion.div>
 
       <motion.div variants={item}>
-        <TeamUtilization />
+        <FeatureGate feature="teamUtilization" featureLabel="Team Utilization">
+          <TeamUtilization />
+        </FeatureGate>
       </motion.div>
     </motion.div>
   );
