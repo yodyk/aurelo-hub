@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
-import { Check, ChevronDown, Plus, Pencil, X } from 'lucide-react';
+import { Check, ChevronDown, Plus, Pencil, X, Trash2 } from 'lucide-react';
 import { useAuth, type WorkspaceInfo } from '../data/AuthContext';
 import { usePlan } from '../data/PlanContext';
 import { useData } from '../data/DataContext';
@@ -17,13 +17,14 @@ interface Props {
 
 export function WorkspaceSwitcher({ collapsed, wsName, wsLogoUrl, wsInitial, planId }: Props) {
   const navigate = useNavigate();
-  const { allWorkspaces, switchWorkspace, createWorkspace, renameWorkspace, workspaceId } = useAuth();
+  const { allWorkspaces, switchWorkspace, createWorkspace, renameWorkspace, deleteWorkspace, workspaceId } = useAuth();
   const { can } = usePlan();
   const [open, setOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState('');
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -38,6 +39,7 @@ export function WorkspaceSwitcher({ collapsed, wsName, wsLogoUrl, wsInitial, pla
         setOpen(false);
         setCreating(false);
         setRenamingId(null);
+        setDeletingId(null);
       }
     };
     document.addEventListener('mousedown', handler);
@@ -98,6 +100,22 @@ export function WorkspaceSwitcher({ collapsed, wsName, wsLogoUrl, wsInitial, pla
       setBusy(false);
     }
   }, [renamingId, renameValue, renameWorkspace]);
+
+  const handleDelete = useCallback(async () => {
+    if (!deletingId) return;
+    setBusy(true);
+    try {
+      await deleteWorkspace(deletingId);
+      setDeletingId(null);
+      setOpen(false);
+      toast.success('Workspace deleted');
+      window.location.href = '/';
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to delete workspace');
+    } finally {
+      setBusy(false);
+    }
+  }, [deletingId, deleteWorkspace]);
 
   // If user can't multi-workspace and has only 1, just navigate to billing
   const handleClick = () => {
@@ -185,13 +203,24 @@ export function WorkspaceSwitcher({ collapsed, wsName, wsLogoUrl, wsInitial, pla
                         {ws.id === workspaceId && <Check className="w-3.5 h-3.5 text-primary flex-shrink-0" />}
                       </button>
                       {ws.role === 'Owner' && (
-                        <button
-                          onClick={() => { setRenamingId(ws.id); setRenameValue(ws.name); }}
-                          className="p-1.5 mr-1 text-muted-foreground/50 hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity rounded hover:bg-accent/40"
-                          title="Rename"
-                        >
-                          <Pencil className="w-3 h-3" />
-                        </button>
+                        <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => { setRenamingId(ws.id); setRenameValue(ws.name); }}
+                            className="p-1.5 text-muted-foreground/50 hover:text-foreground rounded hover:bg-accent/40"
+                            title="Rename"
+                          >
+                            <Pencil className="w-3 h-3" />
+                          </button>
+                          {allWorkspaces.length > 1 && (
+                            <button
+                              onClick={() => setDeletingId(ws.id)}
+                              className="p-1.5 mr-1 text-muted-foreground/50 hover:text-destructive rounded hover:bg-destructive/10"
+                              title="Delete"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          )}
+                        </div>
                       )}
                     </>
                   )}
@@ -235,6 +264,49 @@ export function WorkspaceSwitcher({ collapsed, wsName, wsLogoUrl, wsInitial, pla
               </div>
             )}
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete confirmation modal */}
+      <AnimatePresence>
+        {deletingId && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/40"
+              onClick={() => !busy && setDeletingId(null)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.15 }}
+              className="relative bg-card border border-border rounded-xl p-5 w-[340px] shadow-xl"
+            >
+              <h3 className="text-[15px] font-semibold text-foreground mb-1.5">Delete workspace?</h3>
+              <p className="text-[13px] text-muted-foreground mb-4 leading-relaxed">
+                This will permanently delete <span className="font-medium text-foreground">{allWorkspaces.find(w => w.id === deletingId)?.name}</span> and all its data. This action cannot be undone.
+              </p>
+              <div className="flex gap-2 justify-end">
+                <button
+                  onClick={() => setDeletingId(null)}
+                  disabled={busy}
+                  className="px-3 py-1.5 text-[13px] font-medium text-muted-foreground hover:text-foreground rounded-lg hover:bg-accent/40 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={busy}
+                  className="px-3 py-1.5 text-[13px] font-medium text-destructive-foreground bg-destructive hover:bg-destructive/90 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  {busy ? 'Deleting…' : 'Delete'}
+                </button>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </div>
