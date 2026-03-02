@@ -140,6 +140,24 @@ export async function listDeliveries(webhookId?: string, limit = 50): Promise<We
   return (data || []) as unknown as WebhookDelivery[];
 }
 
+// ── Test ping ───────────────────────────────────────────────────────
+
+export async function testWebhook(webhookId: string): Promise<{ success: boolean; statusCode: number | null; error: string | null }> {
+  const wsId = await resolveWorkspaceId();
+  if (!wsId) throw new Error('No workspace found');
+
+  const { data, error } = await supabase.functions.invoke('dispatch-webhook', {
+    body: {
+      workspace_id: wsId,
+      event_type: 'ping',
+      payload: { webhook_id: webhookId, test: true, timestamp: new Date().toISOString() },
+      _test_webhook_id: webhookId,
+    },
+  });
+  if (error) throw new Error(error.message || 'Test failed');
+  return data;
+}
+
 // ── Helpers ─────────────────────────────────────────────────────────
 
 function generateSecret(length: number): string {

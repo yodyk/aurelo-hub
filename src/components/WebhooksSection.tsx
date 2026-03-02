@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import {
   Plus, Trash2, Eye, EyeOff, Copy, Check, RefreshCw,
   Loader2, Globe, Zap, ChevronDown, ChevronUp, X,
-  CheckCircle2, XCircle, Clock, AlertTriangle,
+  CheckCircle2, XCircle, Clock, AlertTriangle, Send,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
@@ -322,6 +322,7 @@ function WebhookCard({ webhook, expanded, onToggle, onRefresh }: {
   const [toggling, setToggling] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
+  const [testing, setTesting] = useState(false);
   const [currentSecret, setCurrentSecret] = useState(webhook.signing_secret);
 
   const handleToggleActive = async () => {
@@ -463,6 +464,30 @@ function WebhookCard({ webhook, expanded, onToggle, onRefresh }: {
 
               {/* Actions */}
               <div className="flex items-center gap-2 pt-1">
+                <button
+                  onClick={async () => {
+                    setTesting(true);
+                    try {
+                      const result = await webhooksApi.testWebhook(webhook.id);
+                      if (result.success) {
+                        toast.success(`Ping successful — ${result.statusCode}`);
+                      } else {
+                        toast.error(`Ping failed — ${result.statusCode || result.error || 'No response'}`);
+                      }
+                      onRefresh();
+                    } catch (err: any) {
+                      toast.error(err.message || 'Test failed');
+                    } finally {
+                      setTesting(false);
+                    }
+                  }}
+                  disabled={testing}
+                  className="px-3 py-1.5 text-[12px] rounded-lg border border-primary/20 bg-primary/8 text-primary hover:bg-primary/12 transition-all disabled:opacity-50"
+                  style={{ fontWeight: 500 }}
+                >
+                  {testing ? <Loader2 className="w-3 h-3 animate-spin inline mr-1" /> : <Send className="w-3 h-3 inline mr-1" />}
+                  Test
+                </button>
                 <button
                   onClick={handleToggleActive}
                   disabled={toggling}

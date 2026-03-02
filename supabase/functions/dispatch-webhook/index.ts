@@ -11,7 +11,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { workspace_id, event_type, payload } = await req.json();
+    const { workspace_id, event_type, payload, _test_webhook_id } = await req.json();
     if (!workspace_id || !event_type) {
       return new Response(JSON.stringify({ error: 'workspace_id and event_type required' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -22,6 +22,27 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
+
+    // If _test_webhook_id is set, send a ping to that specific webhook only
+    if (_test_webhook_id) {
+      const { data: wh, error: whErr } = await supabase
+        .from('webhooks')
+        .select('*')
+        .eq('id', _test_webhook_id)
+        .eq('workspace_id', workspace_id)
+        .maybeSingle();
+
+      if (whErr || !wh) {
+        return new Response(JSON.stringify({ success: false, statusCode: null, error: 'Webhook not found' }), {
+          status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const result = await dispatchWebhook(supabase, wh, 'ping', payload, workspace_id);
+      return new Response(JSON.stringify(result), {
+        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     // Fetch active webhooks for this workspace that subscribe to this event
     const { data: webhooks, error: whErr } = await supabase
@@ -70,8 +91,7 @@ async function dispatchWebhook(
   eventType: string,
   payload: any,
   workspaceId: string,
-  attempt = 1,
-) {
+): Promise<{ success: boolean; statusCode: number | null; error: string | null }> {
   const body = JSON.stringify({
     event: eventType,
     data: payload,
@@ -140,4 +160,6 @@ async function dispatchWebhook(
     await new Promise(r => setTimeout(r, 2000));
     return dispatchWebhook(supabase, webhook, eventType, payload, workspaceId, attempt + 1);
   }
+
+  return { success, statusCode, error: errorMessage };
 }
