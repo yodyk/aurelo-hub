@@ -159,12 +159,11 @@ export function PlanProvider({ children, initialPlan, workspaceId }: { children:
     }
   }, [planId]);
 
-  // Poll on mount and every 60s
+  // Check on mount and every 5 min (webhook handles real-time; this is a safety net)
   useEffect(() => {
     if (!workspaceId) return;
-    // Check after a short delay to avoid racing with auth
     const timeout = setTimeout(() => checkSubscription(), 2000);
-    const interval = setInterval(() => checkSubscription(), 60_000);
+    const interval = setInterval(() => checkSubscription(), 300_000);
     return () => { clearTimeout(timeout); clearInterval(interval); };
   }, [workspaceId, checkSubscription]);
 
