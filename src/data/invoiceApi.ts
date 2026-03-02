@@ -150,6 +150,10 @@ export async function getInvoice(invoiceId: string): Promise<Invoice | null> {
 export async function createInvoice(invoice: Partial<Invoice>): Promise<Invoice> {
   const wsId = await getWorkspaceId();
   if (!wsId) throw new Error('No workspace found');
+  // Auto-assign invoice number if not provided
+  if (!invoice.number) {
+    invoice.number = await getNextInvoiceNumber();
+  }
   const row = invoiceToRow(invoice);
   row.workspace_id = wsId;
   const { data, error } = await supabase
