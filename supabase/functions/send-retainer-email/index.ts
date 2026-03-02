@@ -14,50 +14,123 @@ interface RetainerEmailPayload {
   hoursRemaining: number;
   hoursTotal: number;
   workspaceName?: string;
+  workspaceLogoUrl?: string;
 }
+
+const WORDMARK_URL =
+  'https://oqrqypuulgeqzjcgqruw.supabase.co/storage/v1/object/public/email-assets/aurelo-wordmark.png';
 
 function buildHtml(p: RetainerEmailPayload): string {
   const remaining = p.hoursRemaining.toFixed(1);
   const total = p.hoursTotal.toFixed(1);
+  const used = (p.hoursTotal - p.hoursRemaining).toFixed(1);
   const wsName = p.workspaceName || 'your service provider';
+  const pct = Math.min(Math.round(p.pctUsed), 100);
+  const pctLeft = 100 - pct;
+
+  // Bar color shifts from blue → warm amber as usage increases
+  const barColor = pct >= 90 ? '#c4783e' : pct >= 75 ? '#bfa044' : '#5ea1bf';
+
+  const logoHtml = p.workspaceLogoUrl
+    ? `<td style="vertical-align:middle"><img src="${p.workspaceLogoUrl}" alt="${wsName}" height="28" style="display:inline-block;vertical-align:middle" /></td>`
+    : `<td style="vertical-align:middle"><span style="font-size:16px;font-weight:700;color:#1a1a19">${wsName}</span></td>`;
 
   return `
 <!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif">
-  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:40px auto;padding:0 20px">
-    <tr><td style="padding-bottom:24px;border-bottom:1px solid #e5e7eb">
-      <h1 style="margin:0;font-size:20px;font-weight:600;color:#111827">Retainer Update</h1>
-    </td></tr>
-    <tr><td style="padding:24px 0">
-      <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#374151">
-        Hi <strong>${p.clientName}</strong>,
-      </p>
-      <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#374151">
-        Your retainer with <strong>${wsName}</strong> has reached
-        <strong style="color:#b45309">${Math.round(p.pctUsed)}%</strong> usage.
-      </p>
-      <table cellpadding="0" cellspacing="0" style="background:#f9fafb;border-radius:8px;padding:16px;width:100%;margin-bottom:16px">
-        <tr>
-          <td style="font-size:13px;color:#6b7280;padding:4px 16px 4px 0">Hours used</td>
-          <td style="font-size:15px;font-weight:600;color:#111827">${(p.hoursTotal - p.hoursRemaining).toFixed(1)}h of ${total}h</td>
-        </tr>
-        <tr>
-          <td style="font-size:13px;color:#6b7280;padding:4px 16px 4px 0">Remaining</td>
-          <td style="font-size:15px;font-weight:600;color:#111827">${remaining}h</td>
-        </tr>
-      </table>
-      <p style="margin:0;font-size:14px;line-height:1.6;color:#6b7280">
-        If you'd like to discuss extending or renewing your retainer, please don't hesitate to reach out.
-      </p>
-    </td></tr>
-    <tr><td style="padding-top:24px;border-top:1px solid #e5e7eb">
-      <p style="margin:0;font-size:12px;color:#9ca3af">
-        Sent by ${wsName} via Aurelo
-      </p>
-    </td></tr>
-  </table>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body style="margin:0;padding:0;background:#ffffff;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+  <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:40px 16px">
+    <table width="480" cellpadding="0" cellspacing="0" style="max-width:480px;border:1px solid #e8e8e6;border-radius:12px;overflow:hidden">
+
+      <!-- Header bar -->
+      <tr><td style="background:#f8f8f7;padding:24px 32px;border-bottom:1px solid #e8e8e6">
+        <table width="100%" cellpadding="0" cellspacing="0"><tr>
+          ${logoHtml}
+          <td style="vertical-align:middle;text-align:right">
+            <img src="${WORDMARK_URL}" alt="aurelo" height="18" style="display:inline-block;vertical-align:middle;opacity:0.9" />
+          </td>
+        </tr></table>
+      </td></tr>
+
+      <!-- Accent strip -->
+      <tr><td style="height:3px;background:linear-gradient(90deg,#5ea1bf 0%,#3b7a99 100%)"></td></tr>
+
+      <!-- Content -->
+      <tr><td style="padding:32px 32px 24px">
+        <p style="font-size:11px;font-weight:600;color:#5ea1bf;letter-spacing:0.1em;margin:0 0 8px;text-transform:uppercase">Retainer Update</p>
+        <h1 style="font-size:24px;font-weight:700;color:#1a1a19;letter-spacing:-0.02em;margin:0 0 16px;line-height:1.2">
+          ${pct}% of hours used
+        </h1>
+        <p style="font-size:14px;color:#52524e;line-height:1.7;margin:0 0 28px">
+          Hi <strong>${p.clientName}</strong>, here's a snapshot of your retainer with <strong>${wsName}</strong>.
+        </p>
+
+        <!-- Visual progress bar -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 8px">
+          <tr>
+            <td style="background:#f0f0ee;border-radius:6px;overflow:hidden;height:24px;padding:0">
+              <table width="100%" cellpadding="0" cellspacing="0" style="height:24px"><tr>
+                <td style="width:${pct}%;background:${barColor};border-radius:${pctLeft === 0 ? '6px' : '6px 0 0 6px'};height:24px"></td>
+                <td style="width:${pctLeft}%;height:24px"></td>
+              </tr></table>
+            </td>
+          </tr>
+        </table>
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 28px">
+          <tr>
+            <td style="font-size:12px;color:#52524e"><strong style="color:${barColor}">${used}h</strong> used</td>
+            <td style="font-size:12px;color:#52524e;text-align:right"><strong>${remaining}h</strong> remaining of ${total}h</td>
+          </tr>
+        </table>
+
+        <!-- Detail card -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f9f8;border-radius:8px;margin:0 0 28px">
+          <tr>
+            <td style="padding:16px 20px">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="font-size:13px;color:#8a8a86;padding:4px 0">Hours used</td>
+                  <td style="font-size:14px;font-weight:600;color:#1a1a19;text-align:right;padding:4px 0">${used}h of ${total}h</td>
+                </tr>
+                <tr>
+                  <td style="font-size:13px;color:#8a8a86;padding:4px 0">Remaining</td>
+                  <td style="font-size:14px;font-weight:600;color:#1a1a19;text-align:right;padding:4px 0">${remaining}h</td>
+                </tr>
+                <tr>
+                  <td style="font-size:13px;color:#8a8a86;padding:4px 0">Usage</td>
+                  <td style="font-size:14px;font-weight:600;color:${barColor};text-align:right;padding:4px 0">${pct}%</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+
+        <p style="font-size:14px;color:#52524e;line-height:1.7;margin:0">
+          If you'd like to discuss extending or renewing your retainer, please don't hesitate to reach out.
+        </p>
+      </td></tr>
+
+      <!-- Divider -->
+      <tr><td style="padding:0 32px"><hr style="border:none;border-top:1px solid #e8e8e6;margin:0" /></td></tr>
+
+      <!-- Footer -->
+      <tr><td style="padding:16px 32px 24px">
+        <p style="font-size:12px;color:#a8a29e;margin:0 0 8px;line-height:1.5">
+          This is an automated notification from ${wsName}.
+        </p>
+        <p style="font-size:11px;color:#c4c4c0;margin:0">
+          Sent with <a href="https://getaurelo.com" style="color:#5ea1bf;text-decoration:none">Aurelo</a>
+        </p>
+      </td></tr>
+
+    </table>
+  </td></tr></table>
 </body>
 </html>`;
 }
@@ -96,7 +169,7 @@ Deno.serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: `${wsName} <onboarding@resend.dev>`,
+        from: `${wsName} <noreply@getaurelo.com>`,
         to: [payload.clientEmail],
         subject: `Retainer Update — ${Math.round(payload.pctUsed)}% used`,
         html,
