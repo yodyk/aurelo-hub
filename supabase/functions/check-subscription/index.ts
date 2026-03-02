@@ -73,9 +73,20 @@ serve(async (req) => {
 
     if (hasActive) {
       const sub = subscriptions.data[0];
-      subscriptionEnd = new Date(
-        sub.current_period_end * 1000,
-      ).toISOString();
+      logStep("Sub keys", { keys: Object.keys(sub).join(",") });
+      try {
+        // Try multiple possible field names for period end
+        const endVal = (sub as any).current_period_end
+          ?? (sub as any).billing_cycle_anchor
+          ?? null;
+        if (typeof endVal === "number") {
+          subscriptionEnd = new Date(endVal * 1000).toISOString();
+        } else if (typeof endVal === "string") {
+          subscriptionEnd = new Date(endVal).toISOString();
+        }
+      } catch {
+        logStep("Could not parse period end, skipping");
+      }
       productId = sub.items.data[0].price.product as string;
       stripeSubscriptionId = sub.id;
       logStep("Active subscription", { productId, subscriptionEnd });
