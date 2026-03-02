@@ -1780,6 +1780,11 @@ function FinancialTab() {
         <SaveButton onClick={saveInvoice} saving={savingInvoice} />
       </SectionCard>
 
+      {/* Invoice templates (Studio) */}
+      <FeatureGate feature="customInvoiceTemplates" featureLabel="Invoice templates">
+        <InvoiceTemplatesSection />
+      </FeatureGate>
+
       {/* Rate card */}
       <SectionCard>
         <SectionHeader title="Rate card" description="Default hourly rates by service type — override per client" />
@@ -1828,6 +1833,264 @@ function FinancialTab() {
         <SaveButton onClick={saveRates} saving={savingRates} />
       </SectionCard>
     </motion.div>
+  );
+}
+
+// ── Invoice Templates Section (Studio) ─────────────────────────────
+function InvoiceTemplatesSection() {
+  const { workspaceId } = useAuth();
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState<any | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  // Form state
+  const [name, setName] = useState('');
+  const [paymentTerms, setPaymentTerms] = useState('Net 30');
+  const [notes, setNotes] = useState('');
+  const [taxRate, setTaxRate] = useState('0');
+  const [lineItems, setLineItems] = useState<{ description: string; quantity: number; rate: number }[]>([
+    { description: '', quantity: 1, rate: 0 },
+  ]);
+
+  useEffect(() => {
+    if (!workspaceId) return;
+    supabase
+      .from('invoice_templates')
+      .select('*')
+      .eq('workspace_id', workspaceId)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => { setTemplates(data || []); setLoading(false); });
+  }, [workspaceId]);
+
+  const resetForm = () => {
+    setName(''); setPaymentTerms('Net 30'); setNotes(''); setTaxRate('0');
+    setLineItems([{ description: '', quantity: 1, rate: 0 }]);
+    setEditing(null);
+  };
+
+  const startEdit = (t: any) => {
+    setEditing(t);
+    setName(t.name);
+    setPaymentTerms(t.payment_terms || 'Net 30');
+    setNotes(t.notes || '');
+    setTaxRate(((t.tax_rate || 0) * 100).toString());
+    setLineItems(
+      (t.line_items as any[])?.length > 0
+        ? (t.line_items as any[])
+        : [{ description: '', quantity: 1, rate: 0 }],
+    );
+  };
+
+  const handleSave = async () => {
+    if (!name.trim()) { toast.error('Template name is required'); return; }
+    if (!workspaceId) return;
+    setSaving(true);
+    try {
+      const payload = {
+        workspace_id: workspaceId,
+        name: name.trim(),
+        payment_terms: paymentTerms,
+        notes: notes.trim() || null,
+        tax_rate: parseFloat(taxRate || '0') / 100,
+        line_items: lineItems.filter(li => li.description.trim()),
+      };
+      if (editing) {
+        const { data, error } = await supabase
+          .from('invoice_templates')
+          .update({ ...payload, updated_at: new Date().toISOString() })
+          .eq('id', editing.id)
+          .select()
+          .single();
+        if (error) throw error;
+        setTemplates(prev => prev.map(t => t.id === editing.id ? data : t));
+        toast.success('Template updated');
+      } else {
+        const { data, error } = await supabase
+          .from('invoice_templates')
+          .insert(payload)
+          .select()
+          .single();
+        if (error) throw error;
+        setTemplates(prev => [data, ...prev]);
+        toast.success('Template created');
+      }
+      resetForm();
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to save template');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    await supabase.from('invoice_templates').delete().eq('id', id);
+    setTemplates(prev => prev.filter(t => t.id !== id));
+    if (editing?.id === id) resetForm();
+    toast.success('Template deleted');
+  };
+
+  return (
+    <SectionCard>
+      <SectionHeader
+        title="Invoice templates"
+        description="Reusable presets that auto-populate line items, terms, and notes"
+      />
+      {loading ? (
+        <div className="flex justify-center py-6">
+          <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+        </div>
+      ) : (
+        <>
+          {/* Existing templates */}
+          {templates.length > 0 && !editing && (
+            <div className="space-y-2 mb-5">
+              {templates.map(t => (
+                <div
+                  key={t.id}
+                  className="flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-accent/30 transition-colors group"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[14px] text-foreground" style={{ fontWeight: 500 }}>{t.name}</div>
+                    <div className="text-[12px] text-muted-foreground mt-0.5">
+                      {(t.line_items as any[])?.length || 0} line item{(t.line_items as any[])?.length !== 1 ? 's' : ''}
+                      {t.payment_terms ? ` · ${t.payment_terms}` : ''}
+                      {t.tax_rate ? ` · ${(t.tax_rate * 100).toFixed(1)}% tax` : ''}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => startEdit(t)}
+                      className="p-1.5 rounded-lg hover:bg-accent/60 text-muted-foreground"
+                    >
+                      <Pencil className="w-3 h-3" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(t.id)}
+                      className="p-1.5 rounded-lg hover:bg-destructive/10 text-destructive/70 hover:text-destructive"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Form */}
+          {(editing || templates.length === 0 || true) && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="text-[13px] text-foreground" style={{ fontWeight: 500 }}>
+                  {editing ? `Editing: ${editing.name}` : 'New template'}
+                </div>
+                {editing && (
+                  <button onClick={resetForm} className="text-[12px] text-muted-foreground hover:text-foreground transition-colors">
+                    Cancel
+                  </button>
+                )}
+              </div>
+              <div>
+                <FieldLabel>Template name</FieldLabel>
+                <TextInput value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Monthly Retainer" className="!w-full" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <FieldLabel>Payment terms</FieldLabel>
+                  <select
+                    value={paymentTerms}
+                    onChange={e => setPaymentTerms(e.target.value)}
+                    className="w-full px-3 py-2 text-[14px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
+                  >
+                    <option>Due on receipt</option>
+                    <option>Net 15</option>
+                    <option>Net 30</option>
+                    <option>Net 45</option>
+                    <option>Net 60</option>
+                  </select>
+                </div>
+                <div>
+                  <FieldLabel>Default tax rate (%)</FieldLabel>
+                  <TextInput value={taxRate} onChange={e => setTaxRate(e.target.value)} className="!w-full tabular-nums" />
+                </div>
+              </div>
+
+              {/* Line items */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <FieldLabel>Line items</FieldLabel>
+                  <button
+                    onClick={() => setLineItems(prev => [...prev, { description: '', quantity: 1, rate: 0 }])}
+                    className="inline-flex items-center gap-1 text-[12px] text-primary hover:text-primary/80"
+                    style={{ fontWeight: 500 }}
+                  >
+                    <Plus className="w-3 h-3" />
+                    Add
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  {lineItems.map((li, idx) => (
+                    <div key={idx} className="grid grid-cols-[1fr_60px_70px_24px] gap-2 items-center">
+                      <TextInput
+                        value={li.description}
+                        onChange={e => {
+                          const updated = [...lineItems];
+                          updated[idx] = { ...li, description: e.target.value };
+                          setLineItems(updated);
+                        }}
+                        placeholder="Description"
+                        className="!w-full"
+                      />
+                      <TextInput
+                        value={li.quantity.toString()}
+                        onChange={e => {
+                          const updated = [...lineItems];
+                          updated[idx] = { ...li, quantity: parseFloat(e.target.value) || 0 };
+                          setLineItems(updated);
+                        }}
+                        placeholder="Qty"
+                        className="!w-full tabular-nums text-right"
+                      />
+                      <TextInput
+                        value={li.rate.toString()}
+                        onChange={e => {
+                          const updated = [...lineItems];
+                          updated[idx] = { ...li, rate: parseFloat(e.target.value) || 0 };
+                          setLineItems(updated);
+                        }}
+                        placeholder="Rate"
+                        className="!w-full tabular-nums text-right"
+                      />
+                      {lineItems.length > 1 && (
+                        <button
+                          onClick={() => setLineItems(prev => prev.filter((_, i) => i !== idx))}
+                          className="w-6 h-6 flex items-center justify-center rounded hover:bg-accent/60 text-muted-foreground"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <FieldLabel>Default notes</FieldLabel>
+                <textarea
+                  value={notes}
+                  onChange={e => setNotes(e.target.value)}
+                  rows={2}
+                  className="w-full px-3 py-2 text-[14px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all resize-none"
+                  placeholder="Thank you for your business..."
+                />
+              </div>
+
+              <SaveButton onClick={handleSave} saving={saving} label={editing ? 'Update template' : 'Save template'} />
+            </div>
+          )}
+        </>
+      )}
+    </SectionCard>
   );
 }
 

@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   X,
@@ -11,10 +11,14 @@ import {
   ChevronDown,
   ChevronRight,
   Receipt,
+  BookTemplate,
 } from "lucide-react";
 import { toast } from "sonner";
 import * as invoiceApi from "../data/invoiceApi";
 import type { Invoice, LineItem } from "../data/invoiceApi";
+import { useAuth } from "../data/AuthContext";
+import { usePlan } from "../data/PlanContext";
+import { supabase } from "@/integrations/supabase/client";
 
 interface BatchInvoiceBuilderProps {
   clients: any[];
@@ -62,6 +66,25 @@ export default function BatchInvoiceBuilder({
     { clientName: string; success: boolean; invoiceNumber?: string; error?: string }[] | null
   >(null);
 
+  // Invoice templates (Studio)
+  const { can } = usePlan();
+  const { workspaceId } = useAuth();
+  const [templates, setTemplates] = useState<any[]>([]);
+  useEffect(() => {
+    if (!can('customInvoiceTemplates') || !workspaceId) return;
+    supabase
+      .from('invoice_templates')
+      .select('*')
+      .eq('workspace_id', workspaceId)
+      .order('name')
+      .then(({ data }) => setTemplates(data || []));
+  }, [workspaceId]);
+
+  const applyTemplate = (t: any) => {
+    if (t.payment_terms) setPaymentTerms(t.payment_terms);
+    if (t.tax_rate) setTaxRate(t.tax_rate);
+    toast.success(`Template "${t.name}" applied`);
+  };
   // Find already-invoiced session IDs
   const invoicedSessionIds = useMemo(() => {
     const ids = new Set<string>();
@@ -545,6 +568,27 @@ export default function BatchInvoiceBuilder({
                     );
                   })}
                 </div>
+
+                {/* Template picker */}
+                {templates.length > 0 && (
+                  <div className="flex items-center gap-2 mb-4">
+                    <BookTemplate className="w-3.5 h-3.5 text-muted-foreground" />
+                    <select
+                      defaultValue=""
+                      onChange={(e) => {
+                        const t = templates.find((t: any) => t.id === e.target.value);
+                        if (t) applyTemplate(t);
+                        e.target.value = '';
+                      }}
+                      className="flex-1 text-[13px] px-3 py-2 bg-accent/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                    >
+                      <option value="" disabled>Load template...</option>
+                      {templates.map((t: any) => (
+                        <option key={t.id} value={t.id}>{t.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
                 {/* Settings */}
                 <div className="grid grid-cols-2 gap-4 mb-5">

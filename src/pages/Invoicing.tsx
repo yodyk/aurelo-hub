@@ -23,11 +23,14 @@ import {
   Import,
   CreditCard,
   Layers,
+  BookTemplate,
 } from "lucide-react";
 import { toast } from "sonner";
 import { usePlan } from "../data/PlanContext";
 import { PLANS } from "../data/plans";
 import { useData } from "../data/DataContext";
+import { useAuth } from "../data/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import * as invoiceApi from "../data/invoiceApi";
 import type { Invoice, LineItem, InvoiceStatus } from "../data/invoiceApi";
 import BatchInvoiceBuilder from "../components/BatchInvoiceBuilder";
@@ -757,6 +760,36 @@ function InvoiceBuilder({
   const [paymentTerms, setPaymentTerms] = useState(existingInvoice?.paymentTerms || "Net 30");
   const [showImport, setShowImport] = useState(false);
 
+  // Invoice templates (Studio)
+  const { can } = usePlan();
+  const { workspaceId } = useAuth();
+  const [templates, setTemplates] = useState<any[]>([]);
+  useEffect(() => {
+    if (!can('customInvoiceTemplates') || !workspaceId) return;
+    supabase
+      .from('invoice_templates')
+      .select('*')
+      .eq('workspace_id', workspaceId)
+      .order('name')
+      .then(({ data }) => setTemplates(data || []));
+  }, [workspaceId]);
+
+  const applyTemplate = (t: any) => {
+    const items = (t.line_items as any[]) || [];
+    if (items.length > 0) {
+      setLineItems(items.map((li: any, i: number) => ({
+        id: Date.now().toString() + i,
+        description: li.description || '',
+        quantity: li.quantity || 1,
+        rate: li.rate || 0,
+        amount: Math.round((li.quantity || 1) * (li.rate || 0) * 100) / 100,
+      })));
+    }
+    if (t.payment_terms) setPaymentTerms(t.payment_terms);
+    if (t.notes) setNotes(t.notes);
+    if (t.tax_rate) setTaxRate(t.tax_rate);
+    toast.success(`Template "${t.name}" applied`);
+  };
   const selectedClient = clients.find((c) => c.id === clientId);
 
   // Unbilled sessions for import
@@ -908,7 +941,26 @@ function InvoiceBuilder({
         </div>
 
         <div className="px-6 py-5 space-y-5 max-h-[70vh] overflow-y-auto">
-          {/* Client + Due Date row */}
+          {/* Template picker (Studio) */}
+          {!existingInvoice && templates.length > 0 && (
+            <div className="flex items-center gap-2">
+              <BookTemplate className="w-3.5 h-3.5 text-muted-foreground" />
+              <select
+                defaultValue=""
+                onChange={(e) => {
+                  const t = templates.find((t: any) => t.id === e.target.value);
+                  if (t) applyTemplate(t);
+                  e.target.value = '';
+                }}
+                className="flex-1 text-[13px] px-3 py-2 bg-accent/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+              >
+                <option value="" disabled>Load template...</option>
+                {templates.map((t: any) => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-[12px] text-muted-foreground mb-1.5" style={{ fontWeight: 500 }}>
