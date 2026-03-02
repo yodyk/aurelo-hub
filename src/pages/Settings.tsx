@@ -74,6 +74,7 @@ import EmailActivityLog from "../components/EmailActivityLog";
 import { usePlan } from "../data/PlanContext";
 import { FeatureGate } from "../components/FeatureGate";
 import { STARTER_NOTIFICATION_TYPES, PLANS } from "../data/plans";
+import WebhooksSection from "../components/WebhooksSection";
 
 // ── Animation variants ──────────────────────────────────────────────
 const container = {
@@ -2784,6 +2785,13 @@ function IntegrationsTabContent() {
               {regenerating ? "Generating..." : "Regenerate"}
             </button>
           </div>
+        </SectionCard>
+      </FeatureGate>
+
+      <FeatureGate feature="webhooks" featureLabel="Webhooks">
+        <SectionCard>
+          <SectionHeader title="Webhooks" description="Receive real-time HTTP notifications when events occur" />
+          <WebhooksSection />
         </SectionCard>
       </FeatureGate>
     </motion.div>
