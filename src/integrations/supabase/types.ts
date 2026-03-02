@@ -123,6 +123,57 @@ export type Database = {
           },
         ]
       }
+      email_events: {
+        Row: {
+          bounce_type: string | null
+          created_at: string
+          event_type: string
+          id: string
+          notification_id: string | null
+          raw_payload: Json | null
+          recipient: string
+          resend_email_id: string
+          workspace_id: string
+        }
+        Insert: {
+          bounce_type?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          notification_id?: string | null
+          raw_payload?: Json | null
+          recipient: string
+          resend_email_id: string
+          workspace_id: string
+        }
+        Update: {
+          bounce_type?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          notification_id?: string | null
+          raw_payload?: Json | null
+          recipient?: string
+          resend_email_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_events_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "notifications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_events_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoice_sequences: {
         Row: {
           next_number: number
