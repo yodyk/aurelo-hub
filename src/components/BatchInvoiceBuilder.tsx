@@ -122,6 +122,7 @@ export default function BatchInvoiceBuilder({
 
     for (const client of selectedClients) {
       try {
+        const invoiceNumber = await invoiceApi.getNextInvoiceNumber();
         const rate = client.rate || 0;
         const lineItems: LineItem[] = client.unbilledSessions.map((s: any) => ({
           id: Date.now().toString() + Math.random().toString(36).slice(2, 6),
@@ -136,6 +137,7 @@ export default function BatchInvoiceBuilder({
         const taxAmount = Math.round(subtotal * taxRate * 100) / 100;
 
         const saved = await invoiceApi.createInvoice({
+          number: invoiceNumber,
           clientId: client.id,
           clientName: client.name,
           clientEmail: client.contactEmail || client.email || "",
