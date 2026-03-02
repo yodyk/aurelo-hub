@@ -1,10 +1,12 @@
 import { clearDemoData } from '../data/settingsApi';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Outlet, NavLink, useLocation, useNavigate, Navigate } from 'react-router';
-import { LayoutDashboard, Users, Clock, TrendingUp, Settings, Play, Square, Bell, Menu, X, FolderKanban, LogOut, FileText, Sun, Moon, Lock, PanelLeftClose, PanelLeftOpen, Monitor } from 'lucide-react';
+import { LayoutDashboard, Users, Clock, TrendingUp, Settings, Play, Square, Menu, X, FolderKanban, LogOut, FileText, Sun, Moon, Lock, PanelLeftClose, PanelLeftOpen, Monitor } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { notifications as initialNotifications, workspace } from '../data/mockData';
+import { workspace } from '../data/mockData';
 import { useData, DataProvider } from '../data/DataContext';
+import { NotificationCenter } from '../components/NotificationCenter';
+import { NotificationEvents } from '../data/notificationsApi';
 import { AuthProvider, useAuth } from '../data/AuthContext';
 import { PlanProvider, usePlan } from '../data/PlanContext';
 // PlanBadge available from '../components/FeatureGate' if needed elsewhere
@@ -90,18 +92,15 @@ function RootLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { clients, addSession, initAvatar, initLogos, initSettings } = useData();
-  const { user, signOut } = useAuth();
+  const { user, signOut, workspaceId } = useAuth();
   const { theme, setTheme, resolvedTheme } = useTheme();
   const { can, planId } = usePlan();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [timerRunning, setTimerRunning] = useState(false);
   const [timerSeconds, setTimerSeconds] = useState(0);
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [notifs, setNotifs] = useState(initialNotifications);
   const [showLogModal, setShowLogModal] = useState(false);
   const [stoppedDuration, setStoppedDuration] = useState(0);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const notifRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -137,7 +136,7 @@ function RootLayout() {
     window.location.href = '/';
   }, []);
 
-  const unreadCount = notifs.filter(n => !n.read).length;
+  
 
   const displayName = user?.name || workspace.userName;
   const displayEmail = user?.email || workspace.userEmail;
@@ -174,6 +173,12 @@ function RootLayout() {
     await addSession(session);
     toast.success('Session logged');
     setTimerSeconds(0);
+    // Create notification
+    if (workspaceId) {
+      const clientName = clients.find(c => c.id === session.clientId)?.name || 'Client';
+      const hours = (session.duration || 0) / 3600;
+      NotificationEvents.sessionLogged(workspaceId, clientName, hours, { clientId: session.clientId });
+    }
   };
 
   const handleSignOut = async () => {
@@ -188,23 +193,12 @@ function RootLayout() {
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
-        setNotificationsOpen(false);
-      }
       if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
         setUserMenuOpen(false);
       }
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
-  }, []);
-
-  const markAllRead = useCallback(() => {
-    setNotifs(prev => prev.map(n => ({ ...n, read: true })));
-  }, []);
-
-  const dismissNotif = useCallback((id: number) => {
-    setNotifs(prev => prev.filter(n => n.id !== id));
   }, []);
 
   const sidebarWidth = sidebarCollapsed ? 'w-[72px]' : 'w-64';
@@ -437,79 +431,8 @@ function RootLayout() {
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Notification Bell */}
-            <div className="relative" ref={notifRef}>
-              <button
-                onClick={() => setNotificationsOpen(o => !o)}
-                className="relative w-8 h-8 flex items-center justify-center rounded-lg hover:bg-accent/60 transition-colors text-muted-foreground hover:text-foreground"
-              >
-                <Bell className="w-4 h-4" />
-                {unreadCount > 0 && (
-                  <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-primary text-[9px] text-primary-foreground flex items-center justify-center" style={{ fontWeight: 600 }}>
-                    {unreadCount}
-                  </span>
-                )}
-              </button>
-
-              <AnimatePresence>
-                {notificationsOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 4, scale: 0.97 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 4, scale: 0.97 }}
-                    transition={{ duration: 0.15 }}
-                    className="absolute right-0 top-full mt-2 w-80 bg-card border border-border rounded-xl overflow-hidden z-50"
-                    style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04)' }}
-                  >
-                    <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-                      <span className="text-[13px]" style={{ fontWeight: 600 }}>Notifications</span>
-                      {unreadCount > 0 && (
-                        <button
-                          onClick={markAllRead}
-                          className="text-[12px] text-primary hover:text-primary/80 transition-colors"
-                          style={{ fontWeight: 500 }}
-                        >
-                          Mark all read
-                        </button>
-                      )}
-                    </div>
-                    <div className="max-h-72 overflow-y-auto">
-                      {notifs.length === 0 ? (
-                        <div className="px-4 py-8 text-center text-[13px] text-muted-foreground">
-                          No notifications
-                        </div>
-                      ) : (
-                        notifs.map(n => (
-                          <div
-                            key={n.id}
-                            className={`flex items-start gap-3 px-4 py-3 border-b border-border last:border-0 hover:bg-accent/30 transition-colors cursor-pointer ${!n.read ? 'bg-primary/[0.03]' : ''}`}
-                            onClick={() => {
-                              if (n.clientId) navigate(`/clients/${n.clientId}`);
-                              setNotificationsOpen(false);
-                            }}
-                          >
-                            <div className="mt-1 flex-shrink-0">
-                              {!n.read && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
-                              {n.read && <div className="w-1.5 h-1.5 rounded-full bg-transparent" />}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="text-[13px] mb-0.5" style={{ fontWeight: n.read ? 400 : 500 }}>{n.message}</div>
-                              <div className="text-[11px] text-muted-foreground">{n.timestamp}</div>
-                            </div>
-                            <button
-                              onClick={(e) => { e.stopPropagation(); dismissNotif(n.id); }}
-                              className="flex-shrink-0 w-5 h-5 flex items-center justify-center rounded hover:bg-accent/60 text-muted-foreground hover:text-foreground transition-colors"
-                            >
-                              <X className="w-3 h-3" />
-                            </button>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+            {/* Notification Center */}
+            {workspaceId && <NotificationCenter workspaceId={workspaceId} />}
 
             {/* Timer Controls */}
             {!timerRunning ? (
