@@ -2221,49 +2221,51 @@ function IntegrationsTabContent() {
         </div>
       </SectionCard>
 
-      <SectionCard>
-        <SectionHeader title="API access" description="Use your API key to connect custom integrations" />
-        <div className="flex items-center gap-2 mb-3">
-          <div
-            className="flex-1 px-3 py-2 bg-accent/30 border border-border rounded-lg text-[13px] tabular-nums truncate"
-            style={{ fontFamily: "ui-monospace, monospace" }}
-          >
-            {apiKeyData?.key ? (apiKeyVisible ? apiKeyData.key : "\u2022".repeat(24)) : "No key generated"}
+      <FeatureGate feature="apiAccess" featureLabel="API Access">
+        <SectionCard>
+          <SectionHeader title="API access" description="Use your API key to connect custom integrations" />
+          <div className="flex items-center gap-2 mb-3">
+            <div
+              className="flex-1 px-3 py-2 bg-accent/30 border border-border rounded-lg text-[13px] tabular-nums truncate"
+              style={{ fontFamily: "ui-monospace, monospace" }}
+            >
+              {apiKeyData?.key ? (apiKeyVisible ? apiKeyData.key : "\u2022".repeat(24)) : "No key generated"}
+            </div>
+            {apiKeyData?.key && (
+              <>
+                <button
+                  onClick={() => setApiKeyVisible((v) => !v)}
+                  className="w-9 h-9 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-all"
+                >
+                  {apiKeyVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+                <button
+                  onClick={copyApiKey}
+                  className="w-9 h-9 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-all"
+                >
+                  {apiCopied ? <Check className="w-4 h-4 text-primary" /> : <Copy className="w-4 h-4" />}
+                </button>
+              </>
+            )}
           </div>
-          {apiKeyData?.key && (
-            <>
-              <button
-                onClick={() => setApiKeyVisible((v) => !v)}
-                className="w-9 h-9 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-all"
-              >
-                {apiKeyVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-              <button
-                onClick={copyApiKey}
-                className="w-9 h-9 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-all"
-              >
-                {apiCopied ? <Check className="w-4 h-4 text-primary" /> : <Copy className="w-4 h-4" />}
-              </button>
-            </>
-          )}
-        </div>
-        <div className="flex items-center justify-between">
-          <div className="text-[12px] text-muted-foreground">
-            {apiKeyData?.createdAt
-              ? `Generated ${new Date(apiKeyData.createdAt).toLocaleDateString()}`
-              : "Keep this key secret. Regenerate if compromised."}
+          <div className="flex items-center justify-between">
+            <div className="text-[12px] text-muted-foreground">
+              {apiKeyData?.createdAt
+                ? `Generated ${new Date(apiKeyData.createdAt).toLocaleDateString()}`
+                : "Keep this key secret. Regenerate if compromised."}
+            </div>
+            <button
+              onClick={handleRegenerateKey}
+              disabled={regenerating}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-all disabled:opacity-60"
+              style={{ fontWeight: 500 }}
+            >
+              {regenerating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+              {regenerating ? "Generating..." : "Regenerate"}
+            </button>
           </div>
-          <button
-            onClick={handleRegenerateKey}
-            disabled={regenerating}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-all disabled:opacity-60"
-            style={{ fontWeight: 500 }}
-          >
-            {regenerating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
-            {regenerating ? "Generating..." : "Regenerate"}
-          </button>
-        </div>
-      </SectionCard>
+        </SectionCard>
+      </FeatureGate>
     </motion.div>
   );
 }

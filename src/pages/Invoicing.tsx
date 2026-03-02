@@ -22,6 +22,7 @@ import {
   Ban,
   Import,
   CreditCard,
+  Layers,
 } from "lucide-react";
 import { toast } from "sonner";
 import { usePlan } from "../data/PlanContext";
@@ -29,6 +30,7 @@ import { PLANS } from "../data/plans";
 import { useData } from "../data/DataContext";
 import * as invoiceApi from "../data/invoiceApi";
 import type { Invoice, LineItem, InvoiceStatus } from "../data/invoiceApi";
+import BatchInvoiceBuilder from "../components/BatchInvoiceBuilder";
 
 // ── Constants ──────────────────────────────────────────────────────
 
@@ -87,6 +89,7 @@ function daysUntil(dateStr: string): number {
 export default function Invoicing() {
   const { can } = usePlan();
   const hasInvoicing = can("clientInvoicing");
+  const hasBatchInvoicing = can("batchInvoicing");
   const navigate = useNavigate();
   const { clients, sessions } = useData();
 
@@ -95,6 +98,7 @@ export default function Invoicing() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<InvoiceStatus | "all">("all");
   const [showBuilder, setShowBuilder] = useState(false);
+  const [showBatchBuilder, setShowBatchBuilder] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
   const [viewingInvoice, setViewingInvoice] = useState<Invoice | null>(null);
 
@@ -262,17 +266,29 @@ export default function Invoicing() {
             </h1>
             <p className="text-[14px] text-muted-foreground mt-1">Create, send, and track invoices for your clients</p>
           </div>
-          <button
-            onClick={() => {
-              setEditingInvoice(null);
-              setShowBuilder(true);
-            }}
-            className="inline-flex items-center gap-2 px-4 py-2 text-[13px] rounded-lg bg-foreground text-background hover:opacity-90 transition-all"
-            style={{ fontWeight: 500 }}
-          >
-            <Plus className="w-3.5 h-3.5" />
-            New invoice
-          </button>
+          <div className="flex items-center gap-2">
+            {hasBatchInvoicing && (
+              <button
+                onClick={() => setShowBatchBuilder(true)}
+                className="inline-flex items-center gap-2 px-4 py-2 text-[13px] rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-all"
+                style={{ fontWeight: 500 }}
+              >
+                <Layers className="w-3.5 h-3.5" />
+                Batch
+              </button>
+            )}
+            <button
+              onClick={() => {
+                setEditingInvoice(null);
+                setShowBuilder(true);
+              }}
+              className="inline-flex items-center gap-2 px-4 py-2 text-[13px] rounded-lg bg-foreground text-background hover:opacity-90 transition-all"
+              style={{ fontWeight: 500 }}
+            >
+              <Plus className="w-3.5 h-3.5" />
+              New invoice
+            </button>
+          </div>
         </motion.div>
 
         {/* Stats row */}
@@ -482,6 +498,22 @@ export default function Invoicing() {
               handleVoid(viewingInvoice.id);
               setViewingInvoice(null);
             }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Batch Invoice Builder Modal */}
+      <AnimatePresence>
+        {showBatchBuilder && (
+          <BatchInvoiceBuilder
+            clients={clients}
+            sessions={sessions}
+            existingInvoices={invoices}
+            onComplete={(newInvoices) => {
+              setInvoices((prev) => [...newInvoices, ...prev]);
+              setShowBatchBuilder(false);
+            }}
+            onClose={() => setShowBatchBuilder(false)}
           />
         )}
       </AnimatePresence>
