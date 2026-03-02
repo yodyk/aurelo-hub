@@ -1,6 +1,6 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { Calendar, Filter, Plus, Clock, DollarSign, ChevronDown, Download, FolderKanban, Repeat, Pencil, Trash2, MoreHorizontal, Search, X, CheckSquare, Square } from "lucide-react";
+import { Calendar, Filter, Plus, Clock, DollarSign, ChevronDown, Download, FolderKanban, Repeat, Pencil, Trash2, MoreHorizontal, Search, X, CheckSquare, Square, Receipt } from "lucide-react";
 import { motion } from "motion/react";
 import { useData } from "../data/DataContext";
 import { LogSessionModal, EditSessionModal } from "../components/Modals";
@@ -10,6 +10,9 @@ import { toast } from "sonner";
 import { useAuth } from "@/data/AuthContext";
 import { NotificationEvents } from "@/data/notificationsApi";
 import { startOfDay, subDays, startOfMonth, startOfQuarter, startOfYear, isBefore, isAfter } from "date-fns";
+import * as invoiceApi from "../data/invoiceApi";
+import type { Invoice } from "../data/invoiceApi";
+import { usePlan } from "../data/PlanContext";
 
 const container = {
   hidden: {},
@@ -34,6 +37,7 @@ export default function TimeLog() {
   const navigate = useNavigate();
   const { sessions, clients, addSession, updateSession, deleteSession, workCategoryNames } = useData();
   const { workspaceId } = useAuth();
+  const { can } = usePlan();
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [selectedClient, setSelectedClient] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState("This Month");
@@ -41,6 +45,28 @@ export default function TimeLog() {
   const [showLogModal, setShowLogModal] = useState(false);
   const [editingSession, setEditingSession] = useState<any>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+
+  // Load invoices to track which sessions are already invoiced
+  useEffect(() => {
+    if (can("clientInvoicing")) {
+      invoiceApi.loadInvoices().then(setInvoices).catch(() => {});
+    }
+  }, [can]);
+
+  // Build a set of invoiced session IDs and map to invoice numbers
+  const invoicedSessionMap = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const inv of invoices) {
+      if (inv.status !== "voided" && inv.status !== "cancelled") {
+        for (const s of inv.createdFromSessions || []) map.set(s, inv.number);
+        for (const li of inv.lineItems) {
+          for (const sid of li.sessionIds || []) map.set(sid, inv.number);
+        }
+      }
+    }
+    return map;
+  }, [invoices]);
 
   const filteredSessions = useMemo(() => {
     let s = sessions;
@@ -622,7 +648,7 @@ export default function TimeLog() {
                       </div>
                     </div>
 
-                    <div className="flex-shrink-0">
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
                       {session.billable ? (
                         <span
                           className="px-2 py-0.5 bg-primary/8 text-primary text-[10px] rounded-full"
@@ -636,6 +662,16 @@ export default function TimeLog() {
                           style={{ fontWeight: 500 }}
                         >
                           Non-billable
+                        </span>
+                      )}
+                      {invoicedSessionMap.has(String(session.id)) && (
+                        <span
+                          className="inline-flex items-center gap-1 px-2 py-0.5 bg-accent/60 text-muted-foreground text-[10px] rounded-full"
+                          style={{ fontWeight: 500 }}
+                          title={`Invoiced on #${invoicedSessionMap.get(String(session.id))}`}
+                        >
+                          <Receipt className="w-2.5 h-2.5" />
+                          #{invoicedSessionMap.get(String(session.id))}
                         </span>
                       )}
                     </div>
