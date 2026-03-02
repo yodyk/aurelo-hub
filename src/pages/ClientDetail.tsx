@@ -37,6 +37,7 @@ import ClientNotes from "../components/ClientNotes";
 import EmailActivityLog from "../components/EmailActivityLog";
 import BulkSessionActions from "../components/BulkSessionActions";
 import { supabase } from "@/integrations/supabase/client";
+import { usePlan } from "@/data/PlanContext";
 
 const container = {
   hidden: {},
@@ -67,6 +68,7 @@ export default function ClientDetail() {
   const navigate = useNavigate();
   const { workspaceId, clients, sessions, updateClient, addSession, updateSession, deleteSession, getProjects, loadProjectsForClient, addProject, netMultiplier, workCategoryNames } =
     useData();
+  const { isAtLeast } = usePlan();
   const [viewMode, setViewMode] = useState<"gross" | "net">("gross");
   const [expandedSections, setExpandedSections] = useState({
     insights: true,
@@ -107,6 +109,9 @@ export default function ClientDetail() {
   // Portal
   const [portalConfig, setPortalConfig] = useState<any>(null);
   const [portalLoading, setPortalLoading] = useState(false);
+  const [clientLogoUrl, setClientLogoUrl] = useState<string | null>(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const clientLogoInputRef = useRef<HTMLInputElement>(null);
 
   // Retainer warning thresholds that have been sent (with timestamps and notification IDs)
   const [sentThresholds, setSentThresholds] = useState<Record<number, { sentAt: string; notificationId: string }>>({});
@@ -135,7 +140,7 @@ export default function ClientDetail() {
 
   const client = clients.find((c) => c.id === clientId);
 
-  // Load files, projects
+  // Load files, projects, portal config, client logo
   useEffect(() => {
     if (!clientId) return;
     if (workspaceId) dataApi.loadFiles(workspaceId, clientId).then(setFiles);
@@ -146,7 +151,16 @@ export default function ClientDetail() {
     portalApi.getPortalConfig(clientId).then((config) => {
       if (config) setPortalConfig(config);
     });
-  }, [clientId, loadProjectsForClient]);
+    // Load client logo if Studio
+    if (workspaceId && isAtLeast('studio')) {
+      supabase.storage.from('logos').list(workspaceId, { limit: 20 }).then(({ data: files }) => {
+        const match = files?.find((f: any) => f.name.startsWith(`client-${clientId}.`));
+        if (match) {
+          setClientLogoUrl(`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/${workspaceId}/${match.name}`);
+        }
+      });
+    }
+  }, [clientId, loadProjectsForClient, workspaceId, isAtLeast]);
 
   // Load sent retainer warning thresholds + email delivery statuses
   useEffect(() => {
@@ -289,6 +303,43 @@ export default function ClientDetail() {
       toast.success(active ? "Portal activated" : "Portal deactivated");
     } catch (err: any) {
       toast.error(err.message || "Failed to toggle portal");
+    }
+  };
+  const handleUploadClientLogo = async (file: File) => {
+    if (!clientId || !workspaceId) return;
+    setUploadingLogo(true);
+    try {
+      const ext = file.name.split('.').pop() || 'png';
+      const path = `${workspaceId}/client-${clientId}.${ext}`;
+      // Remove old logo first (any extension)
+      const { data: existing } = await supabase.storage.from('logos').list(workspaceId, { limit: 20 });
+      const oldLogo = existing?.find((f: any) => f.name.startsWith(`client-${clientId}.`));
+      if (oldLogo) {
+        await supabase.storage.from('logos').remove([`${workspaceId}/${oldLogo.name}`]);
+      }
+      const { error } = await supabase.storage.from('logos').upload(path, file, { upsert: true });
+      if (error) throw new Error(error.message);
+      setClientLogoUrl(`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/${path}`);
+      toast.success("Client logo uploaded");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to upload logo");
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
+  const handleRemoveClientLogo = async () => {
+    if (!clientId || !workspaceId) return;
+    try {
+      const { data: existing } = await supabase.storage.from('logos').list(workspaceId, { limit: 20 });
+      const oldLogo = existing?.find((f: any) => f.name.startsWith(`client-${clientId}.`));
+      if (oldLogo) {
+        await supabase.storage.from('logos').remove([`${workspaceId}/${oldLogo.name}`]);
+      }
+      setClientLogoUrl(null);
+      toast.success("Client logo removed");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to remove logo");
     }
   };
 
@@ -1443,6 +1494,56 @@ export default function ClientDetail() {
                     ? "Billing totals are visible to the client on this portal"
                     : "Financial data is hidden — client sees hours and activity only"}
                 </div>
+
+                {/* Client logo (Studio only) */}
+                {isAtLeast('studio') && (
+                  <div className="pt-3 border-t border-border">
+                    <div className="text-[12px] text-muted-foreground mb-2 flex items-center gap-1.5" style={{ fontWeight: 500 }}>
+                      <Upload className="w-3 h-3" />
+                      Client logo for portal
+                    </div>
+                    {clientLogoUrl ? (
+                      <div className="flex items-center gap-3">
+                        <img src={clientLogoUrl} alt="Client logo" className="h-10 w-10 rounded-lg object-contain border border-border bg-white p-0.5" />
+                        <button
+                          onClick={() => clientLogoInputRef.current?.click()}
+                          className="text-[12px] text-primary hover:text-primary/80 transition-colors"
+                          style={{ fontWeight: 500 }}
+                        >
+                          Replace
+                        </button>
+                        <button
+                          onClick={handleRemoveClientLogo}
+                          className="text-[12px] text-destructive hover:text-destructive/80 transition-colors"
+                          style={{ fontWeight: 500 }}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => clientLogoInputRef.current?.click()}
+                        disabled={uploadingLogo}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] bg-accent/30 rounded-lg hover:bg-accent/50 transition-all text-muted-foreground"
+                        style={{ fontWeight: 500 }}
+                      >
+                        {uploadingLogo ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
+                        Upload logo
+                      </button>
+                    )}
+                    <input
+                      ref={clientLogoInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleUploadClientLogo(file);
+                        e.target.value = '';
+                      }}
+                    />
+                  </div>
+                )}
 
                 {/* Regenerate */}
                 <button
