@@ -1,24 +1,39 @@
+import { lazy, Suspense } from "react";
 import { createBrowserRouter } from "react-router";
 import Root from "./pages/Root";
-import Home from "./pages/Home";
-import Clients from "./pages/Clients";
-import ClientDetail from "./pages/ClientDetail";
-import Projects from "./pages/Projects";
-import ProjectDetail from "./pages/ProjectDetail";
-import TimeLog from "./pages/TimeLog";
-import Insights from "./pages/Insights";
-import Invoicing from "./pages/Invoicing";
-import Settings from "./pages/Settings";
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
-import Onboarding from "./pages/Onboarding";
-import ClientPortal from "./pages/ClientPortal";
 import { AuthProvider } from "./data/AuthContext";
+
+// Lazy-loaded page components
+const Home = lazy(() => import("./pages/Home"));
+const Clients = lazy(() => import("./pages/Clients"));
+const ClientDetail = lazy(() => import("./pages/ClientDetail"));
+const Projects = lazy(() => import("./pages/Projects"));
+const ProjectDetail = lazy(() => import("./pages/ProjectDetail"));
+const TimeLog = lazy(() => import("./pages/TimeLog"));
+const Insights = lazy(() => import("./pages/Insights"));
+const Invoicing = lazy(() => import("./pages/Invoicing"));
+const Settings = lazy(() => import("./pages/Settings"));
+const Login = lazy(() => import("./pages/Login"));
+const Signup = lazy(() => import("./pages/Signup"));
+const Onboarding = lazy(() => import("./pages/Onboarding"));
+const ClientPortal = lazy(() => import("./pages/ClientPortal"));
+
+function PageFallback() {
+  return (
+    <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+}
+
+function SuspensePage({ children }: { children: React.ReactNode }) {
+  return <Suspense fallback={<PageFallback />}>{children}</Suspense>;
+}
 
 function OnboardingWithAuth() {
   return (
     <AuthProvider>
-      <Onboarding />
+      <SuspensePage><Onboarding /></SuspensePage>
     </AuthProvider>
   );
 }
@@ -26,7 +41,7 @@ function OnboardingWithAuth() {
 function LoginWithAuth() {
   return (
     <AuthProvider>
-      <Login />
+      <SuspensePage><Login /></SuspensePage>
     </AuthProvider>
   );
 }
@@ -34,7 +49,7 @@ function LoginWithAuth() {
 function SignupWithAuth() {
   return (
     <AuthProvider>
-      <Signup />
+      <SuspensePage><Signup /></SuspensePage>
     </AuthProvider>
   );
 }
@@ -63,21 +78,21 @@ export const router = createBrowserRouter([
   { path: "/login", Component: LoginWithAuth },
   { path: "/signup", Component: SignupWithAuth },
   { path: "/onboarding", Component: OnboardingWithAuth },
-  { path: "/portal/:token", Component: ClientPortal },
+  { path: "/portal/:token", element: <SuspensePage><ClientPortal /></SuspensePage> },
   {
     path: "/",
     Component: Root,
     ErrorBoundary: RootErrorBoundary,
     children: [
-      { index: true, Component: Home },
-      { path: "clients", Component: Clients },
-      { path: "clients/:clientId", Component: ClientDetail },
-      { path: "projects", Component: Projects },
-      { path: "projects/:clientId/:projectId", Component: ProjectDetail },
-      { path: "time", Component: TimeLog },
-      { path: "insights", Component: Insights },
-      { path: "invoicing", Component: Invoicing },
-      { path: "settings", Component: Settings },
+      { index: true, element: <SuspensePage><Home /></SuspensePage> },
+      { path: "clients", element: <SuspensePage><Clients /></SuspensePage> },
+      { path: "clients/:clientId", element: <SuspensePage><ClientDetail /></SuspensePage> },
+      { path: "projects", element: <SuspensePage><Projects /></SuspensePage> },
+      { path: "projects/:clientId/:projectId", element: <SuspensePage><ProjectDetail /></SuspensePage> },
+      { path: "time", element: <SuspensePage><TimeLog /></SuspensePage> },
+      { path: "insights", element: <SuspensePage><Insights /></SuspensePage> },
+      { path: "invoicing", element: <SuspensePage><Invoicing /></SuspensePage> },
+      { path: "settings", element: <SuspensePage><Settings /></SuspensePage> },
     ],
   },
 ]);
