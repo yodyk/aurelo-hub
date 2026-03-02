@@ -7,6 +7,8 @@ import { LogSessionModal, EditSessionModal } from "../components/Modals";
 import BulkSessionActions from "../components/BulkSessionActions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useAuth } from "@/data/AuthContext";
+import { NotificationEvents } from "@/data/notificationsApi";
 import { startOfDay, subDays, startOfMonth, startOfQuarter, startOfYear, isBefore, isAfter } from "date-fns";
 
 const container = {
@@ -31,6 +33,7 @@ function parseSessionDate(dateStr: string): Date | null {
 export default function TimeLog() {
   const navigate = useNavigate();
   const { sessions, clients, addSession, updateSession, deleteSession, workCategoryNames } = useData();
+  const { workspaceId } = useAuth();
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [selectedClient, setSelectedClient] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState("This Month");
@@ -151,6 +154,15 @@ export default function TimeLog() {
   const handleLogSession = async (session: any) => {
     await addSession(session);
     toast.success("Session logged");
+    if (workspaceId) {
+      try {
+        const clientName = clients.find(c => c.id === session.clientId)?.name || 'Client';
+        const hours = typeof session.duration === 'number' ? session.duration : 0;
+        await NotificationEvents.sessionLogged(workspaceId, clientName, hours, { clientId: session.clientId });
+      } catch (err) {
+        console.error('[TimeLog] Failed to create session notification:', err);
+      }
+    }
   };
 
   const handleUpdateSession = async (sessionId: string, updates: any) => {
