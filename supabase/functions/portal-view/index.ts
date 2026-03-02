@@ -79,16 +79,22 @@ Deno.serve(async (req) => {
     // 3. Resolve logo URLs from storage
     let logoUrl: string | null = null;
     let clientLogoUrl: string | null = null;
+    let clientFaviconUrl: string | null = null;
 
     if (isWhiteLabel) {
       try {
-        const { data: logoFiles } = await sb.storage.from('logos').list(workspace_id, { limit: 10 });
+        const { data: logoFiles } = await sb.storage.from('logos').list(workspace_id, { limit: 30 });
         const appLogo = logoFiles?.find((f: any) => f.name.startsWith('app.'));
         if (appLogo) {
           logoUrl = `${SUPABASE_URL}/storage/v1/object/public/logos/${workspace_id}/${appLogo.name}`;
         }
-        // Check for client-specific logo
-        const clientLogo = logoFiles?.find((f: any) => f.name.startsWith(`client-${client_id}.`));
+        // Check for client-specific favicon
+        const clientFavicon = logoFiles?.find((f: any) => f.name.startsWith(`client-${client_id}-favicon.`));
+        if (clientFavicon) {
+          clientFaviconUrl = `${SUPABASE_URL}/storage/v1/object/public/logos/${workspace_id}/${clientFavicon.name}`;
+        }
+        // Check for client-specific full logo
+        const clientLogo = logoFiles?.find((f: any) => f.name.startsWith(`client-${client_id}.`) && !f.name.includes('-favicon'));
         if (clientLogo) {
           clientLogoUrl = `${SUPABASE_URL}/storage/v1/object/public/logos/${workspace_id}/${clientLogo.name}`;
         }
@@ -164,6 +170,7 @@ Deno.serve(async (req) => {
         brandColor: isWhiteLabel ? (wsSettings?.brandColor || null) : null,
         logoUrl: isWhiteLabel ? logoUrl : null,
         clientLogoUrl: isWhiteLabel ? clientLogoUrl : null,
+        clientFaviconUrl: isWhiteLabel ? clientFaviconUrl : null,
       },
     };
 
