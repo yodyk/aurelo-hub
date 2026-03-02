@@ -25,6 +25,8 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
 import { useData } from "../data/DataContext";
+import { useAuth } from "@/data/AuthContext";
+import { NotificationEvents } from "@/data/notificationsApi";
 import { EditClientModal, LogSessionModal, AddProjectModal, EditSessionModal } from "../components/Modals";
 import * as dataApi from "../data/dataApi";
 import * as portalApi from "../data/portalApi";
@@ -222,6 +224,15 @@ export default function ClientDetail() {
   const handleLogSession = async (session: any) => {
     await addSession(session);
     toast.success("Session logged");
+    if (workspaceId) {
+      try {
+        const clientName = clients.find(c => c.id === session.clientId)?.name || 'Client';
+        const hours = typeof session.duration === 'number' ? session.duration : 0;
+        await NotificationEvents.sessionLogged(workspaceId, clientName, hours, { clientId: session.clientId });
+      } catch (err) {
+        console.error('[ClientDetail] Failed to create session notification:', err);
+      }
+    }
   };
 
   const handleUpdateSession = async (sessionId: string, updates: any) => {
