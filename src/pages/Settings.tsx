@@ -1790,7 +1790,54 @@ function TeamTab({ readOnly = false }: { readOnly?: boolean }) {
   const [members, loading, setMembers] = useSettingsSection("team", defaultTeam);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState("Member");
+  const [inviteCapacity, setInviteCapacity] = useState(40);
   const [inviting, setInviting] = useState(false);
+  const [editingCapacity, setEditingCapacity] = useState<string | null>(null);
+  const [capacityValue, setCapacityValue] = useState("");
+
+  // Load real workspace_members for capacity data
+  const { workspaceId } = useAuth();
+  const [realMembers, setRealMembers] = useState<any[]>([]);
+  useEffect(() => {
+    if (!workspaceId) return;
+    supabase
+      .from("workspace_members")
+      .select("id, user_id, email, weekly_capacity")
+      .eq("workspace_id", workspaceId)
+      .then(({ data }) => setRealMembers(data || []));
+  }, [workspaceId]);
+
+  const getCapacity = (email: string) => {
+    const rm = realMembers.find((r) => r.email === email);
+    return rm?.weekly_capacity ?? 40;
+  };
+
+  const getMemberId = (email: string) => {
+    const rm = realMembers.find((r) => r.email === email);
+    return rm?.id;
+  };
+
+  const CAPACITY_PRESETS = [
+    { label: "Full-time", hours: 40, description: "40h / week" },
+    { label: "Part-time", hours: 20, description: "20h / week" },
+    { label: "Contractor", hours: 30, description: "30h / week" },
+  ] as const;
+
+  const capacityLabel = (hours: number) => CAPACITY_PRESETS.find((p) => p.hours === hours)?.label;
+
+  const handleSaveCapacity = async (memberEmail: string, hours: number) => {
+    const memberId = getMemberId(memberEmail);
+    if (!memberId) return;
+    await supabase
+      .from("workspace_members")
+      .update({ weekly_capacity: hours } as any)
+      .eq("id", memberId);
+    setRealMembers((prev) =>
+      prev.map((m) => (m.id === memberId ? { ...m, weekly_capacity: hours } : m))
+    );
+    setEditingCapacity(null);
+    toast.success("Capacity updated");
+  };
 
   const sendInvite = async () => {
     if (!inviteEmail) return;
@@ -1800,6 +1847,7 @@ function TeamTab({ readOnly = false }: { readOnly?: boolean }) {
       setMembers([...members, newMember]);
       toast.success(`Invite sent to ${inviteEmail}`);
       setInviteEmail("");
+      setInviteCapacity(40);
     } catch (err: any) {
       toast.error(err.message || "Failed to send invite");
     } finally {
@@ -1840,54 +1888,123 @@ function TeamTab({ readOnly = false }: { readOnly?: boolean }) {
           )}
         </div>
         <div className="space-y-1 mb-6">
-          {members.map((member: any) => (
-            <div
-              key={member.id}
-              className="flex items-center gap-3 py-3 px-3 rounded-lg hover:bg-accent/30 transition-colors group"
-            >
-              <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <span className="text-[12px] text-primary" style={{ fontWeight: 600 }}>
-                  {member.initials}
-                </span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <div className="text-[14px]" style={{ fontWeight: 500 }}>
-                    {member.name}
+          {members.map((member: any) => {
+            const cap = getCapacity(member.email);
+            const presetLabel = capacityLabel(cap);
+            const isEditing = editingCapacity === member.email;
+
+            return (
+              <div
+                key={member.id}
+                className="flex items-center gap-3 py-3 px-3 rounded-lg hover:bg-accent/30 transition-colors group"
+              >
+                <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <span className="text-[12px] text-primary" style={{ fontWeight: 600 }}>
+                    {member.initials}
+                  </span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <div className="text-[14px]" style={{ fontWeight: 500 }}>
+                      {member.name}
+                    </div>
+                    {member.status === "pending" && (
+                      <span
+                        className="px-1.5 py-0.5 text-[10px] rounded bg-accent/80 text-muted-foreground"
+                        style={{ fontWeight: 500 }}
+                      >
+                        pending
+                      </span>
+                    )}
                   </div>
-                  {member.status === "pending" && (
-                    <span
-                      className="px-1.5 py-0.5 text-[10px] rounded bg-accent/80 text-muted-foreground"
+                  <div className="text-[12px] text-muted-foreground truncate">{member.email}</div>
+                </div>
+
+                {/* Capacity display / edit */}
+                <div className="flex items-center gap-2">
+                  {!readOnly && isEditing ? (
+                    <div className="flex items-center gap-1.5 bg-accent/40 rounded-lg px-2 py-1">
+                      {CAPACITY_PRESETS.map((preset) => (
+                        <button
+                          key={preset.label}
+                          onClick={() => handleSaveCapacity(member.email, preset.hours)}
+                          className={`px-2 py-1 text-[11px] rounded-md transition-colors ${
+                            cap === preset.hours
+                              ? "bg-primary text-primary-foreground"
+                              : "hover:bg-accent text-muted-foreground"
+                          }`}
+                          style={{ fontWeight: 500 }}
+                        >
+                          {preset.label}
+                        </button>
+                      ))}
+                      <div className="flex items-center gap-1 ml-1">
+                        <input
+                          type="number"
+                          min={0}
+                          max={168}
+                          defaultValue={cap}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              const val = parseFloat((e.target as HTMLInputElement).value);
+                              if (!isNaN(val) && val >= 0 && val <= 168) handleSaveCapacity(member.email, val);
+                            }
+                            if (e.key === "Escape") setEditingCapacity(null);
+                          }}
+                          className="w-14 h-6 text-[12px] text-right tabular-nums bg-background border border-border rounded px-1.5 focus:outline-none focus:ring-1 focus:ring-primary"
+                          placeholder="Custom"
+                          autoFocus
+                        />
+                        <span className="text-[10px] text-muted-foreground">h/w</span>
+                      </div>
+                      <button
+                        onClick={() => setEditingCapacity(null)}
+                        className="ml-1 p-0.5 text-muted-foreground hover:text-foreground"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => !readOnly && setEditingCapacity(member.email)}
+                      className={`text-[12px] tabular-nums px-2 py-1 rounded-md transition-colors ${
+                        readOnly ? "cursor-default" : "hover:bg-accent/60 cursor-pointer"
+                      }`}
                       style={{ fontWeight: 500 }}
+                      disabled={readOnly}
+                      title={readOnly ? "Capacity" : "Click to edit capacity"}
                     >
-                      pending
-                    </span>
+                      <span className="text-muted-foreground">{cap}h/w</span>
+                      {presetLabel && (
+                        <span className="text-muted-foreground/60 ml-1">· {presetLabel}</span>
+                      )}
+                    </button>
                   )}
                 </div>
-                <div className="text-[12px] text-muted-foreground truncate">{member.email}</div>
-              </div>
-              <div className="text-right mr-2">
-                <div className="text-[11px] text-muted-foreground">
-                  {member.lastActive === "Invited" ? "Invited" : `Active ${member.lastActive.toLowerCase()}`}
+
+                <div className="text-right mr-2">
+                  <div className="text-[11px] text-muted-foreground">
+                    {member.lastActive === "Invited" ? "Invited" : `Active ${member.lastActive.toLowerCase()}`}
+                  </div>
+                  <div className="text-[11px] text-muted-foreground">Joined {member.joinedDate}</div>
                 </div>
-                <div className="text-[11px] text-muted-foreground">Joined {member.joinedDate}</div>
-              </div>
-              <div
-                className={`px-2 py-0.5 text-[11px] rounded-full ${roleColors[member.role] || "bg-accent/80 text-muted-foreground"}`}
-                style={{ fontWeight: 500 }}
-              >
-                {member.role}
-              </div>
-              {!readOnly && member.role !== "Owner" && (
-                <button
-                  onClick={() => removeMember(member.id)}
-                  className="w-6 h-6 flex items-center justify-center rounded hover:bg-accent/60 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all"
+                <div
+                  className={`px-2 py-0.5 text-[11px] rounded-full ${roleColors[member.role] || "bg-accent/80 text-muted-foreground"}`}
+                  style={{ fontWeight: 500 }}
                 >
-                  <X className="w-3 h-3" />
-                </button>
-              )}
-            </div>
-          ))}
+                  {member.role}
+                </div>
+                {!readOnly && member.role !== "Owner" && (
+                  <button
+                    onClick={() => removeMember(member.id)}
+                    className="w-6 h-6 flex items-center justify-center rounded hover:bg-accent/60 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+            );
+          })}
         </div>
 
         {!readOnly && (
@@ -1895,12 +2012,12 @@ function TeamTab({ readOnly = false }: { readOnly?: boolean }) {
             <div className="text-[13px] text-muted-foreground mb-3" style={{ fontWeight: 500 }}>
               Invite member
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <TextInput
                 value={inviteEmail}
                 onChange={(e) => setInviteEmail(e.target.value)}
                 placeholder="Email address"
-                className="flex-1"
+                className="flex-1 min-w-[200px]"
               />
               <select
                 value={inviteRole}
@@ -1910,6 +2027,16 @@ function TeamTab({ readOnly = false }: { readOnly?: boolean }) {
               >
                 <option>Member</option>
                 <option>Admin</option>
+              </select>
+              <select
+                value={inviteCapacity}
+                onChange={(e) => setInviteCapacity(Number(e.target.value))}
+                className="px-3 py-2 text-[13px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
+                style={{ fontWeight: 500 }}
+              >
+                <option value={40}>Full-time (40h)</option>
+                <option value={20}>Part-time (20h)</option>
+                <option value={30}>Contractor (30h)</option>
               </select>
               <SaveButton onClick={sendInvite} label={inviting ? "Sending..." : "Send"} saving={inviting} />
             </div>

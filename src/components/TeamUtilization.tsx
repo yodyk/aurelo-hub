@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { motion, AnimatePresence } from "motion/react";
-import { Users, Clock, DollarSign, TrendingUp, BarChart3, ChevronDown, Check } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { motion } from "motion/react";
+import { Users, Clock, DollarSign, TrendingUp, BarChart3 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useData } from "@/data/DataContext";
 
@@ -14,134 +14,11 @@ interface TeamMember {
   weeklyCapacity: number;
 }
 
-const CAPACITY_PRESETS = [
-  { label: "Full-time", hours: 40, description: "40h / week" },
-  { label: "Part-time", hours: 20, description: "20h / week" },
-  { label: "Contractor", hours: 30, description: "30h / week" },
-] as const;
-
-function CapacityDropdown({
-  value,
-  memberId,
-  onSave,
-}: {
-  value: number;
-  memberId: string;
-  onSave: (memberId: string, hours: number) => Promise<void>;
-}) {
-  const [open, setOpen] = useState(false);
-  const [customValue, setCustomValue] = useState("");
-  const [showCustom, setShowCustom] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-        setShowCustom(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
-  const matchedPreset = CAPACITY_PRESETS.find((p) => p.hours === value);
-
-  const handleSelect = async (hours: number) => {
-    setOpen(false);
-    setShowCustom(false);
-    await onSave(memberId, hours);
-  };
-
-  const handleCustomSubmit = async () => {
-    const val = parseFloat(customValue);
-    if (!isNaN(val) && val >= 0 && val <= 168) {
-      await handleSelect(val);
-    }
-  };
-
-  return (
-    <div className="relative" ref={ref}>
-      <button
-        onClick={() => { setOpen(!open); setShowCustom(false); }}
-        className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[13px] tabular-nums rounded-lg border border-border hover:bg-accent/50 transition-colors group"
-        style={{ fontWeight: 500 }}
-      >
-        <span>{value}h/w</span>
-        {matchedPreset && (
-          <span className="text-[11px] text-muted-foreground">· {matchedPreset.label}</span>
-        )}
-        <ChevronDown className="w-3 h-3 text-muted-foreground group-hover:text-foreground transition-colors" />
-      </button>
-
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: 4, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 4, scale: 0.97 }}
-            transition={{ duration: 0.15 }}
-            className="absolute right-0 top-full mt-1.5 z-50 w-52 bg-popover border border-border rounded-xl shadow-lg overflow-hidden"
-          >
-            <div className="p-1.5">
-              {CAPACITY_PRESETS.map((preset) => (
-                <button
-                  key={preset.label}
-                  onClick={() => handleSelect(preset.hours)}
-                  className="w-full flex items-center justify-between px-3 py-2 text-[13px] rounded-lg hover:bg-accent transition-colors"
-                >
-                  <div className="text-left">
-                    <div style={{ fontWeight: 500 }}>{preset.label}</div>
-                    <div className="text-[11px] text-muted-foreground">{preset.description}</div>
-                  </div>
-                  {value === preset.hours && (
-                    <Check className="w-3.5 h-3.5 text-primary flex-shrink-0" />
-                  )}
-                </button>
-              ))}
-            </div>
-            <div className="border-t border-border p-1.5">
-              {showCustom ? (
-                <div className="flex items-center gap-1.5 px-2 py-1">
-                  <input
-                    type="number"
-                    min={0}
-                    max={168}
-                    step={1}
-                    value={customValue}
-                    onChange={(e) => setCustomValue(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") handleCustomSubmit();
-                      if (e.key === "Escape") { setShowCustom(false); setOpen(false); }
-                    }}
-                    autoFocus
-                    placeholder="Hours"
-                    className="w-16 h-7 text-[13px] text-right tabular-nums bg-background border border-border rounded px-1.5 focus:outline-none focus:ring-1 focus:ring-primary"
-                  />
-                  <span className="text-[12px] text-muted-foreground">h/w</span>
-                  <button
-                    onClick={handleCustomSubmit}
-                    className="ml-auto p-1 text-primary hover:text-primary/80"
-                  >
-                    <Check className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => { setShowCustom(true); setCustomValue(value.toString()); }}
-                  className="w-full px-3 py-2 text-[13px] text-left rounded-lg hover:bg-accent transition-colors text-muted-foreground"
-                  style={{ fontWeight: 500 }}
-                >
-                  Custom hours…
-                </button>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
+const CAPACITY_LABELS: Record<number, string> = {
+  40: "Full-time",
+  20: "Part-time",
+  30: "Contractor",
+};
 
 export default function TeamUtilization() {
   const { workspaceId, sessions } = useData();
@@ -168,19 +45,6 @@ export default function TeamUtilization() {
 
   const activeMembers = members.filter((m) => m.status === "active");
   const pendingMembers = members.filter((m) => m.status === "pending");
-
-  const handleSaveCapacity = useCallback(
-    async (memberId: string, hours: number) => {
-      await supabase
-        .from("workspace_members")
-        .update({ weekly_capacity: hours } as any)
-        .eq("id", memberId);
-      setMembers((prev) =>
-        prev.map((m) => (m.id === memberId ? { ...m, weeklyCapacity: hours } : m))
-      );
-    },
-    []
-  );
 
   // Per-member metrics using loggedBy
   const memberMetrics = useMemo(() => {
@@ -361,6 +225,7 @@ export default function TeamUtilization() {
                 {activeMembers.map((member, idx) => {
                   const m = memberMetrics.get(member.userId || "") || { hours: 0, billableHours: 0, revenue: 0 };
                   const memberUtil = m.hours > 0 ? Math.round((m.billableHours / m.hours) * 100) : 0;
+                  const capacityLabel = CAPACITY_LABELS[member.weeklyCapacity];
 
                   return (
                     <motion.tr
@@ -395,14 +260,13 @@ export default function TeamUtilization() {
                           {member.role}
                         </span>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="flex justify-end">
-                          <CapacityDropdown
-                            value={member.weeklyCapacity}
-                            memberId={member.id}
-                            onSave={handleSaveCapacity}
-                          />
-                        </div>
+                      <td className="px-6 py-4 text-right">
+                        <span className="text-[13px] tabular-nums" style={{ fontWeight: 500 }}>
+                          {member.weeklyCapacity}h/w
+                        </span>
+                        {capacityLabel && (
+                          <span className="text-[11px] text-muted-foreground ml-1.5">· {capacityLabel}</span>
+                        )}
                       </td>
                       <td className="px-6 py-4 text-right text-[14px] tabular-nums" style={{ fontWeight: 500 }}>
                         {Math.round(m.hours * 10) / 10}h
