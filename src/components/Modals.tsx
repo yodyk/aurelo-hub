@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, Loader2, User, Globe, Mail, DollarSign, Clock, Repeat, FolderKanban, Eye, EyeOff, ChevronRight, StickyNote, Calendar, FileText, Pause, Play, CircleDot, CheckCircle2, Archive } from 'lucide-react';
+import { X, Loader2, User, Globe, Mail, DollarSign, Clock, Repeat, FolderKanban, Eye, EyeOff, ChevronRight, StickyNote, Calendar, FileText, Pause, Play, CircleDot, CheckCircle2, Archive, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useData } from '../data/DataContext';
 
@@ -575,13 +575,21 @@ export function EditClientModal({ open, onClose, client, onSave, workspaceId, is
             {/* Favicon */}
             <div className="flex items-center justify-between py-2">
               <div>
-                <div className="text-[13px]" style={{ fontWeight: 500 }}>Favicon / icon</div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[13px]" style={{ fontWeight: 500 }}>Favicon / icon</span>
+                  <div className="group relative">
+                    <Info className="w-3.5 h-3.5 text-muted-foreground/60 cursor-help" />
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2.5 py-1.5 rounded-lg bg-foreground text-background text-[11px] leading-relaxed whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 shadow-lg">
+                      SVG (best), PNG, or JPG · 1:1 ratio · 1080×1080px ideal
+                    </div>
+                  </div>
+                </div>
                 <div className="text-[11px] text-muted-foreground">Small square logo shown next to client name</div>
               </div>
               <div className="flex items-center gap-2">
                 {clientFaviconUrl ? (
                   <>
-                    <img src={clientFaviconUrl} alt="Favicon" className="h-8 w-8 rounded-lg object-contain border border-border bg-white p-0.5" />
+                    <img src={clientFaviconUrl} alt="Favicon" className="h-8 w-8 rounded-lg object-cover" />
                     <button onClick={() => faviconInputRef.current?.click()} className="text-[11px] text-primary hover:text-primary/80" style={{ fontWeight: 500 }}>Replace</button>
                     <button onClick={async () => {
                       const { data: existing } = await (await import('@/integrations/supabase/client')).supabase.storage.from('logos').list(workspaceId, { limit: 30 });
@@ -620,7 +628,15 @@ export function EditClientModal({ open, onClose, client, onSave, workspaceId, is
             {/* Full logo */}
             <div className="flex items-center justify-between py-2">
               <div>
-                <div className="text-[13px]" style={{ fontWeight: 500 }}>Full logo</div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[13px]" style={{ fontWeight: 500 }}>Full logo</span>
+                  <div className="group relative">
+                    <Info className="w-3.5 h-3.5 text-muted-foreground/60 cursor-help" />
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2.5 py-1.5 rounded-lg bg-foreground text-background text-[11px] leading-relaxed whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 shadow-lg">
+                      SVG (best), PNG, or JPG · Min 1080px wide recommended
+                    </div>
+                  </div>
+                </div>
                 <div className="text-[11px] text-muted-foreground">Larger logo displayed on the portal page</div>
               </div>
               <div className="flex items-center gap-2">
