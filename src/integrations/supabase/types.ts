@@ -631,6 +631,7 @@ export type Database = {
           date: string
           duration: number
           id: string
+          logged_by: string
           project_id: string | null
           revenue: number
           task: string | null
@@ -647,6 +648,7 @@ export type Database = {
           date: string
           duration?: number
           id?: string
+          logged_by: string
           project_id?: string | null
           revenue?: number
           task?: string | null
@@ -663,6 +665,7 @@ export type Database = {
           date?: string
           duration?: number
           id?: string
+          logged_by?: string
           project_id?: string | null
           revenue?: number
           task?: string | null
