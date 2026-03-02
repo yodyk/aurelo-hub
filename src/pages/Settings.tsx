@@ -896,29 +896,32 @@ function WorkspaceTab() {
             <FieldLabel>Website</FieldLabel>
             <TextInput value={ws.url} onChange={(e) => update({ url: e.target.value })} />
           </div>
-          <div>
-            <FieldLabel>Brand color</FieldLabel>
-            <div className="flex items-center gap-3">
-              <label className="relative">
-                <div
-                  className="w-9 h-9 rounded-lg border border-border cursor-pointer"
-                  style={{ backgroundColor: ws.brandColor }}
-                />
-                <input
-                  type="color"
+          <FeatureGate feature="whiteLabelPortal" hideIfLocked>
+            <div>
+              <FieldLabel>Brand color</FieldLabel>
+              <div className="flex items-center gap-3">
+                <label className="relative">
+                  <div
+                    className="w-9 h-9 rounded-lg border border-border cursor-pointer"
+                    style={{ backgroundColor: ws.brandColor }}
+                  />
+                  <input
+                    type="color"
+                    value={ws.brandColor}
+                    onChange={(e) => update({ brandColor: e.target.value })}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                </label>
+                <TextInput
                   value={ws.brandColor}
                   onChange={(e) => update({ brandColor: e.target.value })}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  className="!w-28 tabular-nums"
+                  style={{ fontFamily: "ui-monospace, monospace" }}
                 />
-              </label>
-              <TextInput
-                value={ws.brandColor}
-                onChange={(e) => update({ brandColor: e.target.value })}
-                className="!w-28 tabular-nums"
-                style={{ fontFamily: "ui-monospace, monospace" }}
-              />
+              </div>
+              <div className="text-[11px] text-muted-foreground mt-1.5">Used as the accent color on your client portal</div>
             </div>
-          </div>
+          </FeatureGate>
           <div>
             <FieldLabel>Fiscal year starts</FieldLabel>
             <select
@@ -1057,6 +1060,53 @@ function WorkspaceTab() {
           </div>
         </div>
       </SectionCard>
+
+      {/* Portal Branding (Studio only) */}
+      <FeatureGate feature="whiteLabelPortal" featureLabel="White-label client portal">
+        <SectionCard>
+          <SectionHeader
+            title="Portal branding"
+            description="Customize how your client portal looks — replace Aurelo branding with your own"
+          />
+          <div className="space-y-4">
+            <div className="flex items-start gap-4 p-4 rounded-lg bg-accent/20 border border-border">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Globe className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <div className="text-[13px]" style={{ fontWeight: 500 }}>White-label active</div>
+                <p className="text-[12px] text-muted-foreground mt-0.5 leading-relaxed">
+                  Your client portals display your workspace logo, name, and brand color instead of Aurelo branding. The "Powered by Aurelo" footer is hidden.
+                </p>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between py-2">
+                <span className="text-[13px] text-muted-foreground" style={{ fontWeight: 500 }}>Portal logo</span>
+                <span className="text-[12px]" style={{ fontWeight: 500, color: appLogo ? undefined : "#a3a3a3" }}>
+                  {appLogo ? "✓ Using app logo" : "No logo uploaded — upload one above"}
+                </span>
+              </div>
+              <div className="flex items-center justify-between py-2 border-t border-border">
+                <span className="text-[13px] text-muted-foreground" style={{ fontWeight: 500 }}>Portal accent color</span>
+                <span className="text-[12px] tabular-nums" style={{ fontWeight: 500, fontFamily: "ui-monospace, monospace", color: ws.brandColor }}>
+                  {ws.brandColor || "#5ea1bf"}
+                </span>
+              </div>
+              <div className="flex items-center justify-between py-2 border-t border-border">
+                <span className="text-[13px] text-muted-foreground" style={{ fontWeight: 500 }}>Business name</span>
+                <span className="text-[12px]" style={{ fontWeight: 500 }}>
+                  {ws.name || "Not set"}
+                </span>
+              </div>
+              <div className="flex items-center justify-between py-2 border-t border-border">
+                <span className="text-[13px] text-muted-foreground" style={{ fontWeight: 500 }}>"Powered by Aurelo"</span>
+                <span className="text-[12px]" style={{ fontWeight: 500, color: "#10b981" }}>Hidden</span>
+              </div>
+            </div>
+          </div>
+        </SectionCard>
+      </FeatureGate>
 
       {/* Identity & Categories */}
       <IdentitySection />
