@@ -26,6 +26,7 @@ interface PortalBranding {
   brandColor: string | null;
   logoUrl: string | null;
   clientLogoUrl: string | null;
+  clientFaviconUrl: string | null;
 }
 
 interface PortalClient {
@@ -184,22 +185,31 @@ export default function ClientPortal() {
       <div className="max-w-5xl mx-auto px-6 py-10">
         <motion.div initial="hidden" animate="show" variants={containerVariants} className="space-y-8">
           {/* Client header */}
-          <motion.div variants={itemVariants} className="flex items-center gap-4">
-            {branding.clientLogoUrl && (
-              <img src={branding.clientLogoUrl} alt={client.name} className="h-12 w-12 rounded-xl object-contain border border-border bg-white p-1" />
-            )}
-            <div>
-              <h1 className="text-2xl font-semibold tracking-tight text-foreground">{client.name}</h1>
-              <div className="flex items-center gap-3 mt-2">
-                <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: `${accent}15`, color: accent }}>
-                  {client.model}
-                </span>
-                <span className="text-xs text-muted-foreground">·</span>
-                <span className="text-xs font-medium" style={{ color: client.status === "Active" ? "#059669" : undefined }}>
-                  {client.status === "Active" ? client.status : <span className="text-muted-foreground">{client.status}</span>}
-                </span>
+          <motion.div variants={itemVariants} className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              {branding.clientFaviconUrl ? (
+                <img src={branding.clientFaviconUrl} alt={client.name} className="h-12 w-12 rounded-xl object-contain border border-border bg-white p-1" />
+              ) : (
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center border border-border bg-white">
+                  <span className="text-[20px] font-semibold" style={{ color: accent }}>{client.name.charAt(0)}</span>
+                </div>
+              )}
+              <div>
+                <h1 className="text-2xl font-semibold tracking-tight text-foreground">{client.name}</h1>
+                <div className="flex items-center gap-3 mt-2">
+                  <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: `${accent}15`, color: accent }}>
+                    {client.model}
+                  </span>
+                  <span className="text-xs text-muted-foreground">·</span>
+                  <span className="text-xs font-medium" style={{ color: client.status === "Active" ? "#059669" : undefined }}>
+                    {client.status === "Active" ? client.status : <span className="text-muted-foreground">{client.status}</span>}
+                  </span>
+                </div>
               </div>
             </div>
+            {branding.clientLogoUrl && (
+              <img src={branding.clientLogoUrl} alt={client.name} className="h-14 w-auto max-w-[200px] object-contain" />
+            )}
           </motion.div>
 
           {/* Summary cards */}

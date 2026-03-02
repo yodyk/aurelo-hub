@@ -361,9 +361,14 @@ export function AddClientModal({ open, onClose, onSave }: {
 }
 
 // ── Edit Client Modal ──────────────────────────────────────────────
-export function EditClientModal({ open, onClose, client, onSave }: {
+export function EditClientModal({ open, onClose, client, onSave, workspaceId, isStudio, clientFaviconUrl, clientLogoUrl, onLogoChange }: {
   open: boolean; onClose: () => void; client: any;
   onSave: (updates: any) => Promise<void>;
+  workspaceId?: string;
+  isStudio?: boolean;
+  clientFaviconUrl?: string | null;
+  clientLogoUrl?: string | null;
+  onLogoChange?: (type: 'favicon' | 'logo', url: string | null) => void;
 }) {
   const [name, setName] = useState('');
   const [contactName, setContactName] = useState('');
@@ -376,6 +381,10 @@ export function EditClientModal({ open, onClose, client, onSave }: {
   const [retainerRemaining, setRetainerRemaining] = useState('');
   const [showPortalCosts, setShowPortalCosts] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingFavicon, setUploadingFavicon] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const faviconInputRef = useRef<HTMLInputElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (client) {
@@ -555,6 +564,106 @@ export function EditClientModal({ open, onClose, client, onSave }: {
           label="Show costs in client portal"
           description="When off, the client sees hours and activity but not dollar amounts"
         />
+
+        {/* ── Client logos (Studio only) ─────── */}
+        {isStudio && workspaceId && client && (
+          <>
+            <SectionDivider icon={User} label="Client branding" />
+            <div className="text-[11px] text-muted-foreground mb-2">
+              Upload logos that appear on this client's portal page and detail view.
+            </div>
+
+            {/* Favicon */}
+            <div className="flex items-center justify-between py-2">
+              <div>
+                <div className="text-[13px]" style={{ fontWeight: 500 }}>Favicon / icon</div>
+                <div className="text-[11px] text-muted-foreground">Small square logo shown next to client name</div>
+              </div>
+              <div className="flex items-center gap-2">
+                {clientFaviconUrl ? (
+                  <>
+                    <img src={clientFaviconUrl} alt="Favicon" className="h-8 w-8 rounded-lg object-contain border border-border bg-white p-0.5" />
+                    <button onClick={() => faviconInputRef.current?.click()} className="text-[11px] text-primary hover:text-primary/80" style={{ fontWeight: 500 }}>Replace</button>
+                    <button onClick={async () => {
+                      const { data: existing } = await (await import('@/integrations/supabase/client')).supabase.storage.from('logos').list(workspaceId, { limit: 30 });
+                      const match = existing?.find((f: any) => f.name.startsWith(`client-${client.id}-favicon.`));
+                      if (match) await (await import('@/integrations/supabase/client')).supabase.storage.from('logos').remove([`${workspaceId}/${match.name}`]);
+                      onLogoChange?.('favicon', null);
+                    }} className="text-[11px] text-destructive hover:text-destructive/80" style={{ fontWeight: 500 }}>Remove</button>
+                  </>
+                ) : (
+                  <button onClick={() => faviconInputRef.current?.click()} disabled={uploadingFavicon} className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] bg-accent/30 rounded-lg hover:bg-accent/50 transition-all text-muted-foreground" style={{ fontWeight: 500 }}>
+                    {uploadingFavicon ? <Loader2 className="w-3 h-3 animate-spin" /> : <User className="w-3 h-3" />}
+                    Upload
+                  </button>
+                )}
+              </div>
+            </div>
+            <input ref={faviconInputRef} type="file" accept="image/*" className="hidden" onChange={async (e) => {
+              const file = e.target.files?.[0]; e.target.value = '';
+              if (!file) return;
+              setUploadingFavicon(true);
+              try {
+                const sb = (await import('@/integrations/supabase/client')).supabase;
+                const ext = file.name.split('.').pop() || 'png';
+                const path = `${workspaceId}/client-${client.id}-favicon.${ext}`;
+                const { data: existing } = await sb.storage.from('logos').list(workspaceId, { limit: 30 });
+                const old = existing?.find((f: any) => f.name.startsWith(`client-${client.id}-favicon.`));
+                if (old) await sb.storage.from('logos').remove([`${workspaceId}/${old.name}`]);
+                const { error } = await sb.storage.from('logos').upload(path, file, { upsert: true });
+                if (error) throw new Error(error.message);
+                const url = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/${path}`;
+                onLogoChange?.('favicon', url);
+              } catch (err: any) { console.error(err); }
+              finally { setUploadingFavicon(false); }
+            }} />
+
+            {/* Full logo */}
+            <div className="flex items-center justify-between py-2">
+              <div>
+                <div className="text-[13px]" style={{ fontWeight: 500 }}>Full logo</div>
+                <div className="text-[11px] text-muted-foreground">Larger logo displayed on the portal page</div>
+              </div>
+              <div className="flex items-center gap-2">
+                {clientLogoUrl ? (
+                  <>
+                    <img src={clientLogoUrl} alt="Logo" className="h-8 w-auto max-w-[100px] rounded-lg object-contain border border-border bg-white p-0.5" />
+                    <button onClick={() => logoInputRef.current?.click()} className="text-[11px] text-primary hover:text-primary/80" style={{ fontWeight: 500 }}>Replace</button>
+                    <button onClick={async () => {
+                      const { data: existing } = await (await import('@/integrations/supabase/client')).supabase.storage.from('logos').list(workspaceId, { limit: 30 });
+                      const match = existing?.find((f: any) => f.name.startsWith(`client-${client.id}.`) && !f.name.includes('-favicon'));
+                      if (match) await (await import('@/integrations/supabase/client')).supabase.storage.from('logos').remove([`${workspaceId}/${match.name}`]);
+                      onLogoChange?.('logo', null);
+                    }} className="text-[11px] text-destructive hover:text-destructive/80" style={{ fontWeight: 500 }}>Remove</button>
+                  </>
+                ) : (
+                  <button onClick={() => logoInputRef.current?.click()} disabled={uploadingLogo} className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] bg-accent/30 rounded-lg hover:bg-accent/50 transition-all text-muted-foreground" style={{ fontWeight: 500 }}>
+                    {uploadingLogo ? <Loader2 className="w-3 h-3 animate-spin" /> : <User className="w-3 h-3" />}
+                    Upload
+                  </button>
+                )}
+              </div>
+            </div>
+            <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={async (e) => {
+              const file = e.target.files?.[0]; e.target.value = '';
+              if (!file) return;
+              setUploadingLogo(true);
+              try {
+                const sb = (await import('@/integrations/supabase/client')).supabase;
+                const ext = file.name.split('.').pop() || 'png';
+                const path = `${workspaceId}/client-${client.id}.${ext}`;
+                const { data: existing } = await sb.storage.from('logos').list(workspaceId, { limit: 30 });
+                const old = existing?.find((f: any) => f.name.startsWith(`client-${client.id}.`) && !f.name.includes('-favicon'));
+                if (old) await sb.storage.from('logos').remove([`${workspaceId}/${old.name}`]);
+                const { error } = await sb.storage.from('logos').upload(path, file, { upsert: true });
+                if (error) throw new Error(error.message);
+                const url = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/${path}`;
+                onLogoChange?.('logo', url);
+              } catch (err: any) { console.error(err); }
+              finally { setUploadingLogo(false); }
+            }} />
+          </>
+        )}
 
         {/* ── Footer ─────────────────────────── */}
         <div className="flex items-center justify-between pt-3 border-t border-border">
