@@ -25,6 +25,7 @@ interface PortalBranding {
   workspaceName: string | null;
   brandColor: string | null;
   logoUrl: string | null;
+  clientLogoUrl: string | null;
 }
 
 interface PortalClient {
@@ -104,12 +105,12 @@ function fmtDate(d?: string | null) {
 
 function statusColor(status: string) {
   const s = status.toLowerCase();
-  if (s === "paid") return "text-green-600 bg-green-50";
-  if (s === "sent" || s === "issued") return "text-blue-600 bg-blue-50";
-  if (s === "overdue") return "text-red-600 bg-red-50";
+  if (s === "paid") return "text-emerald-600 bg-emerald-50";
+  if (s === "sent" || s === "issued") return "text-sky-600 bg-sky-50";
+  if (s === "overdue") return "text-red-500 bg-red-50";
   if (s === "draft") return "text-muted-foreground bg-muted/30";
-  if (s === "in progress") return "text-blue-600 bg-blue-50";
-  if (s === "completed") return "text-green-600 bg-green-50";
+  if (s === "in progress") return "text-sky-600 bg-sky-50";
+  if (s === "completed") return "text-emerald-600 bg-emerald-50";
   return "text-muted-foreground bg-muted/30";
 }
 
@@ -183,16 +184,21 @@ export default function ClientPortal() {
       <div className="max-w-5xl mx-auto px-6 py-10">
         <motion.div initial="hidden" animate="show" variants={containerVariants} className="space-y-8">
           {/* Client header */}
-          <motion.div variants={itemVariants}>
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground">{client.name}</h1>
-            <div className="flex items-center gap-3 mt-2">
-              <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: `${accent}15`, color: accent }}>
-                {client.model}
-              </span>
-              <span className="text-xs text-muted-foreground">·</span>
-              <span className="text-xs font-medium" style={{ color: client.status === "Active" ? "#059669" : undefined }}>
-                {client.status === "Active" ? client.status : <span className="text-muted-foreground">{client.status}</span>}
-              </span>
+          <motion.div variants={itemVariants} className="flex items-center gap-4">
+            {branding.clientLogoUrl && (
+              <img src={branding.clientLogoUrl} alt={client.name} className="h-12 w-12 rounded-xl object-contain border border-border bg-white p-1" />
+            )}
+            <div>
+              <h1 className="text-2xl font-semibold tracking-tight text-foreground">{client.name}</h1>
+              <div className="flex items-center gap-3 mt-2">
+                <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: `${accent}15`, color: accent }}>
+                  {client.model}
+                </span>
+                <span className="text-xs text-muted-foreground">·</span>
+                <span className="text-xs font-medium" style={{ color: client.status === "Active" ? "#059669" : undefined }}>
+                  {client.status === "Active" ? client.status : <span className="text-muted-foreground">{client.status}</span>}
+                </span>
+              </div>
             </div>
           </motion.div>
 
@@ -300,7 +306,8 @@ function SectionTitle({ icon: Icon, title, accent }: { icon: any; title: string;
 function RetainerBar({ total, remaining, accent, showCosts }: { total: number; remaining: number; accent: string; showCosts: boolean }) {
   const used = total - remaining;
   const pct = Math.min(100, Math.round((used / total) * 100));
-  const barColor = pct >= 90 ? "#dc2626" : pct >= 70 ? "#ca8a04" : accent;
+  // Bright status colors: green = healthy, amber/orange = caution, red = critical
+  const barColor = pct >= 90 ? "#ef4444" : pct >= 70 ? "#f59e0b" : "#22c55e";
 
   return (
     <div className="p-5 rounded-xl border border-border bg-card">
