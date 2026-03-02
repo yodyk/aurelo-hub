@@ -304,17 +304,11 @@ export default function Onboarding() {
                   <button
                     onClick={handleContinue}
                     disabled={saving}
-                    className="flex items-center gap-2.5 px-6 py-2.5 rounded-xl bg-[#5ea1bf] text-white text-[14px] hover:bg-[#4d8fad] active:bg-[#437d99] disabled:opacity-60 transition-all duration-200"
+                    className="flex items-center gap-2.5 px-6 py-2.5 rounded-xl bg-[#5ea1bf] text-white text-[14px] hover:bg-[#4d8fad] active:bg-[#437d99] disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
                     style={{ fontWeight: 500 }}
                   >
-                    {saving ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <>
-                        Set up workspace
-                        <ArrowRight className="w-4 h-4" />
-                      </>
-                    )}
+                    Set up workspace
+                    <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>
 
