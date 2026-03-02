@@ -1922,146 +1922,123 @@ function TeamTab({ readOnly = false }: { readOnly?: boolean }) {
 // ═══════════════════════════════════════════════════════════════════
 // Notifications Tab
 // ═══════════════════════════════════════════════════════════════════
+
+const NOTIF_CATEGORIES = [
+  { key: 'session', label: 'Sessions', description: 'Time sessions logged or updated', icon: Clock },
+  { key: 'invoice', label: 'Invoices', description: 'Created, paid, overdue invoices', icon: FileText },
+  { key: 'client', label: 'Clients', description: 'New clients, status changes', icon: Users },
+  { key: 'team', label: 'Team', description: 'Members joining or role changes', icon: Users },
+  { key: 'insight', label: 'Insights', description: 'Retainer warnings, analytics alerts', icon: Zap },
+] as const;
+
 function NotificationsTab() {
-  const [prefs, loading, setPrefs] = useSettingsSection("notifications", defaultNotifPrefs);
+  const { workspaceId, user } = useAuth();
+  const [prefs, setPrefs] = useState<Record<string, { in_app: boolean; email: boolean }>>({});
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const { can } = usePlan();
   const hasAdvanced = can("advancedNotifications");
 
-  const togglePref = (key: keyof typeof defaultNotifPrefs) => {
-    if (key === "retainerThreshold") return;
-    setPrefs({ ...prefs, [key]: !prefs[key] });
+  // Also keep retainer threshold from workspace_settings
+  const [wsPrefs, wsLoading, setWsPrefs] = useSettingsSection("notifications", defaultNotifPrefs);
+
+  useEffect(() => {
+    if (!workspaceId) return;
+    import('@/data/notificationsApi').then(({ loadPreferences }) => {
+      loadPreferences(workspaceId).then((rows) => {
+        const map: Record<string, { in_app: boolean; email: boolean }> = {};
+        for (const cat of NOTIF_CATEGORIES) {
+          const row = rows.find(r => r.category === cat.key);
+          map[cat.key] = row ? { in_app: row.in_app, email: row.email } : { in_app: true, email: true };
+        }
+        setPrefs(map);
+        setLoading(false);
+      });
+    });
+  }, [workspaceId]);
+
+  const toggle = (category: string, channel: 'in_app' | 'email') => {
+    setPrefs(prev => ({
+      ...prev,
+      [category]: { ...prev[category], [channel]: !prev[category]?.[channel] },
+    }));
   };
 
   const save = async () => {
+    if (!workspaceId || !user) return;
     setSaving(true);
     try {
-      await api.saveSetting("notifications", prefs);
+      const { upsertPreference } = await import('@/data/notificationsApi');
+      await Promise.all(
+        NOTIF_CATEGORIES.map(cat =>
+          upsertPreference({
+            workspaceId,
+            userId: user.id,
+            category: cat.key,
+            inApp: prefs[cat.key]?.in_app ?? true,
+            email: prefs[cat.key]?.email ?? true,
+          })
+        )
+      );
+      // Also save retainer threshold
+      await api.saveSetting("notifications", wsPrefs);
       toast.success("Notification preferences saved");
     } catch (err: any) {
-      toast.error(err.message);
+      toast.error(err.message || "Failed to save preferences");
     } finally {
       setSaving(false);
     }
   };
 
-  const notifItems = [
-    {
-      key: "sessionSaved" as const,
-      label: "Session saved",
-      description: "Confirmation when a time session is saved",
-      starter: true,
-    },
-    {
-      key: "weeklyDigest" as const,
-      label: "Weekly digest",
-      description: "Summary email every Monday morning",
-      starter: true,
-    },
-    {
-      key: "invoiceReminders" as const,
-      label: "Invoice reminders",
-      description: "Alert when invoices are approaching due date",
-      starter: false,
-    },
-    {
-      key: "budgetAlerts" as const,
-      label: "Budget alerts",
-      description: "Warn when project hours approach estimates",
-      starter: false,
-    },
-    {
-      key: "clientActivity" as const,
-      label: "Client activity",
-      description: "Portal views, file downloads, message replies",
-      starter: false,
-    },
-  ];
-
-  if (loading) return <LoadingState />;
+  if (loading || wsLoading) return <LoadingState />;
 
   return (
     <motion.div className="space-y-6" variants={container} initial="hidden" animate="show">
       <SectionCard>
-        <SectionHeader title="Delivery channels" description="Where you receive notifications" />
-        <div className="space-y-4">
-          <div className="flex items-center justify-between py-2">
-            <div>
-              <div className="text-[14px]" style={{ fontWeight: 500 }}>
-                In-app notifications
-              </div>
-              <div className="text-[12px] text-muted-foreground">Bell icon and popover in the top bar</div>
-            </div>
-            <Toggle checked={prefs.inAppNotifications} onChange={() => togglePref("inAppNotifications")} />
-          </div>
-          <div className="flex items-center justify-between py-2">
-            <div>
-              <div className="text-[14px]" style={{ fontWeight: 500 }}>
-                Email notifications
-              </div>
-              <div className="text-[12px] text-muted-foreground">Sent to {defaultWorkspace.userEmail}</div>
-            </div>
-            <Toggle checked={prefs.emailNotifications} onChange={() => togglePref("emailNotifications")} />
-          </div>
+        <SectionHeader title="Notification preferences" description="Choose how you're notified for each category" />
+        {/* Column headers */}
+        <div className="flex items-center justify-end gap-6 mb-2 pr-3">
+          <span className="text-[11px] text-muted-foreground w-14 text-center" style={{ fontWeight: 600 }}>In-app</span>
+          <span className="text-[11px] text-muted-foreground w-14 text-center" style={{ fontWeight: 600 }}>Email</span>
         </div>
-      </SectionCard>
-
-      <SectionCard>
-        <SectionHeader title="Alert types" description="Choose which events trigger notifications" />
         <div className="space-y-1">
-          {notifItems.map((n) => {
-            const isLocked = !n.starter && !hasAdvanced;
+          {NOTIF_CATEGORIES.map(cat => {
+            const Icon = cat.icon;
+            const isProOnly = (cat.key === 'insight' || cat.key === 'team') && !hasAdvanced;
             return (
               <div
-                key={n.key}
-                className={`flex items-center justify-between py-3 px-3 rounded-lg transition-colors ${isLocked ? "opacity-50" : "hover:bg-accent/30"}`}
+                key={cat.key}
+                className={`flex items-center justify-between py-3 px-3 rounded-lg transition-colors ${isProOnly ? 'opacity-50' : 'hover:bg-accent/30'}`}
               >
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <div className="text-[14px]" style={{ fontWeight: 500 }}>
-                      {n.label}
-                    </div>
-                    {isLocked && (
-                      <span
-                        className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[9px] rounded bg-[#5ea1bf]/10 text-[#5ea1bf]"
-                        style={{ fontWeight: 600 }}
-                      >
-                        PRO
-                      </span>
-                    )}
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="w-8 h-8 rounded-lg bg-primary/8 flex items-center justify-center flex-shrink-0">
+                    <Icon className="w-4 h-4 text-primary" />
                   </div>
-                  <div className="text-[12px] text-muted-foreground">{n.description}</div>
-                </div>
-                <div className="flex items-center gap-3 flex-shrink-0">
-                  {/* Per-alert channel toggles */}
-                  {!isLocked && (
-                    <div className="flex items-center gap-1.5 mr-2">
-                      <button
-                        onClick={() => {
-                          /* toggle in-app for this alert */
-                        }}
-                        className={`px-2 py-1 text-[10px] rounded border transition-all ${prefs[n.key] ? "border-primary/20 bg-primary/8 text-primary" : "border-border text-muted-foreground hover:text-foreground"}`}
-                        style={{ fontWeight: 500 }}
-                        title="In-app"
-                      >
-                        In-app
-                      </button>
-                      <button
-                        onClick={() => {
-                          /* toggle email for this alert */
-                        }}
-                        className={`px-2 py-1 text-[10px] rounded border transition-all ${prefs[n.key] ? "border-primary/20 bg-primary/8 text-primary" : "border-border text-muted-foreground hover:text-foreground"}`}
-                        style={{ fontWeight: 500 }}
-                        title="Email"
-                      >
-                        Email
-                      </button>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[14px]" style={{ fontWeight: 500 }}>{cat.label}</span>
+                      {isProOnly && (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[9px] rounded bg-[#5ea1bf]/10 text-[#5ea1bf]" style={{ fontWeight: 600 }}>
+                          PRO
+                        </span>
+                      )}
                     </div>
-                  )}
-                  <Toggle
-                    checked={isLocked ? false : (prefs[n.key] as boolean)}
-                    onChange={() => (isLocked ? null : togglePref(n.key))}
-                  />
+                    <div className="text-[12px] text-muted-foreground">{cat.description}</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-6 flex-shrink-0">
+                  <div className="w-14 flex justify-center">
+                    <Toggle
+                      checked={isProOnly ? false : (prefs[cat.key]?.in_app ?? true)}
+                      onChange={() => !isProOnly && toggle(cat.key, 'in_app')}
+                    />
+                  </div>
+                  <div className="w-14 flex justify-center">
+                    <Toggle
+                      checked={isProOnly ? false : (prefs[cat.key]?.email ?? true)}
+                      onChange={() => !isProOnly && toggle(cat.key, 'email')}
+                    />
+                  </div>
                 </div>
               </div>
             );
@@ -2071,7 +2048,7 @@ function NotificationsTab() {
           <div className="mt-3 pt-3 border-t border-border">
             <p className="text-[12px] text-muted-foreground">
               <Sparkles className="w-3 h-3 text-[#5ea1bf] inline mr-1" />
-              Upgrade to Pro for invoice reminders, budget alerts, and client activity notifications.
+              Upgrade to Pro for insight and team notification controls.
             </p>
           </div>
         )}
@@ -2088,12 +2065,12 @@ function NotificationsTab() {
             min={50}
             max={95}
             step={5}
-            value={prefs.retainerThreshold}
-            onChange={(e) => setPrefs({ ...prefs, retainerThreshold: Number(e.target.value) })}
+            value={wsPrefs.retainerThreshold}
+            onChange={(e) => setWsPrefs({ ...wsPrefs, retainerThreshold: Number(e.target.value) })}
             className="flex-1 h-1.5 bg-accent/60 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer"
           />
           <div className="w-14 text-center text-[15px] tabular-nums" style={{ fontWeight: 600 }}>
-            {prefs.retainerThreshold}%
+            {wsPrefs.retainerThreshold}%
           </div>
         </div>
         <SaveButton onClick={save} saving={saving} />
