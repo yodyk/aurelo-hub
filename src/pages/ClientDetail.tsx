@@ -23,6 +23,7 @@ import {
   Pencil,
   CheckSquare,
   Square,
+  Send,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
@@ -107,6 +108,7 @@ export default function ClientDetail() {
 
   // Retainer warning thresholds that have been sent (with timestamps)
   const [sentThresholds, setSentThresholds] = useState<Record<number, string>>({});
+  const [resending, setResending] = useState<number | null>(null);
 
   const client = clients.find((c) => c.id === clientId);
 
@@ -641,7 +643,49 @@ export default function ClientDetail() {
                               </span>
                             </div>
                           );
-                          if (!sent) return <span key={t}>{dot}</span>;
+                          if (!sent) return (
+                            <Tooltip key={t}>
+                              <TooltipTrigger asChild>{dot}</TooltipTrigger>
+                              <TooltipContent
+                                side="bottom"
+                                className="bg-popover text-popover-foreground border border-border rounded-lg px-3 py-2 text-[11px] shadow-md z-50"
+                              >
+                                <span className="text-muted-foreground">{t}% warning not sent</span>
+                                <button
+                                  className="mt-1.5 flex items-center gap-1 text-[10px] text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
+                                  style={{ fontWeight: 600 }}
+                                  disabled={resending === t}
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    if (!workspaceId || !client) return;
+                                    setResending(t);
+                                    try {
+                                      const hoursUsed = (client.retainerTotal || 0) - (client.retainerRemaining || 0);
+                                      const currentPct = client.retainerTotal ? (hoursUsed / client.retainerTotal) * 100 : 0;
+                                      const { data: wsData } = await supabase.from('workspaces').select('name').eq('id', workspaceId).maybeSingle();
+                                      await NotificationEvents.retainerWarning(workspaceId, client.name, currentPct, {
+                                        clientEmail: client.contactEmail,
+                                        hoursRemaining: client.retainerRemaining || 0,
+                                        hoursTotal: client.retainerTotal || 0,
+                                        workspaceName: wsData?.name,
+                                        clientId: client.id,
+                                      });
+                                      setSentThresholds(prev => ({ ...prev, [t]: new Date().toISOString() }));
+                                      toast.success(`${t}% retainer warning sent`);
+                                    } catch (err) {
+                                      console.error('Send failed:', err);
+                                      toast.error('Failed to send warning');
+                                    } finally {
+                                      setResending(null);
+                                    }
+                                  }}
+                                >
+                                  {resending === t ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
+                                  Send now
+                                </button>
+                              </TooltipContent>
+                            </Tooltip>
+                          );
                           return (
                             <Tooltip key={t}>
                               <TooltipTrigger asChild>{dot}</TooltipTrigger>
@@ -649,11 +693,43 @@ export default function ClientDetail() {
                                 side="bottom"
                                 className="bg-popover text-popover-foreground border border-border rounded-lg px-3 py-2 text-[11px] shadow-md z-50"
                               >
-                                <span style={{ fontWeight: 600 }}>{t}% warning sent</span>
+                              <span style={{ fontWeight: 600 }}>{t}% warning sent</span>
                                 <br />
                                 <span className="text-muted-foreground">
                                   {format(new Date(sentAt), 'MMM d, yyyy · h:mm a')}
                                 </span>
+                                <button
+                                  className="mt-1.5 flex items-center gap-1 text-[10px] text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
+                                  style={{ fontWeight: 600 }}
+                                  disabled={resending === t}
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    if (!workspaceId || !client) return;
+                                    setResending(t);
+                                    try {
+                                      const hoursUsed = (client.retainerTotal || 0) - (client.retainerRemaining || 0);
+                                      const currentPct = client.retainerTotal ? (hoursUsed / client.retainerTotal) * 100 : 0;
+                                      const { data: wsData } = await supabase.from('workspaces').select('name').eq('id', workspaceId).maybeSingle();
+                                      await NotificationEvents.retainerWarning(workspaceId, client.name, currentPct, {
+                                        clientEmail: client.contactEmail,
+                                        hoursRemaining: client.retainerRemaining || 0,
+                                        hoursTotal: client.retainerTotal || 0,
+                                        workspaceName: wsData?.name,
+                                        clientId: client.id,
+                                      });
+                                      setSentThresholds(prev => ({ ...prev, [t]: new Date().toISOString() }));
+                                      toast.success(`${t}% retainer warning resent`);
+                                    } catch (err) {
+                                      console.error('Resend failed:', err);
+                                      toast.error('Failed to resend warning');
+                                    } finally {
+                                      setResending(null);
+                                    }
+                                  }}
+                                >
+                                  {resending === t ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
+                                  Resend
+                                </button>
                               </TooltipContent>
                             </Tooltip>
                           );
