@@ -1,10 +1,12 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Bell, X, Clock, FileText, Users, TrendingUp, UserPlus, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router';
 import {
   type Notification,
+  type NotificationPreference,
   loadNotifications,
+  loadPreferences,
   markAsRead,
   markAllAsRead,
   subscribeToNotifications,
@@ -34,17 +36,37 @@ interface NotificationCenterProps {
 export function NotificationCenter({ workspaceId }: NotificationCenterProps) {
   const [open, setOpen] = useState(false);
   const [notifs, setNotifs] = useState<Notification[]>([]);
+  const [prefs, setPrefs] = useState<NotificationPreference[]>([]);
   const [loading, setLoading] = useState(true);
   const ref = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
-  const unreadCount = notifs.filter(n => !n.is_read).length;
+  // Build a set of categories where in_app is disabled
+  const disabledCategories = useMemo(() => {
+    const disabled = new Set<string>();
+    for (const p of prefs) {
+      if (!p.in_app) disabled.add(p.category);
+    }
+    return disabled;
+  }, [prefs]);
 
-  // Load initial notifications
+  // Filter notifications by preferences
+  const visibleNotifs = useMemo(
+    () => notifs.filter(n => !disabledCategories.has(n.category)),
+    [notifs, disabledCategories]
+  );
+
+  const unreadCount = visibleNotifs.filter(n => !n.is_read).length;
+
+  // Load initial notifications + preferences
   useEffect(() => {
     if (!workspaceId) return;
-    loadNotifications(workspaceId, 50).then(data => {
+    Promise.all([
+      loadNotifications(workspaceId, 50),
+      loadPreferences(workspaceId),
+    ]).then(([data, prefData]) => {
       setNotifs(data);
+      setPrefs(prefData);
       setLoading(false);
     });
   }, [workspaceId]);
@@ -154,14 +176,14 @@ export function NotificationCenter({ workspaceId }: NotificationCenterProps) {
                 <div className="px-4 py-8 text-center">
                   <div className="w-5 h-5 border-2 border-primary/20 border-t-primary rounded-full animate-spin mx-auto" />
                 </div>
-              ) : notifs.length === 0 ? (
+              ) : visibleNotifs.length === 0 ? (
                 <div className="px-4 py-12 text-center">
                   <Bell className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
                   <div className="text-[13px] text-muted-foreground">No notifications yet</div>
                   <div className="text-[11px] text-muted-foreground/60 mt-1">You'll see activity updates here</div>
                 </div>
               ) : (
-                notifs.map(n => {
+                visibleNotifs.map(n => {
                   const Icon = CATEGORY_ICONS[n.category] || Bell;
                   const colorClass = CATEGORY_COLORS[n.category] || 'bg-accent text-accent-foreground';
                   return (
@@ -194,7 +216,7 @@ export function NotificationCenter({ workspaceId }: NotificationCenterProps) {
             </div>
 
             {/* Footer */}
-            {notifs.length > 0 && (
+            {visibleNotifs.length > 0 && (
               <div className="px-4 py-2 border-t border-border">
                 <button
                   onClick={() => { navigate('/settings?tab=notifications'); setOpen(false); }}
