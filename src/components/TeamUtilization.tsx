@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { motion } from "motion/react";
-import { Users, Clock, DollarSign, TrendingUp, BarChart3 } from "lucide-react";
+import { Users, Clock, DollarSign, TrendingUp, BarChart3, Pencil, Check, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useData } from "@/data/DataContext";
 
@@ -11,26 +11,54 @@ interface TeamMember {
   email: string;
   role: string;
   status: string;
+  weeklyCapacity: number;
 }
 
 export default function TeamUtilization() {
   const { workspaceId, sessions } = useData();
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState("");
 
   useEffect(() => {
     if (!workspaceId) return;
     supabase
       .from("workspace_members")
-      .select("id, user_id, name, email, role, status")
+      .select("id, user_id, name, email, role, status, weekly_capacity")
       .eq("workspace_id", workspaceId)
       .then(({ data }) => {
-        setMembers((data || []).map((m: any) => ({ ...m, userId: m.user_id })));
+        setMembers(
+          (data || []).map((m: any) => ({
+            ...m,
+            userId: m.user_id,
+            weeklyCapacity: m.weekly_capacity ?? 40,
+          }))
+        );
         setLoading(false);
       });
   }, [workspaceId]);
 
   const activeMembers = members.filter((m) => m.status === "active");
+
+  const handleSaveCapacity = useCallback(
+    async (memberId: string) => {
+      const val = parseFloat(editValue);
+      if (isNaN(val) || val < 0 || val > 168) {
+        setEditingId(null);
+        return;
+      }
+      await supabase
+        .from("workspace_members")
+        .update({ weekly_capacity: val } as any)
+        .eq("id", memberId);
+      setMembers((prev) =>
+        prev.map((m) => (m.id === memberId ? { ...m, weeklyCapacity: val } : m))
+      );
+      setEditingId(null);
+    },
+    [editValue]
+  );
 
   // Per-member metrics using loggedBy
   const memberMetrics = useMemo(() => {
@@ -53,14 +81,15 @@ export default function TeamUtilization() {
   const nonBillableHours = totalHours - billableHours;
   const totalRevenue = sessions.reduce((s, ses) => s + (ses.revenue || 0), 0);
   const utilizationRate = totalHours > 0 ? Math.round((billableHours / totalHours) * 100) : 0;
+
+  const totalWeeklyCapacity = activeMembers.reduce((sum, m) => sum + m.weeklyCapacity, 0);
   const avgHoursPerMember = activeMembers.length > 0 ? Math.round((totalHours / activeMembers.length) * 10) / 10 : 0;
-  const weeklyCapacity = activeMembers.length * 40;
-  const capacityUsed = Math.min(100, Math.round((avgHoursPerMember / 40) * 100));
+  const capacityUsed = totalWeeklyCapacity > 0 ? Math.min(100, Math.round((totalHours / totalWeeklyCapacity) * 100)) : 0;
 
   const metricCards = [
     { key: "members", label: "Active members", value: activeMembers.length.toString(), sub: `of ${members.length} total`, icon: Users },
     { key: "utilization", label: "Billable utilization", value: `${utilizationRate}%`, sub: `${Math.round(billableHours)}h billable`, icon: TrendingUp },
-    { key: "capacity", label: "Avg hours / member", value: avgHoursPerMember.toString(), sub: "of 40h capacity", icon: Clock },
+    { key: "capacity", label: "Avg hours / member", value: avgHoursPerMember.toString(), sub: `of ${totalWeeklyCapacity}h capacity`, icon: Clock },
     { key: "revenue", label: "Team revenue", value: `$${Math.round(totalRevenue).toLocaleString()}`, sub: "this period", icon: DollarSign },
   ];
 
@@ -130,7 +159,7 @@ export default function TeamUtilization() {
             <div className="h-2.5 bg-accent/60 rounded-full overflow-hidden">
               <motion.div
                 className="h-full rounded-full"
-                style={{ background: "linear-gradient(90deg, #5ea1bf, #7fb8d1)" }}
+                style={{ background: "linear-gradient(90deg, hsl(var(--primary)), hsl(var(--primary) / 0.7))" }}
                 initial={{ width: 0 }}
                 animate={{ width: `${utilizationRate}%` }}
                 transition={{ delay: 0.5, duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
@@ -160,7 +189,7 @@ export default function TeamUtilization() {
           <div className="pt-3 border-t border-border">
             <div className="flex justify-between items-baseline mb-2">
               <span className="text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>
-                Weekly capacity ({weeklyCapacity}h total)
+                Weekly capacity ({totalWeeklyCapacity}h total)
               </span>
               <span className="text-[13px] tabular-nums" style={{ fontWeight: 600 }}>{capacityUsed}% used</span>
             </div>
@@ -168,9 +197,9 @@ export default function TeamUtilization() {
               <motion.div
                 className="h-full rounded-full"
                 style={{
-                  background: capacityUsed > 90 ? "linear-gradient(90deg, #e5484d, #f76b6b)" :
-                    capacityUsed > 70 ? "linear-gradient(90deg, #bfa044, #d4b85a)" :
-                    "linear-gradient(90deg, #5ea1bf, #7fb8d1)",
+                  background: capacityUsed > 90 ? "linear-gradient(90deg, hsl(var(--destructive)), hsl(var(--destructive) / 0.7))" :
+                    capacityUsed > 70 ? "linear-gradient(90deg, hsl(40 70% 50%), hsl(40 70% 60%))" :
+                    "linear-gradient(90deg, hsl(var(--primary)), hsl(var(--primary) / 0.7))",
                 }}
                 initial={{ width: 0 }}
                 animate={{ width: `${capacityUsed}%` }}
@@ -181,7 +210,7 @@ export default function TeamUtilization() {
         </div>
       </motion.div>
 
-      {/* Team members table with per-member metrics */}
+      {/* Team members table */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}>
         <div className="text-[13px] text-muted-foreground mb-4" style={{ fontWeight: 500, letterSpacing: "0.02em" }}>
           Member workload
@@ -199,6 +228,7 @@ export default function TeamUtilization() {
                 <tr className="border-b border-border bg-accent/30">
                   <th className="text-left px-6 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Member</th>
                   <th className="text-left px-6 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Role</th>
+                  <th className="text-right px-6 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Capacity</th>
                   <th className="text-right px-6 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Hours</th>
                   <th className="text-right px-6 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Billable</th>
                   <th className="text-right px-6 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Revenue</th>
@@ -209,6 +239,8 @@ export default function TeamUtilization() {
                 {activeMembers.map((member, idx) => {
                   const m = memberMetrics.get(member.userId || "") || { hours: 0, billableHours: 0, revenue: 0 };
                   const memberUtil = m.hours > 0 ? Math.round((m.billableHours / m.hours) * 100) : 0;
+                  const isEditing = editingId === member.id;
+
                   return (
                     <motion.tr
                       key={member.id}
@@ -242,6 +274,42 @@ export default function TeamUtilization() {
                           {member.role}
                         </span>
                       </td>
+                      <td className="px-6 py-4 text-right">
+                        {isEditing ? (
+                          <div className="flex items-center justify-end gap-1">
+                            <input
+                              type="number"
+                              min={0}
+                              max={168}
+                              step={1}
+                              value={editValue}
+                              onChange={(e) => setEditValue(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") handleSaveCapacity(member.id);
+                                if (e.key === "Escape") setEditingId(null);
+                              }}
+                              autoFocus
+                              className="w-14 h-7 text-[13px] text-right tabular-nums bg-background border border-border rounded px-1.5 focus:outline-none focus:ring-1 focus:ring-primary"
+                            />
+                            <span className="text-[12px] text-muted-foreground">h/w</span>
+                            <button onClick={() => handleSaveCapacity(member.id)} className="p-0.5 text-primary hover:text-primary/80">
+                              <Check className="w-3.5 h-3.5" />
+                            </button>
+                            <button onClick={() => setEditingId(null)} className="p-0.5 text-muted-foreground hover:text-foreground">
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => { setEditingId(member.id); setEditValue(member.weeklyCapacity.toString()); }}
+                            className="inline-flex items-center gap-1.5 text-[14px] tabular-nums group"
+                            style={{ fontWeight: 500 }}
+                          >
+                            {member.weeklyCapacity}h/w
+                            <Pencil className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </button>
+                        )}
+                      </td>
                       <td className="px-6 py-4 text-right text-[14px] tabular-nums" style={{ fontWeight: 500 }}>
                         {Math.round(m.hours * 10) / 10}h
                       </td>
@@ -256,7 +324,7 @@ export default function TeamUtilization() {
                           <div className="flex-1 h-2 bg-accent/60 rounded-full overflow-hidden">
                             <motion.div
                               className="h-full rounded-full"
-                              style={{ background: "linear-gradient(90deg, #5ea1bf, #7fb8d1)" }}
+                              style={{ background: "linear-gradient(90deg, hsl(var(--primary)), hsl(var(--primary) / 0.7))" }}
                               initial={{ width: 0 }}
                               animate={{ width: `${memberUtil}%` }}
                               transition={{ delay: 0.6 + idx * 0.1, duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
