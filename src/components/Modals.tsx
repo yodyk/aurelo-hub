@@ -121,10 +121,9 @@ function PrimaryBtn({ onClick, disabled, children }: { onClick: () => void; disa
     <button
       onClick={onClick}
       disabled={disabled}
-      className="px-4 py-2 bg-primary text-primary-foreground text-[13px] rounded-lg hover:bg-primary/90 transition-all disabled:opacity-60 flex items-center gap-2"
+      className="px-4 py-2 bg-primary text-primary-foreground text-[13px] rounded-lg hover:bg-primary/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
       style={{ fontWeight: 500, boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}
     >
-      {disabled && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
       {children}
     </button>
   );
