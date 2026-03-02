@@ -20,12 +20,13 @@ import { toast } from 'sonner';
 import { useTheme } from '../data/ThemeContext';
 import type { FeatureKey } from '../data/plans';
 
-const navItems: { to: string; icon: any; label: string; end?: boolean; feature?: FeatureKey }[] = [
+const navItems: { to: string; icon: any; label: string; end?: boolean; feature?: FeatureKey; hideUnlessFeature?: boolean }[] = [
   { to: '/', icon: LayoutDashboard, label: 'Home', end: true },
   { to: '/clients', icon: Users, label: 'Clients' },
   { to: '/projects', icon: FolderKanban, label: 'Projects' },
   { to: '/time', icon: Clock, label: 'Time' },
   { to: '/insights', icon: TrendingUp, label: 'Insights' },
+  { to: '/team', icon: Users, label: 'Team', feature: 'teamUtilization', hideUnlessFeature: true },
   { to: '/invoicing', icon: FileText, label: 'Invoicing', feature: 'clientInvoicing' },
 ];
 
@@ -262,6 +263,8 @@ function RootLayout() {
           <div className="space-y-1">
             {navItems.map((item) => {
               const isLocked = item.feature ? !can(item.feature) : false;
+              // Hide nav items that require a feature the user doesn't have
+              if (item.hideUnlessFeature && isLocked) return null;
               return (
                 <NavLink
                   key={item.to}
