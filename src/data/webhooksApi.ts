@@ -28,6 +28,7 @@ export const WEBHOOK_EVENT_TYPES = [
   { value: 'invoice.paid', label: 'Invoice paid', group: 'Invoices' },
   { value: 'project.created', label: 'Project created', group: 'Projects' },
   { value: 'project.updated', label: 'Project updated', group: 'Projects' },
+  { value: 'project.deleted', label: 'Project deleted', group: 'Projects' },
   { value: 'project.status_changed', label: 'Project status changed', group: 'Projects' },
 ] as const;
 
