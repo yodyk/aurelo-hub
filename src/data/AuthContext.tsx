@@ -2,14 +2,25 @@ import { createContext, useContext, useState, useEffect, useCallback, type React
 import * as auth from './authService';
 import { supabase } from '@/integrations/supabase/client';
 
+export interface WorkspaceInfo {
+  id: string;
+  name: string;
+  role: string;
+  planId: string;
+}
+
 interface AuthContextType {
   user: auth.AuthUser | null;
   loading: boolean;
   workspaceId: string | null;
   workspaceRole: string | null;
+  allWorkspaces: WorkspaceInfo[];
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, name: string) => Promise<void>;
   signOut: () => Promise<void>;
+  switchWorkspace: (workspaceId: string) => void;
+  createWorkspace: (name: string) => Promise<string>;
+  renameWorkspace: (workspaceId: string, newName: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -19,9 +30,13 @@ const safeAuthDefaults: AuthContextType = {
   loading: true,
   workspaceId: null,
   workspaceRole: null,
+  allWorkspaces: [],
   signIn: async () => {},
   signUp: async () => {},
   signOut: async () => {},
+  switchWorkspace: () => {},
+  createWorkspace: async () => '',
+  renameWorkspace: async () => {},
 };
 
 export function useAuth() {
@@ -66,38 +81,63 @@ async function createWorkspaceForUser(userId: string, email: string, name: strin
 }
 
 /**
- * Resolve the user's active workspace_id from workspace_members.
+ * Resolve ALL workspaces the user belongs to.
  */
-async function resolveWorkspace(userId: string): Promise<{ workspaceId: string | null; role: string | null }> {
+async function resolveAllWorkspaces(userId: string): Promise<WorkspaceInfo[]> {
   const { data, error } = await supabase
     .from('workspace_members')
-    .select('workspace_id, role')
+    .select('workspace_id, role, workspaces(id, name, plan_id)')
     .eq('user_id', userId)
-    .eq('status', 'active')
-    .limit(1)
-    .maybeSingle();
+    .eq('status', 'active');
 
-  if (error || !data) return { workspaceId: null, role: null };
-  return { workspaceId: data.workspace_id, role: data.role };
+  if (error || !data) return [];
+
+  return data
+    .filter((row: any) => row.workspaces)
+    .map((row: any) => ({
+      id: row.workspace_id,
+      name: (row.workspaces as any).name || 'Workspace',
+      role: row.role,
+      planId: (row.workspaces as any).plan_id || 'starter',
+    }));
 }
+
+const WS_STORAGE_KEY = 'aurelo_active_workspace';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<auth.AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [workspaceId, setWorkspaceId] = useState<string | null>(null);
   const [workspaceRole, setWorkspaceRole] = useState<string | null>(null);
+  const [allWorkspaces, setAllWorkspaces] = useState<WorkspaceInfo[]>([]);
 
-  // Resolve workspace whenever user changes
-  const resolveAndSetWorkspace = useCallback(async (u: auth.AuthUser | null) => {
-    if (!u) {
+  // Pick active workspace: prefer localStorage, fallback to first
+  const pickWorkspace = useCallback((workspaces: WorkspaceInfo[]) => {
+    if (workspaces.length === 0) {
       setWorkspaceId(null);
       setWorkspaceRole(null);
       return;
     }
-    const result = await resolveWorkspace(u.id);
-    setWorkspaceId(result.workspaceId);
-    setWorkspaceRole(result.role);
+    const stored = localStorage.getItem(WS_STORAGE_KEY);
+    const match = stored ? workspaces.find(w => w.id === stored) : null;
+    const active = match || workspaces[0];
+    setWorkspaceId(active.id);
+    setWorkspaceRole(active.role);
+    localStorage.setItem(WS_STORAGE_KEY, active.id);
   }, []);
+
+  // Resolve workspaces whenever user changes
+  const resolveAndSetWorkspaces = useCallback(async (u: auth.AuthUser | null) => {
+    if (!u) {
+      setWorkspaceId(null);
+      setWorkspaceRole(null);
+      setAllWorkspaces([]);
+      return;
+    }
+    const workspaces = await resolveAllWorkspaces(u.id);
+    setAllWorkspaces(workspaces);
+    pickWorkspace(workspaces);
+  }, [pickWorkspace]);
 
   useEffect(() => {
     let mounted = true;
@@ -106,7 +146,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .then(async (u) => {
         if (!mounted) return;
         setUser(u);
-        await resolveAndSetWorkspace(u);
+        await resolveAndSetWorkspaces(u);
       })
       .catch((err) => console.error('Auth session check failed:', err))
       .finally(() => { if (mounted) setLoading(false); });
@@ -114,7 +154,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data } = auth.onAuthStateChange(async (u) => {
       if (!mounted) return;
       setUser(u);
-      await resolveAndSetWorkspace(u);
+      await resolveAndSetWorkspaces(u);
       if (mounted) setLoading(false);
     });
 
@@ -122,21 +162,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       mounted = false;
       try { data?.subscription?.unsubscribe(); } catch (_) {}
     };
-  }, [resolveAndSetWorkspace]);
+  }, [resolveAndSetWorkspaces]);
 
   const handleSignIn = useCallback(async (email: string, password: string) => {
     const u = await auth.signIn(email, password);
     setUser(u);
-    await resolveAndSetWorkspace(u);
-  }, [resolveAndSetWorkspace]);
+    await resolveAndSetWorkspaces(u);
+  }, [resolveAndSetWorkspaces]);
 
   const handleSignUp = useCallback(async (email: string, password: string, name: string) => {
     const u = await auth.signUp(email, password, name);
     setUser(u);
-    // Create workspace for new user
     const wsId = await createWorkspaceForUser(u.id, u.email, name);
+    const ws: WorkspaceInfo = { id: wsId, name: name ? `${name}'s Workspace` : 'My Workspace', role: 'Owner', planId: 'starter' };
+    setAllWorkspaces([ws]);
     setWorkspaceId(wsId);
     setWorkspaceRole('Owner');
+    localStorage.setItem(WS_STORAGE_KEY, wsId);
   }, []);
 
   const handleSignOut = useCallback(async () => {
@@ -144,12 +186,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setWorkspaceId(null);
     setWorkspaceRole(null);
+    setAllWorkspaces([]);
+    localStorage.removeItem(WS_STORAGE_KEY);
+  }, []);
+
+  const switchWorkspace = useCallback((targetId: string) => {
+    const ws = allWorkspaces.find(w => w.id === targetId);
+    if (!ws) return;
+    setWorkspaceId(ws.id);
+    setWorkspaceRole(ws.role);
+    localStorage.setItem(WS_STORAGE_KEY, ws.id);
+  }, [allWorkspaces]);
+
+  const handleCreateWorkspace = useCallback(async (name: string) => {
+    if (!user) throw new Error('Not authenticated');
+    const wsId = await createWorkspaceForUser(user.id, user.email, name);
+    const ws: WorkspaceInfo = { id: wsId, name, role: 'Owner', planId: 'starter' };
+    setAllWorkspaces(prev => [...prev, ws]);
+    setWorkspaceId(wsId);
+    setWorkspaceRole('Owner');
+    localStorage.setItem(WS_STORAGE_KEY, wsId);
+    return wsId;
+  }, [user]);
+
+  const handleRenameWorkspace = useCallback(async (targetId: string, newName: string) => {
+    const { error } = await supabase
+      .from('workspaces')
+      .update({ name: newName })
+      .eq('id', targetId);
+    if (error) throw new Error(`Failed to rename workspace: ${error.message}`);
+    setAllWorkspaces(prev => prev.map(w => w.id === targetId ? { ...w, name: newName } : w));
   }, []);
 
   return (
     <AuthContext.Provider value={{
-      user, loading, workspaceId, workspaceRole,
+      user, loading, workspaceId, workspaceRole, allWorkspaces,
       signIn: handleSignIn, signUp: handleSignUp, signOut: handleSignOut,
+      switchWorkspace, createWorkspace: handleCreateWorkspace, renameWorkspace: handleRenameWorkspace,
     }}>
       {children}
     </AuthContext.Provider>

@@ -16,6 +16,7 @@ import { LogSessionModal } from '../components/Modals';
 import { GuidedTour } from '../components/GuidedTour';
 import { DemoModeBanner } from '../components/DemoModeBanner';
 import { TrialBanner } from '../components/TrialBanner';
+import { WorkspaceSwitcher } from '../components/WorkspaceSwitcher';
 import { toast } from 'sonner';
 import { useTheme } from '../data/ThemeContext';
 import type { FeatureKey } from '../data/plans';
@@ -230,33 +231,14 @@ function RootLayout() {
           )}
         </div>
 
-        {/* Workspace block */}
-        <div className="px-3 pt-3 pb-3 border-b border-border">
-          <button
-            onClick={() => navigate('/settings?tab=billing')}
-            className={`w-full flex items-center gap-2.5 rounded-lg hover:bg-accent/50 transition-colors ${sidebarCollapsed ? 'px-2 py-2 justify-center' : 'px-3 py-2.5'}`}
-          >
-            <div className="w-7 h-7 rounded-lg bg-accent/60 flex items-center justify-center flex-shrink-0 overflow-hidden">
-              {wsLogoUrl ? (
-                <img
-                  src={wsLogoUrl}
-                  alt=""
-                  className="w-full h-full object-cover"
-                  onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; e.currentTarget.parentElement!.querySelector('span')!.style.display = ''; }}
-                />
-              ) : null}
-              <span className="text-[12px] text-foreground/70" style={{ fontWeight: 600, display: wsLogoUrl ? 'none' : undefined }}>{wsInitial}</span>
-            </div>
-            {!sidebarCollapsed && (
-              <div className="min-w-0 flex-1 text-left">
-                <div className="text-[13px] text-foreground truncate" style={{ fontWeight: 500 }}>{wsName}</div>
-                <div className="text-[10px] text-muted-foreground/70 tracking-wide" style={{ fontWeight: 600, letterSpacing: '0.04em' }}>
-                  {planId === 'starter' ? 'FREE' : planId.toUpperCase()} PLAN
-                </div>
-              </div>
-            )}
-          </button>
-        </div>
+        {/* Workspace switcher */}
+        <WorkspaceSwitcher
+          collapsed={sidebarCollapsed}
+          wsName={wsName}
+          wsLogoUrl={wsLogoUrl}
+          wsInitial={wsInitial}
+          planId={planId}
+        />
         
         {/* Navigation */}
         <nav className="flex-1 px-3 py-4" data-tour="sidebar-nav">
