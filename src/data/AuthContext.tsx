@@ -21,6 +21,7 @@ interface AuthContextType {
   switchWorkspace: (workspaceId: string) => void;
   createWorkspace: (name: string) => Promise<string>;
   renameWorkspace: (workspaceId: string, newName: string) => Promise<void>;
+  deleteWorkspace: (workspaceId: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -37,6 +38,7 @@ const safeAuthDefaults: AuthContextType = {
   switchWorkspace: () => {},
   createWorkspace: async () => '',
   renameWorkspace: async () => {},
+  deleteWorkspace: async () => {},
 };
 
 export function useAuth() {
@@ -218,11 +220,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAllWorkspaces(prev => prev.map(w => w.id === targetId ? { ...w, name: newName } : w));
   }, []);
 
+  const handleDeleteWorkspace = useCallback(async (targetId: string) => {
+    if (allWorkspaces.length <= 1) throw new Error('Cannot delete your only workspace');
+    if (user) {
+      await supabase.from('workspace_members').delete().eq('workspace_id', targetId).eq('user_id', user.id);
+    }
+    const { error } = await supabase.from('workspaces').delete().eq('id', targetId);
+    if (error) throw new Error(`Failed to delete workspace: ${error.message}`);
+    const remaining = allWorkspaces.filter(w => w.id !== targetId);
+    setAllWorkspaces(remaining);
+    if (workspaceId === targetId) {
+      pickWorkspace(remaining);
+    }
+  }, [allWorkspaces, user, workspaceId, pickWorkspace]);
+
   return (
     <AuthContext.Provider value={{
       user, loading, workspaceId, workspaceRole, allWorkspaces,
       signIn: handleSignIn, signUp: handleSignUp, signOut: handleSignOut,
       switchWorkspace, createWorkspace: handleCreateWorkspace, renameWorkspace: handleRenameWorkspace,
+      deleteWorkspace: handleDeleteWorkspace,
     }}>
       {children}
     </AuthContext.Provider>
