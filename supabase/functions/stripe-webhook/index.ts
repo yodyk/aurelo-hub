@@ -87,6 +87,13 @@ serve(async (req) => {
         break;
       }
 
+      case "invoice.paid": {
+        const invoice = event.data.object as Stripe.Invoice;
+        log("Invoice paid", { id: invoice.id, customer: invoice.customer });
+        await handleInvoicePaid(supabase, invoice);
+        break;
+      }
+
       case "invoice.payment_failed": {
         const invoice = event.data.object as Stripe.Invoice;
         log("Payment failed", { customer: invoice.customer, amount: invoice.amount_due });
@@ -210,5 +217,49 @@ async function handleCancellation(
     log("Cancellation DB error", { error: error.message });
   } else {
     log("Workspace downgraded to starter", { workspaceId: workspace.id });
+  }
+}
+
+async function handleInvoicePaid(
+  supabase: ReturnType<typeof createClient>,
+  stripeInvoice: Stripe.Invoice,
+) {
+  const stripeInvoiceId = stripeInvoice.id;
+
+  // Find matching invoice in our DB by stripe_invoice_id
+  const { data: invoice, error: fetchErr } = await supabase
+    .from("invoices")
+    .select("id, status")
+    .eq("stripe_invoice_id", stripeInvoiceId)
+    .limit(1)
+    .maybeSingle();
+
+  if (fetchErr) {
+    log("Error finding invoice", { stripeInvoiceId, error: fetchErr.message });
+    return;
+  }
+
+  if (!invoice) {
+    log("No matching app invoice for Stripe invoice", { stripeInvoiceId });
+    return;
+  }
+
+  if (invoice.status === "paid") {
+    log("Invoice already marked paid", { id: invoice.id });
+    return;
+  }
+
+  const { error: updateErr } = await supabase
+    .from("invoices")
+    .update({
+      status: "paid",
+      paid_date: new Date().toISOString().split("T")[0],
+    })
+    .eq("id", invoice.id);
+
+  if (updateErr) {
+    log("Error marking invoice paid", { id: invoice.id, error: updateErr.message });
+  } else {
+    log("Invoice marked paid", { id: invoice.id, stripeInvoiceId });
   }
 }
