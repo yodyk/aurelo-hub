@@ -263,6 +263,7 @@ export const NotificationEvents = {
                 hoursRemaining: meta.hoursRemaining ?? 0,
                 hoursTotal: meta.hoursTotal ?? 0,
                 workspaceName: meta.workspaceName,
+                workspaceLogoUrl: meta.workspaceLogoUrl,
               }),
             }
           );
