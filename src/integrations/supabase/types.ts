@@ -197,6 +197,53 @@ export type Database = {
           },
         ]
       }
+      invoice_templates: {
+        Row: {
+          created_at: string
+          currency: string | null
+          id: string
+          line_items: Json
+          name: string
+          notes: string | null
+          payment_terms: string | null
+          tax_rate: number | null
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string | null
+          id?: string
+          line_items?: Json
+          name: string
+          notes?: string | null
+          payment_terms?: string | null
+          tax_rate?: number | null
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string | null
+          id?: string
+          line_items?: Json
+          name?: string
+          notes?: string | null
+          payment_terms?: string | null
+          tax_rate?: number | null
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_templates_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoices: {
         Row: {
           client_email: string | null
