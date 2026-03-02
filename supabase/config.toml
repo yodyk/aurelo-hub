@@ -19,3 +19,7 @@ project_id = "oqrqypuulgeqzjcgqruw"
     verify_jwt = false
   [functions.stripe-webhook]
     verify_jwt = false
+  [functions.connect-stripe]
+    verify_jwt = false
+  [functions.connect-stripe-callback]
+    verify_jwt = false

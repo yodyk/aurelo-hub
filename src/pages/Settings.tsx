@@ -2629,6 +2629,85 @@ function IntegrationsTabContent() {
   const [apiCopied, setApiCopied] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
   const [savingConnections, setSavingConnections] = useState(false);
+  const [stripeConnecting, setStripeConnecting] = useState(false);
+  const [stripeDisconnecting, setStripeDisconnecting] = useState(false);
+  const { workspaceId } = useData();
+  const [searchParams] = useSearchParams();
+  const [stripeConnectAccountId, setStripeConnectAccountId] = useState<string | null>(null);
+  const [stripeLoading, setStripeLoading] = useState(true);
+
+  // Load Stripe Connect status
+  useEffect(() => {
+    if (!workspaceId) return;
+    supabase
+      .from("workspaces")
+      .select("stripe_connect_account_id")
+      .eq("id", workspaceId)
+      .single()
+      .then(({ data }) => {
+        setStripeConnectAccountId((data as any)?.stripe_connect_account_id || null);
+        setStripeLoading(false);
+      });
+  }, [workspaceId]);
+
+  // Handle Stripe Connect callback result
+  useEffect(() => {
+    const result = searchParams.get("stripe_connect");
+    if (result === "success") {
+      toast.success("Stripe account connected successfully!");
+      // Re-fetch the connect account id
+      if (workspaceId) {
+        supabase
+          .from("workspaces")
+          .select("stripe_connect_account_id")
+          .eq("id", workspaceId)
+          .single()
+          .then(({ data }) => {
+            setStripeConnectAccountId((data as any)?.stripe_connect_account_id || null);
+          });
+      }
+    } else if (result === "error") {
+      const message = searchParams.get("message") || "Failed to connect Stripe";
+      toast.error(message);
+    }
+  }, [searchParams, workspaceId]);
+
+  const stripeConnected = !!stripeConnectAccountId;
+
+  const handleConnectStripe = async () => {
+    setStripeConnecting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("connect-stripe");
+      if (error) throw error;
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error("No redirect URL returned");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to start Stripe Connect");
+      setStripeConnecting(false);
+    }
+  };
+
+  const handleDisconnectStripe = async () => {
+    if (!confirm("Disconnect your Stripe account? You won't be able to collect payments on invoices until you reconnect.")) return;
+    setStripeDisconnecting(true);
+    try {
+      if (!workspaceId) throw new Error("No workspace");
+      const { error } = await supabase
+        .from("workspaces")
+        .update({ stripe_connect_account_id: null } as any)
+        .eq("id", workspaceId);
+      if (error) throw error;
+      setStripeConnectAccountId(null);
+      toast.success("Stripe account disconnected");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to disconnect");
+    } finally {
+      setStripeDisconnecting(false);
+    }
+  };
 
   const toggleConnection = async (id: string) => {
     const updated = connections.map((c: any) =>
@@ -2646,7 +2725,6 @@ function IntegrationsTabContent() {
         toast.success(`${conn?.name} connected`);
       }
     } catch (err: any) {
-      // Revert on error
       setConnections(connections);
       toast.error(err.message || "Failed to update connection");
     } finally {
@@ -2700,6 +2778,48 @@ function IntegrationsTabContent() {
 
   return (
     <motion.div className="space-y-6" variants={container} initial="hidden" animate="show">
+      {/* Stripe Connect */}
+      <SectionCard>
+        <SectionHeader
+          title="Stripe Connect"
+          description="Connect your Stripe account to collect payments on invoices"
+        />
+        <div className="flex items-center gap-4 py-3.5 px-3 rounded-lg bg-accent/20">
+          <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${stripeConnected ? "bg-primary/8 text-primary" : "bg-accent/60 text-muted-foreground"}`}>
+            <CreditCard className="w-5 h-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-[14px]" style={{ fontWeight: 500 }}>
+              {stripeConnected ? "Stripe account connected" : "No Stripe account connected"}
+            </div>
+            <div className="text-[12px] text-muted-foreground">
+              {stripeConnected
+                ? `Account ${stripeConnectAccountId?.slice(0, 12)}…`
+                : "Connect to enable payment collection on client invoices"}
+            </div>
+          </div>
+          {stripeConnected ? (
+            <button
+              onClick={handleDisconnectStripe}
+              disabled={stripeDisconnecting}
+              className="px-3 py-1.5 text-[12px] rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-all disabled:opacity-60"
+              style={{ fontWeight: 500 }}
+            >
+              {stripeDisconnecting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Disconnect"}
+            </button>
+          ) : (
+            <button
+              onClick={handleConnectStripe}
+              disabled={stripeConnecting}
+              className="px-3 py-1.5 text-[12px] rounded-lg border border-primary/20 bg-primary/8 text-primary hover:bg-primary/12 transition-all disabled:opacity-60"
+              style={{ fontWeight: 500 }}
+            >
+              {stripeConnecting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Connect Stripe"}
+            </button>
+          )}
+        </div>
+      </SectionCard>
+
       <SectionCard>
         <SectionHeader title="Connected services" description="Sync data and automate workflows" />
         <div className="space-y-1">
