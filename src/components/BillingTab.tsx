@@ -4,7 +4,7 @@ import {
   CreditCard, Check, ArrowRight, Loader2, Crown,
   Users, FolderKanban, Clock, Sparkles, Lock,
   Zap, FileText, BarChart3, Palette, Globe, Shield,
-  AlertTriangle,
+  AlertTriangle, ExternalLink, RefreshCw,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { usePlan } from '../data/PlanContext';
@@ -14,6 +14,8 @@ import {
   type PlanId, type FeatureKey,
   PLANS, FEATURE_CATEGORIES, SUPPORT_TIERS, EXPORT_FORMATS,
 } from '../data/plans';
+import { STRIPE_TIERS } from '../data/stripePlans';
+import { supabase } from '@/integrations/supabase/client';
 import * as settingsApi from '../data/settingsApi';
 
 const item = {
@@ -78,12 +80,13 @@ function UsageMeter({ label, icon: Icon, current, max, color }: {
 
 // ── Plan Card ──────────────────────────────────────────────────────
 
-function PlanCard({ planId, isCurrent, isOwner, onSelect, selecting }: {
+function PlanCard({ planId, isCurrent, isOwner, onSelect, selecting, hasStripeSubscription }: {
   planId: PlanId;
   isCurrent: boolean;
   isOwner: boolean;
   onSelect: (id: PlanId) => void;
   selecting: PlanId | null;
+  hasStripeSubscription: boolean;
 }) {
   const plan = PLANS[planId];
   const isUpgrade = !isCurrent && planId !== 'starter';
@@ -241,7 +244,7 @@ function PlanCard({ planId, isCurrent, isOwner, onSelect, selecting }: {
 // ── Main BillingTab ────────────────────────────────────────────────
 
 export default function BillingTab() {
-  const { plan, planId, planDef, setPlan, limit, isTrial, trialDaysRemaining, trialExpired, startTrial } = usePlan();
+  const { plan, planId, planDef, setPlan, limit, isTrial, trialDaysRemaining, trialExpired, startTrial, checkSubscription, subscriptionLoading } = usePlan();
   const { clients } = useData();
   const { user } = useAuth();
   const [selecting, setSelecting] = useState<PlanId | null>(null);
@@ -275,7 +278,32 @@ export default function BillingTab() {
     );
   };
 
+  const hasStripeSubscription = !!plan.stripeSubscriptionId;
+
   const executePlanSwitch = useCallback(async (newPlanId: PlanId) => {
+    // For paid plans, redirect to Stripe Checkout
+    if (newPlanId !== 'starter' && newPlanId !== 'legacy') {
+      const tier = STRIPE_TIERS[newPlanId];
+      if (!tier) return;
+      setSelecting(newPlanId);
+      try {
+        const { data, error } = await supabase.functions.invoke('create-checkout', {
+          body: { priceId: tier.priceId },
+        });
+        if (error) throw new Error(error.message);
+        if (data?.url) {
+          window.open(data.url, '_blank');
+          toast.success('Stripe checkout opened in a new tab');
+        }
+      } catch (err: any) {
+        toast.error(err.message || 'Failed to start checkout');
+      } finally {
+        setSelecting(null);
+      }
+      return;
+    }
+
+    // For Starter downgrade or legacy, switch directly
     setSelecting(newPlanId);
     try {
       const result = await settingsApi.updatePlan(newPlanId);
@@ -299,6 +327,21 @@ export default function BillingTab() {
       setSelecting(null);
     }
   }, [plan, setPlan]);
+
+  const handleManageSubscription = useCallback(async () => {
+    setSelecting('pro'); // just as a loading indicator
+    try {
+      const { data, error } = await supabase.functions.invoke('customer-portal');
+      if (error) throw new Error(error.message);
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to open billing portal');
+    } finally {
+      setSelecting(null);
+    }
+  }, []);
 
   const handleSelectPlan = useCallback((newPlanId: PlanId) => {
     if (!isOwner) return;
@@ -356,9 +399,9 @@ export default function BillingTab() {
           </div>
         </div>
 
-        {/* Change plan button */}
+        {/* Action buttons */}
         {isOwner && (
-          <div className="mt-5 pt-5 border-t border-border">
+          <div className="mt-5 pt-5 border-t border-border flex items-center gap-3 flex-wrap">
             <button
               onClick={() => setShowPlanPicker(p => !p)}
               className={`inline-flex items-center gap-2 px-5 py-2.5 text-[13px] rounded-lg transition-all ${
@@ -375,7 +418,7 @@ export default function BillingTab() {
                 } : {}),
               }}
             >
-              {planId === 'studio' ? (
+              {planId === 'studio' || planId === 'legacy' ? (
                 <>
                   <Crown className="w-3.5 h-3.5" />
                   {showPlanPicker ? 'Hide plans' : 'Manage plan'}
@@ -386,6 +429,28 @@ export default function BillingTab() {
                   {showPlanPicker ? 'Hide plans' : 'Compare plans'}
                 </>
               )}
+            </button>
+
+            {hasStripeSubscription && (
+              <button
+                onClick={handleManageSubscription}
+                disabled={selecting !== null}
+                className="inline-flex items-center gap-2 px-4 py-2.5 text-[13px] rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-all disabled:opacity-50"
+                style={{ fontWeight: 500 }}
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                Manage billing
+              </button>
+            )}
+
+            <button
+              onClick={() => checkSubscription()}
+              disabled={subscriptionLoading}
+              className="inline-flex items-center gap-2 px-3 py-2.5 text-[13px] rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-all disabled:opacity-50"
+              style={{ fontWeight: 500 }}
+              title="Refresh subscription status"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${subscriptionLoading ? 'animate-spin' : ''}`} />
             </button>
           </div>
         )}
@@ -476,7 +541,7 @@ export default function BillingTab() {
             <div className="px-6 py-4 border-b border-border">
               <h3 className="text-[15px] text-foreground" style={{ fontWeight: 600 }}>Choose your plan</h3>
               <p className="text-[12px] text-muted-foreground mt-0.5">
-                Plans apply to the entire workspace. Stripe billing coming soon.
+                Plans apply to the entire workspace. Powered by Stripe.
               </p>
             </div>
             <div className="p-6 grid grid-cols-3 gap-4">
@@ -488,6 +553,7 @@ export default function BillingTab() {
                   isOwner={isOwner}
                   onSelect={handleSelectPlan}
                   selecting={selecting}
+                  hasStripeSubscription={hasStripeSubscription}
                 />
               ))}
             </div>
@@ -605,7 +671,7 @@ export default function BillingTab() {
         </div>
       </SectionCard>
 
-      {/* Billing History placeholder */}
+      {/* Billing History */}
       <SectionCard>
         <div className="mb-4">
           <h3 className="text-[15px] text-foreground" style={{ fontWeight: 600 }}>Billing history</h3>
@@ -618,8 +684,20 @@ export default function BillingTab() {
           <p className="text-[13px] text-muted-foreground">
             {planId === 'starter'
               ? 'No billing history — you\'re on the free plan'
-              : 'Billing history will appear here once Stripe is connected'}
+              : hasStripeSubscription
+                ? 'View full billing history in the Stripe portal'
+                : 'No billing history yet'}
           </p>
+          {hasStripeSubscription && (
+            <button
+              onClick={handleManageSubscription}
+              className="mt-3 inline-flex items-center gap-2 px-4 py-2 text-[13px] rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-all"
+              style={{ fontWeight: 500 }}
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              View in Stripe
+            </button>
+          )}
         </div>
       </SectionCard>
 

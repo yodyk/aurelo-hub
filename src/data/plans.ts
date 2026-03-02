@@ -45,7 +45,7 @@ export const PLANS: Record<PlanId, PlanDef> = {
   pro: {
     name: 'Pro',
     tagline: 'For established freelancers and small teams',
-    price: 24,
+    price: 20,
     limits: { seats: 5, activeClients: null, projectsPerClient: null, dataRetentionDays: null },
     features: {
       fullInsights: true, clientInvoicing: true, batchInvoicing: false,
