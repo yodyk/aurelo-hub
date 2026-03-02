@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { NotificationEvents } from './notificationsApi';
+import { dispatchWebhookEvent } from './webhookDispatch';
 
 // ── Invoice Types ──────────────────────────────────────────────────
 
@@ -164,6 +165,7 @@ export async function createInvoice(invoice: Partial<Invoice>): Promise<Invoice>
   if (error) throw new Error(error.message);
   const saved = rowToInvoice(data);
   NotificationEvents.invoiceCreated(wsId, saved.number, saved.clientName || '', saved.total, { invoiceId: saved.id, clientId: saved.clientId });
+  dispatchWebhookEvent(wsId, 'invoice.created', { id: saved.id, number: saved.number, client_id: saved.clientId, total: saved.total });
   return saved;
 }
 
@@ -177,7 +179,10 @@ export async function updateInvoice(invoiceId: string, updates: Partial<Invoice>
     .select()
     .single();
   if (error) throw new Error(error.message);
-  return rowToInvoice(data);
+  const result = rowToInvoice(data);
+  const wsId = await getWorkspaceId();
+  if (wsId) dispatchWebhookEvent(wsId, 'invoice.updated', { id: invoiceId, updates });
+  return result;
 }
 
 export async function deleteInvoice(invoiceId: string): Promise<void> {
@@ -201,7 +206,10 @@ export async function markPaid(invoiceId: string): Promise<Invoice> {
     paidDate: new Date().toISOString(),
   });
   const wsId = await getWorkspaceId();
-  if (wsId) NotificationEvents.invoicePaid(wsId, result.number, result.clientName || '', result.total, { invoiceId: result.id, clientId: result.clientId });
+  if (wsId) {
+    NotificationEvents.invoicePaid(wsId, result.number, result.clientName || '', result.total, { invoiceId: result.id, clientId: result.clientId });
+    dispatchWebhookEvent(wsId, 'invoice.paid', { id: result.id, number: result.number, client_id: result.clientId, total: result.total });
+  }
   return result;
 }
 
