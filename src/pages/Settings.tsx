@@ -2028,6 +2028,13 @@ function InvoiceTemplatesSection() {
                     Add
                   </button>
                 </div>
+                {/* Column headers */}
+                <div className="grid grid-cols-[1fr_60px_70px_24px] gap-2 mb-1.5 px-1">
+                  <span className="text-[11px] text-muted-foreground" style={{ fontWeight: 500 }}>Description</span>
+                  <span className="text-[11px] text-muted-foreground text-right" style={{ fontWeight: 500 }}>Qty</span>
+                  <span className="text-[11px] text-muted-foreground text-right" style={{ fontWeight: 500 }}>Rate ($)</span>
+                  <span />
+                </div>
                 <div className="space-y-2">
                   {lineItems.map((li, idx) => (
                     <div key={idx} className="grid grid-cols-[1fr_60px_70px_24px] gap-2 items-center">
@@ -2038,7 +2045,7 @@ function InvoiceTemplatesSection() {
                           updated[idx] = { ...li, description: e.target.value };
                           setLineItems(updated);
                         }}
-                        placeholder="Description"
+                        placeholder="e.g. Website design"
                         className="!w-full"
                       />
                       <TextInput
@@ -2048,7 +2055,7 @@ function InvoiceTemplatesSection() {
                           updated[idx] = { ...li, quantity: parseFloat(e.target.value) || 0 };
                           setLineItems(updated);
                         }}
-                        placeholder="Qty"
+                        placeholder="1"
                         className="!w-full tabular-nums text-right"
                       />
                       <TextInput
@@ -2058,7 +2065,7 @@ function InvoiceTemplatesSection() {
                           updated[idx] = { ...li, rate: parseFloat(e.target.value) || 0 };
                           setLineItems(updated);
                         }}
-                        placeholder="Rate"
+                        placeholder="150"
                         className="!w-full tabular-nums text-right"
                       />
                       {lineItems.length > 1 && (
@@ -2072,6 +2079,7 @@ function InvoiceTemplatesSection() {
                     </div>
                   ))}
                 </div>
+                <div className="text-[11px] text-muted-foreground mt-1.5">These line items will auto-populate when you load this template in the invoice builder.</div>
               </div>
 
               <div>
