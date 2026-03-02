@@ -1,5 +1,6 @@
 // ── Send retainer-warning email via Resend ─────────────────────────
 // Called from the client when a retainer crosses the workspace threshold.
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -187,7 +188,9 @@ Deno.serve(async (req) => {
     }
 
     console.log('Retainer email sent:', result);
-    return new Response(JSON.stringify({ success: true, id: result.id }), {
+
+    // Store resend email ID back via response so client can link it to the notification
+    return new Response(JSON.stringify({ success: true, id: result.id, resend_email_id: result.id }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
