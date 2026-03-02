@@ -8,6 +8,9 @@ import {
   Loader2,
   Users,
   FileText,
+  ChevronDown,
+  ChevronRight,
+  Receipt,
 } from "lucide-react";
 import { toast } from "sonner";
 import * as invoiceApi from "../data/invoiceApi";
@@ -48,7 +51,9 @@ export default function BatchInvoiceBuilder({
   onComplete,
   onClose,
 }: BatchInvoiceBuilderProps) {
-  const [selectedClientIds, setSelectedClientIds] = useState<Set<string>>(new Set());
+  // Selected session IDs per client
+  const [selectedSessionIds, setSelectedSessionIds] = useState<Set<string>>(new Set());
+  const [expandedClients, setExpandedClients] = useState<Set<string>>(new Set());
   const [taxRate, setTaxRate] = useState(0);
   const [paymentTerms, setPaymentTerms] = useState("Net 30");
   const [generating, setGenerating] = useState(false);
@@ -70,61 +75,118 @@ export default function BatchInvoiceBuilder({
     return ids;
   }, [existingInvoices]);
 
-  // Clients with unbilled sessions
-  const eligibleClients = useMemo(() => {
+  // Map invoiced session IDs to invoice numbers for display
+  const sessionInvoiceMap = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const inv of existingInvoices) {
+      if (inv.status !== "voided" && inv.status !== "cancelled") {
+        for (const s of inv.createdFromSessions || []) map.set(s, inv.number);
+        for (const li of inv.lineItems) {
+          for (const sid of li.sessionIds || []) map.set(sid, inv.number);
+        }
+      }
+    }
+    return map;
+  }, [existingInvoices]);
+
+  // Clients with billable sessions (include already-invoiced ones for visibility)
+  const clientsWithSessions = useMemo(() => {
     const activeClients = clients.filter((c) => c.status !== "Archived");
     return activeClients
       .map((client) => {
-        const unbilled = sessions.filter(
-          (s: any) =>
-            s.clientId === client.id &&
-            s.billable !== false &&
-            !invoicedSessionIds.has(String(s.id))
+        const billableSessions = sessions.filter(
+          (s: any) => s.clientId === client.id && s.billable !== false
         );
-        const totalHours = unbilled.reduce((sum: number, s: any) => sum + (s.duration || 0), 0);
-        const totalRevenue = unbilled.reduce(
-          (sum: number, s: any) => sum + (s.duration || 0) * (client.rate || 0),
-          0
+        const unbilled = billableSessions.filter(
+          (s: any) => !invoicedSessionIds.has(String(s.id))
         );
-        return { ...client, unbilledSessions: unbilled, totalHours, totalRevenue };
+        const invoiced = billableSessions.filter(
+          (s: any) => invoicedSessionIds.has(String(s.id))
+        );
+        return { ...client, allBillable: billableSessions, unbilled, invoiced };
       })
-      .filter((c) => c.unbilledSessions.length > 0)
-      .sort((a, b) => b.totalRevenue - a.totalRevenue);
+      .filter((c) => c.allBillable.length > 0)
+      .sort((a, b) => b.unbilled.length - a.unbilled.length);
   }, [clients, sessions, invoicedSessionIds]);
 
-  const toggleClient = (id: string) => {
-    setSelectedClientIds((prev) => {
+  const toggleExpanded = (clientId: string) => {
+    setExpandedClients((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(clientId)) next.delete(clientId);
+      else next.add(clientId);
       return next;
     });
   };
 
-  const selectAll = () => {
-    if (selectedClientIds.size === eligibleClients.length) {
-      setSelectedClientIds(new Set());
-    } else {
-      setSelectedClientIds(new Set(eligibleClients.map((c) => c.id)));
-    }
+  const toggleSession = (sessionId: string) => {
+    setSelectedSessionIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(sessionId)) next.delete(sessionId);
+      else next.add(sessionId);
+      return next;
+    });
   };
 
-  const selectedClients = eligibleClients.filter((c) => selectedClientIds.has(c.id));
-  const totalAmount = selectedClients.reduce((sum, c) => sum + c.totalRevenue, 0);
+  const selectAllForClient = (client: any) => {
+    setSelectedSessionIds((prev) => {
+      const next = new Set(prev);
+      const unbilledIds = client.unbilled.map((s: any) => String(s.id));
+      const allSelected = unbilledIds.every((id: string) => next.has(id));
+      if (allSelected) {
+        unbilledIds.forEach((id: string) => next.delete(id));
+      } else {
+        unbilledIds.forEach((id: string) => next.add(id));
+      }
+      return next;
+    });
+  };
+
+  const selectAllUnbilled = () => {
+    const allUnbilledIds = clientsWithSessions.flatMap((c) =>
+      c.unbilled.map((s: any) => String(s.id))
+    );
+    setSelectedSessionIds((prev) => {
+      const allSelected = allUnbilledIds.every((id) => prev.has(id));
+      if (allSelected) return new Set();
+      return new Set(allUnbilledIds);
+    });
+  };
+
+  // Group selected sessions by client
+  const selectedByClient = useMemo(() => {
+    const map = new Map<string, { client: any; sessions: any[] }>();
+    for (const client of clientsWithSessions) {
+      const selected = client.unbilled.filter((s: any) =>
+        selectedSessionIds.has(String(s.id))
+      );
+      if (selected.length > 0) {
+        map.set(client.id, { client, sessions: selected });
+      }
+    }
+    return map;
+  }, [clientsWithSessions, selectedSessionIds]);
+
+  const totalSelectedSessions = selectedSessionIds.size;
+  const invoiceCount = selectedByClient.size;
+  const totalAmount = Array.from(selectedByClient.values()).reduce(
+    (sum, { client, sessions: sess }) =>
+      sum + sess.reduce((s: number, se: any) => s + (se.duration || 0) * (client.rate || 0), 0),
+    0
+  );
   const totalTax = Math.round(totalAmount * taxRate * 100) / 100;
   const grandTotal = totalAmount + totalTax;
 
   const handleGenerate = useCallback(async () => {
-    if (selectedClients.length === 0) return;
+    if (selectedByClient.size === 0) return;
     setGenerating(true);
     const outcomes: { clientName: string; success: boolean; invoiceNumber?: string; error?: string }[] = [];
     const created: Invoice[] = [];
 
-    for (const client of selectedClients) {
+    for (const [, { client, sessions: sess }] of selectedByClient) {
       try {
         const invoiceNumber = await invoiceApi.getNextInvoiceNumber();
         const rate = client.rate || 0;
-        const lineItems: LineItem[] = client.unbilledSessions.map((s: any) => ({
+        const lineItems: LineItem[] = sess.map((s: any) => ({
           id: Date.now().toString() + Math.random().toString(36).slice(2, 6),
           description: `${s.task || "Work session"} — ${formatDate(s.date)}`,
           quantity: s.duration || 0,
@@ -155,7 +217,7 @@ export default function BatchInvoiceBuilder({
           ).toISOString(),
           issuedDate: new Date().toISOString(),
           paymentTerms,
-          createdFromSessions: client.unbilledSessions.map((s: any) => String(s.id)),
+          createdFromSessions: sess.map((s: any) => String(s.id)),
         });
         created.push(saved);
         outcomes.push({ clientName: client.name, success: true, invoiceNumber: saved.number });
@@ -175,7 +237,13 @@ export default function BatchInvoiceBuilder({
     if (outcomes.some((o) => !o.success)) {
       toast.error(`${outcomes.filter((o) => !o.success).length} invoice(s) failed`);
     }
-  }, [selectedClients, taxRate, paymentTerms, onComplete]);
+  }, [selectedByClient, taxRate, paymentTerms, onComplete]);
+
+  const allUnbilledIds = clientsWithSessions.flatMap((c) =>
+    c.unbilled.map((s: any) => String(s.id))
+  );
+  const allUnbilledSelected =
+    allUnbilledIds.length > 0 && allUnbilledIds.every((id) => selectedSessionIds.has(id));
 
   return (
     <motion.div
@@ -191,7 +259,7 @@ export default function BatchInvoiceBuilder({
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 20, scale: 0.97 }}
         transition={{ duration: 0.25 }}
-        className="relative bg-card border border-border rounded-2xl w-full max-w-2xl mx-4 overflow-hidden"
+        className="relative bg-card border border-border rounded-2xl w-full max-w-3xl mx-4 overflow-hidden"
         style={{ boxShadow: "0 24px 48px rgba(0,0,0,0.12)" }}
       >
         {/* Header */}
@@ -201,7 +269,7 @@ export default function BatchInvoiceBuilder({
             <h2 className="text-[16px]" style={{ fontWeight: 600 }}>
               Batch invoicing
             </h2>
-            <span className="text-[11px] px-1.5 py-0.5 rounded-md bg-[#bfa044]/10 text-[#bfa044]" style={{ fontWeight: 600 }}>
+            <span className="text-[11px] px-1.5 py-0.5 rounded-md bg-[hsl(var(--accent))]/40 text-muted-foreground" style={{ fontWeight: 600 }}>
               STUDIO
             </span>
           </div>
@@ -226,9 +294,9 @@ export default function BatchInvoiceBuilder({
                   className="flex items-center gap-3 px-3 py-2.5 rounded-lg border border-border"
                 >
                   {r.success ? (
-                    <CheckCircle2 className="w-4 h-4 text-[#5ea1bf] flex-shrink-0" />
+                    <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0" />
                   ) : (
-                    <AlertCircle className="w-4 h-4 text-[#c27272] flex-shrink-0" />
+                    <AlertCircle className="w-4 h-4 text-destructive flex-shrink-0" />
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="text-[13px] text-foreground" style={{ fontWeight: 500 }}>
@@ -253,79 +321,218 @@ export default function BatchInvoiceBuilder({
           <div className="px-6 py-5 max-h-[70vh] overflow-y-auto">
             {/* Description */}
             <p className="text-[13px] text-muted-foreground mb-5 leading-relaxed">
-              Generate draft invoices for multiple clients at once from their unbilled sessions.
-              Each client gets a separate invoice with all their unbilled work.
+              Select individual sessions to include in batch invoices. Each client with selected sessions gets a separate invoice.
             </p>
 
-            {eligibleClients.length === 0 ? (
+            {clientsWithSessions.length === 0 ? (
               <div className="py-12 text-center">
                 <div className="w-12 h-12 rounded-xl bg-accent/40 flex items-center justify-center mx-auto mb-4">
                   <Users className="w-5 h-5 text-muted-foreground" />
                 </div>
                 <h3 className="text-[15px] text-foreground mb-1.5" style={{ fontWeight: 600 }}>
-                  No unbilled sessions
+                  No billable sessions
                 </h3>
                 <p className="text-[13px] text-muted-foreground max-w-sm mx-auto">
-                  All billable sessions have already been invoiced. Log more time to generate new invoices.
+                  Log billable time to generate invoices.
                 </p>
               </div>
             ) : (
               <>
-                {/* Select all */}
+                {/* Select all unbilled */}
                 <div className="flex items-center justify-between mb-3">
                   <button
-                    onClick={selectAll}
+                    onClick={selectAllUnbilled}
                     className="text-[12px] text-primary hover:text-primary/80 transition-colors"
                     style={{ fontWeight: 500 }}
                   >
-                    {selectedClientIds.size === eligibleClients.length
+                    {allUnbilledSelected
                       ? "Deselect all"
-                      : `Select all (${eligibleClients.length})`}
+                      : `Select all unbilled (${allUnbilledIds.length})`}
                   </button>
                   <span className="text-[12px] text-muted-foreground">
-                    {selectedClientIds.size} selected
+                    {totalSelectedSessions} session{totalSelectedSessions !== 1 ? "s" : ""} selected
                   </span>
                 </div>
 
-                {/* Client list */}
-                <div className="space-y-1.5 mb-5">
-                  {eligibleClients.map((client) => {
-                    const isSelected = selectedClientIds.has(client.id);
+                {/* Client groups */}
+                <div className="space-y-2 mb-5">
+                  {clientsWithSessions.map((client) => {
+                    const isExpanded = expandedClients.has(client.id);
+                    const selectedCount = client.unbilled.filter((s: any) =>
+                      selectedSessionIds.has(String(s.id))
+                    ).length;
+                    const allClientSelected =
+                      client.unbilled.length > 0 &&
+                      client.unbilled.every((s: any) => selectedSessionIds.has(String(s.id)));
+                    const someClientSelected = selectedCount > 0;
+                    const clientTotal = client.unbilled
+                      .filter((s: any) => selectedSessionIds.has(String(s.id)))
+                      .reduce((sum: number, s: any) => sum + (s.duration || 0) * (client.rate || 0), 0);
+
                     return (
-                      <button
+                      <div
                         key={client.id}
-                        onClick={() => toggleClient(client.id)}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border transition-all text-left ${
-                          isSelected
-                            ? "border-primary/30 bg-primary/[0.04]"
-                            : "border-border hover:border-border hover:bg-accent/20"
-                        }`}
+                        className="border border-border rounded-xl overflow-hidden"
                       >
+                        {/* Client header */}
                         <div
-                          className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-                            isSelected
-                              ? "border-primary bg-primary"
-                              : "border-muted-foreground/30"
-                          }`}
+                          className="flex items-center gap-3 px-4 py-3 hover:bg-accent/20 transition-colors cursor-pointer"
+                          onClick={() => toggleExpanded(client.id)}
                         >
-                          {isSelected && (
-                            <svg className="w-3 h-3 text-primary-foreground" viewBox="0 0 12 12" fill="none">
-                              <path d="M2.5 6L5 8.5L9.5 3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
+                          {/* Expand icon */}
+                          <div className="flex-shrink-0 w-4 h-4 flex items-center justify-center text-muted-foreground">
+                            {isExpanded ? (
+                              <ChevronDown className="w-3.5 h-3.5" />
+                            ) : (
+                              <ChevronRight className="w-3.5 h-3.5" />
+                            )}
+                          </div>
+
+                          {/* Select all for client */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              selectAllForClient(client);
+                            }}
+                            className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                              allClientSelected
+                                ? "border-primary bg-primary"
+                                : someClientSelected
+                                ? "border-primary/50 bg-primary/20"
+                                : "border-muted-foreground/30"
+                            }`}
+                          >
+                            {(allClientSelected || someClientSelected) && (
+                              <svg className="w-3 h-3 text-primary-foreground" viewBox="0 0 12 12" fill="none">
+                                {allClientSelected ? (
+                                  <path d="M2.5 6L5 8.5L9.5 3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                ) : (
+                                  <path d="M3 6H9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                )}
+                              </svg>
+                            )}
+                          </button>
+
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[13px] text-foreground" style={{ fontWeight: 500 }}>
+                                {client.name}
+                              </span>
+                              <span className="text-[11px] text-muted-foreground tabular-nums">
+                                {client.unbilled.length} unbilled
+                              </span>
+                              {client.invoiced.length > 0 && (
+                                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-accent/60 text-muted-foreground tabular-nums">
+                                  {client.invoiced.length} invoiced
+                                </span>
+                              )}
+                            </div>
+                            {selectedCount > 0 && (
+                              <div className="text-[11px] text-primary tabular-nums">
+                                {selectedCount} selected · {formatCurrency(clientTotal)}
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="text-[12px] text-muted-foreground tabular-nums flex-shrink-0">
+                            ${client.rate}/h
+                          </div>
+                        </div>
+
+                        {/* Expanded session list */}
+                        <AnimatePresence>
+                          {isExpanded && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.2 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="border-t border-border">
+                                {/* Unbilled sessions */}
+                                {client.unbilled.map((session: any) => {
+                                  const isSelected = selectedSessionIds.has(String(session.id));
+                                  return (
+                                    <button
+                                      key={session.id}
+                                      onClick={() => toggleSession(String(session.id))}
+                                      className={`w-full flex items-center gap-3 px-4 pl-12 py-2.5 text-left transition-colors ${
+                                        isSelected
+                                          ? "bg-primary/[0.04]"
+                                          : "hover:bg-accent/10"
+                                      }`}
+                                    >
+                                      <div
+                                        className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                                          isSelected
+                                            ? "border-primary bg-primary"
+                                            : "border-muted-foreground/30"
+                                        }`}
+                                      >
+                                        {isSelected && (
+                                          <svg className="w-2.5 h-2.5 text-primary-foreground" viewBox="0 0 12 12" fill="none">
+                                            <path d="M2.5 6L5 8.5L9.5 3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                          </svg>
+                                        )}
+                                      </div>
+                                      <div className="flex-1 min-w-0">
+                                        <div className="text-[12px] text-foreground truncate" style={{ fontWeight: 500 }}>
+                                          {session.task || "Work session"}
+                                        </div>
+                                        <div className="text-[11px] text-muted-foreground tabular-nums">
+                                          {formatDate(session.date)} · {session.duration}h
+                                        </div>
+                                      </div>
+                                      <div className="text-[12px] text-foreground tabular-nums flex-shrink-0" style={{ fontWeight: 500 }}>
+                                        {formatCurrency((session.duration || 0) * (client.rate || 0))}
+                                      </div>
+                                    </button>
+                                  );
+                                })}
+
+                                {/* Already invoiced sessions */}
+                                {client.invoiced.length > 0 && (
+                                  <>
+                                    <div className="px-4 pl-12 py-2 border-t border-border">
+                                      <span className="text-[10px] text-muted-foreground uppercase tracking-wider" style={{ fontWeight: 600 }}>
+                                        Already invoiced
+                                      </span>
+                                    </div>
+                                    {client.invoiced.map((session: any) => {
+                                      const invNum = sessionInvoiceMap.get(String(session.id));
+                                      return (
+                                        <div
+                                          key={session.id}
+                                          className="flex items-center gap-3 px-4 pl-12 py-2.5 opacity-50"
+                                        >
+                                          <Receipt className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                                          <div className="flex-1 min-w-0">
+                                            <div className="text-[12px] text-muted-foreground truncate">
+                                              {session.task || "Work session"}
+                                            </div>
+                                            <div className="text-[11px] text-muted-foreground tabular-nums">
+                                              {formatDate(session.date)} · {session.duration}h
+                                            </div>
+                                          </div>
+                                          {invNum && (
+                                            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-accent/60 text-muted-foreground flex-shrink-0" style={{ fontWeight: 500 }}>
+                                              #{invNum}
+                                            </span>
+                                          )}
+                                          <div className="text-[12px] text-muted-foreground tabular-nums flex-shrink-0">
+                                            {formatCurrency((session.duration || 0) * (client.rate || 0))}
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </>
+                                )}
+                              </div>
+                            </motion.div>
                           )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-[13px] text-foreground" style={{ fontWeight: 500 }}>
-                            {client.name}
-                          </div>
-                          <div className="text-[11px] text-muted-foreground tabular-nums">
-                            {client.unbilledSessions.length} session{client.unbilledSessions.length !== 1 ? "s" : ""} · {client.totalHours}h
-                          </div>
-                        </div>
-                        <div className="text-[14px] text-foreground tabular-nums" style={{ fontWeight: 600 }}>
-                          {formatCurrency(client.totalRevenue)}
-                        </div>
-                      </button>
+                        </AnimatePresence>
+                      </div>
                     );
                   })}
                 </div>
@@ -368,17 +575,17 @@ export default function BatchInvoiceBuilder({
                 <div className="border-t border-border pt-4">
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <div className="text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>
-                        {selectedClients.length} invoice{selectedClients.length !== 1 ? "s" : ""} to generate
+                      <div className="text-[12px] text-foreground" style={{ fontWeight: 500 }}>
+                        {invoiceCount} invoice{invoiceCount !== 1 ? "s" : ""} from {totalSelectedSessions} session{totalSelectedSessions !== 1 ? "s" : ""}
                       </div>
-                      {selectedClients.length > 0 && (
+                      {totalSelectedSessions > 0 && (
                         <div className="text-[11px] text-muted-foreground tabular-nums mt-0.5">
                           Subtotal {formatCurrency(totalAmount)}
                           {taxRate > 0 && ` + ${formatCurrency(totalTax)} tax`}
                         </div>
                       )}
                     </div>
-                    {selectedClients.length > 0 && (
+                    {totalSelectedSessions > 0 && (
                       <div className="text-[18px] text-foreground tabular-nums" style={{ fontWeight: 600 }}>
                         {formatCurrency(grandTotal)}
                       </div>
@@ -386,19 +593,19 @@ export default function BatchInvoiceBuilder({
                   </div>
                   <button
                     onClick={handleGenerate}
-                    disabled={selectedClients.length === 0 || generating}
+                    disabled={totalSelectedSessions === 0 || generating}
                     className="w-full inline-flex items-center justify-center gap-2 py-2.5 text-[13px] rounded-lg bg-foreground text-background hover:opacity-90 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                     style={{ fontWeight: 500 }}
                   >
                     {generating ? (
                       <>
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        Generating {selectedClients.length} invoice{selectedClients.length !== 1 ? "s" : ""}...
+                        Generating {invoiceCount} invoice{invoiceCount !== 1 ? "s" : ""}...
                       </>
                     ) : (
                       <>
                         <FileText className="w-3.5 h-3.5" />
-                        Generate {selectedClients.length} draft invoice{selectedClients.length !== 1 ? "s" : ""}
+                        Generate {invoiceCount} draft invoice{invoiceCount !== 1 ? "s" : ""}
                       </>
                     )}
                   </button>
