@@ -7,3 +7,7 @@ project_id = "oqrqypuulgeqzjcgqruw"
     verify_jwt = false
   [functions.resend-webhook]
     verify_jwt = false
+  [functions.dispatch-webhook]
+    verify_jwt = false
+  [functions.portal-view]
+    verify_jwt = false

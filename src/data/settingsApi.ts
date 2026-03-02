@@ -167,6 +167,8 @@ export async function deleteWorkspace(): Promise<void> {
   const wsId = await resolveWorkspaceId();
   if (!wsId) return;
   // Delete in order: sessions, projects, notes, invoices, clients, settings, members, workspace
+  await supabase.from('webhook_deliveries').delete().eq('workspace_id', wsId);
+  await supabase.from('webhooks').delete().eq('workspace_id', wsId);
   await supabase.from('sessions').delete().eq('workspace_id', wsId);
   await supabase.from('notes').delete().eq('workspace_id', wsId);
   await supabase.from('invoices').delete().eq('workspace_id', wsId);
