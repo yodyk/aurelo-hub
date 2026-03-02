@@ -936,6 +936,7 @@ export type Database = {
           plan_activated_at: string
           plan_id: string
           plan_period_end: string | null
+          stripe_connect_account_id: string | null
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
           trial_end: string | null
@@ -950,6 +951,7 @@ export type Database = {
           plan_activated_at?: string
           plan_id?: string
           plan_period_end?: string | null
+          stripe_connect_account_id?: string | null
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           trial_end?: string | null
@@ -964,6 +966,7 @@ export type Database = {
           plan_activated_at?: string
           plan_id?: string
           plan_period_end?: string | null
+          stripe_connect_account_id?: string | null
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           trial_end?: string | null
