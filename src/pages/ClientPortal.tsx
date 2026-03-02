@@ -104,12 +104,12 @@ function fmtDate(d?: string | null) {
 
 function statusColor(status: string) {
   const s = status.toLowerCase();
-  if (s === "paid") return "text-green-400 bg-green-400/10";
-  if (s === "sent" || s === "issued") return "text-blue-400 bg-blue-400/10";
-  if (s === "overdue") return "text-red-400 bg-red-400/10";
+  if (s === "paid") return "text-green-600 bg-green-50";
+  if (s === "sent" || s === "issued") return "text-blue-600 bg-blue-50";
+  if (s === "overdue") return "text-red-600 bg-red-50";
   if (s === "draft") return "text-muted-foreground bg-muted/30";
-  if (s === "in progress") return "text-blue-400 bg-blue-400/10";
-  if (s === "completed") return "text-green-400 bg-green-400/10";
+  if (s === "in progress") return "text-blue-600 bg-blue-50";
+  if (s === "completed") return "text-green-600 bg-green-50";
   return "text-muted-foreground bg-muted/30";
 }
 
@@ -120,6 +120,14 @@ export default function ClientPortal() {
   const [data, setData] = useState<PortalData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Force light mode for the portal page
+  useEffect(() => {
+    const root = document.documentElement;
+    const wasDark = root.classList.contains("dark");
+    root.classList.remove("dark");
+    return () => { if (wasDark) root.classList.add("dark"); };
+  }, []);
 
   useEffect(() => {
     if (!token) { setError("No portal token"); setLoading(false); return; }
@@ -135,19 +143,19 @@ export default function ClientPortal() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#1a1a19] flex items-center justify-center">
-        <Loader2 className="w-6 h-6 text-[#5ea1bf] animate-spin" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-6 h-6 text-primary animate-spin" />
       </div>
     );
   }
 
   if (error || !data) {
     return (
-      <div className="min-h-screen bg-[#1a1a19] flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center max-w-md px-6">
-          <AlertTriangle className="w-10 h-10 text-[#c27272] mx-auto mb-3" />
-          <h2 className="text-lg font-semibold text-[#fafaf9] mb-1">Portal unavailable</h2>
-          <p className="text-sm text-[#a3a3a3]">{error || "This portal link is invalid or has been deactivated."}</p>
+          <AlertTriangle className="w-10 h-10 text-destructive mx-auto mb-3" />
+          <h2 className="text-lg font-semibold text-foreground mb-1">Portal unavailable</h2>
+          <p className="text-sm text-muted-foreground">{error || "This portal link is invalid or has been deactivated."}</p>
         </div>
       </div>
     );
@@ -157,9 +165,9 @@ export default function ClientPortal() {
   const accent = branding.isWhiteLabel && branding.brandColor ? branding.brandColor : "#5ea1bf";
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#1a1a19", color: "#fafaf9" }}>
+    <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
-      <header className="border-b px-6 py-4 flex items-center justify-between" style={{ borderColor: "rgba(255,255,255,0.08)" }}>
+      <header className="border-b border-border px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           {branding.isWhiteLabel && branding.logoUrl ? (
             <img src={branding.logoUrl} alt={branding.workspaceName || ""} className="h-7 w-auto max-w-[180px] object-contain" />
@@ -176,14 +184,14 @@ export default function ClientPortal() {
         <motion.div initial="hidden" animate="show" variants={containerVariants} className="space-y-8">
           {/* Client header */}
           <motion.div variants={itemVariants}>
-            <h1 className="text-2xl font-semibold tracking-tight" style={{ color: "#fafaf9" }}>{client.name}</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">{client.name}</h1>
             <div className="flex items-center gap-3 mt-2">
               <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: `${accent}15`, color: accent }}>
                 {client.model}
               </span>
-              <span className="text-xs" style={{ color: "#a3a3a3" }}>·</span>
-              <span className="text-xs font-medium" style={{ color: client.status === "Active" ? "#10b981" : "#a3a3a3" }}>
-                {client.status}
+              <span className="text-xs text-muted-foreground">·</span>
+              <span className="text-xs font-medium" style={{ color: client.status === "Active" ? "#059669" : undefined }}>
+                {client.status === "Active" ? client.status : <span className="text-muted-foreground">{client.status}</span>}
               </span>
             </div>
           </motion.div>
@@ -253,9 +261,9 @@ export default function ClientPortal() {
         {/* Footer */}
         {!branding.isWhiteLabel && (
           <div className="mt-16 pb-8 text-center">
-            <p className="text-[11px]" style={{ color: "#52524e" }}>
+            <p className="text-[11px] text-muted-foreground/50">
               Powered by{" "}
-              <a href="https://getaurelo.com" target="_blank" rel="noopener noreferrer" style={{ color: "#5ea1bf" }}>
+              <a href="https://getaurelo.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                 Aurelo
               </a>
             </p>
@@ -270,12 +278,12 @@ export default function ClientPortal() {
 
 function SummaryCard({ icon: Icon, label, value, accent }: { icon: any; label: string; value: string; accent: string }) {
   return (
-    <div className="p-4 rounded-xl border" style={{ backgroundColor: "#262625", borderColor: "rgba(255,255,255,0.08)" }}>
+    <div className="p-4 rounded-xl border border-border bg-card">
       <div className="flex items-center gap-2 mb-2">
         <Icon className="w-3.5 h-3.5" style={{ color: accent }} />
-        <span className="text-[11px] font-medium" style={{ color: "#a3a3a3" }}>{label}</span>
+        <span className="text-[11px] font-medium text-muted-foreground">{label}</span>
       </div>
-      <div className="text-lg font-semibold" style={{ color: "#fafaf9" }}>{value}</div>
+      <div className="text-lg font-semibold text-foreground">{value}</div>
     </div>
   );
 }
@@ -284,7 +292,7 @@ function SectionTitle({ icon: Icon, title, accent }: { icon: any; title: string;
   return (
     <div className="flex items-center gap-2">
       <Icon className="w-4 h-4" style={{ color: accent }} />
-      <h2 className="text-[15px] font-semibold" style={{ color: "#fafaf9" }}>{title}</h2>
+      <h2 className="text-[15px] font-semibold text-foreground">{title}</h2>
     </div>
   );
 }
@@ -292,20 +300,20 @@ function SectionTitle({ icon: Icon, title, accent }: { icon: any; title: string;
 function RetainerBar({ total, remaining, accent, showCosts }: { total: number; remaining: number; accent: string; showCosts: boolean }) {
   const used = total - remaining;
   const pct = Math.min(100, Math.round((used / total) * 100));
-  const barColor = pct >= 90 ? "#c27272" : pct >= 70 ? "#bfa044" : accent;
+  const barColor = pct >= 90 ? "#dc2626" : pct >= 70 ? "#ca8a04" : accent;
 
   return (
-    <div className="p-5 rounded-xl border" style={{ backgroundColor: "#262625", borderColor: "rgba(255,255,255,0.08)" }}>
+    <div className="p-5 rounded-xl border border-border bg-card">
       <div className="flex items-center justify-between mb-3">
-        <span className="text-[13px] font-medium" style={{ color: "#fafaf9" }}>Retainer usage</span>
+        <span className="text-[13px] font-medium text-foreground">Retainer usage</span>
         <span className="text-[13px] font-semibold" style={{ color: barColor }}>{pct}% used</span>
       </div>
-      <div className="h-2.5 rounded-full overflow-hidden" style={{ backgroundColor: "rgba(255,255,255,0.06)" }}>
+      <div className="h-2.5 rounded-full overflow-hidden bg-muted/50">
         <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: barColor }} />
       </div>
       <div className="flex justify-between mt-2">
-        <span className="text-[11px]" style={{ color: "#a3a3a3" }}>{fmtHours(used)} used</span>
-        <span className="text-[11px]" style={{ color: "#a3a3a3" }}>{fmtHours(remaining)} remaining of {fmtHours(total)}</span>
+        <span className="text-[11px] text-muted-foreground">{fmtHours(used)} used</span>
+        <span className="text-[11px] text-muted-foreground">{fmtHours(remaining)} remaining of {fmtHours(total)}</span>
       </div>
     </div>
   );
@@ -315,10 +323,10 @@ function ProjectRow({ project: p, showCosts, accent }: { project: PortalProject;
   const progress = p.estimated_hours && p.hours ? Math.min(100, Math.round((p.hours / p.estimated_hours) * 100)) : null;
 
   return (
-    <div className="p-4 rounded-xl border" style={{ backgroundColor: "#262625", borderColor: "rgba(255,255,255,0.08)" }}>
+    <div className="p-4 rounded-xl border border-border bg-card">
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2">
-          <span className="text-[14px] font-medium" style={{ color: "#fafaf9" }}>{p.name}</span>
+          <span className="text-[14px] font-medium text-foreground">{p.name}</span>
           <span className={`text-[11px] font-medium px-1.5 py-0.5 rounded-full ${statusColor(p.status)}`}>
             {p.status}
           </span>
@@ -328,22 +336,22 @@ function ProjectRow({ project: p, showCosts, accent }: { project: PortalProject;
         )}
       </div>
       {p.description && (
-        <p className="text-[12px] mt-1 line-clamp-2" style={{ color: "#a3a3a3" }}>{p.description}</p>
+        <p className="text-[12px] mt-1 line-clamp-2 text-muted-foreground">{p.description}</p>
       )}
       <div className="flex items-center gap-4 mt-3">
         {p.hours != null && (
-          <span className="text-[11px]" style={{ color: "#a3a3a3" }}>
+          <span className="text-[11px] text-muted-foreground">
             {fmtHours(p.hours)}{p.estimated_hours ? ` / ${fmtHours(p.estimated_hours)}` : ""}
           </span>
         )}
         {p.start_date && (
-          <span className="text-[11px]" style={{ color: "#a3a3a3" }}>
+          <span className="text-[11px] text-muted-foreground">
             {fmtDate(p.start_date)}{p.end_date ? ` → ${fmtDate(p.end_date)}` : ""}
           </span>
         )}
       </div>
       {progress !== null && (
-        <div className="mt-3 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: "rgba(255,255,255,0.06)" }}>
+        <div className="mt-3 h-1.5 rounded-full overflow-hidden bg-muted/50">
           <div className="h-full rounded-full" style={{ width: `${progress}%`, backgroundColor: accent }} />
         </div>
       )}
@@ -361,7 +369,7 @@ function SessionsTable({ sessions, projects, showCosts, accent }: { sessions: Po
   return (
     <table className="w-full text-left">
       <thead>
-        <tr className="text-[11px] font-medium" style={{ color: "#a3a3a3" }}>
+        <tr className="text-[11px] font-medium text-muted-foreground">
           <th className="py-2 pr-4">Date</th>
           <th className="py-2 pr-4">Task</th>
           <th className="py-2 pr-4">Project</th>
@@ -371,9 +379,9 @@ function SessionsTable({ sessions, projects, showCosts, accent }: { sessions: Po
       </thead>
       <tbody>
         {sessions.map(s => (
-          <tr key={s.id} className="border-t" style={{ borderColor: "rgba(255,255,255,0.05)" }}>
-            <td className="py-2.5 pr-4 text-[13px]" style={{ color: "#fafaf9" }}>{fmtDate(s.date)}</td>
-            <td className="py-2.5 pr-4 text-[13px]" style={{ color: "#a3a3a3" }}>
+          <tr key={s.id} className="border-t border-border/50">
+            <td className="py-2.5 pr-4 text-[13px] text-foreground">{fmtDate(s.date)}</td>
+            <td className="py-2.5 pr-4 text-[13px] text-muted-foreground">
               {s.task || "—"}
               {s.work_tags && s.work_tags.length > 0 && (
                 <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: `${accent}15`, color: accent }}>
@@ -381,10 +389,10 @@ function SessionsTable({ sessions, projects, showCosts, accent }: { sessions: Po
                 </span>
               )}
             </td>
-            <td className="py-2.5 pr-4 text-[13px]" style={{ color: "#a3a3a3" }}>
+            <td className="py-2.5 pr-4 text-[13px] text-muted-foreground">
               {s.project_id ? (projectMap[s.project_id] || "—") : "—"}
             </td>
-            <td className="py-2.5 pr-4 text-[13px] text-right tabular-nums" style={{ color: "#fafaf9" }}>
+            <td className="py-2.5 pr-4 text-[13px] text-right tabular-nums text-foreground">
               {fmtHours(s.duration)}
             </td>
             {showCosts && (
@@ -402,32 +410,32 @@ function SessionsTable({ sessions, projects, showCosts, accent }: { sessions: Po
 function InvoiceRow({ invoice: inv, accent }: { invoice: PortalInvoice; accent: string }) {
   const isPaid = inv.status.toLowerCase() === "paid";
   return (
-    <div className="flex items-center justify-between p-4 rounded-xl border" style={{ backgroundColor: "#262625", borderColor: "rgba(255,255,255,0.08)" }}>
+    <div className="flex items-center justify-between p-4 rounded-xl border border-border bg-card">
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: isPaid ? "rgba(16,185,129,0.1)" : `${accent}15` }}>
-          {isPaid ? <CheckCircle2 className="w-4 h-4 text-green-400" /> : <FileText className="w-4 h-4" style={{ color: accent }} />}
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: isPaid ? "rgba(5,150,105,0.08)" : `${accent}15` }}>
+          {isPaid ? <CheckCircle2 className="w-4 h-4 text-green-600" /> : <FileText className="w-4 h-4" style={{ color: accent }} />}
         </div>
         <div>
-          <span className="text-[13px] font-medium" style={{ color: "#fafaf9" }}>{inv.number}</span>
+          <span className="text-[13px] font-medium text-foreground">{inv.number}</span>
           <div className="flex items-center gap-2 mt-0.5">
             <span className={`text-[11px] font-medium px-1.5 py-0.5 rounded-full ${statusColor(inv.status)}`}>
               {inv.status}
             </span>
             {inv.issued_date && (
-              <span className="text-[11px]" style={{ color: "#a3a3a3" }}>Issued {fmtDate(inv.issued_date)}</span>
+              <span className="text-[11px] text-muted-foreground">Issued {fmtDate(inv.issued_date)}</span>
             )}
           </div>
         </div>
       </div>
       <div className="text-right">
-        <div className="text-[14px] font-semibold" style={{ color: "#fafaf9" }}>
+        <div className="text-[14px] font-semibold text-foreground">
           {fmt$(inv.total, inv.currency)}
         </div>
         {inv.due_date && !isPaid && (
-          <span className="text-[11px]" style={{ color: "#a3a3a3" }}>Due {fmtDate(inv.due_date)}</span>
+          <span className="text-[11px] text-muted-foreground">Due {fmtDate(inv.due_date)}</span>
         )}
         {inv.paid_date && isPaid && (
-          <span className="text-[11px] text-green-400">Paid {fmtDate(inv.paid_date)}</span>
+          <span className="text-[11px] text-green-600">Paid {fmtDate(inv.paid_date)}</span>
         )}
       </div>
     </div>
