@@ -34,6 +34,7 @@ import { EditClientModal, LogSessionModal, AddProjectModal, EditSessionModal } f
 import * as dataApi from "../data/dataApi";
 import * as portalApi from "../data/portalApi";
 import ClientNotes from "../components/ClientNotes";
+import EmailActivityLog from "../components/EmailActivityLog";
 import BulkSessionActions from "../components/BulkSessionActions";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -74,6 +75,7 @@ export default function ClientDetail() {
     sessions: true,
     files: false,
     notes: true,
+    emailLog: false,
     portal: false,
     danger: false,
   });
@@ -1347,6 +1349,18 @@ export default function ClientDetail() {
         >
           {clientId && <ClientNotes clientId={clientId} projects={projects} />}
         </CollapsibleSection>
+
+        {/* Email Activity Log */}
+        {client.model === "Retainer" && (
+          <CollapsibleSection
+            label="Email activity"
+            icon={Mail}
+            isOpen={expandedSections.emailLog}
+            onToggle={() => toggleSection("emailLog")}
+          >
+            <EmailActivityLog clientId={clientId} />
+          </CollapsibleSection>
+        )}
 
         {/* Portal Link Section */}
         <CollapsibleSection
