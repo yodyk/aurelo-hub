@@ -271,9 +271,11 @@ export const NotificationEvents = {
             const err = await res.text();
             console.error('[notificationsApi] retainer email failed:', err);
           } else {
-            // Mark notification as email_sent
+            const result = await res.json();
+            // Store resend_email_id in notification metadata + mark as email_sent
             if (notif?.id) {
-              await supabase.from('notifications').update({ email_sent: true }).eq('id', notif.id);
+              const updatedMeta = { ...(meta || {}), resend_email_id: result.resend_email_id };
+              await supabase.from('notifications').update({ email_sent: true, metadata: updatedMeta }).eq('id', notif.id);
             }
           }
         }

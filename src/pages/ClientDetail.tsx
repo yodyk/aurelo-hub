@@ -106,11 +106,30 @@ export default function ClientDetail() {
   const [portalConfig, setPortalConfig] = useState<any>(null);
   const [portalLoading, setPortalLoading] = useState(false);
 
-  // Retainer warning thresholds that have been sent (with timestamps)
-  const [sentThresholds, setSentThresholds] = useState<Record<number, string>>({});
+  // Retainer warning thresholds that have been sent (with timestamps and notification IDs)
+  const [sentThresholds, setSentThresholds] = useState<Record<number, { sentAt: string; notificationId: string }>>({});
   const [resending, setResending] = useState<number | null>(null);
   const [sendingManualUpdate, setSendingManualUpdate] = useState(false);
   const [confirmSendUpdate, setConfirmSendUpdate] = useState(false);
+  // Email delivery statuses keyed by notification_id
+  const [emailStatuses, setEmailStatuses] = useState<Record<string, { event_type: string; created_at: string }>>({});
+
+  // Helper to get delivery status label + color
+  const getDeliveryStatus = (notificationId: string | undefined) => {
+    if (!notificationId) return null;
+    const status = emailStatuses[notificationId];
+    if (!status) return { label: 'Sent', color: 'hsl(var(--muted-foreground))', icon: '→' };
+    const map: Record<string, { label: string; color: string; icon: string }> = {
+      sent: { label: 'Sent', color: 'hsl(var(--muted-foreground))', icon: '→' },
+      delivered: { label: 'Delivered', color: 'hsl(142 71% 45%)', icon: '✓' },
+      opened: { label: 'Opened', color: 'hsl(var(--primary))', icon: '👁' },
+      bounced: { label: 'Bounced', color: 'hsl(var(--destructive))', icon: '✕' },
+      complained: { label: 'Complained', color: 'hsl(var(--destructive))', icon: '⚠' },
+      delayed: { label: 'Delayed', color: 'hsl(45 60% 50%)', icon: '⏳' },
+      clicked: { label: 'Clicked', color: 'hsl(var(--primary))', icon: '↗' },
+    };
+    return map[status.event_type] || { label: status.event_type, color: 'hsl(var(--muted-foreground))', icon: '?' };
+  };
 
   const client = clients.find((c) => c.id === clientId);
 
@@ -127,28 +146,49 @@ export default function ClientDetail() {
     });
   }, [clientId, loadProjectsForClient]);
 
-  // Load sent retainer warning thresholds
+  // Load sent retainer warning thresholds + email delivery statuses
   useEffect(() => {
     if (!clientId || !workspaceId) return;
     supabase
       .from('notifications')
-      .select('title, created_at')
+      .select('id, title, created_at, email_sent')
       .eq('workspace_id', workspaceId)
       .eq('event_type', 'retainer_warning')
       .like('title', `%${clients.find(c => c.id === clientId)?.name || ''}%`)
       .order('created_at', { ascending: false })
-      .then(({ data }) => {
+      .then(async ({ data }) => {
         if (!data) return;
-        const map: Record<number, string> = {};
+        const map: Record<number, { sentAt: string; notificationId: string }> = {};
+        const notifIds: string[] = [];
         for (const n of data) {
+          notifIds.push(n.id);
           const match = n.title.match(/(\d+)%/);
           if (match) {
             const pct = parseInt(match[1]);
             const bucket = pct >= 90 ? 90 : pct >= 85 ? 85 : pct >= 70 ? 70 : null;
-            if (bucket && !map[bucket]) map[bucket] = n.created_at;
+            if (bucket && !map[bucket]) map[bucket] = { sentAt: n.created_at, notificationId: n.id };
           }
         }
         setSentThresholds(map);
+
+        // Fetch latest email delivery status for each notification
+        if (notifIds.length > 0) {
+          const { data: events } = await supabase
+            .from('email_events')
+            .select('notification_id, event_type, created_at')
+            .in('notification_id', notifIds)
+            .order('created_at', { ascending: false });
+          if (events) {
+            const statusMap: Record<string, { event_type: string; created_at: string }> = {};
+            for (const ev of events) {
+              // Keep the latest (most significant) event per notification
+              if (ev.notification_id && !statusMap[ev.notification_id]) {
+                statusMap[ev.notification_id] = { event_type: ev.event_type, created_at: ev.created_at };
+              }
+            }
+            setEmailStatuses(statusMap);
+          }
+        }
       });
   }, [clientId, workspaceId, clients]);
 
@@ -619,13 +659,13 @@ export default function ClientDetail() {
                     <TooltipProvider delayDuration={200}>
                       <div className="mt-2 flex items-center gap-2">
                         {[70, 85, 90].map(t => {
-                          const sentAt = sentThresholds[t];
-                          const sent = !!sentAt;
+                          const thresholdData = sentThresholds[t];
+                          const sent = !!thresholdData;
+                          const sentAt = thresholdData?.sentAt;
+                          const deliveryInfo = sent ? getDeliveryStatus(thresholdData.notificationId) : null;
                           const color = t >= 90 ? 'hsl(var(--destructive))' : t >= 85 ? 'hsl(45 60% 50%)' : 'hsl(var(--primary))';
                           const dot = (
-                            <div
-                              className="flex items-center gap-1 cursor-default"
-                            >
+                            <div className="flex items-center gap-1 cursor-default">
                               <div
                                 className="w-1.5 h-1.5 rounded-full"
                                 style={{
@@ -672,7 +712,7 @@ export default function ClientDetail() {
                                         workspaceName: wsData?.name,
                                         clientId: client.id,
                                       });
-                                      setSentThresholds(prev => ({ ...prev, [t]: new Date().toISOString() }));
+                                      setSentThresholds(prev => ({ ...prev, [t]: { sentAt: new Date().toISOString(), notificationId: '' } }));
                                       toast.success(`${t}% retainer warning sent`);
                                     } catch (err) {
                                       console.error('Send failed:', err);
@@ -695,11 +735,17 @@ export default function ClientDetail() {
                                 side="bottom"
                                 className="bg-popover text-popover-foreground border border-border rounded-lg px-3 py-2 text-[11px] shadow-md z-50"
                               >
-                              <span style={{ fontWeight: 600 }}>{t}% warning sent</span>
+                                <span style={{ fontWeight: 600 }}>{t}% warning sent</span>
                                 <br />
                                 <span className="text-muted-foreground">
                                   {format(new Date(sentAt), 'MMM d, yyyy · h:mm a')}
                                 </span>
+                                {deliveryInfo && (
+                                  <div className="mt-1 flex items-center gap-1" style={{ color: deliveryInfo.color }}>
+                                    <span className="text-[10px]">{deliveryInfo.icon}</span>
+                                    <span className="text-[10px]" style={{ fontWeight: 600 }}>{deliveryInfo.label}</span>
+                                  </div>
+                                )}
                                 <button
                                   className="mt-1.5 flex items-center gap-1 text-[10px] text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
                                   style={{ fontWeight: 600 }}
@@ -719,7 +765,7 @@ export default function ClientDetail() {
                                         workspaceName: wsData?.name,
                                         clientId: client.id,
                                       });
-                                      setSentThresholds(prev => ({ ...prev, [t]: new Date().toISOString() }));
+                                      setSentThresholds(prev => ({ ...prev, [t]: { sentAt: new Date().toISOString(), notificationId: '' } }));
                                       toast.success(`${t}% retainer warning resent`);
                                     } catch (err) {
                                       console.error('Resend failed:', err);

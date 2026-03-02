@@ -5,3 +5,5 @@ project_id = "oqrqypuulgeqzjcgqruw"
     verify_jwt = false
   [functions.send-retainer-email]
     verify_jwt = false
+  [functions.resend-webhook]
+    verify_jwt = false
