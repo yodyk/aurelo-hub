@@ -13,15 +13,13 @@ import {
   Lock,
   Sparkles,
   ArrowRight,
-  Users,
 } from "lucide-react";
-import { lazy, Suspense } from "react";
 import { motion } from "motion/react";
 import { useData } from "../data/DataContext";
 import { usePlan } from "../data/PlanContext";
 import { PLANS } from "../data/plans";
 
-const TeamUtilization = lazy(() => import("../components/TeamUtilization"));
+
 
 const container = {
   hidden: {},
@@ -115,7 +113,6 @@ export default function Insights() {
   const [sortBy, setSortBy] = useState<SortKey>("revenue");
 
   const hasFullInsights = can("fullInsights");
-  const hasTeamUtilization = can("teamUtilization");
 
   // ── Derived data from metrics ──────────────────────────────────
 
@@ -543,58 +540,6 @@ export default function Insights() {
         </div>
       </motion.div>
 
-      {/* ── STUDIO-GATED: Team Utilization ──────────────────────── */}
-      <motion.div variants={item} className="mt-12 relative">
-        {!hasTeamUtilization && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center">
-            <div className="absolute inset-0 backdrop-blur-[6px] bg-background/60 rounded-xl" />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3, delay: 0.1 }}
-              className="relative bg-card border border-border rounded-2xl p-8 max-w-sm text-center"
-              style={{ boxShadow: "0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04)" }}
-            >
-              <div className="w-11 h-11 rounded-xl bg-[#5ea1bf]/10 flex items-center justify-center mx-auto mb-4">
-                <Users className="w-5 h-5 text-[#5ea1bf]" />
-              </div>
-              <h3 className="text-[16px] text-foreground mb-1.5" style={{ fontWeight: 600 }}>
-                Team utilization
-              </h3>
-              <p className="text-[13px] text-muted-foreground leading-relaxed mb-5">
-                See capacity, billable vs non-billable hours, and workload distribution across your team.
-              </p>
-              <button
-                onClick={() => navigate("/settings?tab=billing")}
-                className="w-full flex items-center justify-center gap-2 py-2.5 text-[14px] rounded-lg bg-foreground text-background hover:opacity-90 transition-all"
-                style={{ fontWeight: 500 }}
-              >
-                <Sparkles className="w-4 h-4" />
-                Upgrade to Studio — ${PLANS.studio.price}/mo
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            </motion.div>
-          </div>
-        )}
-        <div className={!hasTeamUtilization ? "select-none pointer-events-none min-h-[400px]" : ""}>
-          <div className="text-[13px] text-muted-foreground mb-4" style={{ fontWeight: 500, letterSpacing: "0.02em" }}>
-            Team utilization
-            {!hasTeamUtilization && (
-              <span
-                className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 text-[10px] rounded-full bg-[#5ea1bf]/10 text-[#5ea1bf]"
-                style={{ fontWeight: 600 }}
-              >
-                <Lock className="w-2.5 h-2.5" /> STUDIO
-              </span>
-            )}
-          </div>
-          {hasTeamUtilization && (
-            <Suspense fallback={<div className="flex items-center justify-center py-12"><div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>}>
-              <TeamUtilization />
-            </Suspense>
-          )}
-        </div>
-      </motion.div>
     </motion.div>
   );
 }

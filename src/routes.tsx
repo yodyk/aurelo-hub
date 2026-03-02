@@ -13,6 +13,7 @@ const TimeLog = lazy(() => import("./pages/TimeLog"));
 const Insights = lazy(() => import("./pages/Insights"));
 const Invoicing = lazy(() => import("./pages/Invoicing"));
 const Settings = lazy(() => import("./pages/Settings"));
+const Team = lazy(() => import("./pages/Team"));
 const Login = lazy(() => import("./pages/Login"));
 const Signup = lazy(() => import("./pages/Signup"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
@@ -93,6 +94,7 @@ export const router = createBrowserRouter([
       { path: "insights", element: <SuspensePage><Insights /></SuspensePage> },
       { path: "invoicing", element: <SuspensePage><Invoicing /></SuspensePage> },
       { path: "settings", element: <SuspensePage><Settings /></SuspensePage> },
+      { path: "team", element: <SuspensePage><Team /></SuspensePage> },
     ],
   },
 ]);
