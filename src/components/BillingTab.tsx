@@ -94,6 +94,7 @@ function PlanCard({ planId, isCurrent, isOwner, onSelect, selecting }: {
     starter: '#78716c',
     pro: '#5ea1bf',
     studio: '#bfa044',
+    legacy: '#10b981',
   };
   const accent = accentColors[planId];
 
@@ -131,6 +132,11 @@ function PlanCard({ planId, isCurrent, isOwner, onSelect, selecting }: {
       'API access & webhooks',
       'Custom invoice templates',
       'Dedicated support',
+    ],
+    legacy: [
+      'Full Studio access',
+      'Early tester plan',
+      'Unlimited everything',
     ],
   };
 
