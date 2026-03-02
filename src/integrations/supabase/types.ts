@@ -708,6 +708,7 @@ export type Database = {
           role: string
           status: string
           user_id: string | null
+          weekly_capacity: number
           workspace_id: string
         }
         Insert: {
@@ -719,6 +720,7 @@ export type Database = {
           role?: string
           status?: string
           user_id?: string | null
+          weekly_capacity?: number
           workspace_id: string
         }
         Update: {
@@ -730,6 +732,7 @@ export type Database = {
           role?: string
           status?: string
           user_id?: string | null
+          weekly_capacity?: number
           workspace_id?: string
         }
         Relationships: [
