@@ -55,6 +55,7 @@ export default function BatchInvoiceBuilder({
   const [selectedSessionIds, setSelectedSessionIds] = useState<Set<string>>(new Set());
   const [expandedClients, setExpandedClients] = useState<Set<string>>(new Set());
   const [taxRate, setTaxRate] = useState(0);
+  const [taxInclusive, setTaxInclusive] = useState(false);
   const [paymentTerms, setPaymentTerms] = useState("Net 30");
   const [generating, setGenerating] = useState(false);
   const [results, setResults] = useState<
@@ -173,8 +174,10 @@ export default function BatchInvoiceBuilder({
       sum + sess.reduce((s: number, se: any) => s + (se.duration || 0) * (client.rate || 0), 0),
     0
   );
-  const totalTax = Math.round(totalAmount * taxRate * 100) / 100;
-  const grandTotal = totalAmount + totalTax;
+  const totalTax = taxInclusive && taxRate > 0
+    ? Math.round((totalAmount - totalAmount / (1 + taxRate)) * 100) / 100
+    : Math.round(totalAmount * taxRate * 100) / 100;
+  const grandTotal = taxInclusive ? totalAmount : totalAmount + totalTax;
 
   const handleGenerate = useCallback(async () => {
     if (selectedByClient.size === 0) return;
@@ -195,8 +198,14 @@ export default function BatchInvoiceBuilder({
           sessionIds: [String(s.id)],
         }));
 
-        const subtotal = lineItems.reduce((sum, li) => sum + li.amount, 0);
-        const taxAmount = Math.round(subtotal * taxRate * 100) / 100;
+        const lineItemsTotal = lineItems.reduce((sum, li) => sum + li.amount, 0);
+        const invoiceSubtotal = taxInclusive && taxRate > 0
+          ? Math.round((lineItemsTotal / (1 + taxRate)) * 100) / 100
+          : lineItemsTotal;
+        const taxAmount = taxInclusive && taxRate > 0
+          ? Math.round((lineItemsTotal - invoiceSubtotal) * 100) / 100
+          : Math.round(lineItemsTotal * taxRate * 100) / 100;
+        const invoiceTotal = taxInclusive ? lineItemsTotal : lineItemsTotal + taxAmount;
 
         const saved = await invoiceApi.createInvoice({
           number: invoiceNumber,
@@ -204,10 +213,10 @@ export default function BatchInvoiceBuilder({
           clientName: client.name,
           clientEmail: client.contactEmail || client.email || "",
           lineItems,
-          subtotal,
+          subtotal: invoiceSubtotal,
           taxRate,
           taxAmount,
-          total: subtotal + taxAmount,
+          total: invoiceTotal,
           currency: "USD",
           dueDate: new Date(
             Date.now() +
@@ -237,7 +246,7 @@ export default function BatchInvoiceBuilder({
     if (outcomes.some((o) => !o.success)) {
       toast.error(`${outcomes.filter((o) => !o.success).length} invoice(s) failed`);
     }
-  }, [selectedByClient, taxRate, paymentTerms, onComplete]);
+  }, [selectedByClient, taxRate, taxInclusive, paymentTerms, onComplete]);
 
   const allUnbilledIds = clientsWithSessions.flatMap((c) =>
     c.unbilled.map((s: any) => String(s.id))
@@ -571,7 +580,34 @@ export default function BatchInvoiceBuilder({
                   </div>
                 </div>
 
-                {/* Summary + Generate */}
+                {/* Tax inclusive toggle */}
+                {taxRate > 0 && (
+                  <div className="flex items-center justify-between px-3 py-2.5 rounded-lg border border-border bg-accent/10 mb-5">
+                    <div>
+                      <div className="text-[12px] text-foreground" style={{ fontWeight: 500 }}>
+                        Tax included in prices
+                      </div>
+                      <div className="text-[11px] text-muted-foreground">
+                        {taxInclusive
+                          ? "Session rates already include tax"
+                          : "Tax will be added on top of session totals"}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setTaxInclusive((v) => !v)}
+                      className={`relative w-9 h-5 rounded-full transition-colors ${
+                        taxInclusive ? "bg-primary" : "bg-muted-foreground/25"
+                      }`}
+                    >
+                      <span
+                        className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${
+                          taxInclusive ? "translate-x-4" : "translate-x-0"
+                        }`}
+                      />
+                    </button>
+                  </div>
+                )}
+
                 <div className="border-t border-border pt-4">
                   <div className="flex items-center justify-between mb-4">
                     <div>
@@ -580,8 +616,9 @@ export default function BatchInvoiceBuilder({
                       </div>
                       {totalSelectedSessions > 0 && (
                         <div className="text-[11px] text-muted-foreground tabular-nums mt-0.5">
-                          Subtotal {formatCurrency(totalAmount)}
-                          {taxRate > 0 && ` + ${formatCurrency(totalTax)} tax`}
+                          {taxInclusive && taxRate > 0
+                            ? `Incl. ${formatCurrency(totalTax)} tax`
+                            : `Subtotal ${formatCurrency(totalAmount)}${taxRate > 0 ? ` + ${formatCurrency(totalTax)} tax` : ""}`}
                         </div>
                       )}
                     </div>
