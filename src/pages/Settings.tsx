@@ -2877,45 +2877,21 @@ function IntegrationsTabContent() {
         </div>
       </SectionCard>
 
+      {/* Email delivery (Resend) — always connected */}
       <SectionCard>
-        <SectionHeader title="Connected services" description="Sync data and automate workflows" />
-        <div className="space-y-1">
-          {connections.map((conn: any) => (
-            <div
-              key={conn.id}
-              className="flex items-center gap-4 py-3.5 px-3 rounded-lg hover:bg-accent/30 transition-colors"
-            >
-              <div
-                className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${conn.connected ? "bg-primary/8 text-primary" : "bg-accent/60 text-muted-foreground"}`}
-              >
-                {integrationIcons[conn.icon]}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-[14px]" style={{ fontWeight: 500 }}>
-                  {conn.name}
-                </div>
-                <div className="text-[12px] text-muted-foreground">{conn.description}</div>
-              </div>
-              {conn.connected && conn.lastSync && (
-                <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mr-2">
-                  <RefreshCw className="w-3 h-3" />
-                  {conn.lastSync}
-                </div>
-              )}
-              <button
-                onClick={() => toggleConnection(conn.id)}
-                disabled={savingConnections}
-                className={`px-3 py-1.5 text-[12px] rounded-lg border transition-all disabled:opacity-60 ${
-                  conn.connected
-                    ? "border-border text-muted-foreground hover:text-foreground hover:bg-accent/40"
-                    : "border-primary/20 bg-primary/8 text-primary hover:bg-primary/12"
-                }`}
-                style={{ fontWeight: 500 }}
-              >
-                {conn.connected ? "Disconnect" : "Connect"}
-              </button>
-            </div>
-          ))}
+        <SectionHeader title="Email delivery" description="Transactional emails for invoices, notifications, and client communication" />
+        <div className="flex items-center gap-4 py-3.5 px-3 rounded-lg bg-accent/20">
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-primary/8 text-primary">
+            <Mail className="w-5 h-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-[14px]" style={{ fontWeight: 500 }}>Email delivery active</div>
+            <div className="text-[12px] text-muted-foreground">Sent from notify.getaurelo.com</div>
+          </div>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/8 text-primary text-[11px]" style={{ fontWeight: 500 }}>
+            <Check className="w-3 h-3" />
+            Connected
+          </div>
         </div>
       </SectionCard>
 
