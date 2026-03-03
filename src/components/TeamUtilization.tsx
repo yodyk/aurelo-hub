@@ -145,7 +145,7 @@ export default function TeamUtilization() {
             <div className="h-2.5 bg-accent/60 rounded-full overflow-hidden">
               <motion.div
                 className="h-full rounded-full"
-                style={{ background: "linear-gradient(90deg, hsl(var(--primary)), hsl(var(--primary) / 0.7))" }}
+                style={{ background: "linear-gradient(90deg, var(--primary), color-mix(in srgb, var(--primary) 70%, transparent))" }}
                 initial={{ width: 0 }}
                 animate={{ width: `${utilizationRate}%` }}
                 transition={{ delay: 0.5, duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
@@ -183,9 +183,9 @@ export default function TeamUtilization() {
               <motion.div
                 className="h-full rounded-full"
                 style={{
-                  background: capacityUsed > 90 ? "linear-gradient(90deg, hsl(var(--destructive)), hsl(var(--destructive) / 0.7))" :
+                  background: capacityUsed > 90 ? "linear-gradient(90deg, var(--destructive), color-mix(in srgb, var(--destructive) 70%, transparent))" :
                     capacityUsed > 70 ? "linear-gradient(90deg, hsl(40 70% 50%), hsl(40 70% 60%))" :
-                    "linear-gradient(90deg, hsl(var(--primary)), hsl(var(--primary) / 0.7))",
+                    "linear-gradient(90deg, var(--primary), color-mix(in srgb, var(--primary) 70%, transparent))",
                 }}
                 initial={{ width: 0 }}
                 animate={{ width: `${capacityUsed}%` }}
@@ -282,7 +282,7 @@ export default function TeamUtilization() {
                           <div className="flex-1 h-2 bg-accent/60 rounded-full overflow-hidden">
                             <motion.div
                               className="h-full rounded-full"
-                              style={{ background: "linear-gradient(90deg, hsl(var(--primary)), hsl(var(--primary) / 0.7))" }}
+                              style={{ background: "linear-gradient(90deg, var(--primary), color-mix(in srgb, var(--primary) 70%, transparent))" }}
                               initial={{ width: 0 }}
                               animate={{ width: `${memberUtil}%` }}
                               transition={{ delay: 0.6 + idx * 0.1, duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
