@@ -12,9 +12,9 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | null>(null);
 
 const safeThemeDefaults: ThemeContextType = {
-  theme: 'dark',
+  theme: 'system',
   setTheme: () => {},
-  resolvedTheme: 'dark',
+  resolvedTheme: getSystemTheme(),
 };
 
 export function useTheme() {
@@ -24,7 +24,7 @@ export function useTheme() {
 }
 
 function getSystemTheme(): 'light' | 'dark' {
-  if (typeof window === 'undefined') return 'dark';
+  if (typeof window === 'undefined') return 'light';
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
@@ -45,9 +45,9 @@ function applyTheme(resolved: 'light' | 'dark') {
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() => {
     try {
-      return (localStorage.getItem('aurelo-theme') as Theme) || 'dark';
+      return (localStorage.getItem('aurelo-theme') as Theme) || 'system';
     } catch {
-      return 'dark';
+      return 'system';
     }
   });
 
