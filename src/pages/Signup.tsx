@@ -41,6 +41,25 @@ export default function Signup() {
 
     setLoading(true);
     try {
+      // Geo-restriction: check if user is in the US
+      try {
+        const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+        const geoRes = await fetch(
+          `https://${projectId}.supabase.co/functions/v1/geo-check`,
+          { method: "POST" }
+        );
+        if (geoRes.ok) {
+          const geo = await geoRes.json();
+          if (!geo.allowed) {
+            setError("Aurelo is currently available to users in the United States only. We're working on expanding — stay tuned!");
+            setLoading(false);
+            return;
+          }
+        }
+      } catch {
+        // Fail-open: if geo-check is unavailable, allow signup
+      }
+
       await signUp(email.trim(), password, name.trim());
       setSuccess(true);
       // Navigate to onboarding after short delay
