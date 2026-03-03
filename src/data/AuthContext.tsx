@@ -149,12 +149,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    // Skip if we've already resolved for this user (prevents duplicate calls across instances)
-    if (moduleResolvedUserId === u.id) return;
+    // If we've already resolved for this user (prevents duplicate provisioning across instances),
+    // still load workspaces into this provider's state but skip provisioning
+    const alreadyResolved = moduleResolvedUserId === u.id;
     // Claim this user immediately to block concurrent calls
-    moduleResolvedUserId = u.id;
+    if (!alreadyResolved) moduleResolvedUserId = u.id;
 
     let workspaces = await resolveAllWorkspaces(u.id);
+
+    // If already resolved and workspaces exist, just set state and return
+    if (alreadyResolved && workspaces.length > 0) {
+      setAllWorkspaces(workspaces);
+      pickWorkspace(workspaces);
+      return;
+    }
+    if (alreadyResolved) return; // Still provisioning or failed
 
     // If user has no workspaces yet (e.g. first sign-in after email confirmation),
     // auto-provision one now — but only if no other call is already doing it
