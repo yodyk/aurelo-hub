@@ -3243,7 +3243,6 @@ function DataTab() {
   const [deleteTyped, setDeleteTyped] = useState("");
   const [resetting, setResetting] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [seeding, setSeeding] = useState(false);
   const [recalculating, setRecalculating] = useState(false);
   const { refresh, workspaceId } = useData();
   const { can, planId: currentPlanId, setPlan, plan: currentPlan } = usePlan();
@@ -3372,43 +3371,8 @@ function DataTab() {
         )}
       </SectionCard>
 
-      <SectionCard>
-        <SectionHeader title="Demo data" description="Populate your workspace with realistic sample data for testing" />
-        <div className="py-3 px-4 rounded-lg border border-[rgba(94,161,191,0.25)] bg-[rgba(94,161,191,0.04)]">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-[14px]" style={{ fontWeight: 500 }}>
-                Seed workspace with demo data
-              </div>
-              <div className="text-[12px] text-muted-foreground">
-                9 clients, 200+ sessions, 20+ projects, notes, and full settings — overwrites existing data
-              </div>
-            </div>
-            <button
-              onClick={async () => {
-                setSeeding(true);
-                try {
-                  const result = await api.seedDemoData();
-                  await refresh();
-                  toast.success(
-                    `Seeded ${result.summary?.clients || 0} clients, ${result.summary?.sessions || 0} sessions, ${result.summary?.projects || 0} projects`,
-                  );
-                } catch (err: any) {
-                  toast.error(err.message || "Seed failed");
-                } finally {
-                  setSeeding(false);
-                }
-              }}
-              disabled={seeding}
-              className="flex items-center gap-1.5 px-4 py-2 text-[12px] rounded-lg bg-[rgba(94,161,191,0.12)] border border-[rgba(94,161,191,0.35)] text-[#4a8ba8] hover:bg-[rgba(94,161,191,0.2)] transition-all disabled:opacity-60"
-              style={{ fontWeight: 500 }}
-            >
-              {seeding ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
-              {seeding ? "Seeding..." : "Seed demo data"}
-            </button>
-          </div>
-        </div>
-      </SectionCard>
+
+
 
       <SectionCard>
         <SectionHeader title="Data integrity" description="Recalculate aggregated client statistics from actual session data" />
