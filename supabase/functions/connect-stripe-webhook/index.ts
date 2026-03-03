@@ -148,6 +148,33 @@ serve(async (req) => {
           });
 
           log("Payment notification created", { invoiceId, workspace: invoice.workspace_id });
+
+          // Dispatch webhook event for external integrations
+          try {
+            const dispatchUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/dispatch-webhook`;
+            await fetch(dispatchUrl, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`,
+              },
+              body: JSON.stringify({
+                workspace_id: invoice.workspace_id,
+                event_type: "invoice.paid",
+                payload: {
+                  id: invoice.id,
+                  number: invoice.number,
+                  client_id: invoice.client_id,
+                  total,
+                  currency,
+                  paid_date: new Date().toISOString().split("T")[0],
+                },
+              }),
+            });
+            log("Webhook dispatched", { event: "invoice.paid", invoiceId });
+          } catch (whErr) {
+            log("Webhook dispatch failed (non-fatal)", { error: String(whErr) });
+          }
         }
       }
     } else {
