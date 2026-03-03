@@ -5,6 +5,7 @@ import { Eye, EyeOff, ArrowRight, Loader2, Check, X } from "lucide-react";
 import { useAuth } from "../data/AuthContext";
 import { AureloIcon } from "../components/AureloIcon";
 import { AureloWordmark } from "../components/AureloWordmark";
+import { supabase } from "@/integrations/supabase/client";
 
 // Password rules (from spec): min 8 chars, 1 digit, 1 uppercase
 const rules = [
@@ -62,8 +63,13 @@ export default function Signup() {
 
       await signUp(email.trim(), password, name.trim());
       setSuccess(true);
-      // Navigate to onboarding after short delay
-      setTimeout(() => navigate("/onboarding", { replace: true }), 600);
+      
+      // Check if we got a session (auto-confirm) or need email verification
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setTimeout(() => navigate("/onboarding", { replace: true }), 600);
+      }
+      // Otherwise stay on success screen — user must verify email first
     } catch (err: any) {
       console.error("Signup failed:", err);
       if (err.message?.includes("already registered")) {

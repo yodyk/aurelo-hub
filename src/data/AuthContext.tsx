@@ -136,7 +136,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setAllWorkspaces([]);
       return;
     }
-    const workspaces = await resolveAllWorkspaces(u.id);
+    let workspaces = await resolveAllWorkspaces(u.id);
+
+    // If user has no workspaces yet (e.g. first sign-in after email confirmation),
+    // auto-provision one now
+    if (workspaces.length === 0) {
+      try {
+        const wsId = await createWorkspaceForUser(u.id, u.email, u.name);
+        const wsName = u.name ? `${u.name}'s Workspace` : 'My Workspace';
+        workspaces = [{ id: wsId, name: wsName, role: 'Owner', planId: 'starter' }];
+      } catch (err) {
+        console.error('Auto-provisioning workspace failed:', err);
+      }
+    }
+
     setAllWorkspaces(workspaces);
     pickWorkspace(workspaces);
   }, [pickWorkspace]);
@@ -175,6 +188,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const handleSignUp = useCallback(async (email: string, password: string, name: string) => {
     const u = await auth.signUp(email, password, name);
     setUser(u);
+
+    // Check if we actually have a session (email confirmation may be required)
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      // No session = email confirmation pending. Workspace will be provisioned
+      // when the user confirms and signs in (via resolveAndSetWorkspaces).
+      return;
+    }
+
+    // Session exists (auto-confirm enabled) — provision workspace now
     const wsId = await createWorkspaceForUser(u.id, u.email, name);
     const ws: WorkspaceInfo = { id: wsId, name: name ? `${name}'s Workspace` : 'My Workspace', role: 'Owner', planId: 'starter' };
     setAllWorkspaces([ws]);
