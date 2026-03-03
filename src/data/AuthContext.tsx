@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode } from 'react';
 import * as auth from './authService';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -15,6 +15,7 @@ interface AuthContextType {
   workspaceId: string | null;
   workspaceRole: string | null;
   allWorkspaces: WorkspaceInfo[];
+  isNewUser: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, name: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -22,6 +23,7 @@ interface AuthContextType {
   createWorkspace: (name: string) => Promise<string>;
   renameWorkspace: (workspaceId: string, newName: string) => Promise<void>;
   deleteWorkspace: (workspaceId: string) => Promise<void>;
+  clearNewUser: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -32,6 +34,7 @@ const safeAuthDefaults: AuthContextType = {
   workspaceId: null,
   workspaceRole: null,
   allWorkspaces: [],
+  isNewUser: false,
   signIn: async () => {},
   signUp: async () => {},
   signOut: async () => {},
@@ -39,6 +42,7 @@ const safeAuthDefaults: AuthContextType = {
   createWorkspace: async () => '',
   renameWorkspace: async () => {},
   deleteWorkspace: async () => {},
+  clearNewUser: () => {},
 };
 
 export function useAuth() {
@@ -112,6 +116,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [workspaceId, setWorkspaceId] = useState<string | null>(null);
   const [workspaceRole, setWorkspaceRole] = useState<string | null>(null);
   const [allWorkspaces, setAllWorkspaces] = useState<WorkspaceInfo[]>([]);
+  const [isNewUser, setIsNewUser] = useState(false);
+
+  // Provisioning lock to prevent concurrent workspace creation
+  const provisioningRef = useRef(false);
+  // Track if we've already resolved for a given user id to avoid duplicate work
+  const resolvedUserIdRef = useRef<string | null>(null);
 
   // Pick active workspace: prefer localStorage, fallback to first
   const pickWorkspace = useCallback((workspaces: WorkspaceInfo[]) => {
@@ -134,22 +144,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setWorkspaceId(null);
       setWorkspaceRole(null);
       setAllWorkspaces([]);
+      resolvedUserIdRef.current = null;
       return;
     }
+
+    // Skip if we've already resolved for this user (prevents duplicate calls)
+    if (resolvedUserIdRef.current === u.id) return;
+
     let workspaces = await resolveAllWorkspaces(u.id);
 
     // If user has no workspaces yet (e.g. first sign-in after email confirmation),
-    // auto-provision one now
+    // auto-provision one now — but only if no other call is already doing it
     if (workspaces.length === 0) {
+      if (provisioningRef.current) {
+        // Another call is already provisioning — wait for it
+        return;
+      }
+      provisioningRef.current = true;
       try {
         const wsId = await createWorkspaceForUser(u.id, u.email, u.name);
         const wsName = u.name ? `${u.name}'s Workspace` : 'My Workspace';
         workspaces = [{ id: wsId, name: wsName, role: 'Owner', planId: 'starter' }];
+        setIsNewUser(true);
       } catch (err) {
         console.error('Auto-provisioning workspace failed:', err);
+        provisioningRef.current = false;
+        return;
       }
+      provisioningRef.current = false;
     }
 
+    resolvedUserIdRef.current = u.id;
     setAllWorkspaces(workspaces);
     pickWorkspace(workspaces);
   }, [pickWorkspace]);
@@ -180,6 +205,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [resolveAndSetWorkspaces]);
 
   const handleSignIn = useCallback(async (email: string, password: string) => {
+    // Clear stale workspace reference from previous sessions
+    localStorage.removeItem(WS_STORAGE_KEY);
+    resolvedUserIdRef.current = null;
+    provisioningRef.current = false;
+
     const u = await auth.signIn(email, password);
     setUser(u);
     await resolveAndSetWorkspaces(u);
@@ -198,12 +228,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     // Session exists (auto-confirm enabled) — provision workspace now
-    const wsId = await createWorkspaceForUser(u.id, u.email, name);
-    const ws: WorkspaceInfo = { id: wsId, name: name ? `${name}'s Workspace` : 'My Workspace', role: 'Owner', planId: 'starter' };
-    setAllWorkspaces([ws]);
-    setWorkspaceId(wsId);
-    setWorkspaceRole('Owner');
-    localStorage.setItem(WS_STORAGE_KEY, wsId);
+    if (provisioningRef.current) return;
+    provisioningRef.current = true;
+    try {
+      const wsId = await createWorkspaceForUser(u.id, u.email, name);
+      const ws: WorkspaceInfo = { id: wsId, name: name ? `${name}'s Workspace` : 'My Workspace', role: 'Owner', planId: 'starter' };
+      setAllWorkspaces([ws]);
+      setWorkspaceId(wsId);
+      setWorkspaceRole('Owner');
+      localStorage.setItem(WS_STORAGE_KEY, wsId);
+      setIsNewUser(true);
+      resolvedUserIdRef.current = u.id;
+    } finally {
+      provisioningRef.current = false;
+    }
   }, []);
 
   const handleSignOut = useCallback(async () => {
@@ -212,6 +250,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setWorkspaceId(null);
     setWorkspaceRole(null);
     setAllWorkspaces([]);
+    setIsNewUser(false);
+    resolvedUserIdRef.current = null;
+    provisioningRef.current = false;
     localStorage.removeItem(WS_STORAGE_KEY);
   }, []);
 
@@ -257,12 +298,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [allWorkspaces, user, workspaceId, pickWorkspace]);
 
+  const clearNewUser = useCallback(() => setIsNewUser(false), []);
+
   return (
     <AuthContext.Provider value={{
-      user, loading, workspaceId, workspaceRole, allWorkspaces,
+      user, loading, workspaceId, workspaceRole, allWorkspaces, isNewUser,
       signIn: handleSignIn, signUp: handleSignUp, signOut: handleSignOut,
       switchWorkspace, createWorkspace: handleCreateWorkspace, renameWorkspace: handleRenameWorkspace,
-      deleteWorkspace: handleDeleteWorkspace,
+      deleteWorkspace: handleDeleteWorkspace, clearNewUser,
     }}>
       {children}
     </AuthContext.Provider>
