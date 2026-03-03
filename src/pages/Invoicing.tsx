@@ -265,9 +265,14 @@ export default function Invoicing() {
       setInvoices((prev) =>
         prev.map((i) => (i.id === inv.id ? { ...i, stripePaymentUrl: url } : i)),
       );
-      // Copy to clipboard
-      await navigator.clipboard.writeText(url);
-      toast.success("Payment link copied to clipboard!", { id: "payment-link" });
+      // Copy to clipboard with fallback
+      try {
+        await navigator.clipboard.writeText(url);
+        toast.success("Payment link copied to clipboard!", { id: "payment-link" });
+      } catch {
+        // Clipboard API blocked — show the link in the toast instead
+        toast.success("Payment link generated!", { id: "payment-link", description: url, duration: 10000 });
+      }
     } catch (err: any) {
       toast.error(err.message || "Failed to create payment link", { id: "payment-link" });
     }
