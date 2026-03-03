@@ -150,6 +150,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Skip if we've already resolved for this user (prevents duplicate calls)
     if (resolvedUserIdRef.current === u.id) return;
+    // Claim this user immediately to block concurrent calls
+    resolvedUserIdRef.current = u.id;
 
     let workspaces = await resolveAllWorkspaces(u.id);
 
@@ -157,7 +159,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // auto-provision one now — but only if no other call is already doing it
     if (workspaces.length === 0) {
       if (provisioningRef.current) {
-        // Another call is already provisioning — wait for it
+        // Another call is already provisioning — bail out
         return;
       }
       provisioningRef.current = true;
@@ -169,12 +171,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch (err) {
         console.error('Auto-provisioning workspace failed:', err);
         provisioningRef.current = false;
+        resolvedUserIdRef.current = null; // Allow retry
         return;
       }
       provisioningRef.current = false;
     }
 
-    resolvedUserIdRef.current = u.id;
     setAllWorkspaces(workspaces);
     pickWorkspace(workspaces);
   }, [pickWorkspace]);
@@ -207,13 +209,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const handleSignIn = useCallback(async (email: string, password: string) => {
     // Clear stale workspace reference from previous sessions
     localStorage.removeItem(WS_STORAGE_KEY);
+    // Reset refs so onAuthStateChange can re-resolve for the new user
     resolvedUserIdRef.current = null;
     provisioningRef.current = false;
 
-    const u = await auth.signIn(email, password);
-    setUser(u);
-    await resolveAndSetWorkspaces(u);
-  }, [resolveAndSetWorkspaces]);
+    await auth.signIn(email, password);
+    // Don't call resolveAndSetWorkspaces here — onAuthStateChange will handle it
+    // This prevents a race condition where both this function and the listener
+    // try to provision a workspace simultaneously
+  }, []);
 
   const handleSignUp = useCallback(async (email: string, password: string, name: string) => {
     const u = await auth.signUp(email, password, name);
