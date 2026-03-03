@@ -60,6 +60,7 @@ const signalIcons: Record<string, any> = {
 
 type SortKey = "revenue" | "trueHourlyRate" | "utilization";
 
+const CHART_BLUE = "#38bdf8";
 const BLUE = "hsl(var(--primary))";
 const BLUE_LIGHT = "hsl(var(--primary) / 0.15)";
 
@@ -234,7 +235,7 @@ export default function Insights() {
       </motion.div>
 
       {/* Performance Panel */}
-      <motion.div variants={item} className="mb-12">
+      <motion.div variants={item} className="mb-8">
         <SectionLabel>Performance snapshot</SectionLabel>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {metrics.performance.map((card, index) => {
@@ -245,7 +246,7 @@ export default function Insights() {
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.15 + index * 0.08, duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
-                className="bg-card border border-border rounded-xl p-6 hover:-translate-y-0.5 transition-all duration-300 group relative overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.03)]"
+                className="bg-card border border-border rounded-xl p-6 hover:-translate-y-0.5 transition-all duration-300 group relative overflow-hidden"
               >
                 <div className="absolute top-0 right-0 w-20 h-20 bg-primary/8 opacity-40 rounded-bl-[40px] pointer-events-none" />
                 <div className="relative">
@@ -271,35 +272,47 @@ export default function Insights() {
       </motion.div>
 
       {/* ── Revenue Trend Chart ─────────────────────────────────── */}
-      <motion.div variants={item} className="mb-12">
+      <motion.div variants={item} className="mb-8">
         <SectionLabel>Revenue trends</SectionLabel>
         {metrics.monthlyRevenue.length === 0 ? (
-          <div className="bg-card border border-border rounded-xl p-12 text-center shadow-[0_1px_4px_rgba(0,0,0,0.03)]">
+          <div className="bg-card border border-border rounded-xl p-12 text-center">
             <div className="text-[14px] text-muted-foreground" style={{ fontWeight: 500 }}>No monthly data yet</div>
             <div className="text-[12px] text-muted-foreground mt-1">Log sessions to see revenue trends over time</div>
           </div>
         ) : (
-          <div className="bg-card border border-border rounded-xl p-6 shadow-[0_1px_4px_rgba(0,0,0,0.03)]">
-            <ResponsiveContainer width="100%" height={280}>
-              <AreaChart data={metrics.monthlyRevenue} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+          <div className="bg-card border border-border rounded-xl p-6">
+            <ResponsiveContainer width="100%" height={260}>
+              <AreaChart data={metrics.monthlyRevenue} margin={{ top: 12, right: 16, bottom: 4, left: 16 }}>
                 <defs>
                   <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                    <stop offset="0%" stopColor={CHART_BLUE} stopOpacity={0.24} />
+                    <stop offset="50%" stopColor={CHART_BLUE} stopOpacity={0.1} />
+                    <stop offset="100%" stopColor={CHART_BLUE} stopOpacity={0.02} />
                   </linearGradient>
+                  <filter id="insightsLineGlow" x="-10%" y="0%" width="120%" height="150%">
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur" />
+                    <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.22  0 0 0 0 0.74  0 0 0 0 0.97  0 0 0 0.30 0" result="colorBlur" />
+                    <feMerge>
+                      <feMergeNode in="colorBlur" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                <XAxis dataKey="month" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} width={48} />
+                <CartesianGrid vertical horizontal={false} stroke="var(--border)" strokeOpacity={0.35} />
+                <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: "#9a9aac", fontSize: 11, fontWeight: 500 }} dy={10} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: "#9a9aac", fontSize: 11 }} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} width={48} />
                 <Tooltip content={<ChartTooltip />} />
-                <Area type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#revGrad)" dot={{ r: 3, fill: "hsl(var(--primary))", strokeWidth: 0 }} activeDot={{ r: 5 }} />
+                {/* Glow layer */}
+                <Area type="monotone" dataKey="revenue" stroke={CHART_BLUE} strokeWidth={5} strokeOpacity={0.12} fill="none" dot={false} activeDot={false} filter="url(#insightsLineGlow)" isAnimationActive={false} />
+                {/* Main line + fill */}
+                <Area type="monotone" dataKey="revenue" stroke={CHART_BLUE} strokeWidth={2} strokeOpacity={0.85} fill="url(#revGrad)" dot={{ r: 2.5, fill: CHART_BLUE, strokeWidth: 0 }} activeDot={{ r: 4.5, fill: CHART_BLUE, strokeWidth: 0 }} />
                 {hasInvoicing && (
                   <Area type="monotone" dataKey="collected" stroke="hsl(var(--primary) / 0.5)" strokeWidth={1.5} strokeDasharray="4 4" fill="none" dot={false} />
                 )}
               </AreaChart>
             </ResponsiveContainer>
             <div className="flex items-center gap-4 mt-3 text-[11px] text-muted-foreground">
-              <span className="flex items-center gap-1.5"><span className="w-3 h-0.5 bg-primary rounded" /> Session revenue</span>
+              <span className="flex items-center gap-1.5"><span className="w-3 h-0.5 rounded" style={{ background: CHART_BLUE }} /> Session revenue</span>
               {hasInvoicing && <span className="flex items-center gap-1.5"><span className="w-3 h-0.5 bg-primary/50 rounded border-dashed" style={{ borderTop: "1.5px dashed" }} /> Collected</span>}
             </div>
           </div>
@@ -308,7 +321,7 @@ export default function Insights() {
 
       {/* ── Collection Speed (invoicing-gated) ──────────────────── */}
       {hasInvoicing && (
-        <motion.div variants={item} className="mb-12 relative">
+        <motion.div variants={item} className="mb-8 relative">
           {!hasFullInsights && <ProUpgradeOverlay />}
           <div className={!hasFullInsights ? "select-none pointer-events-none" : ""}>
             <SectionLabel pro={!hasFullInsights}>Collection speed</SectionLabel>
@@ -318,7 +331,7 @@ export default function Insights() {
                 { label: "Median days to pay", value: `${metrics.collectionMetrics.medianDaysToPay}`, sub: "days", icon: CalendarClock },
                 { label: "Collection rate", value: `${metrics.collectionMetrics.collectionRate}%`, sub: "invoiced → paid", icon: DollarSign },
               ].map((card) => (
-                <div key={card.label} className="bg-card border border-border rounded-xl p-5 shadow-[0_1px_4px_rgba(0,0,0,0.03)]">
+                <div key={card.label} className="bg-card border border-border rounded-xl p-5">
                   <div className="flex items-center gap-2 mb-3">
                     <div className="w-7 h-7 rounded-lg bg-primary/8 flex items-center justify-center">
                       <card.icon className="w-3.5 h-3.5 text-primary" />
@@ -335,7 +348,7 @@ export default function Insights() {
 
             {/* Aging buckets bar chart */}
             {metrics.collectionMetrics.agingBuckets.some(b => b.count > 0) && (
-              <div className="bg-card border border-border rounded-xl p-6 shadow-[0_1px_4px_rgba(0,0,0,0.03)]">
+              <div className="bg-card border border-border rounded-xl p-6">
                 <div className="text-[12px] text-muted-foreground mb-4" style={{ fontWeight: 500 }}>Outstanding aging</div>
                 <ResponsiveContainer width="100%" height={200}>
                   <BarChart data={metrics.collectionMetrics.agingBuckets} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
@@ -357,7 +370,7 @@ export default function Insights() {
       )}
 
       {/* ── Forecasting ────────────────────────────────────────── */}
-      <motion.div variants={item} className="mb-12 relative">
+      <motion.div variants={item} className="mb-8 relative">
         {!hasFullInsights && <ProUpgradeOverlay />}
         <div className={!hasFullInsights ? "select-none pointer-events-none" : ""}>
           <SectionLabel pro={!hasFullInsights}>Forecasting & projections</SectionLabel>
@@ -378,7 +391,7 @@ export default function Insights() {
                 icon: Target,
               },
             ].map((card) => (
-              <div key={card.label} className="bg-card border border-border rounded-xl p-5 shadow-[0_1px_4px_rgba(0,0,0,0.03)]">
+              <div key={card.label} className="bg-card border border-border rounded-xl p-5">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-7 h-7 rounded-lg bg-primary/8 flex items-center justify-center">
                     <card.icon className="w-3.5 h-3.5 text-primary" />
@@ -396,17 +409,17 @@ export default function Insights() {
       </motion.div>
 
       {/* ── Profitability Heatmap ──────────────────────────────── */}
-      <motion.div variants={item} className="mb-12 relative">
+      <motion.div variants={item} className="mb-8 relative">
         {!hasFullInsights && <div className="absolute inset-0 z-10 backdrop-blur-[6px] bg-background/60 rounded-xl" />}
         <div className={!hasFullInsights ? "select-none pointer-events-none" : ""}>
           <SectionLabel pro={!hasFullInsights}>Profitability heatmap</SectionLabel>
           {metrics.profitability.length === 0 ? (
-            <div className="bg-card border border-border rounded-xl p-12 text-center shadow-[0_1px_4px_rgba(0,0,0,0.03)]">
+            <div className="bg-card border border-border rounded-xl p-12 text-center">
               <div className="text-[14px] text-muted-foreground" style={{ fontWeight: 500 }}>No profitability data yet</div>
               <div className="text-[12px] text-muted-foreground mt-1">Log sessions across clients and months to see the heatmap</div>
             </div>
           ) : (
-            <div className="bg-card border border-border rounded-xl overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.03)]">
+            <div className="bg-card border border-border rounded-xl overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
@@ -485,7 +498,7 @@ export default function Insights() {
       </motion.div>
 
       {/* ── Client Rankings ─────────────────────────────────────── */}
-      <motion.div variants={item} className="mb-12 relative">
+      <motion.div variants={item} className="mb-8 relative">
         {!hasFullInsights && <ProUpgradeOverlay />}
         <div className={!hasFullInsights ? "select-none pointer-events-none" : ""}>
           <div className="flex items-center justify-between mb-4">
@@ -511,12 +524,12 @@ export default function Insights() {
           </div>
 
           {sortedRankings.length === 0 && hasFullInsights ? (
-            <div className="bg-card border border-border rounded-xl p-12 text-center shadow-[0_1px_4px_rgba(0,0,0,0.03)]">
+            <div className="bg-card border border-border rounded-xl p-12 text-center">
               <div className="text-[14px] text-muted-foreground" style={{ fontWeight: 500 }}>No client revenue data this period</div>
               <div className="text-[12px] text-muted-foreground mt-1">Log billable sessions to see rankings</div>
             </div>
           ) : (
-            <div className="bg-card border border-border rounded-xl overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.03)]">
+            <div className="bg-card border border-border rounded-xl overflow-hidden">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-border bg-accent/30">
@@ -577,17 +590,17 @@ export default function Insights() {
       </motion.div>
 
       {/* Time Allocation */}
-      <motion.div variants={item} className="mb-12 relative">
+      <motion.div variants={item} className="mb-8 relative">
         {!hasFullInsights && <div className="absolute inset-0 z-10 backdrop-blur-[6px] bg-background/60 rounded-xl" />}
         <div className={!hasFullInsights ? "select-none pointer-events-none" : ""}>
           <SectionLabel pro={!hasFullInsights}>Time allocation</SectionLabel>
           {metrics.timeAllocation.length === 0 && hasFullInsights ? (
-            <div className="bg-card border border-border rounded-xl p-12 text-center shadow-[0_1px_4px_rgba(0,0,0,0.03)]">
+            <div className="bg-card border border-border rounded-xl p-12 text-center">
               <div className="text-[14px] text-muted-foreground" style={{ fontWeight: 500 }}>No time data this period</div>
               <div className="text-[12px] text-muted-foreground mt-1">Log sessions with work categories to see allocation</div>
             </div>
           ) : (
-            <div className="bg-card border border-border rounded-xl p-6 shadow-[0_1px_4px_rgba(0,0,0,0.03)]">
+            <div className="bg-card border border-border rounded-xl p-6">
               <div className="space-y-6">
                 {metrics.timeAllocation.map((alloc, index) => (
                   <div key={alloc.category} className="group">
@@ -626,7 +639,7 @@ export default function Insights() {
         <div className={!hasFullInsights ? "select-none pointer-events-none" : ""}>
           <SectionLabel pro={!hasFullInsights} count={metrics.forwardSignals.length}>Forward signals</SectionLabel>
           {metrics.forwardSignals.length === 0 && hasFullInsights ? (
-            <div className="bg-card border border-border rounded-xl p-12 text-center shadow-[0_1px_4px_rgba(0,0,0,0.03)]">
+            <div className="bg-card border border-border rounded-xl p-12 text-center">
               <div className="text-[14px] text-muted-foreground" style={{ fontWeight: 500 }}>No signals detected</div>
               <div className="text-[12px] text-muted-foreground mt-1">Signals appear when patterns emerge in your data</div>
             </div>
@@ -641,7 +654,7 @@ export default function Insights() {
                     initial={{ opacity: 0, x: -8 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 + index * 0.08 }}
-                    className={`flex items-start justify-between bg-card border border-border rounded-xl px-6 py-4 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer group border-l-[3px] shadow-[0_1px_4px_rgba(0,0,0,0.03)] ${
+                    className={`flex items-start justify-between bg-card border border-border rounded-xl px-6 py-4 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer group border-l-[3px] ${
                       signal.impact === "High" ? "border-l-primary" : "border-l-primary/30"
                     }`}
                     onClick={() => { if (signal.clientId && hasFullInsights) navigate(`/clients/${signal.clientId}`); }}
