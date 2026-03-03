@@ -12,12 +12,15 @@ import {
   MessageCircle,
   Box,
   Building,
+  Crown,
 } from "lucide-react";
 import { useData } from "../data/DataContext";
 import { AureloIcon } from "../components/AureloIcon";
 import { AureloWordmark } from "../components/AureloWordmark";
 import { seedDemoData } from "../data/settingsApi";
 import { type IdentityType, IDENTITY_OPTIONS, getCategoriesForIdentity } from "../data/identityPresets";
+import { PLANS, type PlanId } from "../data/plans";
+import { OnboardingPlanPicker } from "../components/OnboardingPlanPicker";
 
 const IDENTITY_ICONS: Record<IdentityType, typeof Palette> = {
   designer: Palette,
@@ -46,7 +49,7 @@ export default function Onboarding() {
   const [selected, setSelected] = useState<IdentityType | null>(null);
   const [saving, setSaving] = useState(false);
   const [seeding, setSeeding] = useState(false);
-  const [step, setStep] = useState<"select" | "confirm" | "explore">("select");
+  const [step, setStep] = useState<"select" | "confirm" | "explore" | "plan">("select");
 
   const previewCategories = selected ? getCategoriesForIdentity(selected) : [];
 
@@ -82,7 +85,7 @@ export default function Onboarding() {
   };
 
   const handleStartFresh = () => {
-    navigate("/", { replace: true });
+    setStep("plan");
   };
 
   return (
@@ -92,8 +95,8 @@ export default function Onboarding() {
         <AureloWordmark className="h-[20px] w-auto text-foreground opacity-70" />
         {/* Step indicator */}
         <div className="flex items-center gap-1.5">
-          {["select", "confirm", "explore"].map((s, i) => {
-            const stepIndex = ["select", "confirm", "explore"].indexOf(step);
+          {["select", "confirm", "explore", "plan"].map((s, i) => {
+            const stepIndex = ["select", "confirm", "explore", "plan"].indexOf(step);
             const isActive = i === stepIndex;
             const isComplete = i < stepIndex;
             return (
@@ -322,7 +325,7 @@ export default function Onboarding() {
                   </button>
                 </div>
               </motion.div>
-            ) : (
+            ) : step === "explore" ? (
               <motion.div
                 key="explore"
                 initial={{ opacity: 0, y: 8 }}
@@ -399,6 +402,16 @@ export default function Onboarding() {
                     </div>
                   </button>
                 </div>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="plan"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.3 }}
+              >
+                <OnboardingPlanPicker onContinue={() => navigate("/", { replace: true })} />
               </motion.div>
             )}
           </AnimatePresence>

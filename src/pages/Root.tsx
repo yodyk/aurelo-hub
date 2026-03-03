@@ -16,6 +16,7 @@ import { LogSessionModal } from '../components/Modals';
 import { GuidedTour } from '../components/GuidedTour';
 import { DemoModeBanner } from '../components/DemoModeBanner';
 import { TrialBanner } from '../components/TrialBanner';
+import { SidebarUpgradeCTA } from '../components/SidebarUpgradeCTA';
 import { WorkspaceSwitcher } from '../components/WorkspaceSwitcher';
 import { toast } from 'sonner';
 import { useTheme } from '../data/ThemeContext';
@@ -285,6 +286,9 @@ function RootLayout() {
             })}
           </div>
         </nav>
+
+        {/* Upgrade CTA for Starter users */}
+        <SidebarUpgradeCTA collapsed={sidebarCollapsed} />
 
         {/* Bottom section */}
         <div className="px-3 py-4 border-t border-border">
