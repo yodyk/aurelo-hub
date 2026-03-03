@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import * as auth from './authService';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -110,6 +110,12 @@ async function resolveAllWorkspaces(userId: string): Promise<WorkspaceInfo[]> {
 
 const WS_STORAGE_KEY = 'aurelo_active_workspace';
 
+// ── Module-level locks shared across all AuthProvider instances ─────
+// This prevents duplicate workspace provisioning when multiple AuthProvider
+// instances mount (e.g. /login → /onboarding → / each have their own).
+let moduleProvisioningLock = false;
+let moduleResolvedUserId: string | null = null;
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<auth.AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
@@ -117,11 +123,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [workspaceRole, setWorkspaceRole] = useState<string | null>(null);
   const [allWorkspaces, setAllWorkspaces] = useState<WorkspaceInfo[]>([]);
   const [isNewUser, setIsNewUser] = useState(false);
-
-  // Provisioning lock to prevent concurrent workspace creation
-  const provisioningRef = useRef(false);
-  // Track if we've already resolved for a given user id to avoid duplicate work
-  const resolvedUserIdRef = useRef<string | null>(null);
 
   // Pick active workspace: prefer localStorage, fallback to first
   const pickWorkspace = useCallback((workspaces: WorkspaceInfo[]) => {
@@ -144,25 +145,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setWorkspaceId(null);
       setWorkspaceRole(null);
       setAllWorkspaces([]);
-      resolvedUserIdRef.current = null;
+      moduleResolvedUserId = null;
       return;
     }
 
-    // Skip if we've already resolved for this user (prevents duplicate calls)
-    if (resolvedUserIdRef.current === u.id) return;
+    // Skip if we've already resolved for this user (prevents duplicate calls across instances)
+    if (moduleResolvedUserId === u.id) return;
     // Claim this user immediately to block concurrent calls
-    resolvedUserIdRef.current = u.id;
+    moduleResolvedUserId = u.id;
 
     let workspaces = await resolveAllWorkspaces(u.id);
 
     // If user has no workspaces yet (e.g. first sign-in after email confirmation),
     // auto-provision one now — but only if no other call is already doing it
     if (workspaces.length === 0) {
-      if (provisioningRef.current) {
+      if (moduleProvisioningLock) {
         // Another call is already provisioning — bail out
         return;
       }
-      provisioningRef.current = true;
+      moduleProvisioningLock = true;
       try {
         const wsId = await createWorkspaceForUser(u.id, u.email, u.name);
         const wsName = u.name ? `${u.name}'s Workspace` : 'My Workspace';
@@ -170,11 +171,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setIsNewUser(true);
       } catch (err) {
         console.error('Auto-provisioning workspace failed:', err);
-        provisioningRef.current = false;
-        resolvedUserIdRef.current = null; // Allow retry
+        moduleProvisioningLock = false;
+        moduleResolvedUserId = null; // Allow retry
         return;
       }
-      provisioningRef.current = false;
+      moduleProvisioningLock = false;
     }
 
     setAllWorkspaces(workspaces);
@@ -209,9 +210,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const handleSignIn = useCallback(async (email: string, password: string) => {
     // Clear stale workspace reference from previous sessions
     localStorage.removeItem(WS_STORAGE_KEY);
-    // Reset refs so onAuthStateChange can re-resolve for the new user
-    resolvedUserIdRef.current = null;
-    provisioningRef.current = false;
+    // Reset module locks so onAuthStateChange can re-resolve for the new user
+    moduleResolvedUserId = null;
+    moduleProvisioningLock = false;
 
     await auth.signIn(email, password);
     // Don't call resolveAndSetWorkspaces here — onAuthStateChange will handle it
@@ -232,8 +233,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     // Session exists (auto-confirm enabled) — provision workspace now
-    if (provisioningRef.current) return;
-    provisioningRef.current = true;
+    if (moduleProvisioningLock) return;
+    moduleProvisioningLock = true;
     try {
       const wsId = await createWorkspaceForUser(u.id, u.email, name);
       const ws: WorkspaceInfo = { id: wsId, name: name ? `${name}'s Workspace` : 'My Workspace', role: 'Owner', planId: 'starter' };
@@ -242,9 +243,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setWorkspaceRole('Owner');
       localStorage.setItem(WS_STORAGE_KEY, wsId);
       setIsNewUser(true);
-      resolvedUserIdRef.current = u.id;
+      moduleResolvedUserId = u.id;
     } finally {
-      provisioningRef.current = false;
+      moduleProvisioningLock = false;
     }
   }, []);
 
@@ -255,8 +256,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setWorkspaceRole(null);
     setAllWorkspaces([]);
     setIsNewUser(false);
-    resolvedUserIdRef.current = null;
-    provisioningRef.current = false;
+    moduleResolvedUserId = null;
+    moduleProvisioningLock = false;
     localStorage.removeItem(WS_STORAGE_KEY);
   }, []);
 
