@@ -5,6 +5,7 @@ import { Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
 import { useAuth } from "../data/AuthContext";
 import { AureloIcon } from "../components/AureloIcon";
 import { AureloWordmark } from "../components/AureloWordmark";
+import { lovable } from "@/integrations/lovable";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -61,6 +62,30 @@ export default function Login() {
             <p className="text-[14px] text-[#717182]" style={{ fontWeight: 400 }}>
               Sign in to your workspace to continue
             </p>
+          </div>
+
+          {/* Apple Sign In */}
+          <button
+            type="button"
+            onClick={async () => {
+              const { error } = await lovable.auth.signInWithOAuth("apple", {
+                redirect_uri: window.location.origin,
+              });
+              if (error) setError(error.message || "Apple sign-in failed");
+            }}
+            className="w-full h-10 rounded-lg bg-[#1c1c1c] text-white text-[14px] flex items-center justify-center gap-2.5 hover:bg-[#333] active:bg-[#111] transition-all duration-200"
+            style={{ fontWeight: 500 }}
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
+            </svg>
+            Continue with Apple
+          </button>
+
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-px bg-black/[0.06]" />
+            <span className="text-[12px] text-[#b0b0b8]" style={{ fontWeight: 500 }}>or</span>
+            <div className="flex-1 h-px bg-black/[0.06]" />
           </div>
 
           {/* Form */}
