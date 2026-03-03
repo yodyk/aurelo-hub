@@ -109,6 +109,15 @@ export default function Login() {
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
+              <div className="flex justify-end mt-1.5">
+                <Link
+                  to="/reset-password"
+                  className="text-[12px] text-[#5ea1bf] hover:text-[#4d8fad] transition-colors"
+                  style={{ fontWeight: 500 }}
+                >
+                  Forgot password?
+                </Link>
+              </div>
             </div>
 
             <button

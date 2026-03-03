@@ -17,6 +17,7 @@ const Team = lazy(() => import("./pages/Team"));
 const Login = lazy(() => import("./pages/Login"));
 const Signup = lazy(() => import("./pages/Signup"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const ClientPortal = lazy(() => import("./pages/ClientPortal"));
 
 function PageFallback() {
@@ -78,6 +79,7 @@ function RootErrorBoundary() {
 export const router = createBrowserRouter([
   { path: "/login", Component: LoginWithAuth },
   { path: "/signup", Component: SignupWithAuth },
+  { path: "/reset-password", element: <SuspensePage><ResetPassword /></SuspensePage> },
   { path: "/onboarding", Component: OnboardingWithAuth },
   { path: "/portal/:token", element: <SuspensePage><ClientPortal /></SuspensePage> },
   {
