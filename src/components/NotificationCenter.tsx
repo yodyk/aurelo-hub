@@ -101,9 +101,19 @@ export function NotificationCenter({ workspaceId }: NotificationCenterProps) {
     setNotifs(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
   }, []);
 
+  const handleDismiss = useCallback(async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    await markAsRead(id);
+    setNotifs(prev => prev.filter(n => n.id !== id));
+  }, []);
+
+  const handleClearAll = useCallback(async () => {
+    await markAllAsRead(workspaceId);
+    setNotifs([]);
+  }, [workspaceId]);
+
   const handleClick = useCallback((n: Notification) => {
     handleMarkRead(n.id);
-    // Navigate based on category/metadata
     if (n.metadata?.clientId) {
       navigate(`/clients/${n.metadata.clientId}`);
     } else if (n.metadata?.invoiceId) {
@@ -158,16 +168,28 @@ export function NotificationCenter({ workspaceId }: NotificationCenterProps) {
                   </span>
                 )}
               </div>
-              {unreadCount > 0 && (
-                <button
-                  onClick={handleMarkAllRead}
-                  className="flex items-center gap-1 text-[12px] text-primary hover:text-primary/80 transition-colors"
-                  style={{ fontWeight: 500 }}
-                >
-                  <Check className="w-3 h-3" />
-                  Mark all read
-                </button>
-              )}
+              <div className="flex items-center gap-2">
+                {unreadCount > 0 && (
+                  <button
+                    onClick={handleMarkAllRead}
+                    className="flex items-center gap-1 text-[12px] text-primary hover:text-primary/80 transition-colors"
+                    style={{ fontWeight: 500 }}
+                  >
+                    <Check className="w-3 h-3" />
+                    Mark all read
+                  </button>
+                )}
+                {visibleNotifs.length > 0 && (
+                  <button
+                    onClick={handleClearAll}
+                    className="flex items-center gap-1 text-[12px] text-muted-foreground hover:text-foreground transition-colors"
+                    style={{ fontWeight: 500 }}
+                  >
+                    <X className="w-3 h-3" />
+                    Clear all
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* List */}
@@ -189,7 +211,7 @@ export function NotificationCenter({ workspaceId }: NotificationCenterProps) {
                   return (
                     <div
                       key={n.id}
-                      className={`flex items-start gap-3 px-4 py-3 border-b border-border/50 last:border-0 hover:bg-accent/30 transition-colors cursor-pointer ${!n.is_read ? 'bg-primary/[0.03]' : ''}`}
+                      className={`group flex items-start gap-3 px-4 py-3 border-b border-border/50 last:border-0 hover:bg-accent/30 transition-colors cursor-pointer ${!n.is_read ? 'bg-primary/[0.03]' : ''}`}
                       onClick={() => handleClick(n)}
                     >
                       <div className={`mt-0.5 w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${colorClass}`}>
@@ -200,9 +222,12 @@ export function NotificationCenter({ workspaceId }: NotificationCenterProps) {
                           <div className="text-[13px] leading-snug" style={{ fontWeight: n.is_read ? 400 : 500 }}>
                             {n.title}
                           </div>
-                          {!n.is_read && (
-                            <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
-                          )}
+                          <button
+                            onClick={(e) => handleDismiss(e, n.id)}
+                            className="mt-0.5 w-5 h-5 rounded flex items-center justify-center flex-shrink-0 opacity-0 group-hover:opacity-100 hover:bg-accent transition-all text-muted-foreground hover:text-foreground"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
                         </div>
                         {n.body && (
                           <div className="text-[12px] text-muted-foreground mt-0.5 line-clamp-2">{n.body}</div>
