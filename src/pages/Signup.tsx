@@ -72,10 +72,13 @@ export default function Signup() {
       // Otherwise stay on success screen — user must verify email first
     } catch (err: any) {
       console.error("Signup failed:", err);
-      if (err.message?.includes("already registered")) {
+      const msg = err.message || "Failed to create account";
+      if (msg.includes("already registered")) {
         setError("An account with this email already exists");
+      } else if (msg.includes("security purposes") || msg.includes("request this after")) {
+        setError("Please wait a moment before trying again");
       } else {
-        setError(err.message || "Failed to create account");
+        setError(msg);
       }
     } finally {
       setLoading(false);
