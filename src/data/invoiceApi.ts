@@ -194,10 +194,23 @@ export async function deleteInvoice(invoiceId: string): Promise<void> {
 }
 
 export async function sendInvoice(invoiceId: string): Promise<Invoice> {
-  return updateInvoice(invoiceId, {
+  const saved = await updateInvoice(invoiceId, {
     status: 'sent',
     issuedDate: new Date().toISOString(),
   });
+
+  // Send email to client in background — don't block the UI on failure
+  supabase.functions.invoke('send-invoice-email', {
+    body: { invoiceId },
+  }).then(({ error, data }) => {
+    if (error || data?.error) {
+      console.warn('[invoiceApi] Invoice email failed:', error?.message || data?.error);
+    } else {
+      console.log('[invoiceApi] Invoice email sent:', data?.resendEmailId);
+    }
+  });
+
+  return saved;
 }
 
 export async function markPaid(invoiceId: string): Promise<Invoice> {
