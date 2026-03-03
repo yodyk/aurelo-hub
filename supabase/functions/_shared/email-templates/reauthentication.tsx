@@ -4,7 +4,6 @@ import * as React from 'npm:react@18.3.1'
 
 import {
   Body,
-  Column,
   Container,
   Head,
   Heading,
@@ -13,20 +12,18 @@ import {
   Img,
   Link,
   Preview,
-  Row,
   Section,
   Text,
 } from 'npm:@react-email/components@0.0.22'
 
 interface ReauthenticationEmailProps {
   token: string
-  workspaceLogoUrl?: string
   siteName?: string
 }
 
 const WORDMARK_URL = 'https://oqrqypuulgeqzjcgqruw.supabase.co/storage/v1/object/public/email-assets/aurelo-wordmark.png'
 
-export const ReauthenticationEmail = ({ token, workspaceLogoUrl, siteName }: ReauthenticationEmailProps) => (
+export const ReauthenticationEmail = ({ token, siteName }: ReauthenticationEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head>
       <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -36,16 +33,7 @@ export const ReauthenticationEmail = ({ token, workspaceLogoUrl, siteName }: Rea
     <Body style={main}>
       <Container style={card}>
         <Section style={headerBar}>
-          <Row>
-            <Column style={logoLeftCol}>
-              {workspaceLogoUrl ? (
-                <Img src={workspaceLogoUrl} alt={siteName || 'Workspace'} height="28" style={wLogo} />
-              ) : null}
-            </Column>
-            <Column style={logoRightCol}>
-              <Img src={WORDMARK_URL} alt="aurelo" height="18" style={wMark} />
-            </Column>
-          </Row>
+          <Img src={WORDMARK_URL} alt="Aurelo" height="18" style={wMark} />
         </Section>
 
         <Section style={accentStrip} />
@@ -83,9 +71,6 @@ export default ReauthenticationEmail
 const main = { backgroundColor: '#ffffff', fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }
 const card = { maxWidth: '480px', margin: '40px auto', padding: '0', border: '1px solid #e8e8e6', borderRadius: '12px', overflow: 'hidden' as const }
 const headerBar = { backgroundColor: '#f8f8f7', padding: '24px 32px', borderBottom: '1px solid #e8e8e6' }
-const logoLeftCol = { verticalAlign: 'middle' as const }
-const logoRightCol = { verticalAlign: 'middle' as const, textAlign: 'right' as const }
-const wLogo = { display: 'inline-block', verticalAlign: 'middle' }
 const wMark = { display: 'inline-block', verticalAlign: 'middle', opacity: '0.9' }
 const accentStrip = { height: '3px', background: 'linear-gradient(90deg, #5ea1bf 0%, #3b7a99 100%)' }
 const content = { padding: '32px 32px 24px' }

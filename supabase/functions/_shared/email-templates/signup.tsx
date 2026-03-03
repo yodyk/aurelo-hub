@@ -4,7 +4,6 @@ import * as React from 'npm:react@18.3.1'
 
 import {
   Body,
-  Column,
   Container,
   Head,
   Heading,
@@ -13,7 +12,6 @@ import {
   Img,
   Link,
   Preview,
-  Row,
   Section,
   Text,
 } from 'npm:@react-email/components@0.0.22'
@@ -23,7 +21,6 @@ interface SignupEmailProps {
   siteUrl: string
   recipient: string
   confirmationUrl: string
-  workspaceLogoUrl?: string
 }
 
 const WORDMARK_URL = 'https://oqrqypuulgeqzjcgqruw.supabase.co/storage/v1/object/public/email-assets/aurelo-wordmark.png'
@@ -33,7 +30,6 @@ export const SignupEmail = ({
   siteUrl,
   recipient,
   confirmationUrl,
-  workspaceLogoUrl,
 }: SignupEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head>
@@ -43,21 +39,10 @@ export const SignupEmail = ({
     <Preview>Welcome aboard — verify your email to get started</Preview>
     <Body style={main}>
       <Container style={card}>
-        {/* Branded header bar */}
         <Section style={headerBar}>
-          <Row>
-            <Column style={logoLeftCol}>
-              {workspaceLogoUrl ? (
-                <Img src={workspaceLogoUrl} alt={siteName} height="28" style={wLogo} />
-              ) : null}
-            </Column>
-            <Column style={logoRightCol}>
-              <Img src={WORDMARK_URL} alt="aurelo" height="18" style={wMark} />
-            </Column>
-          </Row>
+          <Img src={WORDMARK_URL} alt="Aurelo" height="18" style={wMark} />
         </Section>
 
-        {/* Gold accent strip */}
         <Section style={accentStrip} />
 
         <Section style={content}>
@@ -110,9 +95,6 @@ const main = {
 }
 const card = { maxWidth: '480px', margin: '40px auto', padding: '0', border: '1px solid #e8e8e6', borderRadius: '12px', overflow: 'hidden' as const }
 const headerBar = { backgroundColor: '#f8f8f7', padding: '24px 32px', borderBottom: '1px solid #e8e8e6' }
-const logoLeftCol = { verticalAlign: 'middle' as const }
-const logoRightCol = { verticalAlign: 'middle' as const, textAlign: 'right' as const }
-const wLogo = { display: 'inline-block', verticalAlign: 'middle' }
 const wMark = { display: 'inline-block', verticalAlign: 'middle', opacity: '0.9' }
 const accentStrip = { height: '3px', background: 'linear-gradient(90deg, #5ea1bf 0%, #3b7a99 100%)' }
 const content = { padding: '32px 32px 24px' }

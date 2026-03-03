@@ -35,19 +35,12 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 }
 
 // Configuration
-const SITE_NAME = "Aurelo Hub"
+const SITE_NAME = "Aurelo"
 const SENDER_DOMAIN = "notify.getaurelo.com"
 const ROOT_DOMAIN = "getaurelo.com"
-const FROM_DOMAIN = "getaurelo.com" // Domain shown in From address (may be root or sender subdomain)
-const WORKSPACE_ID = "d1650b31-8dc3-463a-b5b7-674d20db8760"
-const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || ''
-const WORKSPACE_LOGO_URL = `${SUPABASE_URL}/storage/v1/object/public/logos/${WORKSPACE_ID}/email.png`
+const FROM_DOMAIN = "getaurelo.com"
 
 // Sample data for preview mode ONLY (not used in actual email sending).
-// URLs are baked in at scaffold time from the project's real data.
-// The sample email uses a fixed placeholder (RFC 6761 .test TLD) so the Go backend
-// can always find-and-replace it with the actual recipient when sending test emails,
-// even if the project's domain has changed since the template was scaffolded.
 const SAMPLE_PROJECT_URL = "https://22875432-e94f-4b4a-982b-c31ec1cc0988.lovableproject.com"
 const SAMPLE_EMAIL = "user@example.test"
 const SAMPLE_DATA: Record<string, object> = {
@@ -56,35 +49,29 @@ const SAMPLE_DATA: Record<string, object> = {
     siteUrl: SAMPLE_PROJECT_URL,
     recipient: SAMPLE_EMAIL,
     confirmationUrl: SAMPLE_PROJECT_URL,
-    workspaceLogoUrl: WORKSPACE_LOGO_URL,
   },
   magiclink: {
     siteName: SITE_NAME,
     confirmationUrl: SAMPLE_PROJECT_URL,
-    workspaceLogoUrl: WORKSPACE_LOGO_URL,
   },
   recovery: {
     siteName: SITE_NAME,
     confirmationUrl: SAMPLE_PROJECT_URL,
-    workspaceLogoUrl: WORKSPACE_LOGO_URL,
   },
   invite: {
     siteName: SITE_NAME,
     siteUrl: SAMPLE_PROJECT_URL,
     confirmationUrl: SAMPLE_PROJECT_URL,
-    workspaceLogoUrl: WORKSPACE_LOGO_URL,
   },
   email_change: {
     siteName: SITE_NAME,
     email: SAMPLE_EMAIL,
     newEmail: SAMPLE_EMAIL,
     confirmationUrl: SAMPLE_PROJECT_URL,
-    workspaceLogoUrl: WORKSPACE_LOGO_URL,
   },
   reauthentication: {
     token: '123456',
     siteName: SITE_NAME,
-    workspaceLogoUrl: WORKSPACE_LOGO_URL,
   },
 }
 
@@ -212,8 +199,6 @@ async function handleWebhook(req: Request): Promise<Response> {
     )
   }
 
-  // The email action type is in payload.data.action_type (e.g., "signup", "recovery")
-  // payload.type is the hook event type ("auth")
   const emailType = payload.data.action_type
   console.log('Received auth event', { emailType, email: payload.data.email, run_id })
 
@@ -226,7 +211,7 @@ async function handleWebhook(req: Request): Promise<Response> {
     )
   }
 
-  // Build template props from payload.data (HookData structure)
+  // Auth emails never include workspace logos — only the Aurelo wordmark
   const templateProps = {
     siteName: SITE_NAME,
     siteUrl: `https://${ROOT_DOMAIN}`,
@@ -235,7 +220,6 @@ async function handleWebhook(req: Request): Promise<Response> {
     token: payload.data.token,
     email: payload.data.email,
     newEmail: payload.data.new_email,
-    workspaceLogoUrl: WORKSPACE_LOGO_URL,
   }
 
   // Render React Email to HTML and plain text
@@ -244,9 +228,6 @@ async function handleWebhook(req: Request): Promise<Response> {
     plainText: true,
   })
 
-  // Send email via Lovable Email API
-  // The callback URL is provided in the payload by Lovable, ensuring correct routing
-  // for both production and local development
   const callbackUrl = payload.data.callback_url
   if (!callbackUrl) {
     console.error('No callback_url in payload', { run_id })
@@ -291,17 +272,14 @@ async function handleWebhook(req: Request): Promise<Response> {
 Deno.serve(async (req) => {
   const url = new URL(req.url)
 
-  // Handle CORS preflight for main endpoint
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
 
-  // Route to preview handler for /preview path
   if (url.pathname.endsWith('/preview')) {
     return handlePreview(req)
   }
 
-  // Main webhook handler
   try {
     return await handleWebhook(req)
   } catch (error) {
