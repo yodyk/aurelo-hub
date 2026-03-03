@@ -2598,6 +2598,44 @@ function NotificationsTab() {
             onChange={(v) => setWsPrefs({ ...wsPrefs, autoMarkOverdue: v })}
           />
         </div>
+        <AnimatePresence>
+          {(wsPrefs.autoMarkOverdue) && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="mx-3 mt-2 mb-1 p-3 rounded-lg bg-accent/40 border border-border/60">
+                <p className="text-[12px] text-muted-foreground leading-relaxed">
+                  <Sparkles className="w-3 h-3 text-primary inline mr-1.5 -mt-0.5" />
+                  <span style={{ fontWeight: 600 }} className="text-foreground">Here's what happens when enabled:</span>
+                </p>
+                <ul className="mt-2 space-y-1.5 text-[12px] text-muted-foreground list-none pl-0">
+                  <li className="flex items-start gap-2">
+                    <Check className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" />
+                    A daily check runs at 8:00 AM UTC for invoices past their due date
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" />
+                    Matching "sent" invoices are automatically marked as "overdue"
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" />
+                    You'll receive an in-app notification for each overdue invoice
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" />
+                    An <code className="px-1 py-0.5 rounded bg-accent text-[11px]">invoice.overdue</code> webhook event fires for any configured integrations
+                  </li>
+                </ul>
+                <p className="mt-2.5 text-[11px] text-muted-foreground/80 italic">
+                  Your clients won't be emailed — this only updates status and notifies you internally.
+                </p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </SectionCard>
 
       <SectionCard>
