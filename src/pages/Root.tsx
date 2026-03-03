@@ -429,7 +429,7 @@ function RootLayout() {
               <button
                 data-tour="timer-button"
                 onClick={handleStartTimer}
-                className="inline-flex items-center gap-2 px-3.5 py-1.5 text-[13px] rounded-lg border border-border text-foreground hover:bg-accent/50 active:bg-accent/70 transition-all duration-200"
+                className="inline-flex items-center gap-2 px-3.5 py-1.5 text-[13px] rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 active:bg-primary/80 transition-all duration-200"
                 style={{ fontWeight: 500 }}
               >
                 <Play className="w-3.5 h-3.5" />
