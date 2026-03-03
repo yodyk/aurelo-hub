@@ -131,6 +131,23 @@ serve(async (req) => {
           log("Error marking invoice paid", { invoiceId, error: updateErr.message });
         } else {
           log("Invoice marked as paid", { invoiceId, number: invoice.number });
+
+          // Create in-app notification for workspace owner
+          const total = Number(invoice.total) || 0;
+          const clientName = invoice.client_name || "A client";
+          const currency = invoice.currency || "USD";
+          const fmtTotal = new Intl.NumberFormat("en-US", { style: "currency", currency }).format(total);
+
+          await supabase.from("notifications").insert({
+            workspace_id: invoice.workspace_id,
+            category: "invoice",
+            event_type: "invoice.paid",
+            title: `Invoice ${invoice.number} paid`,
+            body: `${clientName} paid ${fmtTotal} for invoice ${invoice.number}.`,
+            metadata: { invoiceId: invoice.id, clientId: invoice.client_id, total },
+          });
+
+          log("Payment notification created", { invoiceId, workspace: invoice.workspace_id });
         }
       }
     } else {
