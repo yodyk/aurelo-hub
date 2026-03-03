@@ -2978,7 +2978,110 @@ function IntegrationsTabContent() {
 // ═══════════════════════════════════════════════════════════════════
 // Support Tab
 // ═══════════════════════════════════════════════════════════════════
+
+const FAQ_ITEMS: { question: string; answer: string; category: string }[] = [
+  // Time Tracking
+  {
+    category: "Time Tracking",
+    question: "How do I log time for a client?",
+    answer: "Go to the Time Log page and click \"Log session.\" Select the client, project (optional), enter the duration or use the timer, add a task description, and save. Sessions are automatically marked as billable by default — you can toggle this off for internal work.",
+  },
+  {
+    category: "Time Tracking",
+    question: "Can I use a live timer instead of entering hours manually?",
+    answer: "Yes! When logging a session, you can start a live timer that tracks your work in real time. When you're done, stop the timer and it will fill in the duration automatically. You can also edit the time before saving.",
+  },
+  {
+    category: "Time Tracking",
+    question: "What's the difference between billable and non-billable sessions?",
+    answer: "Billable sessions count toward your client's revenue and appear on invoices. Non-billable sessions (like internal meetings or admin work) are still tracked for your records but won't affect earnings calculations or show up when creating invoices.",
+  },
+  // Clients & Projects
+  {
+    category: "Clients & Projects",
+    question: "What are the different client billing models?",
+    answer: "Aurelo supports three models: Hourly (billed by time logged at a set rate), Retainer (a fixed monthly amount with hour tracking against the retainer balance), and Project-based (flat fee per project). You choose the model when creating a client and can change it anytime.",
+  },
+  {
+    category: "Clients & Projects",
+    question: "What is the Client Portal and how do I share it?",
+    answer: "The Client Portal gives your clients a read-only view of their projects, logged hours, and invoices — without needing an Aurelo account. Go to a client's detail page, generate a portal link, and share it. You control what's visible, including whether costs are shown.",
+  },
+  {
+    category: "Clients & Projects",
+    question: "How does the retainer balance work?",
+    answer: "When a client is on a retainer model, you set their total monthly retainer amount. As you log billable sessions, the retainer balance decreases. You can see remaining hours or budget at a glance on the client detail page. Retainer resets happen based on your billing cycle.",
+  },
+  // Invoicing
+  {
+    category: "Invoicing",
+    question: "How do I create and send an invoice?",
+    answer: "Go to the Invoicing page and click \"New invoice.\" Select a client, and Aurelo will pull in their unbilled sessions as line items. You can add, edit, or remove line items, set tax rates, add notes, and choose a due date. Once ready, send it directly to your client's email.",
+  },
+  {
+    category: "Invoicing",
+    question: "Can clients pay invoices online?",
+    answer: "Yes — if you've connected Stripe in Settings → Integrations, invoices include a secure payment link. Clients can pay with a credit card directly from the invoice email or their Client Portal. Payments are automatically marked as paid in Aurelo.",
+  },
+  {
+    category: "Invoicing",
+    question: "What happens to sessions after I invoice them?",
+    answer: "Sessions included in an invoice are linked to it so they won't appear again when creating future invoices. You can always see which sessions were part of any invoice by viewing the invoice details.",
+  },
+  // Plans & Billing
+  {
+    category: "Plans & Billing",
+    question: "What's included in the free Starter plan?",
+    answer: "Starter includes time tracking, up to 5 active clients, 3 projects per client, 90 days of data retention, and basic email support. Features like invoicing, full insights, data export, and integrations are available on the Pro plan ($20/mo) and above.",
+  },
+  {
+    category: "Plans & Billing",
+    question: "Can I change or cancel my plan anytime?",
+    answer: "Yes. You can upgrade, downgrade, or cancel from Settings → Billing & Plan at any time. Upgrades take effect immediately. Downgrades apply at the end of your current billing period, so you keep access to paid features until then.",
+  },
+  // Team & Workspace
+  {
+    category: "Team & Workspace",
+    question: "How do I invite team members?",
+    answer: "Go to Settings → Team and enter their email address with a role (Owner, Admin, or Member). They'll receive an invite to join your workspace. Members can log time and view clients, Admins can manage most settings, and Owners have full access including billing.",
+  },
+  {
+    category: "Team & Workspace",
+    question: "Can I have multiple workspaces?",
+    answer: "Yes — on the Studio plan, you can create and switch between multiple workspaces. This is useful if you manage separate businesses or want to keep client groups completely isolated. Each workspace has its own clients, projects, settings, and billing.",
+  },
+  // Insights & Data
+  {
+    category: "Insights & Data",
+    question: "What does the Insights page show me?",
+    answer: "Insights gives you a bird's-eye view of your business: total revenue, hours logged, average hourly rate, top clients by earnings, monthly trends, and more. It helps you understand where your time and money are going so you can make smarter decisions. Available on Pro and above.",
+  },
+  {
+    category: "Insights & Data",
+    question: "How do I export my data?",
+    answer: "On the Pro plan or above, go to Settings → Data & Export. You can download clients, sessions, financials, or a full workspace backup as CSV or JSON files. This is useful for tax prep, record-keeping, or migrating to another tool.",
+  },
+  // Account & Security
+  {
+    category: "Account & Security",
+    question: "How do I change my email or password?",
+    answer: "Go to Settings → Account & Security. To change your email, enter the new address and confirm via both your old and new email. To change your password, enter your current password and set a new one (minimum 8 characters, one number, one uppercase letter).",
+  },
+  {
+    category: "Account & Security",
+    question: "Can I log out of all my devices at once?",
+    answer: "Yes. In Settings → Account & Security, use the \"Sign out other sessions\" button. This ends all active sessions except your current one — useful if you've logged in on a shared or public device.",
+  },
+];
+
+const FAQ_CATEGORIES = [...new Set(FAQ_ITEMS.map((f) => f.category))];
+
 function SupportTab() {
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [activeCategory, setActiveCategory] = useState<string>("all");
+
+  const filteredFaqs = activeCategory === "all" ? FAQ_ITEMS : FAQ_ITEMS.filter((f) => f.category === activeCategory);
+
   return (
     <motion.div className="space-y-6" variants={container} initial="hidden" animate="show">
       <SectionCard>
@@ -3007,8 +3110,92 @@ function SupportTab() {
         </div>
       </SectionCard>
 
+      {/* FAQ / Knowledge Base */}
       <SectionCard>
-        <SectionHeader title="Resources" description="Helpful links and documentation" />
+        <SectionHeader title="Frequently asked questions" description="Quick answers to common questions about Aurelo" />
+
+        {/* Category filters */}
+        <div className="flex flex-wrap gap-1.5 mb-5">
+          <button
+            onClick={() => { setActiveCategory("all"); setOpenFaq(null); }}
+            className={`px-3 py-1.5 text-[12px] rounded-full border transition-all ${
+              activeCategory === "all"
+                ? "bg-primary/10 border-primary/30 text-primary"
+                : "border-border text-muted-foreground hover:text-foreground hover:bg-accent/40"
+            }`}
+            style={{ fontWeight: 500 }}
+          >
+            All
+          </button>
+          {FAQ_CATEGORIES.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => { setActiveCategory(cat); setOpenFaq(null); }}
+              className={`px-3 py-1.5 text-[12px] rounded-full border transition-all ${
+                activeCategory === cat
+                  ? "bg-primary/10 border-primary/30 text-primary"
+                  : "border-border text-muted-foreground hover:text-foreground hover:bg-accent/40"
+              }`}
+              style={{ fontWeight: 500 }}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        {/* Accordion */}
+        <div className="space-y-1">
+          {filteredFaqs.map((faq, idx) => {
+            const globalIdx = FAQ_ITEMS.indexOf(faq);
+            const isOpen = openFaq === globalIdx;
+            return (
+              <div key={globalIdx} className="border border-border rounded-lg overflow-hidden">
+                <button
+                  onClick={() => setOpenFaq(isOpen ? null : globalIdx)}
+                  className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-accent/30 transition-colors"
+                >
+                  <ChevronRight
+                    className={`w-3.5 h-3.5 text-muted-foreground flex-shrink-0 transition-transform duration-200 ${
+                      isOpen ? "rotate-90" : ""
+                    }`}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[14px] text-foreground" style={{ fontWeight: 500 }}>
+                      {faq.question}
+                    </div>
+                  </div>
+                  {activeCategory === "all" && (
+                    <span className="text-[11px] text-muted-foreground/70 px-2 py-0.5 rounded-full bg-accent/50 flex-shrink-0">
+                      {faq.category}
+                    </span>
+                  )}
+                </button>
+                <AnimatePresence>
+                  {isOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+                      className="overflow-hidden"
+                    >
+                      <div className="px-4 pb-4 pl-[2.75rem]">
+                        <p className="text-[13px] text-muted-foreground leading-relaxed">
+                          {faq.answer}
+                        </p>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            );
+          })}
+        </div>
+      </SectionCard>
+
+      {/* Resources */}
+      <SectionCard>
+        <SectionHeader title="Resources" description="Helpful links" />
         <div className="space-y-2">
           <a
             href="mailto:support@getaurelo.com"
