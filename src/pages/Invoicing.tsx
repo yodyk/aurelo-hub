@@ -24,6 +24,8 @@ import {
   CreditCard,
   Layers,
   BookTemplate,
+  Archive,
+  EyeOff,
 } from "lucide-react";
 import { toast } from "sonner";
 import { usePlan } from "../data/PlanContext";
@@ -57,6 +59,7 @@ const STATUS_CONFIG: Record<InvoiceStatus, { label: string; color: string; bg: s
   overdue: { label: "Overdue", color: RED, bg: "bg-[#c27272]/10", icon: AlertCircle },
   voided: { label: "Voided", color: "#a8a29e", bg: "bg-stone-100 dark:bg-stone-800", icon: Ban },
   cancelled: { label: "Cancelled", color: "#a8a29e", bg: "bg-stone-100 dark:bg-stone-800", icon: X },
+  archived: { label: "Archived", color: "#a8a29e", bg: "bg-stone-100 dark:bg-stone-800", icon: Archive },
 };
 
 // ── Helpers ────────────────────────────────────────────────────────
@@ -105,6 +108,9 @@ export default function Invoicing() {
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
   const [viewingInvoice, setViewingInvoice] = useState<Invoice | null>(null);
   const [stripeConnected, setStripeConnected] = useState(false);
+  const [hideVoided, setHideVoided] = useState(false);
+  const [hideArchived, setHideArchived] = useState(true);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   // Load invoices and Stripe Connect status
   useEffect(() => {
@@ -126,18 +132,19 @@ export default function Invoicing() {
   // ── Stats ──────────────────────────────────────────────────────
 
   const stats = useMemo(() => {
-    const outstanding = invoices.filter((i) => i.status === "sent").reduce((sum, i) => sum + i.total, 0);
-    const overdue = invoices
+    const active = invoices.filter((i) => i.status !== "archived");
+    const outstanding = active.filter((i) => i.status === "sent").reduce((sum, i) => sum + i.total, 0);
+    const overdue = active
       .filter((i) => i.status === "overdue" || (i.status === "sent" && i.dueDate && daysUntil(i.dueDate) < 0))
       .reduce((sum, i) => sum + i.total, 0);
-    const paidLast30 = invoices
+    const paidLast30 = active
       .filter((i) => {
         if (i.status !== "paid" || !i.paidDate) return false;
         const d = new Date(i.paidDate);
         return Date.now() - d.getTime() < 30 * 24 * 60 * 60 * 1000;
       })
       .reduce((sum, i) => sum + i.total, 0);
-    const draftCount = invoices.filter((i) => i.status === "draft").length;
+    const draftCount = active.filter((i) => i.status === "draft").length;
     return { outstanding, overdue, paidLast30, draftCount };
   }, [invoices]);
 
@@ -145,6 +152,8 @@ export default function Invoicing() {
 
   const filtered = useMemo(() => {
     let list = invoices;
+    if (hideVoided) list = list.filter((i) => i.status !== "voided");
+    if (hideArchived) list = list.filter((i) => i.status !== "archived");
     if (statusFilter !== "all") {
       list = list.filter((i) => i.status === statusFilter);
     }
@@ -158,7 +167,7 @@ export default function Invoicing() {
       );
     }
     return list;
-  }, [invoices, statusFilter, searchQuery]);
+  }, [invoices, statusFilter, searchQuery, hideVoided, hideArchived]);
 
   // ── Handlers ───────────────────────────────────────────────────
 
@@ -218,11 +227,75 @@ export default function Invoicing() {
     try {
       await invoiceApi.deleteInvoice(id);
       setInvoices((prev) => prev.filter((i) => i.id !== id));
+      setSelectedIds((prev) => { const n = new Set(prev); n.delete(id); return n; });
       toast.success("Invoice deleted");
     } catch (err: any) {
       toast.error(err.message || "Failed to delete invoice");
     }
   }, []);
+
+  const handleArchive = useCallback(async (id: string) => {
+    try {
+      const saved = await invoiceApi.archiveInvoice(id);
+      setInvoices((prev) => prev.map((i) => (i.id === id ? saved : i)));
+      setSelectedIds((prev) => { const n = new Set(prev); n.delete(id); return n; });
+      toast.success("Invoice archived");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to archive invoice");
+    }
+  }, []);
+
+  const handleBulkArchive = useCallback(async () => {
+    const ids = [...selectedIds];
+    try {
+      const results = await Promise.all(ids.map((id) => invoiceApi.archiveInvoice(id)));
+      setInvoices((prev) => prev.map((i) => results.find((r) => r.id === i.id) || i));
+      setSelectedIds(new Set());
+      toast.success(`${ids.length} invoice(s) archived`);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to archive invoices");
+    }
+  }, [selectedIds]);
+
+  const handleBulkVoid = useCallback(async () => {
+    const ids = [...selectedIds];
+    try {
+      const results = await Promise.all(ids.map((id) => invoiceApi.voidInvoice(id)));
+      setInvoices((prev) => prev.map((i) => results.find((r) => r.id === i.id) || i));
+      setSelectedIds(new Set());
+      toast.success(`${ids.length} invoice(s) voided`);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to void invoices");
+    }
+  }, [selectedIds]);
+
+  const handleBulkDelete = useCallback(async () => {
+    const ids = [...selectedIds];
+    try {
+      await Promise.all(ids.map((id) => invoiceApi.deleteInvoice(id)));
+      setInvoices((prev) => prev.filter((i) => !ids.includes(i.id)));
+      setSelectedIds(new Set());
+      toast.success(`${ids.length} invoice(s) deleted`);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to delete invoices");
+    }
+  }, [selectedIds]);
+
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const n = new Set(prev);
+      if (n.has(id)) n.delete(id); else n.add(id);
+      return n;
+    });
+  }, []);
+
+  const toggleSelectAll = useCallback(() => {
+    const allIds = filtered.map((i) => i.id);
+    setSelectedIds((prev) => {
+      const allSelected = allIds.every((id) => prev.has(id));
+      return allSelected ? new Set() : new Set(allIds);
+    });
+  }, [filtered]);
 
   const handleDuplicate = useCallback(async (invoice: Invoice) => {
     const dupe: Partial<Invoice> = {
@@ -429,6 +502,24 @@ export default function Invoicing() {
               );
             })}
           </div>
+          <div className="flex items-center gap-2 ml-auto">
+            <button
+              onClick={() => setHideVoided((h) => !h)}
+              className={`inline-flex items-center gap-1 px-2 py-1.5 text-[11px] rounded-lg transition-all ${hideVoided ? "bg-accent/60 text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-accent/40"}`}
+              style={{ fontWeight: 500 }}
+            >
+              <EyeOff className="w-3 h-3" />
+              Voided
+            </button>
+            <button
+              onClick={() => setHideArchived((h) => !h)}
+              className={`inline-flex items-center gap-1 px-2 py-1.5 text-[11px] rounded-lg transition-all ${hideArchived ? "bg-accent/60 text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-accent/40"}`}
+              style={{ fontWeight: 500 }}
+            >
+              <EyeOff className="w-3 h-3" />
+              Archived
+            </button>
+          </div>
         </motion.div>
 
         {/* Invoice table */}
@@ -472,6 +563,14 @@ export default function Invoicing() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-border">
+                    <th className="w-10 px-3 py-3">
+                      <input
+                        type="checkbox"
+                        checked={filtered.length > 0 && filtered.every((i) => selectedIds.has(i.id))}
+                        onChange={toggleSelectAll}
+                        className="w-3.5 h-3.5 rounded accent-primary cursor-pointer"
+                      />
+                    </th>
                     <th className="text-left px-5 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>
                       Invoice
                     </th>
@@ -491,11 +590,14 @@ export default function Invoicing() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((inv) => (
+                  {filtered.map((inv, idx) => (
                     <InvoiceRow
                       key={inv.id}
                       invoice={inv}
                       stripeConnected={stripeConnected}
+                      selected={selectedIds.has(inv.id)}
+                      onToggleSelect={() => toggleSelect(inv.id)}
+                      isNearBottom={idx >= filtered.length - 3}
                       onView={() => setViewingInvoice(inv)}
                       onEdit={() => {
                         setEditingInvoice(inv);
@@ -504,6 +606,7 @@ export default function Invoicing() {
                       onSend={() => handleSend(inv.id)}
                       onMarkPaid={() => handleMarkPaid(inv.id)}
                       onVoid={() => handleVoid(inv.id)}
+                      onArchive={() => handleArchive(inv.id)}
                       onDelete={() => handleDelete(inv.id)}
                       onDuplicate={() => handleDuplicate(inv)}
                       onGetPaymentLink={() => handleGetPaymentLink(inv)}
@@ -515,6 +618,65 @@ export default function Invoicing() {
           </div>
         </motion.div>
       </motion.div>
+
+      {/* Bulk action bar */}
+      <AnimatePresence>
+        {selectedIds.size > 0 && (
+          <motion.div
+            initial={{ y: 80, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 80, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50"
+          >
+            <div
+              className="flex items-center gap-3 px-5 py-3 bg-card border border-border rounded-2xl"
+              style={{ boxShadow: "0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06)" }}
+            >
+              <div className="flex items-center gap-2 pr-3 border-r border-border">
+                <span className="text-[13px] text-foreground tabular-nums" style={{ fontWeight: 600 }}>
+                  {selectedIds.size} selected
+                </span>
+                <span className="text-[12px] text-muted-foreground tabular-nums">
+                  {formatCurrency(invoices.filter((i) => selectedIds.has(i.id)).reduce((sum, i) => sum + i.total, 0))}
+                </span>
+              </div>
+              <button
+                onClick={handleBulkArchive}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[13px] rounded-lg hover:bg-accent/60 text-muted-foreground hover:text-foreground transition-all"
+                style={{ fontWeight: 500 }}
+              >
+                <Archive className="w-3.5 h-3.5" />
+                Archive
+              </button>
+              <button
+                onClick={handleBulkVoid}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[13px] rounded-lg hover:bg-accent/60 text-muted-foreground hover:text-foreground transition-all"
+                style={{ fontWeight: 500 }}
+              >
+                <Ban className="w-3.5 h-3.5" />
+                Void
+              </button>
+              <button
+                onClick={handleBulkDelete}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[13px] rounded-lg hover:bg-destructive/10 text-destructive transition-all"
+                style={{ fontWeight: 500 }}
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Delete
+              </button>
+              <div className="pl-1 border-l border-border">
+                <button
+                  onClick={() => setSelectedIds(new Set())}
+                  className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-accent/60 text-muted-foreground hover:text-foreground transition-all"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Invoice Builder Modal */}
       <AnimatePresence>
@@ -581,22 +743,30 @@ export default function Invoicing() {
 function InvoiceRow({
   invoice,
   stripeConnected,
+  selected,
+  onToggleSelect,
+  isNearBottom,
   onView,
   onEdit,
   onSend,
   onMarkPaid,
   onVoid,
+  onArchive,
   onDelete,
   onDuplicate,
   onGetPaymentLink,
 }: {
   invoice: Invoice;
   stripeConnected: boolean;
+  selected: boolean;
+  onToggleSelect: () => void;
+  isNearBottom: boolean;
   onView: () => void;
   onEdit: () => void;
   onSend: () => void;
   onMarkPaid: () => void;
   onVoid: () => void;
+  onArchive: () => void;
   onDelete: () => void;
   onDuplicate: () => void;
   onGetPaymentLink: () => void;
@@ -623,9 +793,17 @@ function InvoiceRow({
 
   return (
     <tr
-      className="border-b border-border last:border-0 hover:bg-accent/20 transition-colors group cursor-pointer"
+      className={`border-b border-border last:border-0 hover:bg-accent/20 transition-colors group cursor-pointer ${selected ? "bg-accent/30" : ""}`}
       onClick={onView}
     >
+      <td className="px-3 py-3.5" onClick={(e) => e.stopPropagation()}>
+        <input
+          type="checkbox"
+          checked={selected}
+          onChange={onToggleSelect}
+          className="w-3.5 h-3.5 rounded accent-primary cursor-pointer"
+        />
+      </td>
       <td className="px-5 py-3.5 text-[13px] text-foreground" style={{ fontWeight: 500 }}>
         <span className="text-primary">#{invoice.number}</span>
       </td>
@@ -650,7 +828,7 @@ function InvoiceRow({
       <td className="px-5 py-3.5">
         <div className="text-[13px] text-muted-foreground">{invoice.dueDate ? shortDate(invoice.dueDate) : "—"}</div>
         {invoice.status === "sent" && dueDays !== null && dueDays < 0 && (
-          <div className="text-[10px] text-[#c27272]" style={{ fontWeight: 500 }}>
+          <div className="text-[10px] text-destructive" style={{ fontWeight: 500 }}>
             {Math.abs(dueDays)}d overdue
           </div>
         )}
@@ -673,14 +851,11 @@ function InvoiceRow({
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.1 }}
-                className="absolute right-0 top-full mt-1 w-44 bg-card border border-border rounded-xl overflow-hidden z-30"
+                className={`absolute right-0 w-44 bg-card border border-border rounded-xl overflow-hidden z-30 ${isNearBottom ? "bottom-full mb-1" : "top-full mt-1"}`}
                 style={{ boxShadow: "0 8px 24px rgba(0,0,0,0.08)" }}
               >
                 <button
-                  onClick={() => {
-                    onView();
-                    setMenuOpen(false);
-                  }}
+                  onClick={() => { onView(); setMenuOpen(false); }}
                   className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-colors"
                   style={{ fontWeight: 500 }}
                 >
@@ -689,10 +864,7 @@ function InvoiceRow({
                 </button>
                 {invoice.status === "draft" && (
                   <button
-                    onClick={() => {
-                      onEdit();
-                      setMenuOpen(false);
-                    }}
+                    onClick={() => { onEdit(); setMenuOpen(false); }}
                     className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-colors"
                     style={{ fontWeight: 500 }}
                   >
@@ -702,11 +874,8 @@ function InvoiceRow({
                 )}
                 {invoice.status === "draft" && (
                   <button
-                    onClick={() => {
-                      onSend();
-                      setMenuOpen(false);
-                    }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-[#5ea1bf] hover:bg-[#5ea1bf]/8 transition-colors"
+                    onClick={() => { onSend(); setMenuOpen(false); }}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-primary hover:bg-primary/8 transition-colors"
                     style={{ fontWeight: 500 }}
                   >
                     <Send className="w-3 h-3" />
@@ -715,11 +884,8 @@ function InvoiceRow({
                 )}
                 {invoice.status === "sent" && (
                   <button
-                    onClick={() => {
-                      onMarkPaid();
-                      setMenuOpen(false);
-                    }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-[#5ea1bf] hover:bg-[#5ea1bf]/8 transition-colors"
+                    onClick={() => { onMarkPaid(); setMenuOpen(false); }}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-primary hover:bg-primary/8 transition-colors"
                     style={{ fontWeight: 500 }}
                   >
                     <CheckCircle2 className="w-3 h-3" />
@@ -728,11 +894,8 @@ function InvoiceRow({
                 )}
                 {stripeConnected && (invoice.status === "sent" || invoice.status === "draft") && (
                   <button
-                    onClick={() => {
-                      onGetPaymentLink();
-                      setMenuOpen(false);
-                    }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-[#5ea1bf] hover:bg-[#5ea1bf]/8 transition-colors"
+                    onClick={() => { onGetPaymentLink(); setMenuOpen(false); }}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-primary hover:bg-primary/8 transition-colors"
                     style={{ fontWeight: 500 }}
                   >
                     <CreditCard className="w-3 h-3" />
@@ -740,10 +903,7 @@ function InvoiceRow({
                   </button>
                 )}
                 <button
-                  onClick={() => {
-                    onDuplicate();
-                    setMenuOpen(false);
-                  }}
+                  onClick={() => { onDuplicate(); setMenuOpen(false); }}
                   className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-colors"
                   style={{ fontWeight: 500 }}
                 >
@@ -752,10 +912,7 @@ function InvoiceRow({
                 </button>
                 {(invoice.status === "sent" || invoice.status === "draft") && (
                   <button
-                    onClick={() => {
-                      onVoid();
-                      setMenuOpen(false);
-                    }}
+                    onClick={() => { onVoid(); setMenuOpen(false); }}
                     className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-colors"
                     style={{ fontWeight: 500 }}
                   >
@@ -763,11 +920,21 @@ function InvoiceRow({
                     Void
                   </button>
                 )}
+                {invoice.status !== "archived" && (
+                  <button
+                    onClick={() => { onArchive(); setMenuOpen(false); }}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-colors"
+                    style={{ fontWeight: 500 }}
+                  >
+                    <Archive className="w-3 h-3" />
+                    Archive
+                  </button>
+                )}
                 {invoice.status === "draft" &&
                   (!confirmDelete ? (
                     <button
                       onClick={() => setConfirmDelete(true)}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-stone-400 hover:text-stone-600 hover:bg-accent/40 transition-colors"
+                      className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-muted-foreground hover:text-destructive hover:bg-accent/40 transition-colors"
                       style={{ fontWeight: 500 }}
                     >
                       <Trash2 className="w-3 h-3" />
@@ -775,11 +942,8 @@ function InvoiceRow({
                     </button>
                   ) : (
                     <button
-                      onClick={() => {
-                        onDelete();
-                        setMenuOpen(false);
-                      }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-[#c27272] bg-[#c27272]/5 hover:bg-[#c27272]/10 transition-colors"
+                      onClick={() => { onDelete(); setMenuOpen(false); }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-destructive bg-destructive/5 hover:bg-destructive/10 transition-colors"
                       style={{ fontWeight: 500 }}
                     >
                       <Trash2 className="w-3 h-3" />

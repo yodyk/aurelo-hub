@@ -4,7 +4,7 @@ import { dispatchWebhookEvent } from './webhookDispatch';
 
 // ── Invoice Types ──────────────────────────────────────────────────
 
-export type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'overdue' | 'voided' | 'cancelled';
+export type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'overdue' | 'voided' | 'cancelled' | 'archived';
 
 export interface LineItem {
   id: string;
@@ -228,6 +228,10 @@ export async function markPaid(invoiceId: string): Promise<Invoice> {
 
 export async function voidInvoice(invoiceId: string): Promise<Invoice> {
   return updateInvoice(invoiceId, { status: 'voided' });
+}
+
+export async function archiveInvoice(invoiceId: string): Promise<Invoice> {
+  return updateInvoice(invoiceId, { status: 'archived' });
 }
 
 export async function getNextInvoiceNumber(): Promise<string> {
