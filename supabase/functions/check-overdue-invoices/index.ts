@@ -34,6 +34,24 @@ Deno.serve(async (req) => {
       .eq("status", "sent")
       .lt("due_date", today);
 
+    // Build set of workspace IDs that have opted in to auto-overdue
+    const workspaceIds = [...new Set((overdueInvoices || []).map((i: any) => i.workspace_id))];
+    const optedInWorkspaces = new Set<string>();
+
+    for (const wsId of workspaceIds) {
+      const { data: setting } = await supabase
+        .from("workspace_settings")
+        .select("data")
+        .eq("workspace_id", wsId)
+        .eq("section", "notifications")
+        .maybeSingle();
+      if ((setting?.data as any)?.autoMarkOverdue === true) {
+        optedInWorkspaces.add(wsId);
+      }
+    }
+
+    log("Opted-in workspaces", { count: optedInWorkspaces.size, ids: [...optedInWorkspaces] });
+
     if (fetchErr) {
       log("Error fetching invoices", { error: fetchErr.message });
       throw new Error(fetchErr.message);
@@ -52,6 +70,12 @@ Deno.serve(async (req) => {
     let updated = 0;
 
     for (const inv of overdueInvoices) {
+      // Skip workspaces that haven't opted in
+      if (!optedInWorkspaces.has(inv.workspace_id)) {
+        log("Skipping invoice — workspace not opted in", { id: inv.id, workspace_id: inv.workspace_id });
+        continue;
+      }
+
       // Mark as overdue
       const { error: updateErr } = await supabase
         .from("invoices")

@@ -218,6 +218,7 @@ export const notificationPreferences = {
   budgetAlerts: true,
   emailNotifications: true,
   inAppNotifications: true,
+  autoMarkOverdue: false,
 };
 
 // Integration connections

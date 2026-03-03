@@ -2578,6 +2578,30 @@ function NotificationsTab() {
 
       <SectionCard>
         <SectionHeader
+          title="Overdue invoice automation"
+          description="Automatically mark sent invoices as overdue when past their due date and send notifications"
+        />
+        <div className="flex items-center justify-between py-3 px-3 rounded-lg hover:bg-accent/30 transition-colors">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div className="w-8 h-8 rounded-lg bg-primary/8 flex items-center justify-center flex-shrink-0">
+              <AlertTriangle className="w-4 h-4 text-primary" />
+            </div>
+            <div>
+              <span className="text-[14px]" style={{ fontWeight: 500 }}>Auto-mark overdue invoices</span>
+              <div className="text-[12px] text-muted-foreground">
+                Runs daily — marks sent invoices as overdue and creates in-app + webhook notifications
+              </div>
+            </div>
+          </div>
+          <Toggle
+            checked={wsPrefs.autoMarkOverdue ?? false}
+            onChange={(v) => setWsPrefs({ ...wsPrefs, autoMarkOverdue: v })}
+          />
+        </div>
+      </SectionCard>
+
+      <SectionCard>
+        <SectionHeader
           title="Retainer threshold"
           description="Trigger a notification when retainer usage crosses this percentage"
         />
