@@ -2579,7 +2579,7 @@ function NotificationsTab() {
       <SectionCard>
         <SectionHeader
           title="Overdue invoice automation"
-          description="Automatically mark sent invoices as overdue when past their due date and send notifications"
+          description="Automatically track invoices that are past their due date"
         />
         <div className="flex items-center justify-between py-3 px-3 rounded-lg hover:bg-accent/30 transition-colors">
           <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -2589,7 +2589,7 @@ function NotificationsTab() {
             <div>
               <span className="text-[14px]" style={{ fontWeight: 500 }}>Auto-mark overdue invoices</span>
               <div className="text-[12px] text-muted-foreground">
-                Runs daily — marks sent invoices as overdue and creates in-app + webhook notifications
+                We'll check daily and update any sent invoices that are past due
               </div>
             </div>
           </div>
@@ -2608,30 +2608,22 @@ function NotificationsTab() {
             >
               <div className="mx-3 mt-2 mb-1 p-3 rounded-lg bg-accent/40 border border-border/60">
                 <p className="text-[12px] text-muted-foreground leading-relaxed">
-                  <Sparkles className="w-3 h-3 text-primary inline mr-1.5 -mt-0.5" />
-                  <span style={{ fontWeight: 600 }} className="text-foreground">Here's what happens when enabled:</span>
+                  <span style={{ fontWeight: 600 }} className="text-foreground">What this does:</span>
                 </p>
                 <ul className="mt-2 space-y-1.5 text-[12px] text-muted-foreground list-none pl-0">
                   <li className="flex items-start gap-2">
                     <Check className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" />
-                    A daily check runs at 8:00 AM UTC for invoices past their due date
+                    Once a day, we check if any of your sent invoices are past their due date
                   </li>
                   <li className="flex items-start gap-2">
                     <Check className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" />
-                    Matching "sent" invoices are automatically marked as "overdue"
+                    Those invoices are automatically marked as "overdue" so you can follow up
                   </li>
                   <li className="flex items-start gap-2">
                     <Check className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" />
-                    You'll receive an in-app notification for each overdue invoice
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" />
-                    An <code className="px-1 py-0.5 rounded bg-accent text-[11px]">invoice.overdue</code> webhook event fires for any configured integrations
+                    You'll get a notification for each one — nothing is sent to your clients
                   </li>
                 </ul>
-                <p className="mt-2.5 text-[11px] text-muted-foreground/80 italic">
-                  Your clients won't be emailed — this only updates status and notifies you internally.
-                </p>
               </div>
             </motion.div>
           )}
