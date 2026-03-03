@@ -85,6 +85,7 @@ export default function Onboarding() {
   };
 
   const handleStartFresh = () => {
+    localStorage.setItem("aurelo_tour_active", "true");
     setStep("plan");
   };
 
@@ -222,7 +223,10 @@ export default function Onboarding() {
                 {/* Skip */}
                 <div className="text-center mt-4">
                   <button
-                    onClick={() => navigate("/", { replace: true })}
+                    onClick={() => {
+                      localStorage.setItem("aurelo_tour_active", "true");
+                      navigate("/", { replace: true });
+                    }}
                     className="text-[13px] text-[#a8a29e] hover:text-[#78716c] transition-colors"
                     style={{ fontWeight: 500 }}
                   >
@@ -317,7 +321,10 @@ export default function Onboarding() {
 
                 <div className="text-center mt-4">
                   <button
-                    onClick={() => navigate("/", { replace: true })}
+                    onClick={() => {
+                      localStorage.setItem("aurelo_tour_active", "true");
+                      navigate("/", { replace: true });
+                    }}
                     className="text-[13px] text-[#a8a29e] hover:text-[#78716c] transition-colors"
                     style={{ fontWeight: 500 }}
                   >
@@ -411,7 +418,10 @@ export default function Onboarding() {
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.3 }}
               >
-                <OnboardingPlanPicker onContinue={() => navigate("/", { replace: true })} />
+                <OnboardingPlanPicker onContinue={() => {
+                  localStorage.setItem("aurelo_tour_active", "true");
+                  navigate("/", { replace: true });
+                }} />
               </motion.div>
             )}
           </AnimatePresence>
