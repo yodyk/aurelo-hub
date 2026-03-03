@@ -87,7 +87,7 @@ const item = {
 };
 
 // ── Tab definitions ────────────────────────────────────────────────
-type TabId = "profile" | "security" | "workspace" | "financial" | "billing" | "team" | "notifications" | "integrations" | "data";
+type TabId = "profile" | "security" | "workspace" | "financial" | "billing" | "team" | "notifications" | "integrations" | "data" | "support";
 
 const tabs: { id: TabId; label: string; icon: typeof User; description: string }[] = [
   { id: "profile", label: "Profile", icon: User, description: "Your account details" },
@@ -99,6 +99,7 @@ const tabs: { id: TabId; label: string; icon: typeof User; description: string }
   { id: "notifications", label: "Notifications", icon: BellRing, description: "Alerts and digests" },
   { id: "integrations", label: "Integrations", icon: Puzzle, description: "Connected services" },
   { id: "data", label: "Data & export", icon: Database, description: "Backups and danger zone" },
+  { id: "support", label: "Support", icon: MessageCircle, description: "Get help" },
 ];
 
 // ── Shared components ───────────────────────────────────────────────
@@ -232,6 +233,7 @@ const TAB_ACCESS: Record<TabId, string[]> = {
   notifications: ["Owner", "Admin", "Member"],
   integrations: ["Owner", "Admin"],
   data: ["Owner"],
+  support: ["Owner", "Admin", "Member"],
 };
 
 // ── Main Settings ───────────────────────────────────────────────────
@@ -322,6 +324,7 @@ export default function Settings() {
               {activeTab === "notifications" && <NotificationsTab />}
               {activeTab === "integrations" && <IntegrationsTab />}
               {activeTab === "data" && <DataTab />}
+              {activeTab === "support" && <SupportTab />}
             </motion.div>
           </AnimatePresence>
         </div>
@@ -2973,6 +2976,75 @@ function IntegrationsTabContent() {
 }
 
 // ═══════════════════════════════════════════════════════════════════
+// Support Tab
+// ═══════════════════════════════════════════════════════════════════
+function SupportTab() {
+  return (
+    <motion.div className="space-y-6" variants={container} initial="hidden" animate="show">
+      <SectionCard>
+        <SectionHeader title="Contact support" description="Need help? Our team is here for you." />
+        <div className="space-y-3">
+          <div className="flex items-center gap-4 py-3.5 px-4 rounded-lg bg-accent/30 border border-border">
+            <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <Mail className="w-4 h-4 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[14px]" style={{ fontWeight: 500 }}>Email support</div>
+              <div className="text-[13px] text-muted-foreground">support@getaurelo.com</div>
+            </div>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText("support@getaurelo.com");
+                toast.success("Email copied to clipboard");
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-all"
+              style={{ fontWeight: 500 }}
+            >
+              <Copy className="w-3.5 h-3.5" />
+              Copy
+            </button>
+          </div>
+        </div>
+      </SectionCard>
+
+      <SectionCard>
+        <SectionHeader title="Resources" description="Helpful links and documentation" />
+        <div className="space-y-2">
+          <a
+            href="mailto:support@getaurelo.com"
+            className="flex items-center gap-4 py-3 px-3 rounded-lg hover:bg-accent/30 transition-colors group"
+          >
+            <div className="w-9 h-9 rounded-lg bg-accent/60 flex items-center justify-center flex-shrink-0 text-muted-foreground">
+              <Mail className="w-4 h-4" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[14px]" style={{ fontWeight: 500 }}>Send us an email</div>
+              <div className="text-[12px] text-muted-foreground">We typically respond within 24 hours</div>
+            </div>
+            <ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+          </a>
+          <a
+            href="https://getaurelo.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-4 py-3 px-3 rounded-lg hover:bg-accent/30 transition-colors group"
+          >
+            <div className="w-9 h-9 rounded-lg bg-accent/60 flex items-center justify-center flex-shrink-0 text-muted-foreground">
+              <Globe className="w-4 h-4" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[14px]" style={{ fontWeight: 500 }}>Visit our website</div>
+              <div className="text-[12px] text-muted-foreground">getaurelo.com</div>
+            </div>
+            <ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+          </a>
+        </div>
+      </SectionCard>
+    </motion.div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════
 // Data & Export Tab
 // ═══════════════════════════════════════════════════════════════════
 function DataTab() {
@@ -3186,31 +3258,6 @@ function DataTab() {
               {recalculating ? "Recalculating..." : "Recalculate all"}
             </button>
           </div>
-        </div>
-      </SectionCard>
-
-      {/* Support */}
-      <SectionCard>
-        <SectionHeader title="Support" description="Need help? Reach out to our team" />
-        <div className="flex items-center gap-4 py-3 px-4 rounded-lg bg-accent/30 border border-border">
-          <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-            <Mail className="w-4 h-4 text-primary" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-[14px]" style={{ fontWeight: 500 }}>Email support</div>
-            <div className="text-[13px] text-muted-foreground">support@getaurelo.com</div>
-          </div>
-          <button
-            onClick={() => {
-              navigator.clipboard.writeText("support@getaurelo.com");
-              toast.success("Email copied to clipboard");
-            }}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-all"
-            style={{ fontWeight: 500 }}
-          >
-            <Copy className="w-3.5 h-3.5" />
-            Copy
-          </button>
         </div>
       </SectionCard>
 
