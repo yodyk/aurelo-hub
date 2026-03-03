@@ -137,7 +137,7 @@ export default function Home() {
   const [workspaceName, setWorkspaceName] = useState(defaultWorkspace.name);
   const [workspaceLogo, setWorkspaceLogo] = useState<string | null>(null);
   const [profileName, setProfileName] = useState<string | null>(null);
-  const [seeding, setSeeding] = useState(false);
+  
   const [activeTab, setActiveTab] = useState<TabId>("activity");
 
   useEffect(() => {
@@ -472,39 +472,16 @@ export default function Home() {
           className="bg-card border border-[rgba(94,161,191,0.25)] rounded-xl p-6 mb-8"
           style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.03)" }}
         >
-          <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Sparkles className="w-5 h-5 text-primary flex-shrink-0" />
             <div>
               <div className="text-[15px] mb-1" style={{ fontWeight: 600 }}>
                 Your workspace is empty
               </div>
               <div className="text-[13px] text-muted-foreground">
-                Populate it with realistic demo data — 9 clients, 200+ sessions, 20+ projects, notes, and settings.
+                Add your first client to get started — head to the Clients page to begin.
               </div>
             </div>
-            <button
-              onClick={async () => {
-                setSeeding(true);
-                try {
-                  const result = await settingsApi.seedDemoData();
-                  await refresh();
-                  await loadAllProjects();
-                  toast.success(
-                    `Seeded ${result.summary?.clients || 0} clients, ${result.summary?.sessions || 0} sessions, ${result.summary?.projects || 0} projects`,
-                  );
-                } catch (err: any) {
-                  console.error("Seed failed:", err);
-                  toast.error(err.message || "Seed failed");
-                } finally {
-                  setSeeding(false);
-                }
-              }}
-              disabled={seeding}
-              className="flex items-center gap-2 px-5 py-2.5 text-[13px] rounded-lg bg-[#5ea1bf] text-white hover:bg-[#4a8ba8] transition-all disabled:opacity-60 flex-shrink-0"
-              style={{ fontWeight: 500 }}
-            >
-              {seeding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-              {seeding ? "Seeding..." : "Seed demo data"}
-            </button>
           </div>
         </motion.div>
       )}
@@ -557,7 +534,7 @@ export default function Home() {
                   )}
                 </>
               ) : (
-                "Log sessions or seed data to see your pulse"
+                "Log sessions to see your pulse"
               )}
             </div>
           </div>
