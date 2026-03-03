@@ -3189,6 +3189,31 @@ function DataTab() {
         </div>
       </SectionCard>
 
+      {/* Support */}
+      <SectionCard>
+        <SectionHeader title="Support" description="Need help? Reach out to our team" />
+        <div className="flex items-center gap-4 py-3 px-4 rounded-lg bg-accent/30 border border-border">
+          <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <Mail className="w-4 h-4 text-primary" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-[14px]" style={{ fontWeight: 500 }}>Email support</div>
+            <div className="text-[13px] text-muted-foreground">support@getaurelo.com</div>
+          </div>
+          <button
+            onClick={() => {
+              navigator.clipboard.writeText("support@getaurelo.com");
+              toast.success("Email copied to clipboard");
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-all"
+            style={{ fontWeight: 500 }}
+          >
+            <Copy className="w-3.5 h-3.5" />
+            Copy
+          </button>
+        </div>
+      </SectionCard>
+
       {/* Danger Zone */}
       <div className="rounded-xl border-2 border-[#c27272]/30 overflow-hidden">
         <div className="px-6 py-4 bg-[#c27272]/[0.05] border-b border-[#c27272]/20">

@@ -31,3 +31,5 @@ project_id = "oqrqypuulgeqzjcgqruw"
     verify_jwt = false
   [functions.check-overdue-invoices]
     verify_jwt = false
+  [functions.geo-check]
+    verify_jwt = false
