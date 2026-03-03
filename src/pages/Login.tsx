@@ -27,6 +27,8 @@ export default function Login() {
     setLoading(true);
     try {
       await signIn(email.trim(), password);
+      // Navigation to "/" will trigger AuthGate which redirects
+      // new users (isNewUser) to /onboarding automatically
       navigate("/", { replace: true });
     } catch (err: any) {
       console.error("Login failed:", err);

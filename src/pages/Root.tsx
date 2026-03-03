@@ -50,7 +50,7 @@ export default function Root() {
 
 /* AuthGate checks if user is authenticated; if not, redirects to /login */
 function AuthGate() {
-  const { user, loading, workspaceId } = useAuth();
+  const { user, loading, workspaceId, isNewUser, clearNewUser } = useAuth();
 
   if (loading) {
     return (
@@ -73,6 +73,12 @@ function AuthGate() {
 
   // User exists but has no workspace yet — redirect to onboarding
   if (!workspaceId) return <Navigate to="/onboarding" replace />;
+
+  // Brand new user whose workspace was just auto-provisioned — send to onboarding
+  if (isNewUser) {
+    clearNewUser();
+    return <Navigate to="/onboarding" replace />;
+  }
 
   return (
     <DataProvider>
