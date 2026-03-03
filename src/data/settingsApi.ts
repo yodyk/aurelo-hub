@@ -183,7 +183,3 @@ export async function deleteWorkspace(): Promise<void> {
   await supabase.from('workspaces').delete().eq('id', wsId);
 }
 
-export async function seedDemoData(): Promise<{ summary?: { clients?: number; sessions?: number; projects?: number } }> {
-  console.log('[settingsApi] seedDemoData — not yet implemented with live DB');
-  return { summary: { clients: 0, sessions: 0, projects: 0 } };
-}

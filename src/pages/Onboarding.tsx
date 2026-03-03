@@ -17,7 +17,7 @@ import {
 import { useData } from "../data/DataContext";
 import { AureloIcon } from "../components/AureloIcon";
 import { AureloWordmark } from "../components/AureloWordmark";
-import { seedDemoData } from "../data/settingsApi";
+
 import { type IdentityType, IDENTITY_OPTIONS, getCategoriesForIdentity } from "../data/identityPresets";
 import { PLANS, type PlanId } from "../data/plans";
 import { OnboardingPlanPicker } from "../components/OnboardingPlanPicker";
@@ -48,7 +48,7 @@ export default function Onboarding() {
   const { setIdentityAndCategories } = useData();
   const [selected, setSelected] = useState<IdentityType | null>(null);
   const [saving, setSaving] = useState(false);
-  const [seeding, setSeeding] = useState(false);
+  
   const [step, setStep] = useState<"select" | "confirm" | "explore" | "plan">("select");
 
   const previewCategories = selected ? getCategoriesForIdentity(selected) : [];
@@ -67,21 +67,10 @@ export default function Onboarding() {
     }
   };
 
-  const handleStartTour = async () => {
-    setSeeding(true);
-    try {
-      await seedDemoData();
-      localStorage.setItem("aurelo_tour_active", "true");
-      localStorage.setItem("aurelo_demo_mode", "true");
-      // Force a full navigation to ensure DataContext reloads with seeded data
-      window.location.href = "/";
-    } catch (err) {
-      console.error("Failed to seed demo data:", err);
-      // Still start the tour even if seeding fails
-      localStorage.setItem("aurelo_tour_active", "true");
-      localStorage.setItem("aurelo_demo_mode", "true");
-      window.location.href = "/";
-    }
+  const handleStartTour = () => {
+    localStorage.setItem("aurelo_tour_active", "true");
+    localStorage.setItem("aurelo_demo_mode", "true");
+    window.location.href = "/";
   };
 
   const handleStartFresh = () => {
@@ -359,7 +348,6 @@ export default function Onboarding() {
                   {/* Take the tour */}
                   <button
                     onClick={handleStartTour}
-                    disabled={seeding}
                     className="relative text-left bg-white rounded-xl border-[1.5px] border-[#5ea1bf]/30 p-5 hover:border-[#5ea1bf]/50 hover:-translate-y-0.5 transition-all duration-200 group ring-2 ring-[#5ea1bf]/8"
                     style={{ boxShadow: "0 2px 8px rgba(94,161,191,0.08)" }}
                   >
@@ -367,16 +355,11 @@ export default function Onboarding() {
                       <Sparkles className="w-[18px] h-[18px] text-[#5ea1bf]" />
                     </div>
                     <div className="text-[14px] text-[#1c1c1c] mb-1" style={{ fontWeight: 600 }}>
-                      {seeding ? "Loading..." : "Explore with demo data"}
+                      Explore with a guided tour
                     </div>
                     <div className="text-[12px] text-[#78716c] leading-snug">
-                      See a fully loaded workspace with a guided walkthrough
+                      Get a guided walkthrough of the workspace
                     </div>
-                    {seeding && (
-                      <div className="absolute top-4 right-4">
-                        <Loader2 className="w-4 h-4 animate-spin text-[#5ea1bf]" />
-                      </div>
-                    )}
                     <div
                       className="mt-3 inline-flex items-center gap-1 text-[12px] text-[#5ea1bf]"
                       style={{ fontWeight: 500 }}
