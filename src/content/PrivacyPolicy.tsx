@@ -10,141 +10,149 @@
 export const VERSION = '1.0';
 export const lastUpdated = 'March 4, 2026';
 
+export const tocItems = [
+  { id: 'info-collect', label: 'Information We Collect' },
+  { id: 'third-party', label: 'Third-Party Services' },
+  { id: 'cookies', label: 'Cookies & Analytics' },
+  { id: 'how-we-use', label: 'How We Use Information' },
+  { id: 'data-retention', label: 'Data Retention' },
+  { id: 'security', label: 'Security' },
+  { id: 'international', label: 'International Users' },
+  { id: 'user-rights', label: 'User Rights' },
+  { id: 'policy-updates', label: 'Policy Updates' },
+  { id: 'contact', label: 'Contact' },
+];
+
 export function PrivacyContent() {
   return (
-    <div className="prose prose-stone max-w-none text-[15px] leading-relaxed text-[#44403c]">
-      <h1 className="text-[28px] font-semibold text-[#1c1c1c] tracking-tight mb-1">Aurelo Privacy Policy</h1>
-      <p className="text-[13px] text-[#a8a29e] mb-8">Last Updated: {lastUpdated}</p>
-
-      <p>Aurelo LLC respects your privacy and is committed to protecting your personal information.</p>
-
-      <hr className="my-8 border-black/[0.06]" />
-
-      <h2 className="text-[18px] font-semibold text-[#1c1c1c]">Information We Collect</h2>
-      <p>We may collect the following information:</p>
-
-      <h3 className="text-[16px] font-semibold text-[#1c1c1c]">Account Information</h3>
-      <ul>
-        <li>name</li>
-        <li>email address</li>
-        <li>login credentials</li>
-        <li>workspace membership details</li>
-      </ul>
-
-      <h3 className="text-[16px] font-semibold text-[#1c1c1c]">Usage Data</h3>
-      <ul>
-        <li>interactions with the platform</li>
-        <li>session activity</li>
-        <li>feature usage analytics</li>
-      </ul>
-
-      <h3 className="text-[16px] font-semibold text-[#1c1c1c]">Financial Data</h3>
-      <p>
-        When users connect external payment services, Aurelo may process information related to project revenue or
-        payment activity.
-      </p>
-      <p>Payment processing itself is handled by Stripe.</p>
-      <p className="font-medium">Aurelo does not store full payment card details.</p>
-
-      <h3 className="text-[16px] font-semibold text-[#1c1c1c]">Integration Data</h3>
-      <p>
-        If users connect third-party services, we may access information provided by those integrations.
+    <div>
+      <h1>Privacy Policy</h1>
+      <p className="legal-meta">Last updated: {lastUpdated}</p>
+      <p className="legal-intro">
+        Aurelo LLC respects your privacy and is committed to protecting your personal information.
+        This policy explains what data we collect, how we use it, and your rights regarding that data.
       </p>
 
-      <hr className="my-8 border-black/[0.06]" />
+      <section className="legal-section" id="info-collect">
+        <h2>Information We Collect</h2>
+        <p>We may collect the following categories of information when you use the Service:</p>
 
-      <h2 className="text-[18px] font-semibold text-[#1c1c1c]">Third-Party Services</h2>
-      <p>Aurelo uses the following service providers:</p>
+        <h3>Account Information</h3>
+        <ul>
+          <li>Name and email address</li>
+          <li>Login credentials</li>
+          <li>Workspace membership details</li>
+        </ul>
 
-      <div className="pl-4 border-l-2 border-[#5ea1bf]/20 space-y-2 text-[14px] mb-4">
-        <p><strong>Payment Processing:</strong> Stripe</p>
-        <p><strong>Infrastructure and Database:</strong> Supabase</p>
-        <p><strong>Hosting and Application Services:</strong> Lovable Cloud</p>
-        <p><strong>Email Delivery:</strong> Resend</p>
-      </div>
+        <h3>Usage Data</h3>
+        <ul>
+          <li>Interactions with the platform</li>
+          <li>Session activity</li>
+          <li>Feature usage analytics</li>
+        </ul>
 
-      <p>Future integrations may include QuickBooks, Slack, or Google Calendar.</p>
-      <p>These providers process data in accordance with their own privacy policies.</p>
+        <h3>Financial Data</h3>
+        <p>
+          When users connect external payment services, Aurelo may process information related to
+          project revenue or payment activity. Payment processing itself is handled by Stripe.
+        </p>
+        <div className="legal-callout">
+          <strong>Aurelo does not store full payment card details.</strong>
+        </div>
 
-      <hr className="my-8 border-black/[0.06]" />
+        <h3>Integration Data</h3>
+        <p>
+          If users connect third-party services, we may access information provided by those integrations
+          in order to deliver platform features.
+        </p>
+      </section>
 
-      <h2 className="text-[18px] font-semibold text-[#1c1c1c]">Cookies and Analytics</h2>
-      <p>Aurelo uses cookies and analytics tools to improve the platform experience.</p>
-      <p>Cookies may be used for:</p>
-      <ul>
-        <li>authentication</li>
-        <li>session management</li>
-        <li>product analytics</li>
-        <li>performance monitoring</li>
-      </ul>
-      <p>
-        Users may disable cookies in their browser settings, though some features may not function properly.
-      </p>
+      <section className="legal-section" id="third-party">
+        <h2>Third-Party Services</h2>
+        <p>Aurelo uses the following service providers to operate the platform:</p>
+        <div className="legal-callout">
+          <p style={{ marginBottom: 6 }}><strong>Payment Processing:</strong> Stripe</p>
+          <p style={{ marginBottom: 6 }}><strong>Infrastructure &amp; Database:</strong> Supabase</p>
+          <p style={{ marginBottom: 6 }}><strong>Hosting &amp; Application Services:</strong> Lovable Cloud</p>
+          <p style={{ marginBottom: 0 }}><strong>Email Delivery:</strong> Resend</p>
+        </div>
+        <p>Future integrations may include QuickBooks, Slack, or Google Calendar.</p>
+        <p>These providers process data in accordance with their own privacy policies.</p>
+      </section>
 
-      <hr className="my-8 border-black/[0.06]" />
+      <section className="legal-section" id="cookies">
+        <h2>Cookies &amp; Analytics</h2>
+        <p>Aurelo uses cookies and analytics tools to improve the platform experience. Cookies may be used for:</p>
+        <ul>
+          <li>Authentication and session management</li>
+          <li>Product analytics</li>
+          <li>Performance monitoring</li>
+        </ul>
+        <p>
+          Users may disable cookies in their browser settings, though some features may not function properly.
+        </p>
+      </section>
 
-      <h2 className="text-[18px] font-semibold text-[#1c1c1c]">How We Use Information</h2>
-      <p>We use collected data to:</p>
-      <ul>
-        <li>operate and maintain the platform</li>
-        <li>provide user analytics and insights</li>
-        <li>process subscriptions and payments</li>
-        <li>communicate service updates</li>
-        <li>improve product functionality</li>
-      </ul>
+      <section className="legal-section" id="how-we-use">
+        <h2>How We Use Information</h2>
+        <p>We use collected data to:</p>
+        <ul>
+          <li>Operate and maintain the platform</li>
+          <li>Provide user analytics and insights</li>
+          <li>Process subscriptions and payments</li>
+          <li>Communicate service updates</li>
+          <li>Improve product functionality</li>
+        </ul>
+      </section>
 
-      <hr className="my-8 border-black/[0.06]" />
+      <section className="legal-section" id="data-retention">
+        <h2>Data Retention</h2>
+        <p>User data is retained for as long as the account remains active.</p>
+        <p>Users may request deletion of their data by contacting support.</p>
+      </section>
 
-      <h2 className="text-[18px] font-semibold text-[#1c1c1c]">Data Retention</h2>
-      <p>User data is retained for as long as the account remains active.</p>
-      <p>Users may request deletion of their data by contacting support.</p>
+      <section className="legal-section" id="security">
+        <h2>Security</h2>
+        <p>
+          Aurelo takes reasonable measures to protect user data through modern security practices.
+          However, no online system can guarantee absolute security.
+        </p>
+      </section>
 
-      <hr className="my-8 border-black/[0.06]" />
+      <section className="legal-section" id="international">
+        <h2>International Users</h2>
+        <p>
+          While Aurelo currently targets users in the United States, international users may access
+          the platform. Data may be stored and processed in the United States.
+        </p>
+      </section>
 
-      <h2 className="text-[18px] font-semibold text-[#1c1c1c]">Security</h2>
-      <p>Aurelo takes reasonable measures to protect user data through modern security practices.</p>
-      <p>However, no online system can guarantee absolute security.</p>
+      <section className="legal-section" id="user-rights">
+        <h2>User Rights</h2>
+        <p>Users may request to:</p>
+        <ul>
+          <li>Access their personal data</li>
+          <li>Correct inaccurate data</li>
+          <li>Request deletion of data</li>
+        </ul>
+        <p>
+          Requests can be sent to{' '}
+          <a href="mailto:support@getaurelo.com">support@getaurelo.com</a>.
+        </p>
+      </section>
 
-      <hr className="my-8 border-black/[0.06]" />
+      <section className="legal-section" id="policy-updates">
+        <h2>Policy Updates</h2>
+        <p>We may update this Privacy Policy from time to time. Users will be notified of significant changes.</p>
+      </section>
 
-      <h2 className="text-[18px] font-semibold text-[#1c1c1c]">International Users</h2>
-      <p>
-        While Aurelo currently targets users in the United States, international users may access the platform.
-      </p>
-      <p>Data may be stored and processed in the United States.</p>
-
-      <hr className="my-8 border-black/[0.06]" />
-
-      <h2 className="text-[18px] font-semibold text-[#1c1c1c]">User Rights</h2>
-      <p>Users may request to:</p>
-      <ul>
-        <li>access their personal data</li>
-        <li>correct inaccurate data</li>
-        <li>request deletion of data</li>
-      </ul>
-      <p>
-        Requests can be sent to{' '}
-        <a href="mailto:support@getaurelo.com" className="text-[#5ea1bf] hover:underline">
-          support@getaurelo.com
-        </a>
-        .
-      </p>
-
-      <hr className="my-8 border-black/[0.06]" />
-
-      <h2 className="text-[18px] font-semibold text-[#1c1c1c]">Policy Updates</h2>
-      <p>We may update this Privacy Policy from time to time.</p>
-      <p>Users will be notified of significant changes.</p>
-
-      <hr className="my-8 border-black/[0.06]" />
-
-      <h2 className="text-[18px] font-semibold text-[#1c1c1c]">Contact</h2>
-      <p>For privacy-related inquiries, contact:</p>
-      <p>
-        <a href="mailto:support@getaurelo.com" className="text-[#5ea1bf] hover:underline">
-          support@getaurelo.com
-        </a>
-      </p>
+      <section className="legal-section" id="contact">
+        <h2>Contact</h2>
+        <p>For privacy-related inquiries, contact:</p>
+        <p>
+          <a href="mailto:support@getaurelo.com">support@getaurelo.com</a>
+        </p>
+      </section>
     </div>
   );
 }
