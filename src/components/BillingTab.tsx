@@ -116,9 +116,10 @@ function UsageMeter({ label, icon: Icon, current, max, color }: {
 
 // ── Plan Card ──────────────────────────────────────────────────────
 
-function PlanCard({ planId, isCurrent, isOwner, onSelect, selecting, hasStripeSubscription, interval }: {
+function PlanCard({ planId, isCurrent, currentPlanId, isOwner, onSelect, selecting, hasStripeSubscription, interval }: {
   planId: PlanId;
   isCurrent: boolean;
+  currentPlanId: PlanId;
   isOwner: boolean;
   onSelect: (id: PlanId) => void;
   selecting: PlanId | null;
@@ -126,8 +127,9 @@ function PlanCard({ planId, isCurrent, isOwner, onSelect, selecting, hasStripeSu
   interval: BillingInterval;
 }) {
   const plan = PLANS[planId];
-  const isUpgrade = !isCurrent && planId !== 'starter';
-  const isDowngrade = !isCurrent && planId === 'starter';
+  const tierOrder = ['starter', 'pro', 'studio'];
+  const isUpgrade = !isCurrent && tierOrder.indexOf(planId) > tierOrder.indexOf(currentPlanId);
+  const isDowngrade = !isCurrent && tierOrder.indexOf(planId) < tierOrder.indexOf(currentPlanId);
   const isSelecting = selecting === planId;
 
   const accentColors: Record<PlanId, string> = {
@@ -607,6 +609,7 @@ export default function BillingTab() {
                     key={id}
                     planId={id}
                     isCurrent={id === planId}
+                    currentPlanId={planId}
                     isOwner={isOwner}
                     onSelect={handleSelectPlan}
                     selecting={selecting}
