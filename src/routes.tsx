@@ -19,6 +19,8 @@ const Signup = lazy(() => import("./pages/Signup"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const ClientPortal = lazy(() => import("./pages/ClientPortal"));
+const Terms = lazy(() => import("./pages/Terms"));
+const Privacy = lazy(() => import("./pages/Privacy"));
 
 function PageFallback() {
   return (
@@ -82,6 +84,8 @@ export const router = createBrowserRouter([
   { path: "/reset-password", element: <SuspensePage><ResetPassword /></SuspensePage> },
   { path: "/onboarding", Component: OnboardingWithAuth },
   { path: "/portal/:token", element: <SuspensePage><ClientPortal /></SuspensePage> },
+  { path: "/terms", element: <SuspensePage><Terms /></SuspensePage> },
+  { path: "/privacy", element: <SuspensePage><Privacy /></SuspensePage> },
   {
     path: "/",
     Component: Root,

@@ -25,8 +25,11 @@ export default function Signup() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
 
   const allValid = rules.every((r) => r.test(password));
+  const consentsAccepted = acceptedTerms && acceptedPrivacy;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,6 +41,10 @@ export default function Signup() {
     }
     if (!allValid) {
       setError("Password doesn't meet requirements");
+      return;
+    }
+    if (!consentsAccepted) {
+      setError("Please accept the Terms of Service and Privacy Policy");
       return;
     }
 
@@ -64,6 +71,21 @@ export default function Signup() {
 
       await signUp(email.trim(), password, name.trim());
       setSuccess(true);
+
+      // Record consent acceptance
+      try {
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        if (authUser) {
+          const { VERSION: termsVersion } = await import('../content/TermsOfService');
+          const { VERSION: privacyVersion } = await import('../content/PrivacyPolicy');
+          await supabase.from('user_consents').insert([
+            { user_id: authUser.id, consent_type: 'terms_of_service', version: termsVersion },
+            { user_id: authUser.id, consent_type: 'privacy_policy', version: privacyVersion },
+          ]);
+        }
+      } catch (consentErr) {
+        console.warn('Failed to record consent:', consentErr);
+      }
       
       // Check if we got a session (auto-confirm) or need email verification
       const { data: { session } } = await supabase.auth.getSession();
@@ -265,9 +287,41 @@ export default function Signup() {
                 )}
               </div>
 
+              {/* Legal consents */}
+              <div className="space-y-2.5">
+                <label className="flex items-start gap-2.5 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={acceptedTerms}
+                    onChange={(e) => setAcceptedTerms(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 rounded border-black/15 text-[#5ea1bf] focus:ring-[#5ea1bf]/20 accent-[#5ea1bf]"
+                  />
+                  <span className="text-[12px] text-[#717182] leading-snug">
+                    I agree to the{' '}
+                    <Link to="/terms" target="_blank" className="text-[#5ea1bf] hover:underline" style={{ fontWeight: 500 }}>
+                      Terms of Service
+                    </Link>
+                  </span>
+                </label>
+                <label className="flex items-start gap-2.5 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={acceptedPrivacy}
+                    onChange={(e) => setAcceptedPrivacy(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 rounded border-black/15 text-[#5ea1bf] focus:ring-[#5ea1bf]/20 accent-[#5ea1bf]"
+                  />
+                  <span className="text-[12px] text-[#717182] leading-snug">
+                    I agree to the{' '}
+                    <Link to="/privacy" target="_blank" className="text-[#5ea1bf] hover:underline" style={{ fontWeight: 500 }}>
+                      Privacy Policy
+                    </Link>
+                  </span>
+                </label>
+              </div>
+
               <button
                 type="submit"
-                disabled={loading || !allValid}
+                disabled={loading || !allValid || !consentsAccepted}
                 className="w-full h-10 rounded-lg bg-[#5ea1bf] text-white text-[14px] flex items-center justify-center gap-2 hover:bg-[#4d8fad] active:bg-[#437d99] disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
                 style={{ fontWeight: 500 }}
               >

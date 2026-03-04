@@ -745,6 +745,44 @@ export type Database = {
           },
         ]
       }
+      user_consents: {
+        Row: {
+          accepted_at: string
+          consent_type: string
+          id: string
+          ip_address: string | null
+          user_id: string
+          version: string
+          workspace_id: string | null
+        }
+        Insert: {
+          accepted_at?: string
+          consent_type: string
+          id?: string
+          ip_address?: string | null
+          user_id: string
+          version?: string
+          workspace_id?: string | null
+        }
+        Update: {
+          accepted_at?: string
+          consent_type?: string
+          id?: string
+          ip_address?: string | null
+          user_id?: string
+          version?: string
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_consents_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       webhook_deliveries: {
         Row: {
           attempt: number
