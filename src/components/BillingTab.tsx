@@ -251,7 +251,9 @@ function PlanCard({ planId, isCurrent, currentPlanId, isOwner, onSelect, selecti
         {highlights[planId].map((feat) => (
           <li key={feat} className="flex items-start gap-2">
             <Check className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" style={{ color: accent }} />
-            <span className="text-[13px] text-foreground/80">{feat}</span>
+            <span className="text-[13px] text-foreground/80"
+              dangerouslySetInnerHTML={{ __html: feat.replace(/([\d]+|Unlimited|Everything in Pro|Full Studio access|Basic|Standard|Priority|Rich|Advanced)/g, '<strong style="font-weight:600;color:var(--foreground)">$1</strong>') }}
+            />
           </li>
         ))}
       </ul>

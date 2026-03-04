@@ -185,7 +185,9 @@ export function OnboardingPlanPicker({ onContinue }: Props) {
                 {HIGHLIGHTS[id]?.map((feat) => (
                   <li key={feat} className="flex items-start gap-2">
                     <Check className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" style={{ color: accent }} />
-                    <span className="text-[12px] text-[#44403c] leading-snug">{feat}</span>
+                    <span className="text-[12px] text-[#44403c] leading-snug"
+                      dangerouslySetInnerHTML={{ __html: feat.replace(/([\d]+|Unlimited|Everything in Pro|Basic|Full|Standard|Priority|Batch)/g, '<strong style="font-weight:600;color:#1c1c1c">$1</strong>') }}
+                    />
                   </li>
                 ))}
               </ul>
