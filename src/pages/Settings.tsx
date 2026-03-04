@@ -3228,6 +3228,43 @@ function SupportTab() {
           </a>
         </div>
       </SectionCard>
+
+      {/* Legal */}
+      <SectionCard>
+        <SectionHeader title="Legal" description="Review our policies and terms" />
+        <div className="space-y-2">
+          <a
+            href="/terms"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-4 py-3 px-3 rounded-lg hover:bg-accent/30 transition-colors group"
+          >
+            <div className="w-9 h-9 rounded-lg bg-accent/60 flex items-center justify-center flex-shrink-0 text-muted-foreground">
+              <FileText className="w-4 h-4" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[14px]" style={{ fontWeight: 500 }}>Terms of Service</div>
+              <div className="text-[12px] text-muted-foreground">Review our terms and conditions</div>
+            </div>
+            <ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+          </a>
+          <a
+            href="/privacy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-4 py-3 px-3 rounded-lg hover:bg-accent/30 transition-colors group"
+          >
+            <div className="w-9 h-9 rounded-lg bg-accent/60 flex items-center justify-center flex-shrink-0 text-muted-foreground">
+              <Shield className="w-4 h-4" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[14px]" style={{ fontWeight: 500 }}>Privacy Policy</div>
+              <div className="text-[12px] text-muted-foreground">How we handle your data</div>
+            </div>
+            <ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+          </a>
+        </div>
+      </SectionCard>
     </motion.div>
   );
 }
