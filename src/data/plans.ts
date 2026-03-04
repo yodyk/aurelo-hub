@@ -1,6 +1,7 @@
 // ── Plan definitions ────────────────────────────────────────────────
 
 export type PlanId = 'starter' | 'pro' | 'studio' | 'legacy';
+export type BillingInterval = 'monthly' | 'annual';
 
 export type FeatureKey =
   | 'fullInsights'
@@ -23,7 +24,8 @@ export type LimitKey = 'seats' | 'activeClients' | 'projectsPerClient' | 'dataRe
 export interface PlanDef {
   name: string;
   tagline: string;
-  price: number;
+  price: number;           // monthly price
+  annualPrice: number;     // annual price (total per year)
   limits: Record<LimitKey, number | null>; // null = unlimited
   features: Record<FeatureKey, boolean>;
 }
@@ -33,6 +35,7 @@ export const PLANS: Record<PlanId, PlanDef> = {
     name: 'Starter',
     tagline: 'For solo freelancers getting started',
     price: 0,
+    annualPrice: 0,
     limits: { seats: 1, activeClients: 5, projectsPerClient: 3, dataRetentionDays: 90 },
     features: {
       fullInsights: false, clientInvoicing: false, batchInvoicing: false,
@@ -45,7 +48,8 @@ export const PLANS: Record<PlanId, PlanDef> = {
   pro: {
     name: 'Pro',
     tagline: 'For established freelancers and small teams',
-    price: 20,
+    price: 29,
+    annualPrice: 296,
     limits: { seats: 5, activeClients: null, projectsPerClient: null, dataRetentionDays: null },
     features: {
       fullInsights: true, clientInvoicing: true, batchInvoicing: false,
@@ -58,7 +62,8 @@ export const PLANS: Record<PlanId, PlanDef> = {
   studio: {
     name: 'Studio',
     tagline: 'For agencies and growing studios',
-    price: 59,
+    price: 79,
+    annualPrice: 790,
     limits: { seats: null, activeClients: null, projectsPerClient: null, dataRetentionDays: null },
     features: {
       fullInsights: true, clientInvoicing: true, batchInvoicing: true,
@@ -72,6 +77,7 @@ export const PLANS: Record<PlanId, PlanDef> = {
     name: 'Legacy',
     tagline: 'Early tester — full access',
     price: 0,
+    annualPrice: 0,
     limits: { seats: null, activeClients: null, projectsPerClient: null, dataRetentionDays: null },
     features: {
       fullInsights: true, clientInvoicing: true, batchInvoicing: true,
@@ -82,6 +88,19 @@ export const PLANS: Record<PlanId, PlanDef> = {
     },
   },
 };
+
+/** Annual savings: monthly*12 - annualPrice */
+export function annualSavings(planId: PlanId): number {
+  const p = PLANS[planId];
+  return p.price * 12 - p.annualPrice;
+}
+
+/** How many months free the annual plan equates to */
+export function freeMonths(planId: PlanId): number {
+  const p = PLANS[planId];
+  if (p.price === 0) return 0;
+  return Math.round(annualSavings(planId) / p.price);
+}
 
 export const FEATURE_CATEGORIES = {
   pro: [
@@ -106,9 +125,9 @@ export const FEATURE_CATEGORIES = {
 
 export const SUPPORT_TIERS: Record<PlanId, string> = {
   starter: 'Email support',
-  pro: 'Priority support',
-  studio: 'Dedicated support',
-  legacy: 'Dedicated support',
+  pro: 'Standard support',
+  studio: 'Priority support',
+  legacy: 'Priority support',
 };
 
 export const EXPORT_FORMATS: Record<PlanId, string[]> = {

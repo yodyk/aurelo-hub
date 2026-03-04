@@ -11,10 +11,11 @@ import { usePlan } from '../data/PlanContext';
 import { useData } from '../data/DataContext';
 import { useAuth } from '../data/AuthContext';
 import {
-  type PlanId, type FeatureKey,
+  type PlanId, type FeatureKey, type BillingInterval,
   PLANS, FEATURE_CATEGORIES, SUPPORT_TIERS, EXPORT_FORMATS,
+  annualSavings, freeMonths,
 } from '../data/plans';
-import { STRIPE_TIERS } from '../data/stripePlans';
+import { STRIPE_TIERS, priceIdFor } from '../data/stripePlans';
 import { supabase } from '@/integrations/supabase/client';
 import * as settingsApi from '../data/settingsApi';
 
@@ -32,6 +33,41 @@ function SectionCard({ children, className = '' }: { children: React.ReactNode; 
     >
       {children}
     </motion.div>
+  );
+}
+
+// ── Billing Interval Toggle ────────────────────────────────────────
+
+function IntervalToggle({ interval, onChange }: { interval: BillingInterval; onChange: (i: BillingInterval) => void }) {
+  return (
+    <div className="flex items-center justify-center gap-3 mb-6">
+      <span
+        className={`text-[13px] cursor-pointer transition-colors ${interval === 'monthly' ? 'text-foreground' : 'text-muted-foreground'}`}
+        style={{ fontWeight: interval === 'monthly' ? 600 : 400 }}
+        onClick={() => onChange('monthly')}
+      >
+        Monthly
+      </span>
+      <button
+        onClick={() => onChange(interval === 'monthly' ? 'annual' : 'monthly')}
+        className={`relative w-11 h-6 rounded-full transition-colors ${interval === 'annual' ? 'bg-[#5ea1bf]' : 'bg-muted'}`}
+      >
+        <div
+          className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform"
+          style={{ transform: interval === 'annual' ? 'translateX(22px)' : 'translateX(2px)' }}
+        />
+      </button>
+      <span
+        className={`text-[13px] cursor-pointer transition-colors ${interval === 'annual' ? 'text-foreground' : 'text-muted-foreground'}`}
+        style={{ fontWeight: interval === 'annual' ? 600 : 400 }}
+        onClick={() => onChange('annual')}
+      >
+        Annual
+      </span>
+      <span className="text-[11px] text-[#5ea1bf] px-2 py-0.5 rounded-full bg-[#5ea1bf]/10" style={{ fontWeight: 600 }}>
+        Save 2 months
+      </span>
+    </div>
   );
 }
 
@@ -80,13 +116,14 @@ function UsageMeter({ label, icon: Icon, current, max, color }: {
 
 // ── Plan Card ──────────────────────────────────────────────────────
 
-function PlanCard({ planId, isCurrent, isOwner, onSelect, selecting, hasStripeSubscription }: {
+function PlanCard({ planId, isCurrent, isOwner, onSelect, selecting, hasStripeSubscription, interval }: {
   planId: PlanId;
   isCurrent: boolean;
   isOwner: boolean;
   onSelect: (id: PlanId) => void;
   selecting: PlanId | null;
   hasStripeSubscription: boolean;
+  interval: BillingInterval;
 }) {
   const plan = PLANS[planId];
   const isUpgrade = !isCurrent && planId !== 'starter';
@@ -101,7 +138,15 @@ function PlanCard({ planId, isCurrent, isOwner, onSelect, selecting, hasStripeSu
   };
   const accent = accentColors[planId];
 
-  // Key features to highlight per plan
+  const displayPrice = plan.price === 0
+    ? 0
+    : interval === 'annual'
+      ? Math.round(plan.annualPrice / 12)
+      : plan.price;
+
+  const savings = annualSavings(planId);
+  const monthsFree = freeMonths(planId);
+
   const highlights: Record<PlanId, string[]> = {
     starter: [
       '1 seat',
@@ -123,7 +168,7 @@ function PlanCard({ planId, isCurrent, isOwner, onSelect, selecting, hasStripeSu
       'Data export (PDF & CSV)',
       'Advanced notifications',
       'Unlimited retention',
-      'Priority support',
+      'Standard support',
     ],
     studio: [
       'Unlimited seats',
@@ -134,7 +179,7 @@ function PlanCard({ planId, isCurrent, isOwner, onSelect, selecting, hasStripeSu
       'Batch invoicing',
       'API access & webhooks',
       'Custom invoice templates',
-      'Dedicated support',
+      'Priority support',
     ],
     legacy: [
       'Full Studio access',
@@ -155,7 +200,6 @@ function PlanCard({ planId, isCurrent, isOwner, onSelect, selecting, hasStripeSu
         backgroundColor: isCurrent ? `${accent}08` : undefined,
       }}
     >
-      {/* Current badge */}
       {isCurrent && (
         <div
           className="absolute -top-2.5 left-4 px-2.5 py-0.5 rounded-full text-[10px] text-white"
@@ -165,7 +209,6 @@ function PlanCard({ planId, isCurrent, isOwner, onSelect, selecting, hasStripeSu
         </div>
       )}
 
-      {/* Plan header */}
       <div className="mb-4 pt-1">
         <h3 className="text-[17px] text-foreground" style={{ fontWeight: 600 }}>
           {plan.name}
@@ -175,17 +218,29 @@ function PlanCard({ planId, isCurrent, isOwner, onSelect, selecting, hasStripeSu
 
       {/* Price */}
       <div className="mb-5">
-        {plan.price === 0 ? (
+        {displayPrice === 0 ? (
           <div className="text-[28px] text-foreground" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
             Free
           </div>
         ) : (
-          <div className="flex items-baseline gap-1">
-            <span className="text-[28px] text-foreground" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
-              ${plan.price}
-            </span>
-            <span className="text-[13px] text-muted-foreground">/mo</span>
-          </div>
+          <>
+            <div className="flex items-baseline gap-1">
+              <span className="text-[28px] text-foreground" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
+                ${displayPrice}
+              </span>
+              <span className="text-[13px] text-muted-foreground">/mo</span>
+            </div>
+            {interval === 'annual' && savings > 0 && (
+              <p className="text-[11px] text-[#5ea1bf] mt-1" style={{ fontWeight: 600 }}>
+                Save ${savings}/yr ({monthsFree} months free)
+              </p>
+            )}
+            {interval === 'annual' && (
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                Billed as ${plan.annualPrice}/year
+              </p>
+            )}
+          </>
         )}
       </div>
 
@@ -199,7 +254,7 @@ function PlanCard({ planId, isCurrent, isOwner, onSelect, selecting, hasStripeSu
         ))}
       </ul>
 
-      {/* Action button — pinned to bottom */}
+      {/* Action button */}
       <div className="mt-6">
         {isOwner && !isCurrent && (
           <button
@@ -251,6 +306,7 @@ export default function BillingTab() {
   const [showPlanPicker, setShowPlanPicker] = useState(false);
   const [showDowngradeModal, setShowDowngradeModal] = useState(false);
   const [downgradeReasons, setDowngradeReasons] = useState<string[]>([]);
+  const [billingInterval, setBillingInterval] = useState<BillingInterval>('monthly');
 
   const DOWNGRADE_REASONS = [
     'Too expensive for my current needs',
@@ -260,15 +316,11 @@ export default function BillingTab() {
     'Just testing — not ready to commit yet',
   ];
 
-  // Determine if current user is workspace owner
-  // For now, we treat all users as owners since we don't have workspace role in auth context yet.
-  // This will be refined when workspace role is piped through from /init.
   const isOwner = true;
 
-  // Usage counts
   const activeClients = clients.filter((c: any) => c.status !== 'Archived').length;
   const totalClients = clients.length;
-  const teamMembers = 1; // Will come from settings when wired
+  const teamMembers = 1;
   const maxSeats = limit('seats');
   const maxClients = limit('activeClients');
 
@@ -281,14 +333,12 @@ export default function BillingTab() {
   const hasStripeSubscription = !!plan.stripeSubscriptionId;
 
   const executePlanSwitch = useCallback(async (newPlanId: PlanId) => {
-    // For paid plans, redirect to Stripe Checkout
     if (newPlanId !== 'starter' && newPlanId !== 'legacy') {
-      const tier = STRIPE_TIERS[newPlanId];
-      if (!tier) return;
+      const priceId = priceIdFor(newPlanId, billingInterval);
       setSelecting(newPlanId);
       try {
         const { data, error } = await supabase.functions.invoke('create-checkout', {
-          body: { priceId: tier.priceId },
+          body: { priceId },
         });
         if (error) throw new Error(error.message);
         if (data?.url) {
@@ -303,7 +353,6 @@ export default function BillingTab() {
       return;
     }
 
-    // For Starter downgrade or legacy, switch directly
     setSelecting(newPlanId);
     try {
       const result = await settingsApi.updatePlan(newPlanId);
@@ -326,10 +375,10 @@ export default function BillingTab() {
     } finally {
       setSelecting(null);
     }
-  }, [plan, setPlan]);
+  }, [plan, setPlan, billingInterval]);
 
   const handleManageSubscription = useCallback(async () => {
-    setSelecting('pro'); // just as a loading indicator
+    setSelecting('pro');
     try {
       const { data, error } = await supabase.functions.invoke('customer-portal');
       if (error) throw new Error(error.message);
@@ -345,13 +394,19 @@ export default function BillingTab() {
 
   const handleSelectPlan = useCallback((newPlanId: PlanId) => {
     if (!isOwner) return;
-    // If downgrading to Starter, show confirmation modal
     if (newPlanId === 'starter' && planId !== 'starter') {
       setShowDowngradeModal(true);
       return;
     }
     executePlanSwitch(newPlanId);
   }, [isOwner, planId, executePlanSwitch]);
+
+  // Display price based on current interval
+  const displayPrice = planDef.price === 0
+    ? 0
+    : billingInterval === 'annual'
+      ? Math.round(planDef.annualPrice / 12)
+      : planDef.price;
 
   return (
     <motion.div
@@ -544,18 +599,22 @@ export default function BillingTab() {
                 Plans apply to the entire workspace. Powered by Stripe.
               </p>
             </div>
-            <div className="p-6 grid grid-cols-3 gap-4">
-              {(['starter', 'pro', 'studio'] as PlanId[]).map((id) => (
-                <PlanCard
-                  key={id}
-                  planId={id}
-                  isCurrent={id === planId}
-                  isOwner={isOwner}
-                  onSelect={handleSelectPlan}
-                  selecting={selecting}
-                  hasStripeSubscription={hasStripeSubscription}
-                />
-              ))}
+            <div className="p-6">
+              <IntervalToggle interval={billingInterval} onChange={setBillingInterval} />
+              <div className="grid grid-cols-3 gap-4">
+                {(['starter', 'pro', 'studio'] as PlanId[]).map((id) => (
+                  <PlanCard
+                    key={id}
+                    planId={id}
+                    isCurrent={id === planId}
+                    isOwner={isOwner}
+                    onSelect={handleSelectPlan}
+                    selecting={selecting}
+                    hasStripeSubscription={hasStripeSubscription}
+                    interval={billingInterval}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         </motion.div>
