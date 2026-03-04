@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import { motion } from 'motion/react';
 import { Check, Crown, ArrowRight, Sparkles } from 'lucide-react';
-import { PLANS, type PlanId } from '../data/plans';
+import { PLANS, type PlanId, type BillingInterval, annualSavings, freeMonths } from '../data/plans';
 
 const VISIBLE_PLANS: { id: PlanId; recommended?: boolean }[] = [
   { id: 'starter' },
@@ -22,6 +23,7 @@ const HIGHLIGHTS: Record<string, string[]> = {
     'Client invoicing',
     'Data export (PDF & CSV)',
     'Unlimited retention',
+    'Standard support',
   ],
   studio: [
     'Unlimited seats',
@@ -29,6 +31,7 @@ const HIGHLIGHTS: Record<string, string[]> = {
     'White-label portal',
     'Team utilization',
     'Batch invoicing & API access',
+    'Priority support',
   ],
 };
 
@@ -43,10 +46,12 @@ interface Props {
 }
 
 export function OnboardingPlanPicker({ onContinue }: Props) {
+  const [interval, setInterval] = useState<BillingInterval>('monthly');
+
   return (
     <div className="text-center">
       {/* Heading */}
-      <div className="mb-8">
+      <div className="mb-6">
         <div className="w-12 h-12 rounded-2xl bg-[#5ea1bf]/8 flex items-center justify-center mx-auto mb-5">
           <Crown className="w-6 h-6 text-[#5ea1bf]" />
         </div>
@@ -61,6 +66,36 @@ export function OnboardingPlanPicker({ onContinue }: Props) {
         </p>
       </div>
 
+      {/* Interval toggle */}
+      <div className="flex items-center justify-center gap-3 mb-6">
+        <span
+          className={`text-[13px] cursor-pointer transition-colors ${interval === 'monthly' ? 'text-[#1c1c1c]' : 'text-[#a8a29e]'}`}
+          style={{ fontWeight: interval === 'monthly' ? 600 : 400 }}
+          onClick={() => setInterval('monthly')}
+        >
+          Monthly
+        </span>
+        <button
+          onClick={() => setInterval(interval === 'monthly' ? 'annual' : 'monthly')}
+          className={`relative w-11 h-6 rounded-full transition-colors ${interval === 'annual' ? 'bg-[#5ea1bf]' : 'bg-stone-200'}`}
+        >
+          <div
+            className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform"
+            style={{ transform: interval === 'annual' ? 'translateX(22px)' : 'translateX(2px)' }}
+          />
+        </button>
+        <span
+          className={`text-[13px] cursor-pointer transition-colors ${interval === 'annual' ? 'text-[#1c1c1c]' : 'text-[#a8a29e]'}`}
+          style={{ fontWeight: interval === 'annual' ? 600 : 400 }}
+          onClick={() => setInterval('annual')}
+        >
+          Annual
+        </span>
+        <span className="text-[11px] text-[#5ea1bf] px-2 py-0.5 rounded-full bg-[#5ea1bf]/10" style={{ fontWeight: 600 }}>
+          Save 2 months
+        </span>
+      </div>
+
       {/* Plan cards */}
       <motion.div
         className="grid grid-cols-3 gap-3 mb-8 max-w-2xl mx-auto"
@@ -72,6 +107,15 @@ export function OnboardingPlanPicker({ onContinue }: Props) {
           const plan = PLANS[id];
           const accent = ACCENT[id];
           const isStarter = id === 'starter';
+
+          const displayPrice = plan.price === 0
+            ? 0
+            : interval === 'annual'
+              ? Math.round(plan.annualPrice / 12)
+              : plan.price;
+
+          const savings = annualSavings(id);
+          const monthsFree = freeMonths(id);
 
           return (
             <motion.div
@@ -110,17 +154,29 @@ export function OnboardingPlanPicker({ onContinue }: Props) {
               </div>
 
               <div className="mb-4">
-                {plan.price === 0 ? (
+                {displayPrice === 0 ? (
                   <div className="text-[24px] text-[#1c1c1c]" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
                     Free
                   </div>
                 ) : (
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-[24px] text-[#1c1c1c]" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
-                      ${plan.price}
-                    </span>
-                    <span className="text-[12px] text-[#a8a29e]">/mo</span>
-                  </div>
+                  <>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-[24px] text-[#1c1c1c]" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
+                        ${displayPrice}
+                      </span>
+                      <span className="text-[12px] text-[#a8a29e]">/mo</span>
+                    </div>
+                    {interval === 'annual' && savings > 0 && (
+                      <p className="text-[10px] text-[#5ea1bf] mt-1" style={{ fontWeight: 600 }}>
+                        Save ${savings}/yr ({monthsFree} months free)
+                      </p>
+                    )}
+                    {interval === 'annual' && (
+                      <p className="text-[10px] text-[#a8a29e] mt-0.5">
+                        Billed as ${plan.annualPrice}/year
+                      </p>
+                    )}
+                  </>
                 )}
               </div>
 
@@ -146,7 +202,6 @@ export function OnboardingPlanPicker({ onContinue }: Props) {
               ) : (
                 <button
                   onClick={() => {
-                    // For now just continue — billing is handled in settings
                     onContinue();
                   }}
                   className="w-full py-2.5 rounded-lg text-[13px] text-white transition-all hover:opacity-90 flex items-center justify-center gap-2"
