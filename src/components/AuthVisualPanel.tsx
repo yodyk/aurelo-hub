@@ -3,7 +3,7 @@ import loginBg from "@/assets/login-bg.jpg";
 
 export function AuthVisualPanel() {
   return (
-    <div className="hidden lg:flex flex-1 relative overflow-hidden rounded-l-[24px]">
+    <div className="hidden lg:flex flex-1 relative overflow-hidden">
       <motion.img
         src={loginBg}
         alt=""
@@ -34,7 +34,11 @@ export function AuthVisualPanel() {
       />
 
       {/* Bottom gradient for text readability */}
-      <div className="absolute inset-x-0 bottom-0 h-[45%] bg-gradient-to-t from-black/60 via-black/25 to-transparent pointer-events-none" />
+      {/* Overall darken */}
+      <div className="absolute inset-0 bg-black/20 pointer-events-none" />
+
+      {/* Bottom gradient for text readability */}
+      <div className="absolute inset-x-0 bottom-0 h-[50%] bg-gradient-to-t from-black/70 via-black/35 to-transparent pointer-events-none" />
 
       {/* Tagline */}
       <motion.div
