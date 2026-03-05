@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router";
 import {
   Sun,
@@ -75,6 +75,13 @@ import { usePlan } from "../data/PlanContext";
 import { FeatureGate } from "../components/FeatureGate";
 import { STARTER_NOTIFICATION_TYPES, PLANS } from "../data/plans";
 import WebhooksSection from "../components/WebhooksSection";
+import {
+  SettingsSaveContext,
+  SettingsSaveBar,
+  UnsavedChangesDialog,
+  useSettingsSave,
+  useRegisterSave,
+} from "../components/SettingsSaveBar";
 
 // ── Animation variants ──────────────────────────────────────────────
 const container = {
@@ -245,22 +252,95 @@ export default function Settings() {
   const initialTab = (searchParams.get("tab") as TabId) || "profile";
   const [activeTab, setActiveTab] = useState<TabId>(visibleTabs.some((t) => t.id === initialTab) ? initialTab : "profile");
 
+  // Dirty state management for settings tabs
+  const [isDirty, setIsDirty] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const saveFnRef = useRef<(() => Promise<void>) | null>(null);
+  const [pendingTab, setPendingTab] = useState<TabId | null>(null);
+  const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
+
+  const markDirty = useCallback(() => setIsDirty(true), []);
+  const registerSave = useCallback((fn: () => Promise<void>) => { saveFnRef.current = fn; }, []);
+
+  const saveContextValue = useMemo(() => ({ markDirty, registerSave }), [markDirty, registerSave]);
+
+  // Reset dirty state when tab changes
+  useEffect(() => {
+    setIsDirty(false);
+    saveFnRef.current = null;
+  }, [activeTab]);
+
+  const handleSave = useCallback(async () => {
+    if (!saveFnRef.current) return;
+    setSaving(true);
+    try {
+      await saveFnRef.current();
+      setIsDirty(false);
+    } finally {
+      setSaving(false);
+    }
+  }, []);
+
+  const handleDiscard = useCallback(() => {
+    setIsDirty(false);
+    // Force re-mount by toggling key — will reload data from API
+    const current = activeTab;
+    setActiveTab("profile" as TabId); // temp
+    setTimeout(() => setActiveTab(current), 0);
+  }, [activeTab]);
+
   // Sync from URL → state (when navigating to /settings?tab=billing from elsewhere)
   useEffect(() => {
     const urlTab = searchParams.get("tab") as TabId;
     if (urlTab && visibleTabs.some((t) => t.id === urlTab) && urlTab !== activeTab) {
-      setActiveTab(urlTab);
+      if (isDirty) {
+        setPendingTab(urlTab);
+        setShowUnsavedDialog(true);
+      } else {
+        setActiveTab(urlTab);
+      }
     }
   }, [searchParams]);
 
   // Sync URL when tab changes via click
   const handleTabChange = useCallback(
     (tab: TabId) => {
+      if (tab === activeTab) return;
+      if (isDirty) {
+        setPendingTab(tab);
+        setShowUnsavedDialog(true);
+        return;
+      }
       setActiveTab(tab);
       setSearchParams(tab === "profile" ? {} : { tab }, { replace: true });
     },
-    [setSearchParams],
+    [setSearchParams, isDirty, activeTab],
   );
+
+  const handleDialogSave = useCallback(async () => {
+    await handleSave();
+    setShowUnsavedDialog(false);
+    if (pendingTab) {
+      setActiveTab(pendingTab);
+      setSearchParams(pendingTab === "profile" ? {} : { tab: pendingTab }, { replace: true });
+      setPendingTab(null);
+    }
+  }, [handleSave, pendingTab, setSearchParams]);
+
+  const handleDialogDiscard = useCallback(() => {
+    setIsDirty(false);
+    setShowUnsavedDialog(false);
+    if (pendingTab) {
+      setActiveTab(pendingTab);
+      setSearchParams(pendingTab === "profile" ? {} : { tab: pendingTab }, { replace: true });
+      setPendingTab(null);
+    }
+  }, [pendingTab, setSearchParams]);
+
+  const handleDialogCancel = useCallback(() => {
+    setShowUnsavedDialog(false);
+    setPendingTab(null);
+  }, []);
 
   return (
     <motion.div className="max-w-6xl mx-auto px-6 lg:px-12 py-12" variants={container} initial="hidden" animate="show">
@@ -299,6 +379,9 @@ export default function Settings() {
                     className={`w-4 h-4 flex-shrink-0 ${isActive ? "text-primary" : "text-muted-foreground"}`}
                   />
                   {tab.label}
+                  {isActive && isDirty && (
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary ml-auto flex-shrink-0" />
+                  )}
                 </button>
               );
             })}
@@ -307,28 +390,47 @@ export default function Settings() {
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.2 }}
-            >
-              {activeTab === "profile" && <ProfileTab />}
-              {activeTab === "security" && <AccountSecurityTab />}
-              {activeTab === "workspace" && <WorkspaceTab />}
-              {activeTab === "financial" && <FinancialTab />}
-              {activeTab === "billing" && <BillingTab />}
-              {activeTab === "team" && <TeamTab readOnly={role === "Member"} />}
-              {activeTab === "notifications" && <NotificationsTab />}
-              {activeTab === "integrations" && <IntegrationsTab />}
-              {activeTab === "data" && <DataTab />}
-              {activeTab === "support" && <SupportTab />}
-            </motion.div>
-          </AnimatePresence>
+          <SettingsSaveContext.Provider value={saveContextValue}>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.2 }}
+              >
+                {activeTab === "profile" && <ProfileTab />}
+                {activeTab === "security" && <AccountSecurityTab />}
+                {activeTab === "workspace" && <WorkspaceTab />}
+                {activeTab === "financial" && <FinancialTab />}
+                {activeTab === "billing" && <BillingTab />}
+                {activeTab === "team" && <TeamTab readOnly={role === "Member"} />}
+                {activeTab === "notifications" && <NotificationsTab />}
+                {activeTab === "integrations" && <IntegrationsTab />}
+                {activeTab === "data" && <DataTab />}
+                {activeTab === "support" && <SupportTab />}
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Sticky save bar */}
+            <SettingsSaveBar
+              isDirty={isDirty}
+              saving={saving}
+              onSave={handleSave}
+              onDiscard={handleDiscard}
+            />
+          </SettingsSaveContext.Provider>
         </div>
       </div>
+
+      {/* Unsaved changes dialog */}
+      <UnsavedChangesDialog
+        open={showUnsavedDialog}
+        onSave={handleDialogSave}
+        onDiscard={handleDialogDiscard}
+        onCancel={handleDialogCancel}
+        saving={saving}
+      />
     </motion.div>
   );
 }
@@ -345,7 +447,7 @@ function ProfileTab() {
   };
 
   const [profile, loading, setProfile] = useSettingsSection("profile", defaultProfile);
-  const [saving, setSaving] = useState(false);
+  const { markDirty } = useSettingsSave();
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [avatarUploading, setAvatarUploading] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
@@ -371,23 +473,23 @@ function ProfileTab() {
 
   const update = (patch: Partial<typeof defaultProfile>) => {
     setProfile({ ...profile, ...patch });
+    markDirty();
     // If theme is changed, apply it immediately via ThemeContext
     if (patch.theme) {
       applyTheme(patch.theme);
     }
   };
 
-  const save = async () => {
-    setSaving(true);
+  const save = useCallback(async () => {
     try {
       await api.saveSetting("profile", profile);
       toast.success("Profile saved");
     } catch (err: any) {
       toast.error(err.message || "Failed to save profile");
-    } finally {
-      setSaving(false);
     }
-  };
+  }, [profile]);
+
+  useRegisterSave(save);
 
   if (loading) return <LoadingState />;
 
@@ -506,7 +608,7 @@ function ProfileTab() {
             <option value="Asia/Tokyo">JST / Tokyo</option>
           </select>
         </div>
-        <SaveButton onClick={save} saving={saving} />
+        {/* Save handled by sticky bar */}
       </SectionCard>
 
       <SectionCard>
@@ -822,7 +924,7 @@ function WorkspaceTab() {
   };
 
   const [ws, loading, setWs] = useSettingsSection("workspace", defaultWs);
-  const [saving, setSaving] = useState(false);
+  const { markDirty } = useSettingsSave();
   const [appLogo, setAppLogo] = useState<{ url: string; fileName: string } | null>(null);
   const [emailLogo, setEmailLogo] = useState<{ url: string; fileName: string } | null>(null);
   const [uploadingApp, setUploadingApp] = useState(false);
@@ -842,19 +944,21 @@ function WorkspaceTab() {
       .catch((err) => console.error("Failed to load logos:", err));
   }, []);
 
-  const update = (patch: Partial<typeof defaultWs>) => setWs({ ...ws, ...patch });
+  const update = (patch: Partial<typeof defaultWs>) => {
+    setWs({ ...ws, ...patch });
+    markDirty();
+  };
 
-  const save = async () => {
-    setSaving(true);
+  const save = useCallback(async () => {
     try {
       await api.saveSetting("workspace", ws);
       toast.success("Workspace saved");
     } catch (err: any) {
       toast.error(err.message || "Failed to save workspace");
-    } finally {
-      setSaving(false);
     }
-  };
+  }, [ws]);
+
+  useRegisterSave(save);
 
   const handleLogoUpload = async (file: File, type: "app" | "email") => {
     const setUploading = type === "app" ? setUploadingApp : setUploadingEmail;
@@ -953,7 +1057,7 @@ function WorkspaceTab() {
             </select>
           </div>
         </div>
-        <SaveButton onClick={save} saving={saving} />
+        {/* Save handled by sticky bar */}
       </SectionCard>
 
       <SectionCard>
@@ -1611,57 +1715,39 @@ function FinancialTab() {
   const [fin, finLoading, setFin] = useSettingsSection("financial", defaultFinData);
   const [inv, invLoading, setInv] = useSettingsSection("invoice", defaultInvData);
   const [rates, ratesLoading, setRates] = useSettingsSection("ratecard", defaultRateCard);
+  const { markDirty } = useSettingsSave();
 
   const [newService, setNewService] = useState("");
   const [newRate, setNewRate] = useState("");
-  const [savingGlobal, setSavingGlobal] = useState(false);
-  const [savingInvoice, setSavingInvoice] = useState(false);
-  const [savingRates, setSavingRates] = useState(false);
 
-  const saveGlobal = async () => {
-    setSavingGlobal(true);
+  const saveAll = useCallback(async () => {
     try {
-      await api.saveSetting("financial", fin);
-      toast.success("Financial defaults saved");
+      await Promise.all([
+        api.saveSetting("financial", fin),
+        api.saveSetting("invoice", inv),
+        api.saveSetting("ratecard", rates),
+      ]);
+      toast.success("Financial settings saved");
     } catch (err: any) {
-      toast.error(err.message);
-    } finally {
-      setSavingGlobal(false);
+      toast.error(err.message || "Failed to save");
     }
-  };
+  }, [fin, inv, rates]);
 
-  const saveInvoice = async () => {
-    setSavingInvoice(true);
-    try {
-      await api.saveSetting("invoice", inv);
-      toast.success("Invoice defaults saved");
-    } catch (err: any) {
-      toast.error(err.message);
-    } finally {
-      setSavingInvoice(false);
-    }
-  };
+  useRegisterSave(saveAll);
 
-  const saveRates = async () => {
-    setSavingRates(true);
-    try {
-      await api.saveSetting("ratecard", rates);
-      toast.success("Rate card saved");
-    } catch (err: any) {
-      toast.error(err.message);
-    } finally {
-      setSavingRates(false);
-    }
-  };
+  // Wrap setters with markDirty
+  const updateFin = (patch: Partial<typeof defaultFinData>) => { setFin({ ...fin, ...patch }); markDirty(); };
+  const updateInv = (patch: Partial<typeof defaultInvData>) => { setInv({ ...inv, ...patch }); markDirty(); };
+  const updateRates = (newRates: any) => { setRates(newRates); markDirty(); };
 
   const addRate = () => {
     if (!newService || !newRate) return;
-    setRates([...rates, { id: Date.now(), service: newService, rate: Number(newRate), unit: "hour" }]);
+    updateRates([...rates, { id: Date.now(), service: newService, rate: Number(newRate), unit: "hour" }]);
     setNewService("");
     setNewRate("");
   };
 
-  const removeRate = (id: number) => setRates(rates.filter((r: any) => r.id !== id));
+  const removeRate = (id: number) => updateRates(rates.filter((r: any) => r.id !== id));
 
   if (finLoading || invLoading || ratesLoading) return <LoadingState />;
 
@@ -1675,7 +1761,7 @@ function FinancialTab() {
             <FieldLabel>Internal cost rate ($/hr)</FieldLabel>
             <TextInput
               value={fin.costRate}
-              onChange={(e) => setFin({ ...fin, costRate: e.target.value })}
+              onChange={(e) => updateFin({ costRate: e.target.value })}
               className="!w-full tabular-nums"
             />
           </div>
@@ -1683,7 +1769,7 @@ function FinancialTab() {
             <FieldLabel>Tax rate (%)</FieldLabel>
             <TextInput
               value={fin.taxRate}
-              onChange={(e) => setFin({ ...fin, taxRate: e.target.value })}
+              onChange={(e) => updateFin({ taxRate: e.target.value })}
               className="!w-full tabular-nums"
             />
           </div>
@@ -1691,7 +1777,7 @@ function FinancialTab() {
             <FieldLabel>Processing fee (%)</FieldLabel>
             <TextInput
               value={fin.processingFee}
-              onChange={(e) => setFin({ ...fin, processingFee: e.target.value })}
+              onChange={(e) => updateFin({ processingFee: e.target.value })}
               className="!w-full tabular-nums"
             />
           </div>
@@ -1699,7 +1785,7 @@ function FinancialTab() {
             <FieldLabel>Currency</FieldLabel>
             <select
               value={fin.currency}
-              onChange={(e) => setFin({ ...fin, currency: e.target.value })}
+              onChange={(e) => updateFin({ currency: e.target.value })}
               className="w-full px-3 py-2 text-[14px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
             >
               <option value="USD">USD ($)</option>
@@ -1714,12 +1800,12 @@ function FinancialTab() {
           <FieldLabel>Weekly hours target</FieldLabel>
           <TextInput
             value={fin.weeklyTarget}
-            onChange={(e) => setFin({ ...fin, weeklyTarget: e.target.value })}
+            onChange={(e) => updateFin({ weeklyTarget: e.target.value })}
             className="!w-28 tabular-nums"
           />
           <div className="text-[12px] text-muted-foreground mt-1.5">Used for utilization calculations on Insights</div>
         </div>
-        <SaveButton onClick={saveGlobal} saving={savingGlobal} />
+        {/* Save handled by sticky bar */}
       </SectionCard>
 
       {/* Invoice defaults */}
@@ -1731,7 +1817,7 @@ function FinancialTab() {
               <FieldLabel>Payment terms</FieldLabel>
               <select
                 value={inv.paymentTerms}
-                onChange={(e) => setInv({ ...inv, paymentTerms: e.target.value })}
+                onChange={(e) => updateInv({ paymentTerms: e.target.value })}
                 className="w-full px-3 py-2 text-[14px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
               >
                 <option>Due on receipt</option>
@@ -1745,7 +1831,7 @@ function FinancialTab() {
               <FieldLabel>Late fee (%/month)</FieldLabel>
               <TextInput
                 value={inv.lateFee}
-                onChange={(e) => setInv({ ...inv, lateFee: e.target.value })}
+                onChange={(e) => updateInv({ lateFee: e.target.value })}
                 className="!w-full tabular-nums"
               />
             </div>
@@ -1754,7 +1840,7 @@ function FinancialTab() {
             <FieldLabel>Default invoice notes</FieldLabel>
             <textarea
               value={inv.invoiceNotes}
-              onChange={(e) => setInv({ ...inv, invoiceNotes: e.target.value })}
+              onChange={(e) => updateInv({ invoiceNotes: e.target.value })}
               rows={3}
               className="w-full px-3 py-2 text-[14px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all resize-none"
             />
@@ -1767,12 +1853,12 @@ function FinancialTab() {
               <div className="text-[12px] text-muted-foreground">Send reminder before invoice is due</div>
             </div>
             <div className="flex items-center gap-3">
-              <Toggle checked={inv.autoReminders} onChange={(v) => setInv({ ...inv, autoReminders: v })} />
+              <Toggle checked={inv.autoReminders} onChange={(v) => updateInv({ autoReminders: v })} />
               {inv.autoReminders && (
                 <div className="flex items-center gap-1.5">
                   <TextInput
                     value={inv.reminderDays}
-                    onChange={(e) => setInv({ ...inv, reminderDays: e.target.value })}
+                    onChange={(e) => updateInv({ reminderDays: e.target.value })}
                     className="!w-14 tabular-nums text-center"
                   />
                   <span className="text-[12px] text-muted-foreground">days before</span>
@@ -1781,7 +1867,7 @@ function FinancialTab() {
             </div>
           </div>
         </div>
-        <SaveButton onClick={saveInvoice} saving={savingInvoice} />
+        {/* Save handled by sticky bar */}
       </SectionCard>
 
       {/* Invoice templates (Studio) */}
@@ -1834,7 +1920,7 @@ function FinancialTab() {
             <Plus className="w-4 h-4" />
           </button>
         </div>
-        <SaveButton onClick={saveRates} saving={savingRates} />
+        {/* Save handled by sticky bar */}
       </SectionCard>
     </motion.div>
   );
@@ -2460,9 +2546,9 @@ function NotificationsTab() {
   const { workspaceId, user } = useAuth();
   const [prefs, setPrefs] = useState<Record<string, { in_app: boolean; email: boolean }>>({});
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const { can } = usePlan();
   const hasAdvanced = can("advancedNotifications");
+  const { markDirty } = useSettingsSave();
 
   // Also keep retainer threshold from workspace_settings
   const [wsPrefs, wsLoading, setWsPrefs] = useSettingsSection("notifications", defaultNotifPrefs);
@@ -2487,11 +2573,16 @@ function NotificationsTab() {
       ...prev,
       [category]: { ...prev[category], [channel]: !prev[category]?.[channel] },
     }));
+    markDirty();
   };
 
-  const save = async () => {
+  const updateWsPrefs = (patch: any) => {
+    setWsPrefs({ ...wsPrefs, ...patch });
+    markDirty();
+  };
+
+  const save = useCallback(async () => {
     if (!workspaceId || !user) return;
-    setSaving(true);
     try {
       const { upsertPreference } = await import('@/data/notificationsApi');
       await Promise.all(
@@ -2510,10 +2601,10 @@ function NotificationsTab() {
       toast.success("Notification preferences saved");
     } catch (err: any) {
       toast.error(err.message || "Failed to save preferences");
-    } finally {
-      setSaving(false);
     }
-  };
+  }, [workspaceId, user, prefs, wsPrefs]);
+
+  useRegisterSave(save);
 
   if (loading || wsLoading) return <LoadingState />;
 
@@ -2598,7 +2689,7 @@ function NotificationsTab() {
           </div>
           <Toggle
             checked={wsPrefs.autoMarkOverdue ?? false}
-            onChange={(v) => setWsPrefs({ ...wsPrefs, autoMarkOverdue: v })}
+            onChange={(v) => updateWsPrefs({ autoMarkOverdue: v })}
           />
         </div>
         <AnimatePresence>
@@ -2645,14 +2736,14 @@ function NotificationsTab() {
             max={95}
             step={5}
             value={wsPrefs.retainerThreshold}
-            onChange={(e) => setWsPrefs({ ...wsPrefs, retainerThreshold: Number(e.target.value) })}
+            onChange={(e) => updateWsPrefs({ retainerThreshold: Number(e.target.value) })}
             className="flex-1 h-1.5 bg-accent/60 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer"
           />
           <div className="w-14 text-center text-[15px] tabular-nums" style={{ fontWeight: 600 }}>
             {wsPrefs.retainerThreshold}%
           </div>
         </div>
-        <SaveButton onClick={save} saving={saving} />
+        {/* Save handled by sticky bar */}
       </SectionCard>
 
       {/* Email Activity Log — all clients */}
