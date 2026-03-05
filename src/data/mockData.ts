@@ -187,12 +187,12 @@ export const revenueBreakdown = {
 
 // Workspace info
 export const workspace = {
-  name: 'Knaggs Design',
-  url: 'knaggsdesigns.com',
+  name: '',
+  url: '',
   brandColor: '#5ea1bf',
-  userName: 'Joe Knaggs',
-  userEmail: 'joe@knaggsdesigns.com',
-  userInitials: 'JK',
+  userName: '',
+  userEmail: '',
+  userInitials: '',
   role: 'Owner',
   timezone: 'America/New_York',
   currency: 'USD',
@@ -202,11 +202,7 @@ export const workspace = {
 };
 
 // Team members
-export const teamMembers = [
-  { id: 'jk', name: 'Joe Knaggs', email: 'joe@knaggsdesigns.com', role: 'Owner', initials: 'JK', joinedDate: 'Mar 2024', lastActive: 'Today' },
-  { id: 'am', name: 'Alex Morgan', email: 'alex@knaggsdesigns.com', role: 'Admin', initials: 'AM', joinedDate: 'Jun 2024', lastActive: 'Yesterday' },
-  { id: 'sk', name: 'Sam Kim', email: 'sam@knaggsdesigns.com', role: 'Member', initials: 'SK', joinedDate: 'Jan 2025', lastActive: '3 days ago' },
-];
+export const teamMembers: any[] = [];
 
 // Notification preferences
 export const notificationPreferences = {

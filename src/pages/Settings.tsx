@@ -50,7 +50,6 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
 import {
-  workspace as defaultWorkspace,
   financialSettings as defaultFinancial,
   teamMembers as defaultTeam,
   notificationPreferences as defaultNotifPrefs,
@@ -440,10 +439,11 @@ export default function Settings() {
 // Profile Tab
 // ═══════════════════════════════════════════════════════════════════
 function ProfileTab() {
+  const { user, workspaceRole } = useAuth();
   const defaultProfile = {
-    name: defaultWorkspace.userName,
-    email: defaultWorkspace.userEmail,
-    timezone: defaultWorkspace.timezone,
+    name: user?.name || '',
+    email: user?.email || '',
+    timezone: 'America/New_York',
     theme: "light" as "light" | "dark" | "system",
   };
 
@@ -590,7 +590,7 @@ function ProfileTab() {
             <div className="text-[12px] text-muted-foreground">Assigned by workspace owner</div>
           </div>
           <div className="px-2.5 py-0.5 text-[11px] rounded-full bg-primary/8 text-primary" style={{ fontWeight: 500 }}>
-            {defaultWorkspace.role}
+            {workspaceRole || 'Member'}
           </div>
         </div>
         <div className="mb-6">
@@ -917,11 +917,14 @@ function SetupChecklistToggle() {
 // Workspace Tab
 // ═══════════════════════════════════════════════════════════════════
 function WorkspaceTab() {
+  const { workspaceId, allWorkspaces, renameWorkspace } = useAuth();
+  const currentWs = allWorkspaces.find(w => w.id === workspaceId);
+
   const defaultWs = {
-    name: defaultWorkspace.name,
-    url: defaultWorkspace.url,
-    brandColor: defaultWorkspace.brandColor,
-    fiscalYear: defaultWorkspace.fiscalYearStart,
+    name: currentWs?.name || '',
+    url: '',
+    brandColor: '#5ea1bf',
+    fiscalYear: 'January',
   };
 
   const [ws, loading, setWs] = useSettingsSection("workspace", defaultWs);
@@ -933,6 +936,13 @@ function WorkspaceTab() {
   const appInputRef = useRef<HTMLInputElement>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
   const { initLogos, setInitLogos } = useData();
+
+  // Sync workspace name from actual workspace record if settings don't have one yet
+  useEffect(() => {
+    if (!loading && !ws.name && currentWs?.name) {
+      setWs({ ...ws, name: currentWs.name });
+    }
+  }, [loading, currentWs?.name]);
 
   // Load existing logos
   useEffect(() => {
@@ -953,11 +963,15 @@ function WorkspaceTab() {
   const save = useCallback(async () => {
     try {
       await api.saveSetting("workspace", ws);
+      // Also sync workspace name to the workspaces table so it shows in the sidebar/switcher
+      if (ws.name && workspaceId) {
+        await renameWorkspace(workspaceId, ws.name);
+      }
       toast.success("Workspace saved");
     } catch (err: any) {
       toast.error(err.message || "Failed to save workspace");
     }
-  }, [ws]);
+  }, [ws, workspaceId, renameWorkspace]);
 
   useRegisterSave(save);
 
@@ -1069,7 +1083,7 @@ function WorkspaceTab() {
             <div className="text-[13px] text-muted-foreground mb-1" style={{ fontWeight: 500 }}>
               App logo
             </div>
-            <div className="text-[12px] text-muted-foreground mb-3">SVG or PNG brand mark for sidebar and portal</div>
+            <div className="text-[12px] text-muted-foreground mb-3">Square brand mark or icon for the sidebar and client portal header. SVG or PNG, ideally under 200×200px.</div>
             {appLogo ? (
               <div className="border border-border rounded-lg p-4 flex items-center gap-4">
                 <img src={appLogo.url} alt="App logo" className="h-12 w-auto max-w-[200px] object-contain rounded" />
@@ -1081,12 +1095,23 @@ function WorkspaceTab() {
                     {appLogo.fileName?.split(".").pop()?.toUpperCase() || "PNG"} &middot; Uploaded
                   </div>
                 </div>
-                <button
-                  onClick={() => handleDeleteLogo("app")}
-                  className="w-8 h-8 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-all"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => appInputRef.current?.click()}
+                    disabled={uploadingApp}
+                    className="px-3 py-1.5 text-[12px] border border-border rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-all flex items-center gap-1.5"
+                    style={{ fontWeight: 500 }}
+                  >
+                    {uploadingApp ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
+                    Replace
+                  </button>
+                  <button
+                    onClick={() => handleDeleteLogo("app")}
+                    className="w-8 h-8 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-all"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
             ) : (
               <div
@@ -1109,7 +1134,10 @@ function WorkspaceTab() {
               accept="image/png,image/svg+xml,image/jpeg,image/webp"
               className="hidden"
               onChange={(e) => {
-                if (e.target.files?.[0]) handleLogoUpload(e.target.files[0], "app");
+                if (e.target.files?.[0]) {
+                  handleLogoUpload(e.target.files[0], "app");
+                  e.target.value = "";
+                }
               }}
             />
           </div>
@@ -1118,7 +1146,7 @@ function WorkspaceTab() {
             <div className="text-[13px] text-muted-foreground mb-1" style={{ fontWeight: 500 }}>
               Email logo
             </div>
-            <div className="text-[12px] text-muted-foreground mb-3">PNG, JPG, or WEBP for client-facing emails</div>
+            <div className="text-[12px] text-muted-foreground mb-3">Horizontal logo for invoice and notification email headers. PNG, JPG, or WEBP, recommended 400×100px.</div>
             {emailLogo ? (
               <div className="border border-border rounded-lg p-4 flex items-center gap-4">
                 <img
@@ -1134,12 +1162,23 @@ function WorkspaceTab() {
                     {emailLogo.fileName?.split(".").pop()?.toUpperCase() || "PNG"} &middot; Uploaded
                   </div>
                 </div>
-                <button
-                  onClick={() => handleDeleteLogo("email")}
-                  className="w-8 h-8 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-all"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => emailInputRef.current?.click()}
+                    disabled={uploadingEmail}
+                    className="px-3 py-1.5 text-[12px] border border-border rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-all flex items-center gap-1.5"
+                    style={{ fontWeight: 500 }}
+                  >
+                    {uploadingEmail ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
+                    Replace
+                  </button>
+                  <button
+                    onClick={() => handleDeleteLogo("email")}
+                    className="w-8 h-8 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-all"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
             ) : (
               <div
@@ -1162,7 +1201,10 @@ function WorkspaceTab() {
               accept="image/png,image/jpeg,image/webp"
               className="hidden"
               onChange={(e) => {
-                if (e.target.files?.[0]) handleLogoUpload(e.target.files[0], "email");
+                if (e.target.files?.[0]) {
+                  handleLogoUpload(e.target.files[0], "email");
+                  e.target.value = "";
+                }
               }}
             />
           </div>
@@ -1707,8 +1749,8 @@ function FinancialTab() {
     costRate: defaultFinancial.costRate.toString(),
     taxRate: (defaultFinancial.taxRate * 100).toString(),
     processingFee: (defaultFinancial.processingFeeRate * 100).toFixed(1),
-    currency: defaultWorkspace.currency,
-    weeklyTarget: defaultWorkspace.weeklyHoursTarget.toString(),
+    currency: 'USD',
+    weeklyTarget: '40',
   };
   const defaultInvData = {
     paymentTerms: defaultInvoice.paymentTerms,

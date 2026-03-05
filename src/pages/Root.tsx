@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Outlet, NavLink, useLocation, useNavigate, Navigate } from 'react-router';
 import { LayoutDashboard, Users, Clock, TrendingUp, Settings, Play, Square, Menu, X, FolderKanban, LogOut, FileText, Sun, Moon, Lock, PanelLeftClose, PanelLeftOpen, Monitor } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { workspace } from '../data/mockData';
+
 import { useData, DataProvider } from '../data/DataContext';
 import { NotificationCenter } from '../components/NotificationCenter';
 import { NotificationEvents } from '../data/notificationsApi';
@@ -148,12 +148,14 @@ function RootLayout() {
 
   
 
-  const displayName = user?.name || workspace.userName;
-  const displayEmail = user?.email || workspace.userEmail;
-  const displayInitials = user?.initials || workspace.userInitials;
+  const displayName = user?.name || '';
+  const displayEmail = user?.email || '';
+  const displayInitials = user?.initials || '';
 
-  // Workspace identity for sidebar block
-  const wsName = initSettings?.workspace?.name || initSettings?.workspace?.workspaceName || workspace.name;
+  // Workspace identity for sidebar block — prefer the actual workspace record name from allWorkspaces
+  const { allWorkspaces } = useAuth();
+  const currentWs = allWorkspaces.find(w => w.id === workspaceId);
+  const wsName = initSettings?.workspace?.name || currentWs?.name || '';
   const wsLogoUrl = initLogos?.app?.url || null;
   const wsInitial = wsName ? wsName.charAt(0).toUpperCase() : 'W';
 
