@@ -3,8 +3,8 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router";
 import { Eye, EyeOff, ArrowRight, Loader2, Check, X } from "lucide-react";
 import { useAuth } from "../data/AuthContext";
-import { AureloIcon } from "../components/AureloIcon";
 import { AureloWordmark } from "../components/AureloWordmark";
+import { AuthVisualPanel } from "../components/AuthVisualPanel";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 
@@ -353,70 +353,7 @@ export default function Signup() {
         </motion.div>
       </div>
 
-      {/* Right — Visual Panel */}
-      <div className="hidden lg:flex flex-1 relative overflow-hidden">
-        <div
-          className="absolute inset-0"
-          style={{
-            background: `
-            radial-gradient(ellipse at 25% 0%, rgba(94, 161, 191, 0.14) 0%, transparent 50%),
-            radial-gradient(ellipse at 85% 90%, rgba(191, 160, 68, 0.06) 0%, transparent 45%),
-            linear-gradient(160deg, #eef4f7 0%, #e6edf2 40%, #e0e8ee 70%, #dae3ea 100%)
-          `,
-          }}
-        />
-        <div
-          className="absolute inset-0 opacity-[0.025]"
-          style={{
-            backgroundImage: `
-            linear-gradient(rgba(94,161,191,1) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(94,161,191,1) 1px, transparent 1px)
-          `,
-            backgroundSize: "56px 56px",
-          }}
-        />
-
-        <motion.div
-          animate={{ y: [0, -10, 0] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-[15%] left-[10%] w-28 h-28 rounded-2xl bg-white/20 border border-white/25"
-        />
-        <motion.div
-          animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute top-[30%] right-[12%] w-20 h-20 rounded-xl bg-[#5ea1bf]/[0.04] border border-[#5ea1bf]/[0.08]"
-        />
-        <motion.div
-          animate={{ y: [0, -6, 0] }}
-          transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute bottom-[20%] left-[20%] w-16 h-16 rounded-full bg-white/15 border border-white/20"
-        />
-
-        <div className="relative z-10 flex flex-col items-center justify-center w-full px-12">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.97 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.15 }}
-            className="text-center max-w-[280px]"
-          >
-            <div
-              className="w-11 h-11 rounded-2xl bg-white/60 backdrop-blur-sm border border-white/50 flex items-center justify-center mx-auto mb-5"
-              style={{ boxShadow: "0 4px 20px rgba(0,0,0,0.04)" }}
-            >
-              <AureloIcon className="w-5 h-5 text-[#5ea1bf]" />
-            </div>
-            <h2
-              className="text-[24px] text-[#1c1c1c]/70 mb-2.5"
-              style={{ fontWeight: 600, letterSpacing: "-0.015em", lineHeight: 1.2 }}
-            >
-              Freelance grows here.
-            </h2>
-            <p className="text-[13px] text-[#717182]/60 leading-relaxed">
-              Track time, manage clients, and see where your business is headed.
-            </p>
-          </motion.div>
-        </div>
-      </div>
+      <AuthVisualPanel />
     </div>
   );
 }
