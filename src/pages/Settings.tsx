@@ -45,6 +45,7 @@ import {
   GripVertical,
   Lock,
   ArrowRight,
+  Search,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
@@ -3175,9 +3176,19 @@ const FAQ_CATEGORIES = [...new Set(FAQ_ITEMS.map((f) => f.category))];
 
 function SupportTab() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [activeCategory, setActiveCategory] = useState<string>("all");
+  const [faqSearch, setFaqSearch] = useState("");
 
-  const filteredFaqs = activeCategory === "all" ? FAQ_ITEMS : FAQ_ITEMS.filter((f) => f.category === activeCategory);
+  const filtered = FAQ_ITEMS.filter((f) => {
+    if (!faqSearch.trim()) return true;
+    const q = faqSearch.toLowerCase();
+    return f.question.toLowerCase().includes(q) || f.answer.toLowerCase().includes(q) || f.category.toLowerCase().includes(q);
+  });
+
+  // Group by category
+  const grouped = filtered.reduce<Record<string, typeof FAQ_ITEMS>>((acc, faq) => {
+    (acc[faq.category] ??= []).push(faq);
+    return acc;
+  }, {});
 
   return (
     <motion.div className="space-y-6" variants={container} initial="hidden" animate="show">
@@ -3207,87 +3218,75 @@ function SupportTab() {
         </div>
       </SectionCard>
 
-      {/* FAQ / Knowledge Base */}
+      {/* FAQ */}
       <SectionCard>
         <SectionHeader title="Frequently asked questions" description="Quick answers to common questions about Aurelo" />
 
-        {/* Category filters */}
-        <div className="flex flex-wrap gap-1.5 mb-5">
-          <button
-            onClick={() => { setActiveCategory("all"); setOpenFaq(null); }}
-            className={`px-3 py-1.5 text-[12px] rounded-full border transition-all ${
-              activeCategory === "all"
-                ? "bg-primary/10 border-primary/30 text-primary"
-                : "border-border text-muted-foreground hover:text-foreground hover:bg-accent/40"
-            }`}
-            style={{ fontWeight: 500 }}
-          >
-            All
-          </button>
-          {FAQ_CATEGORIES.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => { setActiveCategory(cat); setOpenFaq(null); }}
-              className={`px-3 py-1.5 text-[12px] rounded-full border transition-all ${
-                activeCategory === cat
-                  ? "bg-primary/10 border-primary/30 text-primary"
-                  : "border-border text-muted-foreground hover:text-foreground hover:bg-accent/40"
-              }`}
-              style={{ fontWeight: 500 }}
-            >
-              {cat}
-            </button>
-          ))}
+        {/* Search */}
+        <div className="relative mb-5">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/60" />
+          <input
+            type="text"
+            value={faqSearch}
+            onChange={(e) => { setFaqSearch(e.target.value); setOpenFaq(null); }}
+            placeholder="Search questions..."
+            className="w-full pl-9 pr-3 py-2 text-[13px] rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
+          />
         </div>
 
-        {/* Accordion */}
-        <div className="space-y-1">
-          {filteredFaqs.map((faq, idx) => {
-            const globalIdx = FAQ_ITEMS.indexOf(faq);
-            const isOpen = openFaq === globalIdx;
-            return (
-              <div key={globalIdx} className="border border-border rounded-lg overflow-hidden">
-                <button
-                  onClick={() => setOpenFaq(isOpen ? null : globalIdx)}
-                  className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-accent/30 transition-colors"
-                >
-                  <ChevronRight
-                    className={`w-3.5 h-3.5 text-muted-foreground flex-shrink-0 transition-transform duration-200 ${
-                      isOpen ? "rotate-90" : ""
-                    }`}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[14px] text-foreground" style={{ fontWeight: 500 }}>
-                      {faq.question}
-                    </div>
-                  </div>
-                  {activeCategory === "all" && (
-                    <span className="text-[11px] text-muted-foreground/70 px-2 py-0.5 rounded-full bg-accent/50 flex-shrink-0">
-                      {faq.category}
-                    </span>
-                  )}
-                </button>
-                <AnimatePresence>
-                  {isOpen && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-                      className="overflow-hidden"
-                    >
-                      <div className="px-4 pb-4 pl-[2.75rem]">
-                        <p className="text-[13px] text-muted-foreground leading-relaxed">
-                          {faq.answer}
-                        </p>
+        {Object.keys(grouped).length === 0 ? (
+          <div className="py-8 text-center">
+            <p className="text-[13px] text-muted-foreground">No questions match your search.</p>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {Object.entries(grouped).map(([category, faqs]) => (
+              <div key={category}>
+                <div className="text-[11px] text-muted-foreground/70 uppercase tracking-wider mb-2 px-1" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>
+                  {category}
+                </div>
+                <div className="divide-y divide-border rounded-lg border border-border overflow-hidden">
+                  {faqs.map((faq) => {
+                    const globalIdx = FAQ_ITEMS.indexOf(faq);
+                    const isOpen = openFaq === globalIdx;
+                    return (
+                      <div key={globalIdx}>
+                        <button
+                          onClick={() => setOpenFaq(isOpen ? null : globalIdx)}
+                          className="w-full flex items-center gap-2.5 px-3.5 py-3 text-left hover:bg-accent/30 transition-colors"
+                        >
+                          <ChevronRight
+                            className={`w-3 h-3 text-muted-foreground/50 flex-shrink-0 transition-transform duration-200 ${isOpen ? "rotate-90" : ""}`}
+                          />
+                          <span className="text-[13px] text-foreground flex-1" style={{ fontWeight: 450 }}>
+                            {faq.question}
+                          </span>
+                        </button>
+                        <AnimatePresence>
+                          {isOpen && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+                              className="overflow-hidden"
+                            >
+                              <div className="px-3.5 pb-3 pl-[2.25rem]">
+                                <p className="text-[12.5px] text-muted-foreground leading-[1.6]">
+                                  {faq.answer}
+                                </p>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                    );
+                  })}
+                </div>
               </div>
-            );
-          })}
-        </div>
+            ))}
+          </div>
+        )}
       </SectionCard>
 
       {/* Resources */}
