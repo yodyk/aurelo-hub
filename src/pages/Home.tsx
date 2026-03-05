@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from "recharts";
 import { motion, AnimatePresence } from "motion/react";
-import { workspace as defaultWorkspace } from "../data/mockData";
+
 import { useData } from "../data/DataContext";
 import { useAuth } from "../data/AuthContext";
 import * as settingsApi from "../data/settingsApi";
@@ -134,7 +134,7 @@ export default function Home() {
   const [viewMode, setViewMode] = useState<"gross" | "net">("gross");
   const [financialOpen, setFinancialOpen] = useState(false);
   const [sourceOpen, setSourceOpen] = useState(false);
-  const [workspaceName, setWorkspaceName] = useState(defaultWorkspace.name);
+  const [workspaceName, setWorkspaceName] = useState('');
   const [workspaceLogo, setWorkspaceLogo] = useState<string | null>(null);
   const [profileName, setProfileName] = useState<string | null>(null);
   
@@ -163,7 +163,7 @@ export default function Home() {
     loadAllProjects().catch(() => {});
   }, [user]);
 
-  const displayFirstName = (profileName || user?.name || defaultWorkspace.userName).split(" ")[0];
+  const displayFirstName = (profileName || user?.name || '').split(" ")[0] || 'there';
 
   // ── Computed metrics ───────────────────────────────────────────────
   const thisMonthSessions = useMemo(() => getMonthSessions(sessions, 0), [sessions]);

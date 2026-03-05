@@ -39,6 +39,14 @@ export async function deleteAvatar(workspaceId: string): Promise<void> {
 // ── Logos ────────────────────────────────────────────────────────────
 
 export async function uploadLogo(workspaceId: string, type: 'app' | 'email', file: File): Promise<string> {
+  // Delete any existing logo files for this type (handles extension changes)
+  const { data: existing } = await supabase.storage.from('logos').list(workspaceId, { limit: 10 });
+  if (existing) {
+    const oldFiles = existing.filter(f => f.name.startsWith(`${type}.`));
+    if (oldFiles.length > 0) {
+      await supabase.storage.from('logos').remove(oldFiles.map(f => `${workspaceId}/${f.name}`));
+    }
+  }
   const ext = file.name.split('.').pop() || 'png';
   const path = `${workspaceId}/${type}.${ext}`;
   const { error } = await supabase.storage.from('logos').upload(path, file, { upsert: true });
