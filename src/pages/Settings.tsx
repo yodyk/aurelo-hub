@@ -1319,9 +1319,14 @@ function IdentitySection() {
   const handleAddCategory = async () => {
     const trimmed = newCategory.trim();
     if (!trimmed) return;
-    // Check single word
-    if (trimmed.includes(" ")) {
-      toast.error("Categories should be single words");
+    // Check max 3 words, max 30 characters
+    const wordCount = trimmed.split(/\s+/).length;
+    if (wordCount > 3) {
+      toast.error("Categories can be up to 3 words");
+      return;
+    }
+    if (trimmed.length > 30) {
+      toast.error("Categories must be 30 characters or less");
       return;
     }
     // Check duplicates
