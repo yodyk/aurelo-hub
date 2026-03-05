@@ -3459,49 +3459,13 @@ function DataTab() {
     <motion.div className="space-y-6" variants={container} initial="hidden" animate="show">
       <SectionCard>
         <SectionHeader title="Export data" description="Download your workspace data as CSV or JSON" />
-        {!canExport ? (
-          <div className="py-6 text-center">
-            <div className="w-10 h-10 rounded-xl bg-[#5ea1bf]/10 flex items-center justify-center mx-auto mb-3">
-              <Download className="w-4 h-4 text-[#5ea1bf]" />
-            </div>
-            <p className="text-[13px] text-muted-foreground mb-1">Data export is available on the Pro plan</p>
-            <p className="text-[12px] text-muted-foreground/60">
-              Export clients, sessions, financial summaries, and full backups
-            </p>
+        <div className="flex items-center gap-2 px-1 py-3">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[11px]" style={{ fontWeight: 600, letterSpacing: '0.02em' }}>
+            <Clock className="w-3 h-3" />
+            Coming April 2026
           </div>
-        ) : (
-          <div className="space-y-2">
-            {exports.map((exp) => (
-              <div
-                key={exp.type}
-                className="flex items-center gap-4 py-3 px-3 rounded-lg hover:bg-accent/30 transition-colors group"
-              >
-                <div className="w-9 h-9 rounded-lg bg-accent/60 flex items-center justify-center flex-shrink-0 text-muted-foreground">
-                  <exp.icon className="w-4 h-4" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-[14px]" style={{ fontWeight: 500 }}>
-                    {exp.label}
-                  </div>
-                  <div className="text-[12px] text-muted-foreground">{exp.description}</div>
-                </div>
-                <button
-                  onClick={() => handleExport(exp.type, exp.label)}
-                  disabled={exporting === exp.type}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-all opacity-0 group-hover:opacity-100 disabled:opacity-100"
-                  style={{ fontWeight: 500 }}
-                >
-                  {exporting === exp.type ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  ) : (
-                    <Download className="w-3.5 h-3.5" />
-                  )}
-                  {exporting === exp.type ? "Exporting..." : "Export"}
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
+          <span className="text-[12px] text-muted-foreground">Data export is being rebuilt with download history and scheduled exports.</span>
+        </div>
       </SectionCard>
 
 

@@ -1,0 +1,1 @@
+ALTER TABLE public.portal_tokens ADD CONSTRAINT portal_tokens_client_workspace_unique UNIQUE (client_id, workspace_id);
