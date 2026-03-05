@@ -155,7 +155,7 @@ function RootLayout() {
   // Workspace identity for sidebar block — prefer the actual workspace record name from allWorkspaces
   const { allWorkspaces } = useAuth();
   const currentWs = allWorkspaces.find(w => w.id === workspaceId);
-  const wsName = initSettings?.workspace?.name || currentWs?.name || '';
+  const wsName = currentWs?.name || initSettings?.workspace?.name || '';
   const wsLogoUrl = initLogos?.app?.url || null;
   const wsInitial = wsName ? wsName.charAt(0).toUpperCase() : 'W';
 
