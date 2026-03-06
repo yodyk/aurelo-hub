@@ -571,7 +571,7 @@ export default function TimeLog() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.1 + groupIndex * 0.05 + index * 0.03 }}
-                  className={`flex items-center gap-3 md:gap-4 px-4 md:px-6 py-4 border-b border-border last:border-0 hover:bg-accent/30 transition-colors cursor-pointer group ${isSelected ? "bg-primary/4" : ""}`}
+                  className={`flex items-center gap-2 md:gap-4 px-3 md:px-6 py-3 md:py-4 border-b border-border last:border-0 hover:bg-accent/30 transition-colors cursor-pointer group ${isSelected ? "bg-primary/4" : ""}`}
                 >
                   {/* Checkbox */}
                   <button
@@ -608,7 +608,7 @@ export default function TimeLog() {
                     </div>
 
                     {session.allocationType && session.allocationType !== "general" && (
-                      <div className="flex-shrink-0">
+                      <div className="flex-shrink-0 hidden md:block">
                         <span
                           className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/6 text-[10px] rounded-full text-primary border border-primary/10"
                           style={{ fontWeight: 500 }}

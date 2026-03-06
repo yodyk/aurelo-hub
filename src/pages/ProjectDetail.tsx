@@ -502,7 +502,7 @@ export default function ProjectDetail() {
               </div>
             ) : (
               <h1
-                className="text-[24px] tracking-tight mb-2 cursor-pointer hover:text-primary/80 transition-colors group flex items-center gap-2"
+                className="text-[20px] md:text-[24px] tracking-tight mb-2 cursor-pointer hover:text-primary/80 transition-colors group flex items-center gap-2"
                 style={{ fontWeight: 600 }}
                 onClick={() => {
                   setEditName(project.name);
@@ -775,7 +775,7 @@ export default function ProjectDetail() {
           >
             {/* Summary Cards */}
             {budgetData && (
-              <div className={`grid ${canViewFinancials ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-2'} gap-4 mb-8`}>
+              <div className={`grid ${canViewFinancials ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-1 sm:grid-cols-2'} gap-3 md:gap-4 mb-8`}>
                 {canViewFinancials && (
                 <div
                   className="bg-card border border-border rounded-xl p-5"
