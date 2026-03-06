@@ -221,8 +221,21 @@ function RootLayout() {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
+  // Auto-close mobile menu on resize above lg
+  useEffect(() => {
+    const mql = window.matchMedia('(min-width: 1024px)');
+    const handler = () => { if (mql.matches) setMobileMenuOpen(false); };
+    mql.addEventListener('change', handler);
+    return () => mql.removeEventListener('change', handler);
+  }, []);
+
+  // Auto-close mobile menu on navigation
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
+
   const sidebarWidth = sidebarCollapsed ? 'w-[72px]' : 'w-64';
-  const mainMargin = sidebarCollapsed ? 'ml-[72px]' : 'ml-64';
+  const mainMargin = sidebarCollapsed ? 'lg:ml-[72px]' : 'lg:ml-64';
 
   return (
     <div className="min-h-screen flex bg-background">
