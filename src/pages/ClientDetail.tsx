@@ -224,7 +224,7 @@ export default function ClientDetail() {
 
   if (!client) {
     return (
-      <div className="max-w-7xl mx-auto px-6 lg:px-12 py-12">
+      <div className="w-full min-w-0 max-w-7xl mx-auto px-6 lg:px-12 py-12">
         <div className="text-center text-muted-foreground py-24">
           <div className="text-[48px] mb-4">?</div>
           <div className="text-[16px]" style={{ fontWeight: 500 }}>
@@ -507,7 +507,7 @@ export default function ClientDetail() {
   };
 
   return (
-    <motion.div className="max-w-7xl mx-auto px-6 lg:px-12 py-6 md:py-12" variants={container} initial="hidden" animate="show">
+    <motion.div className="w-full min-w-0 max-w-7xl mx-auto px-6 lg:px-12 py-6 md:py-12" variants={container} initial="hidden" animate="show">
       {/* Back link */}
       <motion.div variants={item}>
         <Link
