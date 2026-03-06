@@ -230,7 +230,7 @@ export default function Home() {
         net: Math.round(gross * netMultiplier),
       });
     }
-    return months.map((d) => ({ ...d, value: viewMode === "gross" ? d.earnings : d.net }));
+    return months.map((d) => ({ ...d, gross: d.earnings, value: viewMode === "gross" ? d.earnings : d.net }));
   }, [sessions, viewMode, netMultiplier]);
 
   // Revenue by source
@@ -815,7 +815,26 @@ export default function Home() {
                     padding: "8px 14px",
                     color: "var(--foreground)",
                   }}
-                  formatter={(value: number) => [`$${value.toLocaleString()}`, viewMode === "gross" ? "Gross (before taxes)" : "Net (after fees & taxes)"]}
+                  content={({ active, payload, label }) => {
+                    if (!active || !payload?.length) return null;
+                    const d = payload[0]?.payload;
+                    if (!d) return null;
+                    return (
+                      <div style={{
+                        background: "var(--card, #fff)",
+                        border: "1px solid var(--border)",
+                        borderRadius: "8px",
+                        fontSize: "13px",
+                        boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+                        padding: "8px 14px",
+                        color: "var(--foreground)",
+                      }}>
+                        <p style={{ fontWeight: 600, marginBottom: 4 }}>{label}</p>
+                        <p style={{ color: "#38bdf8" }}>Gross: ${d.gross?.toLocaleString()}</p>
+                        <p style={{ color: "#0ea5e9" }}>Net: ${d.net?.toLocaleString()}</p>
+                      </div>
+                    );
+                  }}
                   cursor={{ stroke: "#38bdf8", strokeWidth: 1, strokeOpacity: 0.3 }}
                 />
                 {/* Glow layer — thicker, filtered, no fill */}
