@@ -2478,7 +2478,7 @@ function TeamTab({ readOnly = false }: { readOnly?: boolean }) {
                 </div>
 
                 {/* Name & email — takes available space, min-width prevents squish */}
-                <div className="flex-1 min-w-[140px]">
+                <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <div className="text-[14px]" style={{ fontWeight: 500 }}>
                       {member.name || member.email}
@@ -2648,17 +2648,17 @@ function TeamTab({ readOnly = false }: { readOnly?: boolean }) {
             <div className="text-[13px] text-muted-foreground mb-3" style={{ fontWeight: 500 }}>
               Invite member
             </div>
-            <div className="flex gap-2 flex-wrap">
+            <div className="flex flex-col sm:flex-row gap-2">
               <TextInput
                 value={inviteEmail}
                 onChange={(e) => setInviteEmail(e.target.value)}
                 placeholder="Email address"
-                className="flex-1 min-w-[200px]"
+                className="w-full sm:flex-1 min-w-0"
               />
               <select
                 value={inviteRole}
                 onChange={(e) => setInviteRole(e.target.value)}
-                className="px-3 py-2 text-[13px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
+                className="w-full sm:w-auto px-3 py-2 text-[13px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
                 style={{ fontWeight: 500 }}
               >
                 <option>Member</option>
@@ -2667,7 +2667,7 @@ function TeamTab({ readOnly = false }: { readOnly?: boolean }) {
               <select
                 value={inviteCapacity}
                 onChange={(e) => setInviteCapacity(Number(e.target.value))}
-                className="px-3 py-2 text-[13px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
+                className="w-full sm:w-auto px-3 py-2 text-[13px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
                 style={{ fontWeight: 500 }}
               >
                 <option value={40}>Full-time (40h)</option>
