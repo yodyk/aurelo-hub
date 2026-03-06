@@ -209,7 +209,8 @@ export default function TeamUtilization() {
           </div>
         ) : (
           <div className="bg-card border border-border rounded-xl overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.03)]">
-            <table className="w-full">
+            <div className="overflow-x-auto">
+            <table className="w-full min-w-[700px]">
               <thead>
                 <tr className="border-b border-border bg-accent/30">
                   <th className="text-left px-6 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Member</th>
@@ -298,6 +299,7 @@ export default function TeamUtilization() {
                 })}
               </tbody>
             </table>
+            </div>
 
             {/* Pending members section */}
             {pendingMembers.length > 0 && (

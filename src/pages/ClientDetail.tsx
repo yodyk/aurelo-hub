@@ -522,7 +522,7 @@ export default function ClientDetail() {
       {/* Header Panel */}
       <motion.div
         variants={item}
-        className="bg-card border border-border rounded-xl p-8 mb-12 relative overflow-hidden"
+        className="bg-card border border-border rounded-xl p-5 md:p-8 mb-8 md:mb-12 relative overflow-hidden"
         style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.03), 0 1px 2px rgba(0,0,0,0.02)" }}
       >
         <div className="absolute top-0 right-0 w-72 h-72 bg-gradient-to-bl from-primary/[0.03] to-transparent rounded-bl-full pointer-events-none" />
@@ -612,12 +612,12 @@ export default function ClientDetail() {
 
         {/* Primary Metrics */}
         {canViewFinancials && (
-        <div className="grid grid-cols-2 gap-8 mb-8 pb-8 border-b border-border">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 mb-8 pb-8 border-b border-border">
           <div>
             <div className="text-[13px] text-muted-foreground mb-2" style={{ fontWeight: 500 }}>
               This month earnings
             </div>
-            <div className="text-[42px] leading-none tracking-tight text-foreground" style={{ fontWeight: 600 }}>
+            <div className="text-[28px] md:text-[42px] leading-none tracking-tight text-foreground" style={{ fontWeight: 600 }}>
               $
               {viewMode === "gross"
                 ? (client.monthlyEarnings || 0).toLocaleString()
@@ -628,7 +628,7 @@ export default function ClientDetail() {
             <div className="text-[13px] text-muted-foreground mb-2" style={{ fontWeight: 500 }}>
               Effective rate
             </div>
-            <div className="text-[42px] leading-none tracking-tight text-foreground" style={{ fontWeight: 600 }}>
+            <div className="text-[28px] md:text-[42px] leading-none tracking-tight text-foreground" style={{ fontWeight: 600 }}>
               $
               {viewMode === "gross"
                 ? client.trueHourlyRate || client.rate || 0
@@ -639,7 +639,7 @@ export default function ClientDetail() {
         )}
 
         {/* Secondary Metrics */}
-        <div className={`grid ${canViewFinancials ? 'grid-cols-3' : 'grid-cols-1'} gap-8`}>
+        <div className={`grid ${canViewFinancials ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-1'} gap-4 md:gap-8`}>
           {canViewFinancials && (
           <div className="p-4 rounded-lg bg-accent/30 transition-colors hover:bg-accent/50">
             <div className="text-[12px] text-muted-foreground mb-2" style={{ fontWeight: 500 }}>
@@ -913,7 +913,8 @@ export default function ClientDetail() {
         >
           {projects.length > 0 ? (
             <div className="overflow-hidden rounded-lg border border-border">
-              <table className="w-full">
+              <div className="overflow-x-auto">
+              <table className="w-full min-w-[600px]">
                 <thead>
                   <tr className="bg-accent/30 border-b border-border">
                     <th className="text-left px-4 py-2.5 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>
@@ -993,6 +994,7 @@ export default function ClientDetail() {
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           ) : (
             <div className="text-[14px] text-muted-foreground py-4">No projects yet</div>
@@ -1054,7 +1056,7 @@ export default function ClientDetail() {
                         : "Over 70% used — monitor remaining hours"}
                     </div>
                   )}
-                  <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t border-border">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 pt-4 border-t border-border">
                     <div>
                       <div className="text-[12px] text-muted-foreground mb-1" style={{ fontWeight: 500 }}>
                         Monthly price
@@ -1189,7 +1191,8 @@ export default function ClientDetail() {
         >
           {clientSessions.length > 0 ? (
             <div className="overflow-hidden rounded-lg border border-border">
-              <table className="w-full">
+              <div className="overflow-x-auto">
+              <table className="w-full min-w-[600px]">
                 <thead>
                   <tr className="bg-accent/30 border-b border-border">
                     <th className="w-10 px-2 py-2.5">
@@ -1313,6 +1316,7 @@ export default function ClientDetail() {
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           ) : (
             <div className="text-[14px] text-muted-foreground py-4">No sessions logged for this client</div>
