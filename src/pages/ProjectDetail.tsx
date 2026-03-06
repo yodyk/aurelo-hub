@@ -674,7 +674,7 @@ export default function ProjectDetail() {
 
             {/* Add link UI */}
             {addingLink ? (
-              <div className="mt-2 flex items-center gap-2">
+              <div className="mt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                 <input
                   autoFocus
                   value={newLinkUrl}
@@ -686,11 +686,12 @@ export default function ProjectDetail() {
                     if (e.key === "Escape") setAddingLink(false);
                   }}
                 />
+                <div className="flex items-center gap-2">
                 <input
                   value={newLinkLabel}
                   onChange={(e) => setNewLinkLabel(e.target.value)}
                   placeholder="Label (optional)"
-                  className="w-36 text-[13px] px-3 py-1.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  className="w-full sm:w-36 text-[13px] px-3 py-1.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
                   onKeyDown={(e) => {
                     if (e.key === "Enter") handleAddLink();
                   }}
@@ -712,6 +713,7 @@ export default function ProjectDetail() {
                 >
                   <X className="w-4 h-4" />
                 </button>
+                </div>
               </div>
             ) : (
               <button
