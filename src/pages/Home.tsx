@@ -538,15 +538,16 @@ export default function Home() {
               )}
             </div>
           </div>
-          <div className="flex gap-0 bg-accent/60 rounded-lg p-0.5">
-            {(["gross", "net"] as const).map((m) => (
+        <div className="flex gap-0 bg-accent/60 rounded-lg p-0.5">
+            {([{ key: "gross" as const, label: "Before" }, { key: "net" as const, label: "After" }]).map((m) => (
               <button
-                key={m}
-                onClick={() => setViewMode(m)}
-                className={`px-4 py-1.5 text-[13px] rounded-md transition-all duration-200 capitalize ${viewMode === m ? "bg-card text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-                style={{ fontWeight: 500, boxShadow: viewMode === m ? "0 1px 3px rgba(0,0,0,0.04)" : "none" }}
+                key={m.key}
+                onClick={() => setViewMode(m.key)}
+                className={`px-4 py-1.5 text-[13px] rounded-md transition-all duration-200 ${viewMode === m.key ? "bg-card text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                style={{ fontWeight: 500, boxShadow: viewMode === m.key ? "0 1px 3px rgba(0,0,0,0.04)" : "none" }}
+                title={m.key === "gross" ? "Before: total billed" : "After: minus payment fees and estimated taxes"}
               >
-                {m}
+                {m.label}
               </button>
             ))}
           </div>
@@ -582,6 +583,9 @@ export default function Home() {
               className="overflow-hidden"
             >
               <div className="bg-accent/30 rounded-lg p-4 mb-6 space-y-2.5">
+                <div className="text-[11px] text-muted-foreground mb-2">
+                  Based on your settings — <a href="/settings?tab=financial" className="text-primary hover:underline">adjust in Settings → Financial</a>
+                </div>
                 <div className="flex justify-between text-[13px]">
                   <span className="text-muted-foreground">Gross earnings</span>
                   <span className="tabular-nums" style={{ fontWeight: 500 }}>
@@ -590,20 +594,20 @@ export default function Home() {
                 </div>
                 <div className="flex justify-between text-[13px]">
                   <span className="text-muted-foreground">
-                    Processing fee ({(financialDefaults.processingFeeRate * 100).toFixed(1)}%)
+                    Payment processing (Stripe) ({(financialDefaults.processingFeeRate * 100).toFixed(1)}%)
                   </span>
                   <span className="tabular-nums text-muted-foreground">
                     &minus;${Math.round(processingFee).toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between text-[13px]">
-                  <span className="text-muted-foreground">Tax estimate ({financialDefaults.taxRate * 100}%)</span>
+                  <span className="text-muted-foreground">Tax estimate ({financialDefaults.taxRate * 100}%) <span className="text-muted-foreground/60">(your estimated tax rate)</span></span>
                   <span className="tabular-nums text-muted-foreground">
                     &minus;${Math.round(taxEstimate).toLocaleString()}
                   </span>
                 </div>
                 <div className="border-t border-border pt-2 flex justify-between text-[13px]">
-                  <span style={{ fontWeight: 500 }}>Net amount</span>
+                  <span style={{ fontWeight: 500 }}>After fees &amp; taxes</span>
                   <span className="tabular-nums text-primary" style={{ fontWeight: 600 }}>
                     ${Math.round(netEarnings).toLocaleString()}
                   </span>
@@ -688,7 +692,7 @@ export default function Home() {
                 className="text-[11px] text-muted-foreground mb-4"
                 style={{ fontWeight: 600, letterSpacing: "0.06em" }}
               >
-                TRUE HOURLY RATE
+                EFFECTIVE RATE
               </div>
               <div className="flex items-baseline gap-1.5 mb-1.5">
                 <span
@@ -702,15 +706,7 @@ export default function Home() {
                 </span>
               </div>
               <div className="text-[12px] text-muted-foreground">
-                <span className="tabular-nums" style={{ fontWeight: 500 }}>
-                  ${totalHoursThisMonth > 0 ? Math.round(grossEarnings / totalHoursThisMonth) : 0}
-                </span>{" "}
-                gross
-                <span className="mx-1.5 opacity-30">/</span>
-                <span className="tabular-nums" style={{ fontWeight: 500 }}>
-                  ${totalHoursThisMonth > 0 ? Math.round(netEarnings / totalHoursThisMonth) : 0}
-                </span>{" "}
-                net
+                Your earnings divided by all hours — including unpaid time
               </div>
             </div>
             <div className="px-7 py-6">
@@ -718,7 +714,7 @@ export default function Home() {
                 className="text-[11px] text-muted-foreground mb-4"
                 style={{ fontWeight: 600, letterSpacing: "0.06em" }}
               >
-                BILLABLE RATIO
+                PAID VS. UNPAID TIME
               </div>
               <div className="flex items-baseline gap-1.5 mb-1.5">
                 <span className="text-[36px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600 }}>
@@ -792,7 +788,7 @@ export default function Home() {
                     padding: "8px 14px",
                     color: "var(--foreground)",
                   }}
-                  formatter={(value: number) => [`$${value.toLocaleString()}`, viewMode === "gross" ? "Gross" : "Net"]}
+                  formatter={(value: number) => [`$${value.toLocaleString()}`, viewMode === "gross" ? "Before taxes" : "After fees & taxes"]}
                   cursor={{ stroke: "#38bdf8", strokeWidth: 1, strokeOpacity: 0.3 }}
                 />
                 {/* Glow layer — thicker, filtered, no fill */}
@@ -901,7 +897,7 @@ export default function Home() {
                     className="text-[13px] text-muted-foreground"
                     style={{ fontWeight: 600, letterSpacing: "0.02em" }}
                   >
-                    Forward signals
+                    Heads up
                   </span>
                   {!hasFullInsights && (
                     <span
@@ -1517,7 +1513,7 @@ export default function Home() {
                   <p className="text-[12px] text-muted-foreground leading-relaxed">
                     {hasFullInsights
                       ? "See full client rankings, utilization trends, revenue projections, and time analysis on the Insights page."
-                      : "Upgrade to Pro to access client rankings, concentration analysis, forward signals, and historical trends."}
+                      : "Upgrade to Pro to access client rankings, dependency analysis, actionable signals, and historical trends."}
                   </p>
                   {!hasFullInsights && (
                     <span

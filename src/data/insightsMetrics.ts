@@ -307,12 +307,29 @@ export function computeInsightsMetrics(
 
   // Performance cards
   const topShare = clientRankings.length > 0 ? clientRankings[0].share : 0;
-  const utilizationAvg = clientRankings.length > 0 ? Math.round(clientRankings.reduce((s, r) => s + r.utilization, 0) / clientRankings.length) : 0;
+  const topClientName = clientRankings.length > 0 ? clientRankings[0].client : '';
+  const billablePct = totalHours > 0 ? Math.round((billableHours / totalHours) * 100) : 0;
+  const billableFeedback = billablePct >= 80 ? '— great balance' : billablePct >= 60 ? '— solid' : "— you're spending a lot of time on unpaid work";
+
+  // Effective rate trend (month-over-month)
+  const currentMonthRate = recentMonths.length > 0 && recentMonths[recentMonths.length - 1].hours > 0
+    ? Math.round(recentMonths[recentMonths.length - 1].revenue / recentMonths[recentMonths.length - 1].hours)
+    : 0;
+  const prevMonthRate = recentMonths.length > 1 && recentMonths[recentMonths.length - 2].hours > 0
+    ? Math.round(recentMonths[recentMonths.length - 2].revenue / recentMonths[recentMonths.length - 2].hours)
+    : 0;
+  const rateDiff = currentMonthRate - prevMonthRate;
+  const rateTrendDetail = prevMonthRate > 0
+    ? (rateDiff >= 0
+      ? `You're earning $${rateDiff} more per hour than last month`
+      : `Down $${Math.abs(rateDiff)}/hr from last month — check if you're logging more non-billable time`)
+    : `Based on ${Math.round(totalHours)}h total`;
+
   const performance: PerformanceCard[] = [
-    { key: 'concentration', label: 'Client concentration', value: `${topShare}%`, sub: 'top client', detail: topShare > 50 ? 'High dependency — consider diversifying' : 'Healthy distribution', warn: topShare > 50 },
-    { key: 'utilization', label: 'Avg utilization', value: `${utilizationAvg}%`, sub: 'across clients', detail: utilizationAvg >= 80 ? 'Strong utilization' : 'Room to improve' },
-    { key: 'retainer', label: 'Effective rate', value: `$${Math.round(avgHourlyRate)}`, sub: '/hour', detail: `Based on ${Math.round(billableHours)}h billable` },
-    { key: 'margin', label: 'Net margin', value: `${Math.round(netMultiplier * 100)}%`, sub: 'after fees & tax', detail: `$${Math.round(netRevenue).toLocaleString()} net revenue` },
+    { key: 'concentration', label: 'Client dependency', value: `${topShare}%`, sub: topClientName || 'top client', detail: topShare > 50 ? 'Most of your income comes from one client — consider diversifying' : 'Your income is spread across multiple clients — healthy', warn: topShare > 50 },
+    { key: 'utilization', label: 'Billable time', value: `${billablePct}%`, sub: 'of your hours earn money', detail: `${Math.round(billableHours)}h billable of ${Math.round(totalHours)}h total ${billableFeedback}` },
+    { key: 'retainer', label: 'Effective rate', value: `$${Math.round(avgHourlyRate)}`, sub: 'avg. per hour worked', detail: `Based on ${Math.round(billableHours)}h billable` },
+    { key: 'margin', label: 'Rate trend', value: `$${currentMonthRate}`, sub: '/hr this month', detail: rateTrendDetail, warn: rateDiff < -5 },
   ];
 
   // Forward signals

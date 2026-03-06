@@ -219,16 +219,17 @@ export default function Insights() {
           </p>
         </div>
         <div className="flex gap-0 bg-accent/60 rounded-lg p-0.5">
-          {(["gross", "net"] as const).map((m) => (
+          {([{ key: "gross" as const, label: "Before" }, { key: "net" as const, label: "After" }]).map((m) => (
             <button
-              key={m}
-              onClick={() => setViewMode(m)}
-              className={`px-4 py-1.5 text-[13px] rounded-md transition-all duration-200 capitalize ${
-                viewMode === m ? "bg-card text-foreground" : "text-muted-foreground hover:text-foreground"
+              key={m.key}
+              onClick={() => setViewMode(m.key)}
+              className={`px-4 py-1.5 text-[13px] rounded-md transition-all duration-200 ${
+                viewMode === m.key ? "bg-card text-foreground" : "text-muted-foreground hover:text-foreground"
               }`}
-              style={{ fontWeight: 500, boxShadow: viewMode === m ? "0 1px 3px rgba(0,0,0,0.04)" : "none" }}
+              style={{ fontWeight: 500, boxShadow: viewMode === m.key ? "0 1px 3px rgba(0,0,0,0.04)" : "none" }}
+              title={m.key === "gross" ? "Before: total billed" : "After: minus payment fees and estimated taxes"}
             >
-              {m}
+              {m.label}
             </button>
           ))}
         </div>
@@ -506,8 +507,8 @@ export default function Insights() {
             <div className="flex gap-1">
               {([
                 { key: "revenue" as SortKey, label: "Earnings" },
-                { key: "trueHourlyRate" as SortKey, label: "Hourly rate" },
-                { key: "utilization" as SortKey, label: "Utilization" },
+                { key: "trueHourlyRate" as SortKey, label: "Eff. rate" },
+                { key: "utilization" as SortKey, label: "Billable time" },
               ]).map((opt) => (
                 <button
                   key={opt.key}
@@ -536,8 +537,8 @@ export default function Insights() {
                     <th className="text-left px-6 py-3 text-[12px] text-muted-foreground w-12" style={{ fontWeight: 500 }}>#</th>
                     <th className="text-left px-6 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Client</th>
                     <th className="text-right px-6 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Earnings</th>
-                    <th className="text-right px-6 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>True hourly</th>
-                    <th className="text-right px-6 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Utilization</th>
+                    <th className="text-right px-6 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Eff. rate</th>
+                    <th className="text-right px-6 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Billable time</th>
                     <th className="text-left px-6 py-3 text-[12px] text-muted-foreground w-48" style={{ fontWeight: 500 }}>Share</th>
                     <th className="text-center px-6 py-3 text-[12px] text-muted-foreground w-16" style={{ fontWeight: 500 }}>Trend</th>
                   </tr>
@@ -633,11 +634,11 @@ export default function Insights() {
         </div>
       </motion.div>
 
-      {/* Forward Signals */}
+      {/* Heads up */}
       <motion.div variants={item} className="relative">
         {!hasFullInsights && <div className="absolute inset-0 z-10 backdrop-blur-[6px] bg-background/60 rounded-xl" />}
         <div className={!hasFullInsights ? "select-none pointer-events-none" : ""}>
-          <SectionLabel pro={!hasFullInsights} count={metrics.forwardSignals.length}>Forward signals</SectionLabel>
+          <SectionLabel pro={!hasFullInsights} count={metrics.forwardSignals.length}>Heads up</SectionLabel>
           {metrics.forwardSignals.length === 0 && hasFullInsights ? (
             <div className="bg-card border border-border rounded-xl p-12 text-center">
               <div className="text-[14px] text-muted-foreground" style={{ fontWeight: 500 }}>No signals detected</div>

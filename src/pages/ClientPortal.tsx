@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { friendlyPaymentTerms } from "@/data/paymentTermsMap";
 import { motion } from "motion/react";
 import { containerVariants, itemVariants } from "@/lib/motion";
 import { useParams } from "react-router";
