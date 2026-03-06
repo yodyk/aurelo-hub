@@ -2287,19 +2287,27 @@ function TeamTab({ readOnly = false }: { readOnly?: boolean }) {
   const [inviting, setInviting] = useState(false);
   const [editingCapacity, setEditingCapacity] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [resendingId, setResendingId] = useState<string | null>(null);
 
   // Load real workspace_members as the source of truth
   const [members, setMembers] = useState<any[]>([]);
+  // Pending invites from pending_invites table
+  const [pendingInvites, setPendingInvites] = useState<any[]>([]);
+
   useEffect(() => {
     if (!workspaceId) return;
-    supabase
-      .from("workspace_members")
-      .select("id, user_id, name, email, role, status, weekly_capacity, joined_at, invited_at")
-      .eq("workspace_id", workspaceId)
-      .then(({ data }) => {
-        setMembers(data || []);
-        setLoading(false);
-      });
+    // Load members and pending invites in parallel
+    Promise.all([
+      supabase
+        .from("workspace_members")
+        .select("id, user_id, name, email, role, status, weekly_capacity, joined_at, invited_at")
+        .eq("workspace_id", workspaceId),
+      api.loadPendingInvites(workspaceId),
+    ]).then(([{ data: membersData }, invites]) => {
+      setMembers(membersData || []);
+      setPendingInvites(invites);
+      setLoading(false);
+    });
   }, [workspaceId]);
 
   const CAPACITY_PRESETS = [
@@ -2326,21 +2334,29 @@ function TeamTab({ readOnly = false }: { readOnly?: boolean }) {
     if (!inviteEmail) return;
     setInviting(true);
     try {
-      await api.inviteTeamMember(inviteEmail, inviteRole);
-      // Also create workspace_member record with capacity
-      const { data: newMember } = await supabase
-        .from("workspace_members")
-        .insert({
-          workspace_id: workspaceId!,
-          email: inviteEmail,
-          role: inviteRole,
-          status: "pending",
-          weekly_capacity: inviteCapacity,
-          invited_at: new Date().toISOString(),
-        } as any)
-        .select()
-        .single();
-      if (newMember) setMembers((prev) => [...prev, newMember]);
+      const inviteData = await api.inviteTeamMember(inviteEmail, inviteRole);
+      // Update pending invites list
+      setPendingInvites(prev => {
+        const filtered = prev.filter(i => i.email !== inviteEmail);
+        return [inviteData, ...filtered];
+      });
+      // Also create workspace_member record with capacity (if not already exists)
+      const existingMember = members.find(m => m.email === inviteEmail);
+      if (!existingMember) {
+        const { data: newMember } = await supabase
+          .from("workspace_members")
+          .insert({
+            workspace_id: workspaceId!,
+            email: inviteEmail,
+            role: inviteRole,
+            status: "pending",
+            weekly_capacity: inviteCapacity,
+            invited_at: new Date().toISOString(),
+          } as any)
+          .select()
+          .single();
+        if (newMember) setMembers((prev) => [...prev, newMember]);
+      }
       toast.success(`Invite sent to ${inviteEmail}`);
       setInviteEmail("");
       setInviteCapacity(40);
@@ -2348,6 +2364,35 @@ function TeamTab({ readOnly = false }: { readOnly?: boolean }) {
       toast.error(err.message || "Failed to send invite");
     } finally {
       setInviting(false);
+    }
+  };
+
+  const handleResendInvite = async (inviteId: string, email: string) => {
+    setResendingId(inviteId);
+    try {
+      await api.resendInvite(inviteId);
+      setPendingInvites(prev => prev.map(i => i.id === inviteId ? { ...i, invited_at: new Date().toISOString() } : i));
+      toast.success(`Invite resent to ${email}`);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to resend invite");
+    } finally {
+      setResendingId(null);
+    }
+  };
+
+  const handleRevokeInvite = async (inviteId: string, email: string) => {
+    try {
+      await api.revokeInvite(inviteId);
+      setPendingInvites(prev => prev.filter(i => i.id !== inviteId));
+      // Also remove the pending workspace_member
+      const pendingMember = members.find(m => m.email === email && m.status === 'pending');
+      if (pendingMember) {
+        await api.removeTeamMember(pendingMember.id);
+        setMembers(prev => prev.filter(m => m.id !== pendingMember.id));
+      }
+      toast.success(`Invite to ${email} revoked`);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to revoke invite");
     }
   };
 
@@ -2399,7 +2444,6 @@ function TeamTab({ readOnly = false }: { readOnly?: boolean }) {
   if (loading) return <LoadingState />;
 
   const activeMembers = members.filter((m) => m.status === "active");
-  const pendingMembers = members.filter((m) => m.status === "pending");
 
   return (
     <motion.div className="space-y-6" variants={container} initial="hidden" animate="show">
@@ -2528,48 +2572,73 @@ function TeamTab({ readOnly = false }: { readOnly?: boolean }) {
           })}
 
           {/* Pending invites */}
-          {pendingMembers.length > 0 && (
+          {pendingInvites.length > 0 && (
             <>
               <div className="pt-3 mt-3 border-t border-border">
                 <span className="text-[11px] text-muted-foreground px-3" style={{ fontWeight: 600, letterSpacing: "0.04em" }}>
-                  PENDING ({pendingMembers.length})
+                  PENDING INVITES ({pendingInvites.length})
                 </span>
               </div>
-              {pendingMembers.map((member: any) => (
-                <div
-                  key={member.id}
-                  className="flex items-center gap-3 py-3 px-3 rounded-lg opacity-60 group"
-                >
-                  <div className="w-9 h-9 rounded-full bg-muted/50 flex items-center justify-center flex-shrink-0">
-                    <span className="text-[12px] text-muted-foreground" style={{ fontWeight: 600 }}>
-                      {member.email.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[13px] text-muted-foreground truncate">{member.email}</div>
-                  </div>
-                  <span className="text-[11px] text-muted-foreground tabular-nums">
-                    {(member.weekly_capacity ?? 40)}h/w
-                  </span>
-                  <span className="text-[11px] px-2 py-0.5 rounded-full bg-accent text-muted-foreground" style={{ fontWeight: 500 }}>
-                    Pending
-                  </span>
+              {pendingInvites.map((invite: any) => {
+                const timeSince = (() => {
+                  if (!invite.invited_at) return '';
+                  const diff = Date.now() - new Date(invite.invited_at).getTime();
+                  const mins = Math.floor(diff / 60000);
+                  if (mins < 60) return `${mins}m ago`;
+                  const hrs = Math.floor(mins / 60);
+                  if (hrs < 24) return `${hrs}h ago`;
+                  const days = Math.floor(hrs / 24);
+                  return `${days}d ago`;
+                })();
+
+                return (
                   <div
-                    className={`px-2 py-0.5 text-[11px] rounded-full ${roleColors[member.role] || "bg-accent/80 text-muted-foreground"}`}
-                    style={{ fontWeight: 500 }}
+                    key={invite.id}
+                    className="flex items-center gap-3 py-3 px-3 rounded-lg hover:bg-accent/20 transition-colors group"
                   >
-                    {member.role}
-                  </div>
-                  {!readOnly && (
-                    <button
-                      onClick={() => removeMember(member.id)}
-                      className="w-6 h-6 flex items-center justify-center rounded hover:bg-accent/60 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all"
+                    <div className="w-9 h-9 rounded-full bg-muted/50 flex items-center justify-center flex-shrink-0">
+                      <Mail className="w-4 h-4 text-muted-foreground" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[13px] text-muted-foreground truncate">{invite.email}</div>
+                      <div className="text-[11px] text-muted-foreground/60">
+                        Invited {timeSince}
+                      </div>
+                    </div>
+                    <div
+                      className={`px-2 py-0.5 text-[11px] rounded-full ${roleColors[invite.role] || "bg-accent/80 text-muted-foreground"}`}
+                      style={{ fontWeight: 500 }}
                     >
-                      <X className="w-3 h-3" />
-                    </button>
-                  )}
-                </div>
-              ))}
+                      {invite.role}
+                    </div>
+                    {!readOnly && (
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => handleResendInvite(invite.id, invite.email)}
+                          disabled={resendingId === invite.id}
+                          className="inline-flex items-center gap-1 px-2 py-1 text-[11px] rounded-md text-primary hover:bg-primary/8 transition-colors disabled:opacity-50"
+                          style={{ fontWeight: 500 }}
+                          title="Resend invitation email"
+                        >
+                          {resendingId === invite.id ? (
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                          ) : (
+                            <RefreshCw className="w-3 h-3" />
+                          )}
+                          Resend
+                        </button>
+                        <button
+                          onClick={() => handleRevokeInvite(invite.id, invite.email)}
+                          className="w-6 h-6 flex items-center justify-center rounded hover:bg-accent/60 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all"
+                          title="Revoke invite"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </>
           )}
         </div>
