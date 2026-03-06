@@ -122,24 +122,77 @@ export async function inviteTeamMember(email: string, role: string): Promise<any
   const wsId = await resolveWorkspaceId();
   if (!wsId) throw new Error('No workspace found');
   const { data: { user } } = await supabase.auth.getUser();
-  const { data, error } = await supabase.from('pending_invites').insert({
-    workspace_id: wsId,
-    email,
-    role,
-    invited_by: user!.id,
-  }).select().single();
-  if (error) throw new Error(`Failed to invite: ${error.message}`);
+
+  // Check for existing pending invite — update instead of failing on duplicate
+  const { data: existing } = await supabase
+    .from('pending_invites')
+    .select('id')
+    .eq('workspace_id', wsId)
+    .eq('email', email)
+    .maybeSingle();
+
+  let inviteData: any;
+  if (existing) {
+    // Update the existing invite (role, timestamp)
+    const { data, error } = await supabase
+      .from('pending_invites')
+      .update({ role, invited_by: user!.id, invited_at: new Date().toISOString() })
+      .eq('id', existing.id)
+      .select()
+      .single();
+    if (error) throw new Error(`Failed to update invite: ${error.message}`);
+    inviteData = data;
+  } else {
+    const { data, error } = await supabase.from('pending_invites').insert({
+      workspace_id: wsId,
+      email,
+      role,
+      invited_by: user!.id,
+    }).select().single();
+    if (error) throw new Error(`Failed to invite: ${error.message}`);
+    inviteData = data;
+  }
 
   // Send invitation email via edge function
   try {
     await supabase.functions.invoke('send-workspace-invite', {
-      body: { inviteId: data.id },
+      body: { inviteId: inviteData.id },
     });
   } catch (emailErr) {
     console.warn('[settingsApi] Invite email failed (invite still created):', emailErr);
   }
 
-  return data;
+  return inviteData;
+}
+
+export async function resendInvite(inviteId: string): Promise<void> {
+  // Update invited_at timestamp
+  await supabase.from('pending_invites')
+    .update({ invited_at: new Date().toISOString() })
+    .eq('id', inviteId);
+
+  try {
+    await supabase.functions.invoke('send-workspace-invite', {
+      body: { inviteId },
+    });
+  } catch (emailErr) {
+    throw new Error('Failed to send invite email');
+  }
+}
+
+export async function revokeInvite(inviteId: string): Promise<void> {
+  const { error } = await supabase.from('pending_invites').delete().eq('id', inviteId);
+  if (error) throw new Error(`Failed to revoke invite: ${error.message}`);
+}
+
+export async function loadPendingInvites(workspaceId: string): Promise<any[]> {
+  const { data, error } = await supabase
+    .from('pending_invites')
+    .select('id, email, role, invited_at, invited_by')
+    .eq('workspace_id', workspaceId)
+    .order('invited_at', { ascending: false });
+  if (error) return [];
+  return data || [];
 }
 
 export async function removeTeamMember(id: string): Promise<void> {
