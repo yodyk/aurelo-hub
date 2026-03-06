@@ -68,14 +68,14 @@ export default function Clients() {
   return (
     <motion.div
       data-tour="client-list"
-      className="max-w-7xl mx-auto px-6 lg:px-12 py-12"
+      className="max-w-7xl mx-auto px-6 lg:px-12 py-6 md:py-12"
       variants={container}
       initial="hidden"
       animate="show"
     >
-      <motion.div variants={item} className="flex items-end justify-between mb-8">
+      <motion.div variants={item} className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-[24px] tracking-tight mb-1" style={{ fontWeight: 600 }}>
+          <h1 className="text-[20px] md:text-[24px] tracking-tight mb-1" style={{ fontWeight: 600 }}>
             Clients
           </h1>
           <p className="text-[14px] text-muted-foreground">
