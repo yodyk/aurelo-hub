@@ -381,7 +381,7 @@ export default function Insights() {
         {!hasFullInsights && <ProUpgradeOverlay />}
         <div className={!hasFullInsights ? "select-none pointer-events-none" : ""}>
           <SectionLabel pro={!hasFullInsights}>Forecasting & projections</SectionLabel>
-          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
               { label: "Projected monthly", value: `$${applyViewMode(metrics.forecast.projectedMonthly).toLocaleString()}`, sub: "next month est.", icon: TrendingUp },
               { label: "Projected annual", value: `$${applyViewMode(metrics.forecast.projectedAnnual).toLocaleString()}`, sub: "annualized run rate", icon: BarChart3 },
@@ -398,15 +398,15 @@ export default function Insights() {
                 icon: Target,
               },
             ].map((card) => (
-              <div key={card.label} className="bg-card border border-border rounded-xl p-5">
+              <div key={card.label} className="bg-card border border-border rounded-xl p-4 md:p-5">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-7 h-7 rounded-lg bg-primary/8 flex items-center justify-center">
                     <card.icon className="w-3.5 h-3.5 text-primary" />
                   </div>
                   <span className="text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>{card.label}</span>
                 </div>
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-[22px] leading-none text-foreground tabular-nums" style={{ fontWeight: 600 }}>{card.value}</span>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[20px] md:text-[22px] leading-none text-foreground tabular-nums" style={{ fontWeight: 600 }}>{card.value}</span>
                   <span className="text-[11px] text-muted-foreground">{card.sub}</span>
                 </div>
               </div>

@@ -428,16 +428,16 @@ export default function TimeLog() {
 
       {/* Filters */}
       <motion.div variants={item} className="mb-6 space-y-3">
-        <div className="flex gap-2 flex-wrap items-center">
+        <div className="flex flex-col md:flex-row gap-2 md:gap-2 md:flex-wrap md:items-center">
           {/* Search */}
-          <div className="relative">
+          <div className="relative w-full md:w-56">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search sessions..."
-              className="pl-9 pr-8 py-2 w-56 bg-card border border-border rounded-lg text-[14px] placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+              className="pl-9 pr-8 py-2 w-full bg-card border border-border rounded-lg text-[14px] placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
             />
             {searchQuery && (
               <button
@@ -449,51 +449,53 @@ export default function TimeLog() {
             )}
           </div>
 
-          <div className="h-8 w-px bg-border self-center" />
+          <div className="hidden md:block h-8 w-px bg-border self-center" />
 
-          {/* Date range */}
-          <div className="relative">
-            <select
-              value={dateRange}
-              onChange={(e) => setDateRange(e.target.value)}
-              className="appearance-none pl-10 pr-8 py-2 bg-card border border-border rounded-lg text-[14px] hover:bg-accent/40 transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20"
-              style={{ fontWeight: 500 }}
-            >
-              <option>This Month</option>
-              <option>Last 7 days</option>
-              <option>Last 30 days</option>
-              <option>This Quarter</option>
-              <option>This Year</option>
-              <option>All time</option>
-            </select>
-            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
-          </div>
+          <div className="flex gap-2 items-center w-full md:w-auto">
+            {/* Date range */}
+            <div className="relative flex-1 md:flex-none">
+              <select
+                value={dateRange}
+                onChange={(e) => setDateRange(e.target.value)}
+                className="appearance-none pl-10 pr-8 py-2 w-full md:w-auto bg-card border border-border rounded-lg text-[14px] hover:bg-accent/40 transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20"
+                style={{ fontWeight: 500 }}
+              >
+                <option>This Month</option>
+                <option>Last 7 days</option>
+                <option>Last 30 days</option>
+                <option>This Quarter</option>
+                <option>This Year</option>
+                <option>All time</option>
+              </select>
+              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+            </div>
 
-          {/* Client filter */}
-          <div className="relative">
-            <select
-              value={selectedClient || ""}
-              onChange={(e) => setSelectedClient(e.target.value || null)}
-              className="appearance-none px-4 py-2 pr-8 bg-card border border-border rounded-lg text-[14px] hover:bg-accent/40 transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20"
-              style={{ fontWeight: 500 }}
-            >
-              <option value="">All clients</option>
-              {clients
-                .filter((c: any) => c.status === "Active" || c.status === "Prospect")
-                .map((c: any) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+            {/* Client filter */}
+            <div className="relative flex-1 md:flex-none">
+              <select
+                value={selectedClient || ""}
+                onChange={(e) => setSelectedClient(e.target.value || null)}
+                className="appearance-none px-4 py-2 pr-8 w-full md:w-auto bg-card border border-border rounded-lg text-[14px] hover:bg-accent/40 transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20"
+                style={{ fontWeight: 500 }}
+              >
+                <option value="">All clients</option>
+                {clients
+                  .filter((c: any) => c.status === "Active" || c.status === "Prospect")
+                  .map((c: any) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+            </div>
           </div>
 
           {/* Active filter indicators */}
           {(searchQuery || selectedClient || (selectedFilter && selectedFilter !== "All")) && (
             <>
-              <div className="h-8 w-px bg-border self-center" />
+              <div className="hidden md:block h-8 w-px bg-border self-center" />
               <button
                 onClick={() => {
                   setSearchQuery("");
@@ -501,7 +503,7 @@ export default function TimeLog() {
                   setSelectedFilter(null);
                   setDateRange("This Month");
                 }}
-                className="px-3 py-2 text-[13px] text-muted-foreground hover:text-foreground hover:bg-accent/40 rounded-lg border border-border transition-all"
+                className="px-3 py-2 text-[13px] text-muted-foreground hover:text-foreground hover:bg-accent/40 rounded-lg border border-border transition-all w-full md:w-auto"
                 style={{ fontWeight: 500 }}
               >
                 Clear filters
@@ -511,12 +513,12 @@ export default function TimeLog() {
         </div>
 
         {/* Tag pills */}
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-2 overflow-x-auto pb-1 -mx-6 px-6 md:mx-0 md:px-0 md:flex-wrap">
           {allTags.map((tag) => (
             <button
               key={tag}
               onClick={() => setSelectedFilter(selectedFilter === tag ? null : tag)}
-              className={`px-3 py-1.5 text-[12px] rounded-lg border transition-all duration-200 ${
+              className={`px-3 py-1.5 text-[12px] rounded-lg border transition-all duration-200 whitespace-nowrap flex-shrink-0 ${
                 selectedFilter === tag
                   ? "bg-primary/8 border-primary/20 text-primary"
                   : "bg-card border-border text-muted-foreground hover:text-foreground hover:bg-accent/40"
@@ -569,7 +571,7 @@ export default function TimeLog() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.1 + groupIndex * 0.05 + index * 0.03 }}
-                  className={`flex items-center gap-3 md:gap-4 px-4 md:px-6 py-4 border-b border-border last:border-0 hover:bg-accent/30 transition-colors cursor-pointer group ${isSelected ? "bg-primary/4" : ""}`}
+                  className={`flex items-center gap-2 md:gap-4 px-3 md:px-6 py-3 md:py-4 border-b border-border last:border-0 hover:bg-accent/30 transition-colors cursor-pointer group ${isSelected ? "bg-primary/4" : ""}`}
                 >
                   {/* Checkbox */}
                   <button
@@ -606,7 +608,7 @@ export default function TimeLog() {
                     </div>
 
                     {session.allocationType && session.allocationType !== "general" && (
-                      <div className="flex-shrink-0">
+                      <div className="flex-shrink-0 hidden md:block">
                         <span
                           className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/6 text-[10px] rounded-full text-primary border border-primary/10"
                           style={{ fontWeight: 500 }}
@@ -638,13 +640,13 @@ export default function TimeLog() {
                       ))}
                     </div>
 
-                    <div className="text-right flex-shrink-0 w-16">
-                      <div className="text-[14px] tabular-nums" style={{ fontWeight: 500 }}>
+                    <div className="text-right flex-shrink-0 w-12 md:w-16">
+                      <div className="text-[13px] md:text-[14px] tabular-nums" style={{ fontWeight: 500 }}>
                         {session.duration}h
                       </div>
                     </div>
-                    <div className="text-right flex-shrink-0 w-16">
-                      <div className="text-[14px] tabular-nums" style={{ fontWeight: 500 }}>
+                    <div className="text-right flex-shrink-0 w-12 md:w-16">
+                      <div className="text-[13px] md:text-[14px] tabular-nums" style={{ fontWeight: 500 }}>
                         ${session.revenue}
                       </div>
                     </div>

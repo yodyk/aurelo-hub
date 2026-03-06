@@ -1479,7 +1479,7 @@ function IdentitySection() {
             transition={{ duration: 0.2 }}
             className="overflow-hidden mb-6"
           >
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {IDENTITY_OPTIONS.map((option) => {
                 const OptIcon = IDENTITY_ICONS[option.value];
                 const isActive = normalizedIdentity === option.value;
@@ -1839,7 +1839,7 @@ function FinancialTab() {
       {/* Global defaults */}
       <SectionCard>
         <SectionHeader title="Global defaults" description="Applied to all Gross / Net calculations across Aurelo" />
-        <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
           <div>
             <FieldLabel>Internal cost rate ($/hr)</FieldLabel>
             <TextInput
@@ -1896,7 +1896,7 @@ function FinancialTab() {
       <SectionCard>
         <SectionHeader title="Invoice defaults" description="Pre-fill settings for new invoices" />
         <div className="space-y-4 mb-6">
-          <div className="grid grid-cols-2 gap-4">
+           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <FieldLabel>Payment terms</FieldLabel>
               <select
@@ -2168,7 +2168,7 @@ function InvoiceTemplatesSection() {
                 <FieldLabel>Template name</FieldLabel>
                 <TextInput value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Monthly Retainer" className="!w-full" />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <FieldLabel>Payment terms</FieldLabel>
                   <select

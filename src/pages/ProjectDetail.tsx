@@ -502,7 +502,7 @@ export default function ProjectDetail() {
               </div>
             ) : (
               <h1
-                className="text-[24px] tracking-tight mb-2 cursor-pointer hover:text-primary/80 transition-colors group flex items-center gap-2"
+                className="text-[20px] md:text-[24px] tracking-tight mb-2 cursor-pointer hover:text-primary/80 transition-colors group flex items-center gap-2"
                 style={{ fontWeight: 600 }}
                 onClick={() => {
                   setEditName(project.name);
@@ -674,7 +674,7 @@ export default function ProjectDetail() {
 
             {/* Add link UI */}
             {addingLink ? (
-              <div className="mt-2 flex items-center gap-2">
+              <div className="mt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                 <input
                   autoFocus
                   value={newLinkUrl}
@@ -686,11 +686,12 @@ export default function ProjectDetail() {
                     if (e.key === "Escape") setAddingLink(false);
                   }}
                 />
+                <div className="flex items-center gap-2">
                 <input
                   value={newLinkLabel}
                   onChange={(e) => setNewLinkLabel(e.target.value)}
                   placeholder="Label (optional)"
-                  className="w-36 text-[13px] px-3 py-1.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  className="w-full sm:w-36 text-[13px] px-3 py-1.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
                   onKeyDown={(e) => {
                     if (e.key === "Enter") handleAddLink();
                   }}
@@ -712,6 +713,7 @@ export default function ProjectDetail() {
                 >
                   <X className="w-4 h-4" />
                 </button>
+                </div>
               </div>
             ) : (
               <button
@@ -773,7 +775,7 @@ export default function ProjectDetail() {
           >
             {/* Summary Cards */}
             {budgetData && (
-              <div className={`grid ${canViewFinancials ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-2'} gap-4 mb-8`}>
+              <div className={`grid ${canViewFinancials ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-1 sm:grid-cols-2'} gap-3 md:gap-4 mb-8`}>
                 {canViewFinancials && (
                 <div
                   className="bg-card border border-border rounded-xl p-5"

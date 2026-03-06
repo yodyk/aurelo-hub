@@ -1468,16 +1468,17 @@ export default function ClientDetail() {
                 </div>
 
                 {/* Portal URL */}
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                   <div
-                    className="flex-1 px-3 py-2 text-[13px] bg-accent/30 border border-border rounded-lg text-muted-foreground truncate tabular-nums"
+                    className="flex-1 min-w-0 px-3 py-2 text-[13px] bg-accent/30 border border-border rounded-lg text-muted-foreground truncate tabular-nums"
                     style={{ fontFamily: "ui-monospace, monospace" }}
                   >
                     {window.location.origin}/portal/{portalConfig.token}
                   </div>
+                  <div className="flex gap-2">
                   <button
                     onClick={handleCopyPortalLink}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 text-[13px] bg-primary/8 text-primary rounded-lg hover:bg-primary/12 transition-all"
+                    className="inline-flex items-center gap-1.5 px-3 py-2 text-[13px] bg-primary/8 text-primary rounded-lg hover:bg-primary/12 transition-all flex-1 sm:flex-none justify-center"
                     style={{ fontWeight: 500 }}
                   >
                     {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
@@ -1487,12 +1488,13 @@ export default function ClientDetail() {
                     href={`/portal/${portalConfig.token}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-2 text-[13px] border border-border rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-all"
+                    className="inline-flex items-center gap-1.5 px-3 py-2 text-[13px] border border-border rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-all flex-1 sm:flex-none justify-center"
                     style={{ fontWeight: 500 }}
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
                     Preview
                   </a>
+                  </div>
                 </div>
 
                 {/* Cost visibility note */}
@@ -1646,7 +1648,7 @@ function CollapsibleSection({
             onToggle();
           }
         }}
-        className="w-full flex items-center justify-between px-6 py-4 hover:bg-accent/30 transition-all duration-200 group cursor-pointer select-none"
+        className="w-full flex items-center justify-between px-4 md:px-6 py-4 hover:bg-accent/30 transition-all duration-200 group cursor-pointer select-none"
       >
         <div className="flex items-center gap-3">
           <Icon className={`w-4 h-4 ${variant === "danger" ? "text-[#c27272]" : "text-muted-foreground"}`} />
@@ -1678,7 +1680,7 @@ function CollapsibleSection({
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="px-6 pb-6">{children}</div>
+            <div className="px-4 md:px-6 pb-6">{children}</div>
           </motion.div>
         )}
       </AnimatePresence>
