@@ -474,7 +474,7 @@ export default function ProjectDetail() {
       {/* HEADER                                                      */}
       {/* ════════════════════════════════════════════════════════════ */}
       <motion.div variants={item} className="mb-6">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
           <div className="flex-1 min-w-0">
             {/* Project name */}
             {editingName ? (

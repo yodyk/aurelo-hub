@@ -508,9 +508,9 @@ export default function Insights() {
       <motion.div variants={item} className="mb-8 relative">
         {!hasFullInsights && <ProUpgradeOverlay />}
         <div className={!hasFullInsights ? "select-none pointer-events-none" : ""}>
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-4">
             <SectionLabel pro={!hasFullInsights}>Client rankings</SectionLabel>
-            <div className="flex gap-1">
+            <div className="flex gap-1 overflow-x-auto pb-1 -mx-1 px-1">
               {([
                 { key: "revenue" as SortKey, label: "Earnings" },
                 { key: "trueHourlyRate" as SortKey, label: "Eff. rate" },
@@ -519,7 +519,7 @@ export default function Insights() {
                 <button
                   key={opt.key}
                   onClick={() => setSortBy(opt.key)}
-                  className={`px-2.5 py-1 text-[12px] rounded-md transition-all ${
+                  className={`px-2.5 py-1 text-[12px] rounded-md transition-all whitespace-nowrap ${
                     sortBy === opt.key ? "bg-primary/8 text-primary" : "text-muted-foreground hover:text-foreground"
                   }`}
                   style={{ fontWeight: 500 }}

@@ -155,7 +155,7 @@ export function NotificationCenter({ workspaceId }: NotificationCenterProps) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 4, scale: 0.97 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 top-full mt-2 w-[calc(100vw-2rem)] sm:w-96 max-w-96 bg-card border border-border rounded-xl overflow-hidden z-50"
+            className="absolute top-full mt-2 left-2 right-2 w-auto sm:left-auto sm:right-0 sm:w-96 max-w-[calc(100vw-1rem)] sm:max-w-96 bg-card border border-border rounded-xl overflow-hidden z-50"
             style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04)' }}
           >
             {/* Header */}
