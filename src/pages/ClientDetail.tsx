@@ -540,7 +540,7 @@ export default function ClientDetail() {
             </div>
 
             <div>
-              <h1 className="text-[22px] md:text-[28px] tracking-tight mb-1.5 flex items-center gap-2" style={{ fontWeight: 600 }}>
+              <h1 className="text-[20px] md:text-[28px] tracking-tight mb-1.5 flex items-center gap-2" style={{ fontWeight: 600 }}>
                 {client.name}
               </h1>
               <div className="flex items-center gap-2.5 mb-3">
@@ -1084,7 +1084,7 @@ export default function ClientDetail() {
                   </div>
                   {/* Manual send retainer update */}
                   <div className="mt-4 pt-4 border-t border-border">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                       <div>
                         <div className="text-[13px]" style={{ fontWeight: 500 }}>Send retainer update</div>
                         <div className="text-[12px] text-muted-foreground">
@@ -1527,7 +1527,7 @@ export default function ClientDetail() {
           onToggle={() => toggleSection("danger")}
           variant="danger"
         >
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <div className="text-[14px] mb-1" style={{ fontWeight: 500 }}>
                 Archive this client
