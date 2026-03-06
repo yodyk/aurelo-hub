@@ -507,7 +507,7 @@ export default function ClientDetail() {
   };
 
   return (
-    <motion.div className="max-w-7xl mx-auto px-6 lg:px-12 py-12" variants={container} initial="hidden" animate="show">
+    <motion.div className="max-w-7xl mx-auto px-6 lg:px-12 py-6 md:py-12" variants={container} initial="hidden" animate="show">
       {/* Back link */}
       <motion.div variants={item}>
         <Link
@@ -527,7 +527,7 @@ export default function ClientDetail() {
       >
         <div className="absolute top-0 right-0 w-72 h-72 bg-gradient-to-bl from-primary/[0.03] to-transparent rounded-bl-full pointer-events-none" />
 
-        <div className="flex items-start justify-between mb-8 relative">
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-8 relative">
           <div className="flex items-start gap-4">
             <div className="w-14 h-14 bg-primary/8 rounded-xl flex items-center justify-center overflow-hidden">
               {clientFaviconUrl ? (
@@ -540,7 +540,7 @@ export default function ClientDetail() {
             </div>
 
             <div>
-              <h1 className="text-[28px] tracking-tight mb-1.5 flex items-center gap-2" style={{ fontWeight: 600 }}>
+              <h1 className="text-[22px] md:text-[28px] tracking-tight mb-1.5 flex items-center gap-2" style={{ fontWeight: 600 }}>
                 {client.name}
               </h1>
               <div className="flex items-center gap-2.5 mb-3">
@@ -555,7 +555,7 @@ export default function ClientDetail() {
                   {client.model}
                 </div>
               </div>
-              <div className="flex items-center gap-4 text-[13px] text-muted-foreground">
+              <div className="flex flex-wrap items-center gap-4 text-[13px] text-muted-foreground">
                 <span className="flex items-center gap-1.5">
                   <Mail className="w-3.5 h-3.5" />
                   {client.contactName} &middot; {client.contactEmail}

@@ -362,10 +362,10 @@ export default function Invoicing() {
   }
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
+    <div className="p-4 md:p-8 max-w-6xl mx-auto">
       <motion.div variants={container} initial="hidden" animate="show">
         {/* Header */}
-        <motion.div variants={item} className="flex items-center justify-between mb-8">
+        <motion.div variants={item} className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-[22px] text-foreground" style={{ fontWeight: 600, letterSpacing: "-0.02em" }}>
               Invoicing
@@ -398,7 +398,7 @@ export default function Invoicing() {
         </motion.div>
 
         {/* Stats row */}
-        <motion.div variants={item} className="grid grid-cols-4 gap-4 mb-6">
+        <motion.div variants={item} className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           {[
             { label: "Outstanding", value: formatCurrency(stats.outstanding), icon: Clock, color: GOLD },
             { label: "Paid (30d)", value: formatCurrency(stats.paidLast30), icon: CheckCircle2, color: BLUE },
@@ -471,7 +471,7 @@ export default function Invoicing() {
         </motion.div>
 
         {/* Filter bar */}
-        <motion.div variants={item} className="flex items-center gap-3 mb-4">
+        <motion.div variants={item} className="flex flex-col md:flex-row md:items-center gap-3 mb-4">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
             <input
@@ -534,6 +534,7 @@ export default function Invoicing() {
             className="bg-card border border-border rounded-xl overflow-hidden"
             style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}
           >
+            <div className="overflow-x-auto">
             {loading ? (
               <div className="flex items-center justify-center py-16">
                 <div className="w-5 h-5 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
@@ -621,6 +622,7 @@ export default function Invoicing() {
                 </tbody>
               </table>
             )}
+            </div>
           </div>
         </motion.div>
       </motion.div>
