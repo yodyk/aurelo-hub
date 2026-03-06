@@ -1267,12 +1267,24 @@ export default function Home() {
                               </div>
                               <div className="text-[11px] text-muted-foreground">{proj.clientName}</div>
                             </div>
-                            <span
-                              className="text-[12px] tabular-nums text-muted-foreground ml-3"
-                              style={{ fontWeight: 500 }}
-                            >
-                              {proj.completion}%
-                            </span>
+                            <div className="flex items-center gap-2 ml-3 flex-shrink-0">
+                              <span
+                                className="text-[12px] tabular-nums text-muted-foreground"
+                                style={{ fontWeight: 500 }}
+                              >
+                                {proj.completion}%
+                              </span>
+                              {proj.totalValue > 0 && proj.hours > 0 && (() => {
+                                const effRate = Math.round(proj.totalValue / proj.hours);
+                                const cl = clients.find(c => c.id === proj.clientId);
+                                const rateColor = cl && effRate < (cl.rate * 0.5) ? '#c27272' : cl && effRate < cl.rate ? '#bfa044' : '#5ea1bf';
+                                return (
+                                  <span className="text-[11px] tabular-nums" style={{ fontWeight: 500, color: rateColor }}>
+                                    · ${effRate}/hr
+                                  </span>
+                                );
+                              })()}
+                            </div>
                           </div>
                           <div className="h-1.5 bg-accent/60 rounded-full overflow-hidden">
                             <div

@@ -954,6 +954,19 @@ export default function ClientDetail() {
                       </td>
                       <td className="px-4 py-3 text-[14px] text-right tabular-nums" style={{ fontWeight: 500 }}>
                         ${(project.totalValue || 0).toLocaleString()}
+                        {(() => {
+                          if (!project.totalValue || project.totalValue <= 0) return null;
+                          if (!project.hours || project.hours <= 0) return (
+                            <div className="text-[11px] text-muted-foreground mt-0.5">${project.totalValue.toLocaleString()} total</div>
+                          );
+                          const effRate = Math.round(project.totalValue / project.hours);
+                          const rateColor = effRate < (client.rate * 0.5) ? '#c27272' : effRate < client.rate ? '#bfa044' : '#5ea1bf';
+                          return (
+                            <div className="text-[11px] mt-0.5 tabular-nums" style={{ fontWeight: 500, color: rateColor }}>
+                              ${effRate}/hr effective
+                            </div>
+                          );
+                        })()}
                       </td>
                       <td className="px-4 py-3 text-[14px] text-right tabular-nums text-muted-foreground">
                         {project.hours || 0}/{project.estimatedHours || 0}h
