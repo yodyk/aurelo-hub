@@ -77,7 +77,7 @@ export function usePlan(): PlanContextType {
   return ctx;
 }
 
-export function PlanProvider({ children, initialPlan, workspaceId }: { children: ReactNode; initialPlan?: WorkspacePlan | null; workspaceId?: string | null }) {
+export function PlanProvider({ children, initialPlan, workspaceId, isOwner = true }: { children: ReactNode; initialPlan?: WorkspacePlan | null; workspaceId?: string | null; isOwner?: boolean }) {
   const [plan, setPlanState] = useState<WorkspacePlan>(initialPlan || DEFAULT_PLAN);
   const [subscriptionLoading, setSubscriptionLoading] = useState(false);
   const wsIdRef = useRef(workspaceId);
@@ -160,12 +160,14 @@ export function PlanProvider({ children, initialPlan, workspaceId }: { children:
   }, [planId]);
 
   // Check on mount and every 5 min (webhook handles real-time; this is a safety net)
+  // Only check subscription for workspace owners — invited members should use
+  // the workspace's plan_id as-is, not their own Stripe account.
   useEffect(() => {
-    if (!workspaceId) return;
+    if (!workspaceId || !isOwner) return;
     const timeout = setTimeout(() => checkSubscription(), 2000);
     const interval = setInterval(() => checkSubscription(), 300_000);
     return () => { clearTimeout(timeout); clearInterval(interval); };
-  }, [workspaceId, checkSubscription]);
+  }, [workspaceId, checkSubscription, isOwner]);
 
   // Check on URL change (e.g. returning from checkout)
   useEffect(() => {

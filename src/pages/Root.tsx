@@ -91,9 +91,10 @@ function AuthGate() {
 /** Bridge: reads initPlan from DataContext, passes to PlanProvider */
 function PlanBridge() {
   const { initPlan } = useData();
-  const { workspaceId } = useAuth();
+  const { workspaceId, workspaceRole } = useAuth();
+  const isOwner = workspaceRole === 'Owner';
   return (
-    <PlanProvider initialPlan={initPlan} workspaceId={workspaceId}>
+    <PlanProvider initialPlan={initPlan} workspaceId={workspaceId} isOwner={isOwner}>
       <RootLayout />
     </PlanProvider>
   );
