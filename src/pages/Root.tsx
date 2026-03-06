@@ -109,6 +109,7 @@ function RootLayout() {
   const { can, planId } = usePlan();
   const { canViewFinancials } = useRoleAccess();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [timerRunning, setTimerRunning] = useState(false);
   const [timerSeconds, setTimerSeconds] = useState(0);
   const [showLogModal, setShowLogModal] = useState(false);
