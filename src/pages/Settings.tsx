@@ -1857,12 +1857,13 @@ function FinancialTab() {
             />
           </div>
           <div>
-            <FieldLabel>Processing fee (%)</FieldLabel>
+            <FieldLabel>Payment processing fee (%)</FieldLabel>
             <TextInput
               value={fin.processingFee}
               onChange={(e) => updateFin({ processingFee: e.target.value })}
               className="!w-full tabular-nums"
             />
+            <div className="text-[11px] text-muted-foreground mt-1">e.g. Stripe's cut</div>
           </div>
           <div>
             <FieldLabel>Currency</FieldLabel>
@@ -1886,7 +1887,7 @@ function FinancialTab() {
             onChange={(e) => updateFin({ weeklyTarget: e.target.value })}
             className="!w-28 tabular-nums"
           />
-          <div className="text-[12px] text-muted-foreground mt-1.5">Used for utilization calculations on Insights</div>
+          <div className="text-[12px] text-muted-foreground mt-1.5">Used for billable time calculations on Insights</div>
         </div>
         {/* Save handled by sticky bar */}
       </SectionCard>
@@ -1903,11 +1904,11 @@ function FinancialTab() {
                 onChange={(e) => updateInv({ paymentTerms: e.target.value })}
                 className="w-full px-3 py-2 text-[14px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
               >
-                <option>Due on receipt</option>
-                <option>Net 15</option>
-                <option>Net 30</option>
-                <option>Net 45</option>
-                <option>Net 60</option>
+                <option value="Due on receipt">Due immediately</option>
+                <option value="Net 15">Due in 15 days</option>
+                <option value="Net 30">Due in 30 days</option>
+                <option value="Net 45">Due in 45 days</option>
+                <option value="Net 60">Due in 60 days</option>
               </select>
             </div>
             <div>
@@ -1960,7 +1961,7 @@ function FinancialTab() {
 
       {/* Rate card */}
       <SectionCard>
-        <SectionHeader title="Rate card" description="Default hourly rates by service type — override per client" />
+        <SectionHeader title="Your standard rates" description="Reference rates for the work you do. When you set a client's hourly rate, it overrides these." />
         <div className="space-y-2 mb-4">
           {rates.map((r: any) => (
             <div
@@ -2175,11 +2176,11 @@ function InvoiceTemplatesSection() {
                     onChange={e => setPaymentTerms(e.target.value)}
                     className="w-full px-3 py-2 text-[14px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
                   >
-                    <option>Due on receipt</option>
-                    <option>Net 15</option>
-                    <option>Net 30</option>
-                    <option>Net 45</option>
-                    <option>Net 60</option>
+                    <option value="Due on receipt">Due immediately</option>
+                    <option value="Net 15">Due in 15 days</option>
+                    <option value="Net 30">Due in 30 days</option>
+                    <option value="Net 45">Due in 45 days</option>
+                    <option value="Net 60">Due in 60 days</option>
                   </select>
                 </div>
                 <div>
@@ -3556,7 +3557,7 @@ function DataTab() {
                 Recalculate all client stats
               </div>
               <div className="text-[12px] text-muted-foreground">
-                Recomputes hours logged, lifetime revenue, monthly earnings, and true hourly rate for every client
+                Recomputes hours logged, lifetime revenue, monthly earnings, and effective rate for every client
               </div>
             </div>
             <button

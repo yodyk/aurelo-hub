@@ -601,11 +601,11 @@ export default function BatchInvoiceBuilder({
                       onChange={(e) => setPaymentTerms(e.target.value)}
                       className="w-full text-[13px] px-3 py-2 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
                     >
-                      <option>Due on receipt</option>
-                      <option>Net 15</option>
-                      <option>Net 30</option>
-                      <option>Net 45</option>
-                      <option>Net 60</option>
+                      <option value="Due on receipt">Due immediately</option>
+                      <option value="Net 15">Due in 15 days</option>
+                      <option value="Net 30">Due in 30 days</option>
+                      <option value="Net 45">Due in 45 days</option>
+                      <option value="Net 60">Due in 60 days</option>
                     </select>
                   </div>
                   <div>

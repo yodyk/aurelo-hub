@@ -36,6 +36,7 @@ import { supabase } from "@/integrations/supabase/client";
 import * as invoiceApi from "../data/invoiceApi";
 import type { Invoice, LineItem, InvoiceStatus } from "../data/invoiceApi";
 import BatchInvoiceBuilder from "../components/BatchInvoiceBuilder";
+import { friendlyPaymentTerms, PAYMENT_TERMS_OPTIONS } from "../data/paymentTermsMap";
 
 // ── Constants ──────────────────────────────────────────────────────
 
@@ -1241,11 +1242,11 @@ function InvoiceBuilder({
                 onChange={(e) => setPaymentTerms(e.target.value)}
                 className="w-full text-[13px] px-3 py-2 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
               >
-                <option>Due on receipt</option>
-                <option>Net 15</option>
-                <option>Net 30</option>
-                <option>Net 45</option>
-                <option>Net 60</option>
+                <option value="Due on receipt">Due immediately</option>
+                <option value="Net 15">Due in 15 days</option>
+                <option value="Net 30">Due in 30 days</option>
+                <option value="Net 45">Due in 45 days</option>
+                <option value="Net 60">Due in 60 days</option>
               </select>
             </div>
             <div>
@@ -1326,10 +1327,10 @@ function InvoiceBuilder({
                 Description
               </span>
               <span className="text-[11px] text-muted-foreground text-right" style={{ fontWeight: 500 }}>
-                Qty
+                Hours
               </span>
               <span className="text-[11px] text-muted-foreground text-right" style={{ fontWeight: 500 }}>
-                Rate
+                $/hr
               </span>
               <span className="text-[11px] text-muted-foreground text-right" style={{ fontWeight: 500 }}>
                 Amount
@@ -1669,7 +1670,7 @@ function InvoiceDetail({
               <div className="text-[14px]" style={{ fontWeight: 500 }}>
                 {invoice.dueDate ? formatDate(invoice.dueDate) : "—"}
               </div>
-              {invoice.paymentTerms && <div className="text-[12px] text-muted-foreground">{invoice.paymentTerms}</div>}
+              {invoice.paymentTerms && <div className="text-[12px] text-muted-foreground">{friendlyPaymentTerms(invoice.paymentTerms)}</div>}
             </div>
           </div>
 
@@ -1692,29 +1693,29 @@ function InvoiceDetail({
             <div className="border border-border rounded-xl overflow-hidden">
               <table className="w-full">
                 <thead>
-                  <tr className="bg-accent/20">
-                    <th className="text-left px-3 py-2 text-[11px] text-muted-foreground" style={{ fontWeight: 500 }}>
-                      Description
-                    </th>
-                    <th
-                      className="text-right px-3 py-2 text-[11px] text-muted-foreground w-16"
-                      style={{ fontWeight: 500 }}
-                    >
-                      Qty
-                    </th>
-                    <th
-                      className="text-right px-3 py-2 text-[11px] text-muted-foreground w-20"
-                      style={{ fontWeight: 500 }}
-                    >
-                      Rate
-                    </th>
-                    <th
-                      className="text-right px-3 py-2 text-[11px] text-muted-foreground w-24"
-                      style={{ fontWeight: 500 }}
-                    >
-                      Amount
-                    </th>
-                  </tr>
+                   <tr className="bg-accent/20">
+                     <th className="text-left px-3 py-2 text-[11px] text-muted-foreground" style={{ fontWeight: 500 }}>
+                       Description
+                     </th>
+                     <th
+                       className="text-right px-3 py-2 text-[11px] text-muted-foreground w-16"
+                       style={{ fontWeight: 500 }}
+                     >
+                       Hours
+                     </th>
+                     <th
+                       className="text-right px-3 py-2 text-[11px] text-muted-foreground w-20"
+                       style={{ fontWeight: 500 }}
+                     >
+                       $/hr
+                     </th>
+                     <th
+                       className="text-right px-3 py-2 text-[11px] text-muted-foreground w-24"
+                       style={{ fontWeight: 500 }}
+                     >
+                       Amount
+                     </th>
+                   </tr>
                 </thead>
                 <tbody>
                   {invoice.lineItems.map((li) => (

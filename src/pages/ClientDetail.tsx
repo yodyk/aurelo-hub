@@ -588,8 +588,9 @@ export default function ClientDetail() {
                   viewMode === "gross" ? "bg-card text-foreground" : "text-muted-foreground hover:text-foreground"
                 }`}
                 style={{ fontWeight: 500, boxShadow: viewMode === "gross" ? "0 1px 3px rgba(0,0,0,0.04)" : "none" }}
+                title="Before: total billed"
               >
-                Gross
+                Before
               </button>
               <button
                 onClick={() => setViewMode("net")}
@@ -597,8 +598,9 @@ export default function ClientDetail() {
                   viewMode === "net" ? "bg-card text-foreground" : "text-muted-foreground hover:text-foreground"
                 }`}
                 style={{ fontWeight: 500, boxShadow: viewMode === "net" ? "0 1px 3px rgba(0,0,0,0.04)" : "none" }}
+                title="After: minus payment fees and estimated taxes"
               >
-                Net
+                After
               </button>
             </div>
           </div>
@@ -619,7 +621,7 @@ export default function ClientDetail() {
           </div>
           <div>
             <div className="text-[13px] text-muted-foreground mb-2" style={{ fontWeight: 500 }}>
-              True hourly rate
+              Effective rate
             </div>
             <div className="text-[42px] leading-none tracking-tight text-foreground" style={{ fontWeight: 600 }}>
               $
@@ -829,7 +831,7 @@ export default function ClientDetail() {
             {revenueShare > 40 && (
               <div className="p-4 rounded-lg bg-primary/[0.04] border border-primary/10">
                 <div className="text-[13px] text-primary mb-1" style={{ fontWeight: 500 }}>
-                  Revenue concentration
+                  Client dependency
                 </div>
                 <div className="text-[13px] text-muted-foreground">
                   This client accounts for{" "}
