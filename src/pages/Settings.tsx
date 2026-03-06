@@ -3086,6 +3086,18 @@ function NotificationsTab() {
                       <span>Each reminder is sent <strong className="text-foreground">only once</strong> per invoice — no duplicate emails</span>
                     </li>
                   </ul>
+                  <div className="mt-3 p-2.5 rounded-md bg-amber-500/10 border border-amber-500/30">
+                    <div className="flex items-start gap-2">
+                      <AlertTriangle className="w-3.5 h-3.5 text-amber-500 mt-0.5 flex-shrink-0" />
+                      <p className="text-[12px] text-amber-700 dark:text-amber-400 leading-relaxed">
+                        <strong>Stripe users:</strong> If you use Stripe's built-in invoice reminders, disable them in your{" "}
+                        <a href="https://dashboard.stripe.com/settings/billing/automatic" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-amber-800 dark:hover:text-amber-300">
+                          Stripe billing settings
+                        </a>{" "}
+                        to avoid sending duplicate reminder emails to your clients.
+                      </p>
+                    </div>
+                  </div>
                   {emailLimit !== null && (
                     <p className="mt-3 text-[11px] text-muted-foreground">
                       Reminder emails count toward your monthly email quota ({emailLimit} emails/month).
