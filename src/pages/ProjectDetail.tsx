@@ -457,7 +457,7 @@ export default function ProjectDetail() {
   // ── Render ───────────────────────────────────────────────────────
 
   return (
-    <motion.div className="max-w-7xl mx-auto px-6 lg:px-12 py-10" variants={container} initial="hidden" animate="show">
+    <motion.div className="max-w-7xl mx-auto px-6 lg:px-12 py-6 md:py-10" variants={container} initial="hidden" animate="show">
       {/* Back link */}
       <motion.div variants={item} className="mb-6">
         <Link
@@ -731,7 +731,7 @@ export default function ProjectDetail() {
       {/* TAB BAR                                                     */}
       {/* ════════════════════════════════════════════════════════════ */}
       <motion.div variants={item} className="mb-6">
-        <div className="flex items-center gap-1 border-b border-border">
+        <div className="flex items-center gap-1 border-b border-border overflow-x-auto -mx-6 px-6 md:mx-0 md:px-0">
           {TABS.map((tab) => {
             const isActive = activeTab === tab.id;
             const TabIcon = tab.icon;
@@ -739,7 +739,7 @@ export default function ProjectDetail() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`relative inline-flex items-center gap-2 px-4 py-2.5 text-[13px] transition-colors ${
+                className={`relative inline-flex items-center gap-2 px-4 py-2.5 text-[13px] transition-colors whitespace-nowrap ${
                   isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
                 }`}
                 style={{ fontWeight: isActive ? 600 : 500 }}
@@ -773,7 +773,7 @@ export default function ProjectDetail() {
           >
             {/* Summary Cards */}
             {budgetData && (
-              <div className={`grid ${canViewFinancials ? 'grid-cols-4' : 'grid-cols-2'} gap-4 mb-8`}>
+              <div className={`grid ${canViewFinancials ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-2'} gap-4 mb-8`}>
                 {canViewFinancials && (
                 <div
                   className="bg-card border border-border rounded-xl p-5"
@@ -1016,7 +1016,7 @@ export default function ProjectDetail() {
                 </div>
               )}
 
-              <div className={`grid ${canViewFinancials ? 'grid-cols-3' : 'grid-cols-2'} gap-4`}>
+              <div className={`grid ${canViewFinancials ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-1 md:grid-cols-2'} gap-4`}>
                 {canViewFinancials && (
                 <div
                   className="bg-card border border-border rounded-xl p-5"
@@ -1150,7 +1150,7 @@ export default function ProjectDetail() {
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2 }}
           >
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Milestones */}
               <div>
                 <div className="flex items-center justify-between mb-4">

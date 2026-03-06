@@ -224,7 +224,7 @@ export default function Insights() {
             {hasFullInsights ? "Strategic layer" : "Basic insights"} &middot; {metrics.periodLabel}
           </p>
         </div>
-        <div className="flex gap-0 bg-accent/60 rounded-lg p-0.5">
+        <div className="flex gap-0 bg-accent/60 rounded-lg p-0.5 self-start md:self-auto">
           {([{ key: "gross" as const, label: "Before" }, { key: "net" as const, label: "After" }]).map((m) => (
             <button
               key={m.key}
@@ -381,7 +381,7 @@ export default function Insights() {
         {!hasFullInsights && <ProUpgradeOverlay />}
         <div className={!hasFullInsights ? "select-none pointer-events-none" : ""}>
           <SectionLabel pro={!hasFullInsights}>Forecasting & projections</SectionLabel>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
               { label: "Projected monthly", value: `$${applyViewMode(metrics.forecast.projectedMonthly).toLocaleString()}`, sub: "next month est.", icon: TrendingUp },
               { label: "Projected annual", value: `$${applyViewMode(metrics.forecast.projectedAnnual).toLocaleString()}`, sub: "annualized run rate", icon: BarChart3 },
