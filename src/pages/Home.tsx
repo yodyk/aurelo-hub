@@ -518,7 +518,7 @@ export default function Home() {
       {canViewFinancials ? (
       <motion.div
         variants={item}
-        className="bg-card border border-border rounded-xl p-8 mb-8 relative overflow-hidden"
+        className="bg-card border border-border rounded-xl p-5 md:p-8 mb-8 relative overflow-hidden"
         style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.03), 0 1px 2px rgba(0,0,0,0.02)" }}
       >
         <div className="absolute top-0 right-0 w-72 h-72 bg-gradient-to-bl from-primary/[0.03] to-transparent rounded-bl-full pointer-events-none" />
@@ -565,7 +565,7 @@ export default function Home() {
               )}
             </div>
           </div>
-        <div className="flex gap-0 bg-accent/60 rounded-lg p-0.5">
+        <div className="flex gap-0 bg-accent/60 rounded-lg p-0.5 self-start md:self-auto">
             {([{ key: "gross" as const, label: "Before" }, { key: "net" as const, label: "After" }]).map((m) => (
               <button
                 key={m.key}
@@ -687,7 +687,7 @@ export default function Home() {
         {/* Metrics strip */}
         <div className="relative rounded-xl mb-8 overflow-hidden border border-border/60">
           <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-border/50">
-            <div className="px-7 py-6">
+            <div className="px-5 md:px-7 py-5 md:py-6">
               <div
                 className="text-[11px] text-muted-foreground mb-4"
                 style={{ fontWeight: 600, letterSpacing: "0.06em" }}
@@ -714,7 +714,7 @@ export default function Home() {
                 non-billable
               </div>
             </div>
-            <div className="px-7 py-6">
+            <div className="px-5 md:px-7 py-5 md:py-6">
               <div
                 className="text-[11px] text-muted-foreground mb-4"
                 style={{ fontWeight: 600, letterSpacing: "0.06em" }}
@@ -736,7 +736,7 @@ export default function Home() {
                 Your earnings divided by all hours — including unpaid time
               </div>
             </div>
-            <div className="px-7 py-6">
+            <div className="px-5 md:px-7 py-5 md:py-6">
               <div
                 className="text-[11px] text-muted-foreground mb-4"
                 style={{ fontWeight: 600, letterSpacing: "0.06em" }}
@@ -901,7 +901,7 @@ export default function Home() {
       {/* ══════════════════════════════════════════════════════════════ */}
       <motion.div variants={item}>
         {/* Tab bar */}
-        <div className="flex items-center gap-1 mb-6 border-b border-border">
+        <div className="flex items-center gap-1 mb-6 border-b border-border overflow-x-auto -mx-6 px-6 md:mx-0 md:px-0">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -909,7 +909,7 @@ export default function Home() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2.5 text-[13px] transition-all duration-200 border-b-2 -mb-px ${
+                className={`flex items-center gap-2 px-4 py-2.5 text-[13px] transition-all duration-200 border-b-2 -mb-px whitespace-nowrap ${
                   isActive
                     ? "border-primary text-foreground"
                     : "border-transparent text-muted-foreground hover:text-foreground"

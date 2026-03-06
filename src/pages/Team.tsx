@@ -34,7 +34,7 @@ export default function Team() {
       animate="show"
     >
       <motion.div variants={item} className="mb-8">
-        <h1 className="text-[24px] tracking-tight mb-1" style={{ fontWeight: 600 }}>
+        <h1 className="text-[20px] md:text-[24px] tracking-tight mb-1" style={{ fontWeight: 600 }}>
           Team
         </h1>
         <p className="text-[14px] text-muted-foreground">
@@ -56,7 +56,7 @@ export default function Team() {
         <p className="text-[13px] text-muted-foreground mb-6">
           What each role can do in your workspace
         </p>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {Object.entries(ROLE_DESCRIPTIONS).map(([key, role]) => {
             const Icon = ROLE_ICONS[key] || Users;
             return (
