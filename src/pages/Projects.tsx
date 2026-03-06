@@ -134,7 +134,6 @@ export default function Projects() {
     await addProject(clientId, project);
     loadAllProjects();
     toast.success("Project added");
-    toast.success("Project added");
   };
 
   if (loading || dataLoading) {
