@@ -605,7 +605,7 @@ export default function BillingTab() {
             </div>
             <div className="p-6">
               <IntervalToggle interval={billingInterval} onChange={setBillingInterval} />
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {(['starter', 'pro', 'studio'] as PlanId[]).map((id) => (
                   <PlanCard
                     key={id}

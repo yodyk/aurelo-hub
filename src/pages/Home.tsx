@@ -566,13 +566,13 @@ export default function Home() {
             </div>
           </div>
         <div className="inline-flex gap-0 bg-accent/60 rounded-lg p-0.5 self-start w-fit">
-            {([{ key: "gross" as const, label: "Before" }, { key: "net" as const, label: "After" }]).map((m) => (
+            {([{ key: "gross" as const, label: "Gross" }, { key: "net" as const, label: "Net" }]).map((m) => (
               <button
                 key={m.key}
                 onClick={() => setViewMode(m.key)}
                 className={`px-4 py-1.5 text-[13px] rounded-md transition-all duration-200 ${viewMode === m.key ? "bg-card text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                 style={{ fontWeight: 500, boxShadow: viewMode === m.key ? "0 1px 3px rgba(0,0,0,0.04)" : "none" }}
-                title={m.key === "gross" ? "Before: total billed" : "After: minus payment fees and estimated taxes"}
+                title={m.key === "gross" ? "Gross: total billed" : "Net: minus payment fees and estimated taxes"}
               >
                 {m.label}
               </button>
@@ -815,7 +815,7 @@ export default function Home() {
                     padding: "8px 14px",
                     color: "var(--foreground)",
                   }}
-                  formatter={(value: number) => [`$${value.toLocaleString()}`, viewMode === "gross" ? "Before taxes" : "After fees & taxes"]}
+                  formatter={(value: number) => [`$${value.toLocaleString()}`, viewMode === "gross" ? "Gross (before taxes)" : "Net (after fees & taxes)"]}
                   cursor={{ stroke: "#38bdf8", strokeWidth: 1, strokeOpacity: 0.3 }}
                 />
                 {/* Glow layer — thicker, filtered, no fill */}

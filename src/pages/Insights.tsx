@@ -225,7 +225,7 @@ export default function Insights() {
           </p>
         </div>
         <div className="flex gap-0 bg-accent/60 rounded-lg p-0.5 self-start md:self-auto">
-          {([{ key: "gross" as const, label: "Before" }, { key: "net" as const, label: "After" }]).map((m) => (
+          {([{ key: "gross" as const, label: "Gross" }, { key: "net" as const, label: "Net" }]).map((m) => (
             <button
               key={m.key}
               onClick={() => setViewMode(m.key)}
@@ -233,7 +233,7 @@ export default function Insights() {
                 viewMode === m.key ? "bg-card text-foreground" : "text-muted-foreground hover:text-foreground"
               }`}
               style={{ fontWeight: 500, boxShadow: viewMode === m.key ? "0 1px 3px rgba(0,0,0,0.04)" : "none" }}
-              title={m.key === "gross" ? "Before: total billed" : "After: minus payment fees and estimated taxes"}
+              title={m.key === "gross" ? "Gross: total billed" : "Net: minus payment fees and estimated taxes"}
             >
               {m.label}
             </button>
