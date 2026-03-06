@@ -511,12 +511,12 @@ export default function TimeLog() {
         </div>
 
         {/* Tag pills */}
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-2 overflow-x-auto pb-1 -mx-6 px-6 md:mx-0 md:px-0 md:flex-wrap">
           {allTags.map((tag) => (
             <button
               key={tag}
               onClick={() => setSelectedFilter(selectedFilter === tag ? null : tag)}
-              className={`px-3 py-1.5 text-[12px] rounded-lg border transition-all duration-200 ${
+              className={`px-3 py-1.5 text-[12px] rounded-lg border transition-all duration-200 whitespace-nowrap flex-shrink-0 ${
                 selectedFilter === tag
                   ? "bg-primary/8 border-primary/20 text-primary"
                   : "bg-card border-border text-muted-foreground hover:text-foreground hover:bg-accent/40"
@@ -638,13 +638,13 @@ export default function TimeLog() {
                       ))}
                     </div>
 
-                    <div className="text-right flex-shrink-0 w-16">
-                      <div className="text-[14px] tabular-nums" style={{ fontWeight: 500 }}>
+                    <div className="text-right flex-shrink-0 w-12 md:w-16">
+                      <div className="text-[13px] md:text-[14px] tabular-nums" style={{ fontWeight: 500 }}>
                         {session.duration}h
                       </div>
                     </div>
-                    <div className="text-right flex-shrink-0 w-16">
-                      <div className="text-[14px] tabular-nums" style={{ fontWeight: 500 }}>
+                    <div className="text-right flex-shrink-0 w-12 md:w-16">
+                      <div className="text-[13px] md:text-[14px] tabular-nums" style={{ fontWeight: 500 }}>
                         ${session.revenue}
                       </div>
                     </div>
