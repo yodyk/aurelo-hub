@@ -109,6 +109,7 @@ function RootLayout() {
   const { can, planId } = usePlan();
   const { canViewFinancials } = useRoleAccess();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [timerRunning, setTimerRunning] = useState(false);
   const [timerSeconds, setTimerSeconds] = useState(0);
   const [showLogModal, setShowLogModal] = useState(false);
@@ -220,13 +221,26 @@ function RootLayout() {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
+  // Auto-close mobile menu on resize above lg
+  useEffect(() => {
+    const mql = window.matchMedia('(min-width: 1024px)');
+    const handler = () => { if (mql.matches) setMobileMenuOpen(false); };
+    mql.addEventListener('change', handler);
+    return () => mql.removeEventListener('change', handler);
+  }, []);
+
+  // Auto-close mobile menu on navigation
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
+
   const sidebarWidth = sidebarCollapsed ? 'w-[72px]' : 'w-64';
-  const mainMargin = sidebarCollapsed ? 'ml-[72px]' : 'ml-64';
+  const mainMargin = sidebarCollapsed ? 'lg:ml-[72px]' : 'lg:ml-64';
 
   return (
     <div className="min-h-screen flex bg-background">
       {/* Sidebar */}
-      <aside className={`${sidebarWidth} border-r border-border bg-card flex flex-col fixed inset-y-0 left-0 z-30 transition-all duration-300`}>
+      <aside className={`${sidebarWidth} border-r border-border bg-card hidden lg:flex flex-col fixed inset-y-0 left-0 z-30 transition-all duration-300`}>
         {/* Logo */}
         <div className={`h-14 flex items-center border-b border-border ${sidebarCollapsed ? 'px-4 justify-center' : 'px-5'}`}>
           {sidebarCollapsed ? (
@@ -426,11 +440,16 @@ function RootLayout() {
       {/* Main area */}
       <div className={`flex-1 ${mainMargin} min-h-screen transition-all duration-300`}>
         {/* Top Bar */}
-        <header className="h-14 border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-20 flex items-center justify-between px-6">
+        <header className="h-14 border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-20 flex items-center justify-between px-4 lg:px-6">
           <div className="flex items-center gap-3">
+            {/* Mobile: Aurelo icon */}
+            <div className="lg:hidden w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <AureloIcon className="w-4 h-4 text-primary" />
+            </div>
+            {/* Desktop: sidebar collapse toggle */}
             <button
               onClick={() => setSidebarCollapsed(c => !c)}
-              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-accent/60 transition-colors text-muted-foreground hover:text-foreground"
+              className="hidden lg:flex w-8 h-8 items-center justify-center rounded-lg hover:bg-accent/60 transition-colors text-muted-foreground hover:text-foreground"
               title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             >
               {sidebarCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
@@ -438,6 +457,14 @@ function RootLayout() {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Mobile: hamburger menu */}
+            <button
+              onClick={() => setMobileMenuOpen(true)}
+              className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg hover:bg-accent/60 transition-colors text-muted-foreground hover:text-foreground"
+            >
+              <Menu className="w-4 h-4" />
+            </button>
+
             {/* Notification Center */}
             {workspaceId && <NotificationCenter workspaceId={workspaceId} />}
 
@@ -450,7 +477,7 @@ function RootLayout() {
                 style={{ fontWeight: 500 }}
               >
                 <Play className="w-3.5 h-3.5" />
-                Start timer
+                <span className="hidden md:inline">Start timer</span>
               </button>
             ) : (
               <div className="inline-flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-primary/8">
@@ -482,6 +509,150 @@ function RootLayout() {
           </motion.div>
         </main>
       </div>
+
+      {/* Mobile Fullscreen Menu Modal */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            className="fixed inset-0 z-50 bg-background flex flex-col lg:hidden"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+          >
+            {/* Modal header */}
+            <div className="h-14 flex items-center justify-between px-5 border-b border-border">
+              <AureloWordmark className="h-[18px] w-auto text-foreground" />
+              <button
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-accent/60 transition-colors text-muted-foreground hover:text-foreground"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Workspace block */}
+            <button
+              onClick={() => { setMobileMenuOpen(false); navigate('/settings?tab=billing'); }}
+              className="flex items-center gap-3 px-5 py-4 border-b border-border text-left hover:bg-accent/40 transition-colors"
+            >
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                {wsLogoUrl ? (
+                  <img src={wsLogoUrl} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-[13px] text-primary" style={{ fontWeight: 600 }}>{wsInitial}</span>
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-[14px] truncate" style={{ fontWeight: 500 }}>{wsName}</div>
+                <div className="text-[11px] text-muted-foreground capitalize">{planId} plan</div>
+              </div>
+            </button>
+
+            {/* Nav links */}
+            <nav className="flex-1 overflow-y-auto">
+              {navItems.map((item) => {
+                const isLocked = item.feature ? !can(item.feature) : false;
+                if (item.hideUnlessFeature && isLocked) return null;
+                if (item.requiresFinancials && !canViewFinancials) return null;
+                return (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    end={item.end}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={({ isActive }) =>
+                      `relative flex items-center gap-3 px-5 py-4 text-[16px] transition-all duration-200 ${
+                        isActive
+                          ? 'bg-primary/8 text-primary'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-accent/60'
+                      }`
+                    }
+                    style={{ fontWeight: 500 }}
+                  >
+                    {({ isActive }) => (
+                      <>
+                        {isActive && (
+                          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full" />
+                        )}
+                        <item.icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
+                        <span className="flex-1">{item.label}</span>
+                        {isLocked && <Lock className="w-3.5 h-3.5 text-muted-foreground/50 flex-shrink-0" />}
+                      </>
+                    )}
+                  </NavLink>
+                );
+              })}
+            </nav>
+
+            {/* Bottom section */}
+            <div className="border-t border-border px-5 py-4 space-y-3">
+              {/* Settings */}
+              <NavLink
+                to="/settings"
+                onClick={() => setMobileMenuOpen(false)}
+                className={({ isActive }) =>
+                  `relative flex items-center gap-3 px-0 py-2 text-[16px] transition-all duration-200 ${
+                    isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                  }`
+                }
+                style={{ fontWeight: 500 }}
+              >
+                <Settings className="w-5 h-5 flex-shrink-0" />
+                Settings
+              </NavLink>
+
+              {/* User row + sign out */}
+              <div className="flex items-center gap-3 py-2">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-[12px] text-primary" style={{ fontWeight: 600 }}>{displayInitials}</span>
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[14px] truncate" style={{ fontWeight: 500 }}>{displayName}</div>
+                  <div className="text-[11px] text-muted-foreground truncate">{displayEmail}</div>
+                </div>
+                <button
+                  onClick={handleSignOut}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-accent/60 transition-colors text-muted-foreground hover:text-foreground"
+                  title="Sign out"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Theme switcher */}
+              <div className="flex items-center rounded-lg bg-accent/40 p-0.5">
+                {([
+                  { value: 'light' as const, icon: Sun, label: 'Light' },
+                  { value: 'dark' as const, icon: Moon, label: 'Dark' },
+                  { value: 'system' as const, icon: Monitor, label: 'Auto' },
+                ]).map(({ value, icon: ThIcon, label }) => {
+                  const isActive = theme === value;
+                  return (
+                    <button
+                      key={value}
+                      onClick={() => setTheme(value)}
+                      className={`relative flex items-center justify-center gap-1.5 py-2 rounded-md text-[13px] transition-all duration-200 ${
+                        isActive
+                          ? 'bg-card text-foreground shadow-sm flex-[1.6]'
+                          : 'text-muted-foreground hover:text-foreground flex-1'
+                      }`}
+                      style={{ fontWeight: isActive ? 600 : 400 }}
+                    >
+                      <ThIcon className="w-3.5 h-3.5 flex-shrink-0" />
+                      {isActive && <span>{label}</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Floating Timer Pill */}
       <AnimatePresence>
