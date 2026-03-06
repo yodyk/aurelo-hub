@@ -240,7 +240,7 @@ function RootLayout() {
   return (
     <div className="min-h-screen flex bg-background">
       {/* Sidebar */}
-      <aside className={`${sidebarWidth} border-r border-border bg-card flex flex-col fixed inset-y-0 left-0 z-30 transition-all duration-300`}>
+      <aside className={`${sidebarWidth} border-r border-border bg-card hidden lg:flex flex-col fixed inset-y-0 left-0 z-30 transition-all duration-300`}>
         {/* Logo */}
         <div className={`h-14 flex items-center border-b border-border ${sidebarCollapsed ? 'px-4 justify-center' : 'px-5'}`}>
           {sidebarCollapsed ? (
@@ -440,11 +440,16 @@ function RootLayout() {
       {/* Main area */}
       <div className={`flex-1 ${mainMargin} min-h-screen transition-all duration-300`}>
         {/* Top Bar */}
-        <header className="h-14 border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-20 flex items-center justify-between px-6">
+        <header className="h-14 border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-20 flex items-center justify-between px-4 lg:px-6">
           <div className="flex items-center gap-3">
+            {/* Mobile: Aurelo icon */}
+            <div className="lg:hidden w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <AureloIcon className="w-4 h-4 text-primary" />
+            </div>
+            {/* Desktop: sidebar collapse toggle */}
             <button
               onClick={() => setSidebarCollapsed(c => !c)}
-              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-accent/60 transition-colors text-muted-foreground hover:text-foreground"
+              className="hidden lg:flex w-8 h-8 items-center justify-center rounded-lg hover:bg-accent/60 transition-colors text-muted-foreground hover:text-foreground"
               title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             >
               {sidebarCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
@@ -452,6 +457,14 @@ function RootLayout() {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Mobile: hamburger menu */}
+            <button
+              onClick={() => setMobileMenuOpen(true)}
+              className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg hover:bg-accent/60 transition-colors text-muted-foreground hover:text-foreground"
+            >
+              <Menu className="w-4 h-4" />
+            </button>
+
             {/* Notification Center */}
             {workspaceId && <NotificationCenter workspaceId={workspaceId} />}
 
@@ -464,7 +477,7 @@ function RootLayout() {
                 style={{ fontWeight: 500 }}
               >
                 <Play className="w-3.5 h-3.5" />
-                Start timer
+                <span className="hidden md:inline">Start timer</span>
               </button>
             ) : (
               <div className="inline-flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-primary/8">
