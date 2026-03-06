@@ -438,7 +438,7 @@ function RootLayout() {
       </aside>
 
       {/* Main area */}
-      <div className={`flex-1 ${mainMargin} min-h-screen transition-all duration-300`}>
+      <div className={`flex-1 ${mainMargin} min-h-screen min-w-0 overflow-x-hidden transition-all duration-300`}>
         {/* Top Bar */}
         <header className="h-14 border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-20 flex items-center justify-between px-4 lg:px-6">
           <div className="flex items-center gap-3">
