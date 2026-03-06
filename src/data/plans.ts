@@ -139,6 +139,30 @@ export const EXPORT_FORMATS: Record<PlanId, string[]> = {
 
 export const STARTER_NOTIFICATION_TYPES = ['email'] as const;
 
+// ── Email quota limits per plan (monthly) ───────────────────────────
+export const EMAIL_QUOTA: Record<PlanId, number | null> = {
+  starter: 0,     // no emails
+  pro: 50,        // 50 emails/month
+  studio: null,   // unlimited
+  legacy: null,   // unlimited
+};
+
+// ── Email types allowed per plan ────────────────────────────────────
+export const PLAN_EMAIL_TYPES: Record<PlanId, string[]> = {
+  starter: [],
+  pro: ['retainer_warning', 'invoice_reminder', 'client_added'],
+  studio: ['retainer_warning', 'invoice_reminder', 'client_added', 'weekly_digest', 'insight_alert', 'team_activity'],
+  legacy: ['retainer_warning', 'invoice_reminder', 'client_added', 'weekly_digest', 'insight_alert', 'team_activity'],
+};
+
+// ── Frequency options allowed per plan ──────────────────────────────
+export const PLAN_FREQUENCIES: Record<PlanId, string[]> = {
+  starter: ['instant'],
+  pro: ['instant', 'daily'],
+  studio: ['instant', 'daily', 'weekly', 'monthly'],
+  legacy: ['instant', 'daily', 'weekly', 'monthly'],
+};
+
 // ── Helper functions ────────────────────────────────────────────────
 
 const TIER_ORDER: PlanId[] = ['starter', 'pro', 'studio', 'legacy'];

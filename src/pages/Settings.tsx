@@ -2619,36 +2619,76 @@ function TeamTab({ readOnly = false }: { readOnly?: boolean }) {
 // ═══════════════════════════════════════════════════════════════════
 
 const NOTIF_CATEGORIES = [
-  { key: 'session', label: 'Sessions', description: 'Time sessions logged or updated', icon: Clock },
-  { key: 'invoice', label: 'Invoices', description: 'Created, paid, overdue invoices', icon: FileText },
-  { key: 'client', label: 'Clients', description: 'New clients, status changes', icon: Users },
-  { key: 'team', label: 'Team', description: 'Members joining or role changes', icon: Users },
-  { key: 'insight', label: 'Insights', description: 'Retainer warnings, analytics alerts', icon: Zap },
+  { key: 'session', label: 'Sessions', description: 'Time sessions logged or updated', icon: Clock, emailType: null },
+  { key: 'invoice', label: 'Invoices', description: 'Created, paid, overdue invoices', icon: FileText, emailType: 'invoice_reminder' },
+  { key: 'client', label: 'Clients', description: 'New clients, status changes', icon: Users, emailType: 'client_added' },
+  { key: 'team', label: 'Team', description: 'Members joining or role changes', icon: Users, emailType: 'team_activity' },
+  { key: 'insight', label: 'Insights', description: 'Retainer warnings, analytics alerts', icon: Zap, emailType: 'insight_alert' },
+] as const;
+
+const FREQUENCY_OPTIONS = [
+  { value: 'instant', label: 'Instant' },
+  { value: 'daily', label: 'Daily digest' },
+  { value: 'weekly', label: 'Weekly digest' },
+  { value: 'monthly', label: 'Monthly digest' },
 ] as const;
 
 function NotificationsTab() {
   const { workspaceId, user } = useAuth();
-  const [prefs, setPrefs] = useState<Record<string, { in_app: boolean; email: boolean }>>({});
+  const [prefs, setPrefs] = useState<Record<string, { in_app: boolean; email: boolean; frequency: string }>>({});
+  const [recipients, setRecipients] = useState<Record<string, string[]>>({}); // category -> member_id[]
+  const [members, setMembers] = useState<{ id: string; name: string | null; email: string; role: string }[]>([]);
+  const [emailQuota, setEmailQuota] = useState<{ emails_sent: number; month: string } | null>(null);
   const [loading, setLoading] = useState(true);
-  const { can } = usePlan();
+  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const { can, planId } = usePlan();
   const hasAdvanced = can("advancedNotifications");
   const { markDirty } = useSettingsSave();
 
   // Also keep retainer threshold from workspace_settings
   const [wsPrefs, wsLoading, setWsPrefs] = useSettingsSection("notifications", defaultNotifPrefs);
 
+  // Plan-based limits
+  const planEmailTypes = useMemo(() => {
+    const { PLAN_EMAIL_TYPES } = require('../data/plans');
+    return PLAN_EMAIL_TYPES[planId] || [];
+  }, [planId]);
+  const planFrequencies = useMemo(() => {
+    const { PLAN_FREQUENCIES } = require('../data/plans');
+    return PLAN_FREQUENCIES[planId] || ['instant'];
+  }, [planId]);
+  const emailLimit = useMemo(() => {
+    const { EMAIL_QUOTA } = require('../data/plans');
+    return EMAIL_QUOTA[planId];
+  }, [planId]);
+
   useEffect(() => {
     if (!workspaceId) return;
-    import('@/data/notificationsApi').then(({ loadPreferences }) => {
-      loadPreferences(workspaceId).then((rows) => {
-        const map: Record<string, { in_app: boolean; email: boolean }> = {};
-        for (const cat of NOTIF_CATEGORIES) {
-          const row = rows.find(r => r.category === cat.key);
-          map[cat.key] = row ? { in_app: row.in_app, email: row.email } : { in_app: true, email: true };
-        }
-        setPrefs(map);
-        setLoading(false);
-      });
+    Promise.all([
+      import('@/data/notificationsApi').then(m => m.loadPreferences(workspaceId)),
+      import('@/data/notificationsApi').then(m => m.loadRecipients(workspaceId)),
+      import('@/data/notificationsApi').then(m => m.loadEmailQuota(workspaceId)),
+      supabase.from('workspace_members').select('id, name, email, role').eq('workspace_id', workspaceId).then(r => r.data || []),
+    ]).then(([prefRows, recipientRows, quota, memberRows]) => {
+      const map: Record<string, { in_app: boolean; email: boolean; frequency: string }> = {};
+      for (const cat of NOTIF_CATEGORIES) {
+        const row = prefRows.find((r: any) => r.category === cat.key);
+        map[cat.key] = row
+          ? { in_app: row.in_app, email: row.email, frequency: (row as any).frequency || 'instant' }
+          : { in_app: true, email: true, frequency: 'instant' };
+      }
+      setPrefs(map);
+
+      const recMap: Record<string, string[]> = {};
+      for (const r of recipientRows) {
+        if (!recMap[r.category]) recMap[r.category] = [];
+        recMap[r.category].push(r.member_id);
+      }
+      setRecipients(recMap);
+
+      setEmailQuota(quota);
+      setMembers(memberRows as any);
+      setLoading(false);
     });
   }, [workspaceId]);
 
@@ -2660,6 +2700,25 @@ function NotificationsTab() {
     markDirty();
   };
 
+  const setFrequency = (category: string, freq: string) => {
+    setPrefs(prev => ({
+      ...prev,
+      [category]: { ...prev[category], frequency: freq },
+    }));
+    markDirty();
+  };
+
+  const toggleRecipient = (category: string, memberId: string) => {
+    setRecipients(prev => {
+      const current = prev[category] || [];
+      const next = current.includes(memberId)
+        ? current.filter(id => id !== memberId)
+        : [...current, memberId];
+      return { ...prev, [category]: next };
+    });
+    markDirty();
+  };
+
   const updateWsPrefs = (patch: any) => {
     setWsPrefs({ ...wsPrefs, ...patch });
     markDirty();
@@ -2668,25 +2727,28 @@ function NotificationsTab() {
   const save = useCallback(async () => {
     if (!workspaceId || !user) return;
     try {
-      const { upsertPreference } = await import('@/data/notificationsApi');
-      await Promise.all(
-        NOTIF_CATEGORIES.map(cat =>
+      const { upsertPreference, setRecipients: apiSetRecipients } = await import('@/data/notificationsApi');
+      await Promise.all([
+        ...NOTIF_CATEGORIES.map(cat =>
           upsertPreference({
             workspaceId,
             userId: user.id,
             category: cat.key,
             inApp: prefs[cat.key]?.in_app ?? true,
             email: prefs[cat.key]?.email ?? true,
+            frequency: prefs[cat.key]?.frequency ?? 'instant',
           })
-        )
-      );
-      // Also save retainer threshold
+        ),
+        ...NOTIF_CATEGORIES.map(cat =>
+          apiSetRecipients(workspaceId, cat.key, recipients[cat.key] || [])
+        ),
+      ]);
       await api.saveSetting("notifications", wsPrefs);
       toast.success("Notification preferences saved");
     } catch (err: any) {
       toast.error(err.message || "Failed to save preferences");
     }
-  }, [workspaceId, user, prefs, wsPrefs]);
+  }, [workspaceId, user, prefs, recipients, wsPrefs]);
 
   useRegisterSave(save);
 
@@ -2694,8 +2756,41 @@ function NotificationsTab() {
 
   return (
     <motion.div className="space-y-6" variants={container} initial="hidden" animate="show">
+      {/* Email quota banner */}
+      {emailLimit !== null && emailLimit !== undefined && (
+        <SectionCard className="!p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-primary/8 flex items-center justify-center">
+                <Mail className="w-4 h-4 text-primary" />
+              </div>
+              <div>
+                <div className="text-[13px]" style={{ fontWeight: 600 }}>
+                  Email quota
+                </div>
+                <div className="text-[12px] text-muted-foreground">
+                  {emailLimit === 0 ? (
+                    'Email notifications are not available on your plan'
+                  ) : (
+                    <>{emailQuota?.emails_sent ?? 0} / {emailLimit} emails used this month</>
+                  )}
+                </div>
+              </div>
+            </div>
+            {emailLimit > 0 && (
+              <div className="w-24 h-1.5 bg-accent/60 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-primary rounded-full transition-all"
+                  style={{ width: `${Math.min(100, ((emailQuota?.emails_sent ?? 0) / emailLimit) * 100)}%` }}
+                />
+              </div>
+            )}
+          </div>
+        </SectionCard>
+      )}
+
       <SectionCard>
-        <SectionHeader title="Notification preferences" description="Choose how you're notified for each category" />
+        <SectionHeader title="Notification preferences" description="Choose how you're notified for each category. Click a row to configure frequency and recipients." />
         {/* Column headers */}
         <div className="flex items-center justify-end gap-6 mb-2 pr-3">
           <span className="text-[11px] text-muted-foreground w-14 text-center" style={{ fontWeight: 600 }}>In-app</span>
@@ -2705,41 +2800,167 @@ function NotificationsTab() {
           {NOTIF_CATEGORIES.map(cat => {
             const Icon = cat.icon;
             const isProOnly = (cat.key === 'insight' || cat.key === 'team') && !hasAdvanced;
+            const emailAllowed = cat.emailType ? planEmailTypes.includes(cat.emailType) : false;
+            const isExpanded = expandedCategory === cat.key;
+            const catRecipients = recipients[cat.key] || [];
+            const freq = prefs[cat.key]?.frequency || 'instant';
+
             return (
-              <div
-                key={cat.key}
-                className={`flex items-center justify-between py-3 px-3 rounded-lg transition-colors ${isProOnly ? 'opacity-50' : 'hover:bg-accent/30'}`}
-              >
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="w-8 h-8 rounded-lg bg-primary/8 flex items-center justify-center flex-shrink-0">
-                    <Icon className="w-4 h-4 text-primary" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[14px]" style={{ fontWeight: 500 }}>{cat.label}</span>
-                      {isProOnly && (
-                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[9px] rounded bg-[#5ea1bf]/10 text-[#5ea1bf]" style={{ fontWeight: 600 }}>
-                          PRO
-                        </span>
-                      )}
+              <div key={cat.key}>
+                <div
+                  className={`flex items-center justify-between py-3 px-3 rounded-lg transition-colors cursor-pointer ${
+                    isProOnly ? 'opacity-50 cursor-default' : isExpanded ? 'bg-accent/40' : 'hover:bg-accent/30'
+                  }`}
+                  onClick={() => !isProOnly && setExpandedCategory(isExpanded ? null : cat.key)}
+                >
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="w-8 h-8 rounded-lg bg-primary/8 flex items-center justify-center flex-shrink-0">
+                      <Icon className="w-4 h-4 text-primary" />
                     </div>
-                    <div className="text-[12px] text-muted-foreground">{cat.description}</div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[14px]" style={{ fontWeight: 500 }}>{cat.label}</span>
+                        {isProOnly && (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[9px] rounded bg-[hsl(var(--primary))]/10 text-primary" style={{ fontWeight: 600 }}>
+                            PRO
+                          </span>
+                        )}
+                        {!isProOnly && freq !== 'instant' && (
+                          <span className="inline-flex items-center px-1.5 py-0.5 text-[9px] rounded bg-accent text-muted-foreground" style={{ fontWeight: 500 }}>
+                            {FREQUENCY_OPTIONS.find(f => f.value === freq)?.label}
+                          </span>
+                        )}
+                        {!isProOnly && catRecipients.length > 0 && (
+                          <span className="inline-flex items-center px-1.5 py-0.5 text-[9px] rounded bg-accent text-muted-foreground" style={{ fontWeight: 500 }}>
+                            {catRecipients.length} recipient{catRecipients.length !== 1 ? 's' : ''}
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-[12px] text-muted-foreground">{cat.description}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-6 flex-shrink-0" onClick={e => e.stopPropagation()}>
+                    <div className="w-14 flex justify-center">
+                      <Toggle
+                        checked={isProOnly ? false : (prefs[cat.key]?.in_app ?? true)}
+                        onChange={() => !isProOnly && toggle(cat.key, 'in_app')}
+                      />
+                    </div>
+                    <div className="w-14 flex justify-center">
+                      <Toggle
+                        checked={isProOnly ? false : emailAllowed ? (prefs[cat.key]?.email ?? true) : false}
+                        onChange={() => !isProOnly && emailAllowed && toggle(cat.key, 'email')}
+                      />
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-6 flex-shrink-0">
-                  <div className="w-14 flex justify-center">
-                    <Toggle
-                      checked={isProOnly ? false : (prefs[cat.key]?.in_app ?? true)}
-                      onChange={() => !isProOnly && toggle(cat.key, 'in_app')}
-                    />
-                  </div>
-                  <div className="w-14 flex justify-center">
-                    <Toggle
-                      checked={isProOnly ? false : (prefs[cat.key]?.email ?? true)}
-                      onChange={() => !isProOnly && toggle(cat.key, 'email')}
-                    />
-                  </div>
-                </div>
+
+                {/* Expanded: frequency + recipients */}
+                <AnimatePresence>
+                  {isExpanded && !isProOnly && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="mx-3 mb-2 p-4 rounded-lg bg-accent/30 border border-border/60 space-y-4">
+                        {/* Frequency */}
+                        <div>
+                          <div className="text-[12px] text-muted-foreground mb-2" style={{ fontWeight: 600 }}>
+                            Email frequency
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {FREQUENCY_OPTIONS.map(opt => {
+                              const allowed = planFrequencies.includes(opt.value);
+                              const isActive = freq === opt.value;
+                              return (
+                                <button
+                                  key={opt.value}
+                                  disabled={!allowed}
+                                  onClick={() => allowed && setFrequency(cat.key, opt.value)}
+                                  className={`px-3 py-1.5 text-[12px] rounded-lg border transition-all ${
+                                    isActive
+                                      ? 'bg-primary text-primary-foreground border-primary'
+                                      : allowed
+                                      ? 'bg-card border-border hover:border-primary/40 text-foreground'
+                                      : 'bg-card border-border text-muted-foreground/40 cursor-not-allowed'
+                                  }`}
+                                  style={{ fontWeight: 500 }}
+                                >
+                                  {opt.label}
+                                  {!allowed && (
+                                    <Lock className="w-3 h-3 inline ml-1 opacity-40" />
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
+                          {!planFrequencies.includes('weekly') && (
+                            <div className="text-[11px] text-muted-foreground/60 mt-1.5 flex items-center gap-1">
+                              <Sparkles className="w-3 h-3 text-primary" />
+                              Upgrade to Studio for weekly and monthly digests
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Recipients */}
+                        {members.length > 1 && (
+                          <div>
+                            <div className="text-[12px] text-muted-foreground mb-2" style={{ fontWeight: 600 }}>
+                              Who receives these emails?
+                            </div>
+                            <div className="space-y-1.5">
+                              {members.map(m => {
+                                const isSelected = catRecipients.includes(m.id);
+                                const isOwner = m.role === 'Owner';
+                                return (
+                                  <label
+                                    key={m.id}
+                                    className={`flex items-center gap-3 py-2 px-3 rounded-lg cursor-pointer transition-colors ${
+                                      isSelected ? 'bg-primary/5' : 'hover:bg-accent/40'
+                                    }`}
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={isSelected}
+                                      onChange={() => toggleRecipient(cat.key, m.id)}
+                                      className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-primary/20 accent-[hsl(var(--primary))]"
+                                    />
+                                    <div className="flex-1 min-w-0">
+                                      <div className="text-[13px] truncate" style={{ fontWeight: 500 }}>
+                                        {m.name || m.email}
+                                        {isOwner && (
+                                          <span className="ml-1.5 text-[9px] text-muted-foreground bg-accent px-1 py-0.5 rounded" style={{ fontWeight: 600 }}>
+                                            OWNER
+                                          </span>
+                                        )}
+                                      </div>
+                                      {m.name && <div className="text-[11px] text-muted-foreground truncate">{m.email}</div>}
+                                    </div>
+                                  </label>
+                                );
+                              })}
+                            </div>
+                            {catRecipients.length === 0 && (
+                              <div className="text-[11px] text-muted-foreground/60 mt-1">
+                                No specific recipients — all workspace members will receive these emails
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Email type gating */}
+                        {!emailAllowed && (
+                          <div className="text-[11px] text-muted-foreground/60 flex items-center gap-1 pt-1 border-t border-border/40">
+                            <Lock className="w-3 h-3" />
+                            Email notifications for {cat.label.toLowerCase()} require {cat.key === 'team' || cat.key === 'insight' ? 'Studio' : 'Pro'} plan
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             );
           })}
@@ -2747,7 +2968,7 @@ function NotificationsTab() {
         {!hasAdvanced && (
           <div className="mt-3 pt-3 border-t border-border">
             <p className="text-[12px] text-muted-foreground">
-              <Sparkles className="w-3 h-3 text-[#5ea1bf] inline mr-1" />
+              <Sparkles className="w-3 h-3 text-primary inline mr-1" />
               Upgrade to Pro for insight and team notification controls.
             </p>
           </div>
@@ -2827,7 +3048,6 @@ function NotificationsTab() {
             {wsPrefs.retainerThreshold}%
           </div>
         </div>
-        {/* Save handled by sticky bar */}
       </SectionCard>
 
       {/* Email Activity Log — all clients */}
