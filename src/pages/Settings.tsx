@@ -3031,6 +3031,78 @@ function NotificationsTab() {
 
       <SectionCard>
         <SectionHeader
+          title="Automated invoice reminders"
+          description="Send reminder emails to clients when invoices are overdue"
+        />
+        <FeatureGate feature="clientInvoicing" fallback={
+          <div className="px-3 py-4">
+            <p className="text-[12px] text-muted-foreground">
+              <Sparkles className="w-3 h-3 text-primary inline mr-1" />
+              Upgrade to Pro to enable automated invoice reminder emails.
+            </p>
+          </div>
+        }>
+          <div className="flex items-center justify-between py-3 px-3 rounded-lg hover:bg-accent/30 transition-colors">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className="w-8 h-8 rounded-lg bg-primary/8 flex items-center justify-center flex-shrink-0">
+                <Mail className="w-4 h-4 text-primary" />
+              </div>
+              <div>
+                <span className="text-[14px]" style={{ fontWeight: 500 }}>Auto-send overdue reminders</span>
+                <div className="text-[12px] text-muted-foreground">
+                  Automatically email clients at 7, 14, and 30 days overdue
+                </div>
+              </div>
+            </div>
+            <Toggle
+              checked={wsPrefs.autoInvoiceReminders ?? false}
+              onChange={(v) => updateWsPrefs({ autoInvoiceReminders: v })}
+            />
+          </div>
+          <AnimatePresence>
+            {(wsPrefs.autoInvoiceReminders) && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="mx-3 mt-2 mb-1 p-3 rounded-lg bg-accent/40 border border-border/60">
+                  <p className="text-[12px] text-muted-foreground leading-relaxed">
+                    <span style={{ fontWeight: 600 }} className="text-foreground">How it works:</span>
+                  </p>
+                  <ul className="mt-2 space-y-1.5 text-[12px] text-muted-foreground list-none pl-0">
+                    <li className="flex items-start gap-2">
+                      <Check className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" />
+                      <span><strong className="text-foreground">7 days overdue</strong> — a friendly payment reminder is sent</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Check className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" />
+                      <span><strong className="text-foreground">14 days overdue</strong> — a follow-up reminder with increased urgency</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Check className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" />
+                      <span><strong className="text-foreground">30 days overdue</strong> — a final reminder is sent to the client</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <AlertTriangle className="w-3.5 h-3.5 text-amber-500 mt-0.5 flex-shrink-0" />
+                      <span>Each reminder is sent <strong className="text-foreground">only once</strong> per invoice — no duplicate emails</span>
+                    </li>
+                  </ul>
+                  {emailLimit !== null && (
+                    <p className="mt-3 text-[11px] text-muted-foreground">
+                      Reminder emails count toward your monthly email quota ({emailLimit} emails/month).
+                    </p>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </FeatureGate>
+      </SectionCard>
+
+      <SectionCard>
+        <SectionHeader
           title="Retainer threshold"
           description="Trigger a notification when retainer usage crosses this percentage"
         />
