@@ -428,7 +428,7 @@ export default function TimeLog() {
 
       {/* Filters */}
       <motion.div variants={item} className="mb-6 space-y-3">
-        <div className="flex gap-2 flex-wrap items-center flex-col md:flex-row">
+        <div className="flex gap-2 flex-wrap items-center">
           {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
@@ -569,7 +569,7 @@ export default function TimeLog() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.1 + groupIndex * 0.05 + index * 0.03 }}
-                  className={`flex items-center gap-4 px-6 py-4 border-b border-border last:border-0 hover:bg-accent/30 transition-colors cursor-pointer group ${isSelected ? "bg-primary/4" : ""}`}
+                  className={`flex items-center gap-3 md:gap-4 px-4 md:px-6 py-4 border-b border-border last:border-0 hover:bg-accent/30 transition-colors cursor-pointer group ${isSelected ? "bg-primary/4" : ""}`}
                 >
                   {/* Checkbox */}
                   <button
@@ -587,7 +587,7 @@ export default function TimeLog() {
                   </button>
 
                   <div
-                    className="flex-1 flex items-center gap-4 min-w-0"
+                    className="flex-1 flex flex-wrap md:flex-nowrap items-center gap-3 md:gap-4 min-w-0"
                     onClick={() => {
                       if (session.clientId) navigate(`/clients/${session.clientId}`);
                     }}
@@ -626,7 +626,7 @@ export default function TimeLog() {
                       </div>
                     )}
 
-                    <div className="flex gap-1.5 flex-shrink-0">
+                    <div className="hidden md:flex gap-1.5 flex-shrink-0">
                       {(session.workTags || []).map((tag: string) => (
                         <span
                           key={tag}
@@ -666,7 +666,7 @@ export default function TimeLog() {
                       );
                     })()}
 
-                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <div className="hidden md:flex items-center gap-1.5 flex-shrink-0">
                       {session.billable ? (
                         <span
                           className="px-2 py-0.5 bg-primary/8 text-primary text-[10px] rounded-full"
