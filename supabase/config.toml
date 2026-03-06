@@ -39,3 +39,5 @@ project_id = "oqrqypuulgeqzjcgqruw"
     verify_jwt = false
   [functions.send-invoice-reminder]
     verify_jwt = false
+  [functions.send-workspace-invite]
+    verify_jwt = false

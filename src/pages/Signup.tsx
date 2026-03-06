@@ -1,6 +1,6 @@
 import { motion } from "motion/react";
 import { useState } from "react";
-import { useNavigate, Link } from "react-router";
+import { useNavigate, Link, useSearchParams } from "react-router";
 import { Eye, EyeOff, ArrowRight, Loader2, Check, X } from "lucide-react";
 import { useAuth } from "../data/AuthContext";
 import { AureloWordmark } from "../components/AureloWordmark";
@@ -17,7 +17,9 @@ const rules = [
 
 export default function Signup() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { signUp } = useAuth();
+  const redirectTo = searchParams.get("redirect");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
