@@ -215,6 +215,7 @@ export const notificationPreferences = {
   emailNotifications: true,
   inAppNotifications: true,
   autoMarkOverdue: false,
+  autoInvoiceReminders: false,
 };
 
 // Integration connections
