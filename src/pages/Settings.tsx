@@ -82,6 +82,16 @@ import {
   useSettingsSave,
   useRegisterSave,
 } from "../components/SettingsSaveBar";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // ── Animation variants ──────────────────────────────────────────────
 const container = {
@@ -991,6 +1001,8 @@ function WorkspaceTab() {
     }
   };
 
+  const [logoDeleteConfirm, setLogoDeleteConfirm] = useState<"app" | "email" | null>(null);
+
   const handleDeleteLogo = async (type: "app" | "email") => {
     const setLogo = type === "app" ? setAppLogo : setEmailLogo;
     try {
@@ -1000,6 +1012,8 @@ function WorkspaceTab() {
       toast.success("Logo removed");
     } catch (err: any) {
       toast.error(err.message || "Failed to remove logo");
+    } finally {
+      setLogoDeleteConfirm(null);
     }
   };
 
@@ -1106,7 +1120,7 @@ function WorkspaceTab() {
                     Replace
                   </button>
                   <button
-                    onClick={() => handleDeleteLogo("app")}
+                    onClick={() => setLogoDeleteConfirm("app")}
                     className="w-8 h-8 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-all"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -1173,7 +1187,7 @@ function WorkspaceTab() {
                     Replace
                   </button>
                   <button
-                    onClick={() => handleDeleteLogo("email")}
+                    onClick={() => setLogoDeleteConfirm("email")}
                     className="w-8 h-8 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-all"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -1263,6 +1277,27 @@ function WorkspaceTab() {
 
       {/* Re-show setup checklist */}
       <SetupChecklistToggle />
+
+      {/* Logo delete confirmation */}
+      <AlertDialog open={!!logoDeleteConfirm} onOpenChange={(open) => { if (!open) setLogoDeleteConfirm(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {logoDeleteConfirm === "app" ? "app" : "email"} logo?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently remove your {logoDeleteConfirm === "app" ? "app" : "email"} logo. You can upload a new one at any time.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-4 py-2"
+              onClick={() => logoDeleteConfirm && handleDeleteLogo(logoDeleteConfirm)}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </motion.div>
   );
 }
