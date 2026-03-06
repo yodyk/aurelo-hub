@@ -2641,6 +2641,7 @@ function NotificationsTab() {
   const [emailQuota, setEmailQuota] = useState<{ emails_sent: number; month: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const [confirmReminderDialogOpen, setConfirmReminderDialogOpen] = useState(false);
   const { can, planId } = usePlan();
   const hasAdvanced = can("advancedNotifications");
   const { markDirty } = useSettingsSave();
@@ -2752,6 +2753,7 @@ function NotificationsTab() {
   if (loading || wsLoading) return <LoadingState />;
 
   return (
+    <>
     <motion.div className="space-y-6" variants={container} initial="hidden" animate="show">
       {/* Email quota banner */}
       {emailLimit !== null && emailLimit !== undefined && (
@@ -3053,7 +3055,13 @@ function NotificationsTab() {
             </div>
             <Toggle
               checked={wsPrefs.autoInvoiceReminders ?? false}
-              onChange={(v) => updateWsPrefs({ autoInvoiceReminders: v })}
+              onChange={(v) => {
+                if (v) {
+                  setConfirmReminderDialogOpen(true);
+                } else {
+                  updateWsPrefs({ autoInvoiceReminders: false });
+                }
+              }}
             />
           </div>
           <AnimatePresence>
@@ -3137,6 +3145,32 @@ function NotificationsTab() {
         <EmailActivityLog />
       </SectionCard>
     </motion.div>
+
+      {/* Confirm enable auto-reminders */}
+      <AlertDialog open={confirmReminderDialogOpen} onOpenChange={setConfirmReminderDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Enable automatic overdue reminders?</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <span>Aurelo will automatically email your clients at 7, 14, and 30 days overdue.</span>
+              <span className="block p-2.5 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-400 text-[13px]">
+                <strong>Important:</strong> If you use Stripe's built-in invoice reminders, make sure to disable them in your{" "}
+                <a href="https://dashboard.stripe.com/settings/billing/automatic" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">
+                  Stripe billing settings
+                </a>{" "}
+                first — otherwise your clients may receive duplicate reminder emails.
+              </span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => updateWsPrefs({ autoInvoiceReminders: true })}>
+              Enable reminders
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
 
