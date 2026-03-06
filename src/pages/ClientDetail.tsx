@@ -38,6 +38,7 @@ import EmailActivityLog from "../components/EmailActivityLog";
 import BulkSessionActions from "../components/BulkSessionActions";
 import { supabase } from "@/integrations/supabase/client";
 import { usePlan } from "@/data/PlanContext";
+import { useRoleAccess } from "@/data/useRoleAccess";
 
 const container = {
   hidden: {},
@@ -69,6 +70,7 @@ export default function ClientDetail() {
   const { workspaceId, clients, sessions, updateClient, addSession, updateSession, deleteSession, getProjects, loadProjectsForClient, addProject, netMultiplier, workCategoryNames } =
     useData();
   const { isAtLeast } = usePlan();
+  const { canViewFinancials } = useRoleAccess();
   const [viewMode, setViewMode] = useState<"gross" | "net">("gross");
   const [expandedSections, setExpandedSections] = useState({
     insights: true,
@@ -581,6 +583,7 @@ export default function ClientDetail() {
             >
               Edit
             </button>
+          {canViewFinancials && (
             <div className="flex gap-0 bg-accent/60 rounded-lg p-0.5">
               <button
                 onClick={() => setViewMode("gross")}
@@ -603,10 +606,12 @@ export default function ClientDetail() {
                 After
               </button>
             </div>
+          )}
           </div>
         </div>
 
         {/* Primary Metrics */}
+        {canViewFinancials && (
         <div className="grid grid-cols-2 gap-8 mb-8 pb-8 border-b border-border">
           <div>
             <div className="text-[13px] text-muted-foreground mb-2" style={{ fontWeight: 500 }}>
@@ -631,9 +636,11 @@ export default function ClientDetail() {
             </div>
           </div>
         </div>
+        )}
 
         {/* Secondary Metrics */}
-        <div className="grid grid-cols-3 gap-8">
+        <div className={`grid ${canViewFinancials ? 'grid-cols-3' : 'grid-cols-1'} gap-8`}>
+          {canViewFinancials && (
           <div className="p-4 rounded-lg bg-accent/30 transition-colors hover:bg-accent/50">
             <div className="text-[12px] text-muted-foreground mb-2" style={{ fontWeight: 500 }}>
               Lifetime revenue
@@ -642,6 +649,7 @@ export default function ClientDetail() {
               ${(client.lifetimeRevenue || 0).toLocaleString()}
             </div>
           </div>
+          )}
           <div className="p-4 rounded-lg bg-accent/30 transition-colors hover:bg-accent/50">
             <div className="text-[12px] text-muted-foreground mb-2" style={{ fontWeight: 500 }}>
               Hours logged
@@ -650,7 +658,7 @@ export default function ClientDetail() {
               {client.hoursLogged || 0}
             </div>
           </div>
-          {client.model === "Retainer" &&
+          {canViewFinancials && client.model === "Retainer" &&
             (() => {
               const hoursUsed = (client.retainerTotal || 0) - (client.retainerRemaining || 0);
               const usagePct = client.retainerTotal ? Math.round((hoursUsed / client.retainerTotal) * 100) : 0;
@@ -820,6 +828,7 @@ export default function ClientDetail() {
       {/* Collapsible Sections */}
       <motion.div variants={item} className="space-y-3">
         {/* Insights Section */}
+        {canViewFinancials && (
         <CollapsibleSection
           label="Insights"
           icon={Lightbulb}
@@ -883,6 +892,7 @@ export default function ClientDetail() {
             </div>
           </div>
         </CollapsibleSection>
+        )}
 
         {/* Projects Section */}
         <CollapsibleSection
@@ -912,12 +922,14 @@ export default function ClientDetail() {
                     <th className="text-left px-4 py-2.5 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>
                       Status
                     </th>
+                    {canViewFinancials && (
                     <th
                       className="text-right px-4 py-2.5 text-[12px] text-muted-foreground"
                       style={{ fontWeight: 500 }}
                     >
                       Value
                     </th>
+                    )}
                     <th
                       className="text-right px-4 py-2.5 text-[12px] text-muted-foreground"
                       style={{ fontWeight: 500 }}
@@ -952,6 +964,7 @@ export default function ClientDetail() {
                           {project.status}
                         </div>
                       </td>
+                      {canViewFinancials && (
                       <td className="px-4 py-3 text-[14px] text-right tabular-nums" style={{ fontWeight: 500 }}>
                         ${(project.totalValue || 0).toLocaleString()}
                         {(() => {
@@ -968,6 +981,7 @@ export default function ClientDetail() {
                           );
                         })()}
                       </td>
+                      )}
                       <td className="px-4 py-3 text-[14px] text-right tabular-nums text-muted-foreground">
                         {project.hours || 0}/{project.estimatedHours || 0}h
                       </td>
@@ -986,7 +1000,7 @@ export default function ClientDetail() {
         </CollapsibleSection>
 
         {/* Retainer Section */}
-        {client.model === "Retainer" && (
+        {canViewFinancials && client.model === "Retainer" && (
           <CollapsibleSection
             label="Retainer"
             icon={() => (
@@ -1205,12 +1219,14 @@ export default function ClientDetail() {
                     >
                       Duration
                     </th>
+                    {canViewFinancials && (
                     <th
                       className="text-right px-4 py-2.5 text-[12px] text-muted-foreground"
                       style={{ fontWeight: 500 }}
                     >
                       Cost
                     </th>
+                    )}
                     <th className="w-10 px-2 py-2.5" />
                   </tr>
                 </thead>
@@ -1260,6 +1276,7 @@ export default function ClientDetail() {
                         </div>
                       </td>
                       <td className="px-4 py-3 text-[14px] text-right tabular-nums">{session.duration}h</td>
+                      {canViewFinancials && (
                       <td className="px-4 py-3 text-[14px] text-right tabular-nums" style={{ fontWeight: 500 }}>
                         <div className="flex items-center justify-end gap-2">
                           ${session.revenue}
@@ -1280,6 +1297,7 @@ export default function ClientDetail() {
                           )}
                         </div>
                       </td>
+                      )}
                       <td className="px-2 py-3">
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
