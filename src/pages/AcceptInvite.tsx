@@ -120,23 +120,7 @@ export default function AcceptInvite() {
         const name = user.user_metadata?.name || user.user_metadata?.full_name || null;
         await acceptInvite(user.id, user.email!, name);
       } else {
-        // Check if the invite exists to show useful info
-        const { data: invite } = await supabase
-          .from("pending_invites")
-          .select("email, role")
-          .eq("id", inviteId)
-          .maybeSingle();
-
-        if (!invite) {
-          setError("This invitation is no longer valid or has already been used.");
-          setStatus("error");
-          return;
-        }
-
-        setRole(invite.role);
-
-        // Check if this email has an existing account by trying to see if any hint exists
-        // We can't check auth.users, so we'll show a generic "sign in or sign up" state
+        // Guests cannot read pending_invites directly due RLS, so prompt auth first.
         setStatus("needs-login");
       }
     });
@@ -219,7 +203,13 @@ export default function AcceptInvite() {
               You've been invited
             </h1>
             <p className="text-sm text-[#717182]">
-              Sign in or create an account to join the workspace as {role === "Admin" ? "an" : "a"} <strong>{role}</strong>.
+              {role ? (
+                <>
+                  Sign in or create an account to join the workspace as {role === "Admin" ? "an" : "a"} <strong>{role}</strong>.
+                </>
+              ) : (
+                <>Sign in or create an account to accept this workspace invitation.</>
+              )}
             </p>
             <div className="flex flex-col gap-2.5 pt-2">
               <Link
