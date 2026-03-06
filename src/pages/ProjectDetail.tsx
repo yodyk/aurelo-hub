@@ -36,6 +36,7 @@ import { useData } from "../data/DataContext";
 import { usePlan } from "../data/PlanContext";
 import * as dataApi from "../data/dataApi";
 import ClientNotes from "../components/ClientNotes";
+import { useRoleAccess } from "@/data/useRoleAccess";
 
 // ── Constants ──────────────────────────────────────────────────────
 
@@ -144,6 +145,7 @@ export default function ProjectDetail() {
   const navigate = useNavigate();
   const { workspaceId, clients, sessions, allProjects, loadAllProjects, loadProjectsForClient, updateProject } = useData();
   const { can } = usePlan();
+  const { canViewFinancials } = useRoleAccess();
 
   const [loading, setLoading] = useState(true);
   const [project, setProject] = useState<any>(null);
@@ -771,7 +773,8 @@ export default function ProjectDetail() {
           >
             {/* Summary Cards */}
             {budgetData && (
-              <div className="grid grid-cols-4 gap-4 mb-8">
+              <div className={`grid ${canViewFinancials ? 'grid-cols-4' : 'grid-cols-2'} gap-4 mb-8`}>
+                {canViewFinancials && (
                 <div
                   className="bg-card border border-border rounded-xl p-5"
                   style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.02)" }}
@@ -791,6 +794,7 @@ export default function ProjectDetail() {
                     of ${budgetData.totalValue.toLocaleString()} · {budgetData.budgetPct}%
                   </div>
                 </div>
+                )}
                 <div
                   className="bg-card border border-border rounded-xl p-5"
                   style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.02)" }}
@@ -818,6 +822,7 @@ export default function ProjectDetail() {
                     </span>
                   </div>
                 </div>
+                {canViewFinancials && (
                 <div
                   className="bg-card border border-border rounded-xl p-5"
                   style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.02)" }}
@@ -838,6 +843,7 @@ export default function ProjectDetail() {
                   </div>
                   <div className="text-[12px] text-muted-foreground mt-1">Client rate: ${budgetData.rate}/h</div>
                 </div>
+                )}
                 <div
                   className="bg-card border border-border rounded-xl p-5"
                   style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.02)" }}
@@ -904,6 +910,7 @@ export default function ProjectDetail() {
                       {budgetData.hoursLogged}h of {budgetData.estimatedHours}h
                     </div>
                   </div>
+                  {canViewFinancials && (
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-[13px] text-muted-foreground" style={{ fontWeight: 500 }}>
@@ -926,6 +933,7 @@ export default function ProjectDetail() {
                       ${budgetData.revenueEarned.toLocaleString()} of ${budgetData.totalValue.toLocaleString()}
                     </div>
                   </div>
+                  )}
                 </div>
 
                 {budgetData.projectedEnd && project.status !== "Complete" && (
@@ -1008,7 +1016,8 @@ export default function ProjectDetail() {
                 </div>
               )}
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className={`grid ${canViewFinancials ? 'grid-cols-3' : 'grid-cols-2'} gap-4`}>
+                {canViewFinancials && (
                 <div
                   className="bg-card border border-border rounded-xl p-5"
                   style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.02)" }}
@@ -1033,6 +1042,7 @@ export default function ProjectDetail() {
                     </div>
                   )}
                 </div>
+                )}
                 <div
                   className="bg-card border border-border rounded-xl p-5"
                   style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.02)" }}
