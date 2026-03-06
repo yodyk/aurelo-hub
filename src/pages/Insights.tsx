@@ -284,12 +284,11 @@ export default function Insights() {
         {metrics.monthlyRevenue.length === 0 ? (
           <div className="bg-card border border-border rounded-xl p-12 text-center">
             <div className="text-[14px] text-muted-foreground" style={{ fontWeight: 500 }}>No monthly data yet</div>
-            <div className="text-[12px] text-muted-foreground mt-1">Log sessions to see revenue trends over time</div>
           </div>
         ) : (
           <div className="bg-card border border-border rounded-xl p-6">
             <ResponsiveContainer width="100%" height={260}>
-              <AreaChart data={metrics.monthlyRevenue} margin={{ top: 12, right: 16, bottom: 4, left: 16 }}>
+              <AreaChart data={metrics.monthlyRevenue.map(d => ({ ...d, net: Math.round(d.revenue * netMultiplier) }))} margin={{ top: 12, right: 16, bottom: 4, left: 16 }}>
                 <defs>
                   <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor={CHART_BLUE} stopOpacity={0.24} />
@@ -308,7 +307,35 @@ export default function Insights() {
                 <CartesianGrid vertical horizontal={false} stroke="var(--border)" strokeOpacity={0.35} />
                 <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: "#9a9aac", fontSize: 11, fontWeight: 500 }} dy={10} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fill: "#9a9aac", fontSize: 11 }} tickFormatter={(v) => v >= 1000 ? `$${(v / 1000).toFixed(v >= 10000 ? 0 : 1)}k` : `$${v}`} width={52} allowDecimals={false} />
-                <Tooltip content={<ChartTooltip />} />
+                <Tooltip
+                  content={({ active, payload, label }) => {
+                    if (!active || !payload?.length) return null;
+                    const d = payload[0]?.payload;
+                    if (!d) return null;
+                    return (
+                      <div className="bg-card border border-border rounded-lg px-3 py-2 shadow-lg text-[12px]">
+                        <div className="text-muted-foreground mb-1" style={{ fontWeight: 500 }}>{label}</div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full" style={{ background: "#38bdf8" }} />
+                          <span className="text-muted-foreground">Gross:</span>
+                          <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>${d.revenue?.toLocaleString()}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full" style={{ background: "#0ea5e9" }} />
+                          <span className="text-muted-foreground">Net:</span>
+                          <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>${d.net?.toLocaleString()}</span>
+                        </div>
+                        {d.collected > 0 && (
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full" style={{ background: "hsl(var(--primary) / 0.5)" }} />
+                            <span className="text-muted-foreground">Collected:</span>
+                            <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>${d.collected?.toLocaleString()}</span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }}
+                />
                 {/* Glow layer */}
                 <Area type="monotone" dataKey="revenue" stroke={CHART_BLUE} strokeWidth={5} strokeOpacity={0.12} fill="none" dot={false} activeDot={false} filter="url(#insightsLineGlow)" isAnimationActive={false} />
                 {/* Main line + fill */}
