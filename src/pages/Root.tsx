@@ -21,15 +21,16 @@ import { WorkspaceSwitcher } from '../components/WorkspaceSwitcher';
 import { toast } from 'sonner';
 import { useTheme } from '../data/ThemeContext';
 import type { FeatureKey } from '../data/plans';
+import { useRoleAccess } from '../data/useRoleAccess';
 
-const navItems: { to: string; icon: any; label: string; end?: boolean; feature?: FeatureKey; hideUnlessFeature?: boolean }[] = [
+const navItems: { to: string; icon: any; label: string; end?: boolean; feature?: FeatureKey; hideUnlessFeature?: boolean; requiresFinancials?: boolean }[] = [
   { to: '/', icon: LayoutDashboard, label: 'Home', end: true },
   { to: '/clients', icon: Users, label: 'Clients' },
   { to: '/projects', icon: FolderKanban, label: 'Projects' },
   { to: '/time', icon: Clock, label: 'Time' },
-  { to: '/insights', icon: TrendingUp, label: 'Insights' },
-  { to: '/team', icon: Users, label: 'Team', feature: 'teamUtilization', hideUnlessFeature: true },
-  { to: '/invoicing', icon: FileText, label: 'Invoicing', feature: 'clientInvoicing' },
+  { to: '/insights', icon: TrendingUp, label: 'Insights', requiresFinancials: true },
+  { to: '/team', icon: Users, label: 'Team', feature: 'teamUtilization', hideUnlessFeature: true, requiresFinancials: true },
+  { to: '/invoicing', icon: FileText, label: 'Invoicing', feature: 'clientInvoicing', requiresFinancials: true },
 ];
 
 function formatTime(seconds: number) {
@@ -105,6 +106,7 @@ function RootLayout() {
   const { user, signOut, workspaceId } = useAuth();
   const { theme, setTheme, resolvedTheme } = useTheme();
   const { can, planId } = usePlan();
+  const { canViewFinancials } = useRoleAccess();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [timerRunning, setTimerRunning] = useState(false);
   const [timerSeconds, setTimerSeconds] = useState(0);
@@ -257,6 +259,8 @@ function RootLayout() {
               const isLocked = item.feature ? !can(item.feature) : false;
               // Hide nav items that require a feature the user doesn't have
               if (item.hideUnlessFeature && isLocked) return null;
+              // Hide financial pages from Members
+              if (item.requiresFinancials && !canViewFinancials) return null;
               return (
                 <NavLink
                   key={item.to}

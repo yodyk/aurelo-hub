@@ -26,6 +26,7 @@ import { toast } from "sonner";
 import { usePlan } from "../data/PlanContext";
 import { StarterUpgradeCTA } from "../components/TrialBanner";
 import { SetupChecklist } from "../components/SetupChecklist";
+import { useRoleAccess } from "../data/useRoleAccess";
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
@@ -109,9 +110,9 @@ function getDayLabel(dateStr: string) {
 // ── Tab types ────────────────────────────────────────────────────────
 
 type TabId = "activity" | "clients" | "time";
-const tabs: { id: TabId; label: string; icon: typeof Clock }[] = [
+const allTabs: { id: TabId; label: string; icon: typeof Clock; requiresFinancials?: boolean }[] = [
   { id: "activity", label: "Activity", icon: Zap },
-  { id: "clients", label: "Clients & Revenue", icon: Users },
+  { id: "clients", label: "Clients & Revenue", icon: Users, requiresFinancials: true },
   { id: "time", label: "Time & Pace", icon: Clock },
 ];
 
@@ -131,6 +132,7 @@ export default function Home() {
   const { user } = useAuth();
   const { can, planId } = usePlan();
   const hasFullInsights = can("fullInsights");
+  const { canViewFinancials, isMember } = useRoleAccess();
   const [viewMode, setViewMode] = useState<"gross" | "net">("gross");
   const [financialOpen, setFinancialOpen] = useState(false);
   const [sourceOpen, setSourceOpen] = useState(false);
@@ -138,6 +140,7 @@ export default function Home() {
   const [workspaceLogo, setWorkspaceLogo] = useState<string | null>(null);
   const [profileName, setProfileName] = useState<string | null>(null);
   
+  const tabs = useMemo(() => allTabs.filter(t => !t.requiresFinancials || canViewFinancials), [canViewFinancials]);
   const [activeTab, setActiveTab] = useState<TabId>("activity");
 
   useEffect(() => {
@@ -487,8 +490,9 @@ export default function Home() {
       )}
 
       {/* ══════════════════════════════════════════════════════════════ */}
-      {/* HERO PANEL                                                    */}
+      {/* HERO PANEL — financial data, hidden for Members              */}
       {/* ══════════════════════════════════════════════════════════════ */}
+      {canViewFinancials ? (
       <motion.div
         variants={item}
         className="bg-card border border-border rounded-xl p-8 mb-8 relative overflow-hidden"
@@ -822,6 +826,49 @@ export default function Home() {
           </div>
         </div>
       </motion.div>
+      ) : (
+        /* Member-only: simplified hours panel */
+        <motion.div
+          variants={item}
+          className="bg-card border border-border rounded-xl p-8 mb-8 relative overflow-hidden"
+          style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.03), 0 1px 2px rgba(0,0,0,0.02)" }}
+        >
+          <div className="relative rounded-xl overflow-hidden border border-border/60">
+            <div className="grid grid-cols-2 divide-x divide-border/50">
+              <div className="px-7 py-6">
+                <div className="text-[11px] text-muted-foreground mb-4" style={{ fontWeight: 600, letterSpacing: "0.06em" }}>
+                  HOURS THIS MONTH
+                </div>
+                <div className="flex items-baseline gap-1.5 mb-1.5">
+                  <span className="text-[36px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600 }}>
+                    <AnimatedNumber value={Math.round(totalHoursThisMonth * 10) / 10} />
+                  </span>
+                  <span className="text-[14px] text-muted-foreground" style={{ fontWeight: 500 }}>hours</span>
+                </div>
+                <div className="text-[12px] text-muted-foreground">
+                  <span className="tabular-nums" style={{ fontWeight: 500 }}>{Math.round(billableHoursThisMonth * 10) / 10}h</span> billable
+                  <span className="mx-1.5 opacity-30">/</span>
+                  <span className="tabular-nums" style={{ fontWeight: 500 }}>{Math.round((totalHoursThisMonth - billableHoursThisMonth) * 10) / 10}h</span> non-billable
+                </div>
+              </div>
+              <div className="px-7 py-6">
+                <div className="text-[11px] text-muted-foreground mb-4" style={{ fontWeight: 600, letterSpacing: "0.06em" }}>
+                  WEEKLY PROGRESS
+                </div>
+                <div className="flex items-baseline gap-1.5 mb-1.5">
+                  <span className="text-[36px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600 }}>
+                    <AnimatedNumber value={Math.round(weekHours * 10) / 10} />
+                  </span>
+                  <span className="text-[14px] text-muted-foreground" style={{ fontWeight: 500 }}>/ {weeklyTarget}h</span>
+                </div>
+                <div className="h-2 bg-accent/60 rounded-full overflow-hidden mt-3">
+                  <div className="h-full rounded-full bg-primary/50 transition-all duration-500" style={{ width: `${Math.min((weekHours / weeklyTarget) * 100, 100)}%` }} />
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Starter plan upgrade CTA */}
       <StarterUpgradeCTA />
@@ -1024,7 +1071,7 @@ export default function Home() {
                               <div className="text-[13px] tabular-nums" style={{ fontWeight: 500 }}>
                                 {s.duration}h
                               </div>
-                              {(s.revenue ?? 0) > 0 && (
+                              {canViewFinancials && (s.revenue ?? 0) > 0 && (
                                 <div className="text-[11px] text-muted-foreground tabular-nums">${s.revenue}</div>
                               )}
                             </div>

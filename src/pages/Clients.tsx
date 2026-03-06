@@ -8,6 +8,7 @@ import { AddClientModal } from "../components/Modals";
 import { toast } from "sonner";
 import { usePlan } from "../data/PlanContext";
 import { OverLimitBanner, LimitEnforcementModal } from "../components/PlanEnforcement";
+import { useRoleAccess } from "../data/useRoleAccess";
 
 const container = {
   hidden: {},
@@ -28,6 +29,7 @@ const statusColors: Record<string, { bg: string; text: string; dot: string }> = 
 export default function Clients() {
   const { clients, addClient } = useData();
   const { wouldExceed, limit, atLimit } = usePlan();
+  const { canViewFinancials, canEditClients } = useRoleAccess();
   const [searchQuery, setSearchQuery] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
   const [showLimitModal, setShowLimitModal] = useState(false);
@@ -77,7 +79,7 @@ export default function Clients() {
             Clients
           </h1>
           <p className="text-[14px] text-muted-foreground">
-            {activeCount} active &middot; ${totalMonthly.toLocaleString()} this month
+            {activeCount} active{canViewFinancials ? <> &middot; ${totalMonthly.toLocaleString()} this month</> : null}
           </p>
         </div>
         <div className="flex gap-2">
@@ -171,7 +173,7 @@ export default function Clients() {
                     >
                       {client.model}
                     </span>
-                    {client.rate > 0 && (
+                    {canViewFinancials && client.rate > 0 && (
                       <span
                         className="text-[11px] text-muted-foreground bg-accent/60 px-2 py-0.5 rounded-full tabular-nums"
                         style={{ fontWeight: 500 }}
@@ -189,7 +191,7 @@ export default function Clients() {
                     )}
                   </div>
 
-                  {client.status === "Active" && (
+                  {canViewFinancials && client.status === "Active" && (
                     <div className="space-y-3 pt-4 border-t border-border/60">
                       <div className="flex justify-between items-baseline">
                         <div className="text-[12px] text-muted-foreground">This month</div>
@@ -273,6 +275,7 @@ export default function Clients() {
                   </span>
                 </div>
 
+                {canViewFinancials && (
                 <div className="space-y-3 pt-4 border-t border-border">
                   <div className="flex justify-between items-baseline">
                     <div className="text-[12px] text-muted-foreground">Lifetime</div>
@@ -281,6 +284,7 @@ export default function Clients() {
                     </div>
                   </div>
                 </div>
+                )}
               </Link>
             ))}
           </div>
