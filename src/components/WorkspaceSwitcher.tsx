@@ -143,7 +143,9 @@ export function WorkspaceSwitcher({ collapsed, wsName, wsLogoUrl, wsInitial, pla
             <div className="min-w-0 flex-1 text-left">
               <div className="text-[13px] text-foreground truncate" style={{ fontWeight: 500 }}>{wsName}</div>
               <div className="text-[10px] text-muted-foreground/70 tracking-wide" style={{ fontWeight: 600, letterSpacing: '0.04em' }}>
-                {planId === 'starter' ? 'FREE' : planId.toUpperCase()} PLAN
+                {allWorkspaces.find(w => w.id === workspaceId)?.role === 'Owner' 
+                  ? (planId === 'starter' ? 'FREE' : planId.toUpperCase()) + ' PLAN'
+                  : 'MEMBER'}
               </div>
             </div>
             {(canMulti || hasMultiple) && (
