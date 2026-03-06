@@ -219,6 +219,35 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const saved = await api.addSession(wsId, session);
     setSessions(prev => [saved, ...prev]);
     const cid = session.clientId;
+
+    // Fire team activity notification for non-owner sessions (async, non-blocking)
+    if (user && cid) {
+      (async () => {
+        try {
+          const { data: memberRow } = await supabase
+            .from('workspace_members')
+            .select('role, name')
+            .eq('workspace_id', wsId)
+            .eq('user_id', user.id)
+            .eq('status', 'active')
+            .maybeSingle();
+          if (memberRow && memberRow.role !== 'Owner') {
+            const memberName = memberRow.name || user.email || 'A team member';
+            const clientName = clientsRef.current.find((c: any) => c.id === cid)?.name || 'a client';
+            const hours = typeof session.duration === 'number' ? session.duration : 0;
+            await NotificationEvents.teamSessionLogged(wsId, memberName, clientName, hours, {
+              memberId: user.id,
+              clientId: cid,
+              projectId: session.projectId,
+              task: session.task,
+            });
+          }
+        } catch (e) {
+          console.error('[DataContext] Team activity notification error:', e);
+        }
+      })();
+    }
+
     if (!cid) return saved;
     try {
       if (session.allocationType === 'project' && session.projectId) {
@@ -275,7 +304,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       console.error('Session side-effect error (non-fatal):', err);
     }
     return saved;
-  }, [getProjectsForClient]);
+  }, [getProjectsForClient, user]);
 
   const handleUpdateSession = useCallback(async (sessionId: string, updates: any) => {
     const wsId = workspaceIdRef.current;
