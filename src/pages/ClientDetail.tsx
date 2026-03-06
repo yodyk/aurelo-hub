@@ -591,9 +591,9 @@ export default function ClientDetail() {
                   viewMode === "gross" ? "bg-card text-foreground" : "text-muted-foreground hover:text-foreground"
                 }`}
                 style={{ fontWeight: 500, boxShadow: viewMode === "gross" ? "0 1px 3px rgba(0,0,0,0.04)" : "none" }}
-                title="Before: total billed"
+                title="Gross: total billed"
               >
-                Before
+                Gross
               </button>
               <button
                 onClick={() => setViewMode("net")}
@@ -601,9 +601,9 @@ export default function ClientDetail() {
                   viewMode === "net" ? "bg-card text-foreground" : "text-muted-foreground hover:text-foreground"
                 }`}
                 style={{ fontWeight: 500, boxShadow: viewMode === "net" ? "0 1px 3px rgba(0,0,0,0.04)" : "none" }}
-                title="After: minus payment fees and estimated taxes"
+                title="Net: minus payment fees and estimated taxes"
               >
-                After
+                Net
               </button>
             </div>
           )}
