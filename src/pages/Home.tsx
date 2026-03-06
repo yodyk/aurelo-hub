@@ -387,6 +387,28 @@ export default function Home() {
       }
     }
 
+    // Scope creep: effective rate below client's standard rate
+    for (const proj of allProjects) {
+      if (proj.status === "In Progress" && proj.totalValue > 0 && proj.hours > 0) {
+        const client = clients.find((c) => c.id === proj.clientId);
+        if (!client || !client.rate || client.rate <= 0) continue;
+        const effRate = Math.round(proj.totalValue / proj.hours);
+        if (effRate < client.rate) {
+          const severity = effRate < client.rate * 0.5;
+          signals.push({
+            id: id++,
+            type: "scope_creep",
+            signal: `${client.name} — ${proj.name} effective rate $${effRate}/hr`,
+            detail: `Below your $${client.rate}/hr standard rate${severity ? " by more than 50%" : ""} · ${proj.hours}h logged on $${proj.totalValue.toLocaleString()} project`,
+            impact: severity ? "High" : "Medium",
+            clientId: proj.clientId,
+            color: severity ? RED : GOLD,
+            bgColor: severity ? RED_BG : GOLD_BG,
+          });
+        }
+      }
+    }
+
     return signals.slice(0, 6);
   }, [grossEarnings, projectedEarnings, retainerHealth, clients, sessions, allProjects]);
 
@@ -445,6 +467,7 @@ export default function Home() {
     if (type === "retainer") return <Timer {...props} />;
     if (type === "prospect") return <Users {...props} />;
     if (type === "milestone") return <Target {...props} />;
+    if (type === "scope_creep") return <TrendingUp {...props} />;
     return <Zap {...props} />;
   }
 
