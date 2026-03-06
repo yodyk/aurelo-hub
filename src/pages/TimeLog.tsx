@@ -35,7 +35,7 @@ function parseSessionDate(dateStr: string): Date | null {
 
 export default function TimeLog() {
   const navigate = useNavigate();
-  const { sessions, clients, addSession, updateSession, deleteSession, workCategoryNames } = useData();
+  const { sessions, clients, addSession, updateSession, deleteSession, workCategoryNames, allProjects, loadAllProjects } = useData();
   const { workspaceId } = useAuth();
   const { can } = usePlan();
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
@@ -52,6 +52,7 @@ export default function TimeLog() {
     if (can("clientInvoicing")) {
       invoiceApi.loadInvoices().then(setInvoices).catch(() => {});
     }
+    loadAllProjects().catch(() => {});
   }, [can]);
 
   // Build a set of invoiced session IDs and map to invoice numbers
@@ -647,6 +648,23 @@ export default function TimeLog() {
                         ${session.revenue}
                       </div>
                     </div>
+
+                    {/* Project effective rate for project-model sessions */}
+                    {session.allocationType === 'project' && session.projectName && (() => {
+                      const cl = clients.find((c: any) => c.id === session.clientId);
+                      if (!cl || cl.model !== 'Project') return null;
+                      const proj = (allProjects || []).find((p: any) => String(p.id) === String(session.projectId));
+                      if (!proj || !proj.totalValue || proj.totalValue <= 0 || !proj.hours || proj.hours <= 0) return null;
+                      const effRate = Math.round(proj.totalValue / proj.hours);
+                      const rateColor = effRate < (cl.rate * 0.5) ? '#c27272' : effRate < cl.rate ? '#bfa044' : '#5ea1bf';
+                      return (
+                        <div className="flex-shrink-0">
+                          <span className="text-[10px] tabular-nums" style={{ fontWeight: 500, color: rateColor }}>
+                            ${effRate}/hr eff.
+                          </span>
+                        </div>
+                      );
+                    })()}
 
                     <div className="flex items-center gap-1.5 flex-shrink-0">
                       {session.billable ? (
