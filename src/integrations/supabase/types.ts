@@ -288,6 +288,7 @@ export type Database = {
           id: string
           issued_date: string | null
           line_items: Json
+          metadata: Json | null
           notes: string | null
           number: string
           paid_date: string | null
@@ -319,6 +320,7 @@ export type Database = {
           id?: string
           issued_date?: string | null
           line_items?: Json
+          metadata?: Json | null
           notes?: string | null
           number: string
           paid_date?: string | null
@@ -350,6 +352,7 @@ export type Database = {
           id?: string
           issued_date?: string | null
           line_items?: Json
+          metadata?: Json | null
           notes?: string | null
           number?: string
           paid_date?: string | null
