@@ -30,7 +30,7 @@ const TOUR_STEPS: TourStep[] = [
   {
     target: '[data-tour="earnings-chart"]',
     title: 'Your earnings at a glance',
-    description: 'See your 6-month revenue trend with before/after tax views. The metrics below show your effective rate and time investment.',
+    description: 'See your 6-month revenue trend with gross/net views. The metrics below show your effective rate and time investment.',
     route: '/',
     position: 'bottom',
   },
