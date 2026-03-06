@@ -21,6 +21,7 @@ const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const ClientPortal = lazy(() => import("./pages/ClientPortal"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
+const AcceptInvite = lazy(() => import("./pages/AcceptInvite"));
 
 function PageFallback() {
   return (
@@ -86,6 +87,7 @@ export const router = createBrowserRouter([
   { path: "/portal/:token", element: <SuspensePage><ClientPortal /></SuspensePage> },
   { path: "/terms", element: <SuspensePage><Terms /></SuspensePage> },
   { path: "/privacy", element: <SuspensePage><Privacy /></SuspensePage> },
+  { path: "/accept-invite", element: <SuspensePage><AcceptInvite /></SuspensePage> },
   {
     path: "/",
     Component: Root,

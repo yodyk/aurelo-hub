@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router";
+import { useNavigate, Link, useSearchParams } from "react-router";
 import { motion } from "motion/react";
 import { Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
 import { useAuth } from "../data/AuthContext";
@@ -9,7 +9,9 @@ import { lovable } from "@/integrations/lovable";
 
 export default function Login() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { signIn } = useAuth();
+  const redirectTo = searchParams.get("redirect");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -28,9 +30,8 @@ export default function Login() {
     setLoading(true);
     try {
       await signIn(email.trim(), password);
-      // Navigation to "/" will trigger AuthGate which redirects
-      // new users (isNewUser) to /onboarding automatically
-      navigate("/", { replace: true });
+      // If there's a redirect (e.g. from invite), go there, otherwise home
+      navigate(redirectTo || "/", { replace: true });
     } catch (err: any) {
       console.error("Login failed:", err);
       setError(err.message || "Invalid email or password");

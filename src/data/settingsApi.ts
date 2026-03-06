@@ -129,6 +129,16 @@ export async function inviteTeamMember(email: string, role: string): Promise<any
     invited_by: user!.id,
   }).select().single();
   if (error) throw new Error(`Failed to invite: ${error.message}`);
+
+  // Send invitation email via edge function
+  try {
+    await supabase.functions.invoke('send-workspace-invite', {
+      body: { inviteId: data.id },
+    });
+  } catch (emailErr) {
+    console.warn('[settingsApi] Invite email failed (invite still created):', emailErr);
+  }
+
   return data;
 }
 
