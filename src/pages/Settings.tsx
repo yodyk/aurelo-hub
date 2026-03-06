@@ -371,7 +371,7 @@ export default function Settings() {
                 <button
                   key={tab.id}
                   onClick={() => handleTabChange(tab.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] text-left transition-all duration-200 relative whitespace-nowrap ${
+                  className={`w-auto md:w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] text-left transition-all duration-200 relative whitespace-nowrap ${
                     isActive
                       ? "bg-primary/8 text-primary"
                       : "text-muted-foreground hover:text-foreground hover:bg-accent/60"

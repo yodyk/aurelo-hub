@@ -565,7 +565,7 @@ export default function Home() {
               )}
             </div>
           </div>
-        <div className="flex gap-0 bg-accent/60 rounded-lg p-0.5 self-start md:self-auto">
+        <div className="inline-flex gap-0 bg-accent/60 rounded-lg p-0.5 self-start w-fit">
             {([{ key: "gross" as const, label: "Before" }, { key: "net" as const, label: "After" }]).map((m) => (
               <button
                 key={m.key}

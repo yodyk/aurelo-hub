@@ -575,7 +575,7 @@ export default function ClientDetail() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto">
             <button
               onClick={() => setShowEditModal(true)}
               className="px-3 py-1.5 text-[13px] border border-border rounded-lg hover:bg-accent/40 transition-all"
@@ -584,7 +584,7 @@ export default function ClientDetail() {
               Edit
             </button>
           {canViewFinancials && (
-            <div className="flex gap-0 bg-accent/60 rounded-lg p-0.5">
+            <div className="inline-flex gap-0 bg-accent/60 rounded-lg p-0.5 self-start">
               <button
                 onClick={() => setViewMode("gross")}
                 className={`px-4 py-1.5 text-[13px] rounded-md transition-all duration-200 ${
