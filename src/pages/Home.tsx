@@ -476,7 +476,7 @@ export default function Home() {
   // ══════════════════════════════════════════════════════════════════
 
   return (
-    <motion.div className="max-w-7xl mx-auto px-6 lg:px-12 py-12" variants={container} initial="hidden" animate="show">
+    <motion.div className="max-w-7xl mx-auto px-6 lg:px-12 py-6 md:py-12" variants={container} initial="hidden" animate="show">
       {/* ── Greeting ── */}
       <motion.div variants={item} className="mb-8">
         <h1 className="text-[24px] tracking-tight mb-1" style={{ fontWeight: 600 }}>
@@ -524,7 +524,7 @@ export default function Home() {
         <div className="absolute top-0 right-0 w-72 h-72 bg-gradient-to-bl from-primary/[0.03] to-transparent rounded-bl-full pointer-events-none" />
 
         {/* Headline */}
-        <div className="flex items-start justify-between mb-8 relative">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-8 relative">
           <div>
             <div
               className="text-[13px] text-muted-foreground mb-3 flex items-center gap-2"
@@ -541,7 +541,7 @@ export default function Home() {
                 </span>
               )}
             </div>
-            <div className="text-[56px] leading-none tracking-tight text-foreground mb-2" style={{ fontWeight: 600 }}>
+            <div className="text-[36px] md:text-[56px] leading-none tracking-tight text-foreground mb-2" style={{ fontWeight: 600 }}>
               $<AnimatedNumber value={currentEarnings} />
             </div>
             <div className="text-[14px] text-muted-foreground">
@@ -581,7 +581,7 @@ export default function Home() {
         </div>
 
         {/* Expandable breakdowns */}
-        <div className="flex gap-3 mb-8">
+        <div className="flex flex-col md:flex-row gap-3 mb-8">
           <button
             onClick={() => setFinancialOpen((o) => !o)}
             className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] rounded-lg border transition-all duration-200 ${financialOpen ? "bg-primary/8 border-primary/20 text-primary" : "border-border text-muted-foreground hover:text-foreground hover:bg-accent/40"}`}
@@ -686,7 +686,7 @@ export default function Home() {
 
         {/* Metrics strip */}
         <div className="relative rounded-xl mb-8 overflow-hidden border border-border/60">
-          <div className="grid grid-cols-3 divide-x divide-border/50">
+          <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-border/50">
             <div className="px-7 py-6">
               <div
                 className="text-[11px] text-muted-foreground mb-4"
@@ -857,7 +857,7 @@ export default function Home() {
           style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.03), 0 1px 2px rgba(0,0,0,0.02)" }}
         >
           <div className="relative rounded-xl overflow-hidden border border-border/60">
-            <div className="grid grid-cols-2 divide-x divide-border/50">
+            <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-border/50">
               <div className="px-7 py-6">
                 <div className="text-[11px] text-muted-foreground mb-4" style={{ fontWeight: 600, letterSpacing: "0.06em" }}>
                   HOURS THIS MONTH
@@ -924,7 +924,7 @@ export default function Home() {
 
           {/* Quick counts — right-aligned */}
           {hasData && (
-            <div className="ml-auto flex items-center gap-4 pb-2">
+            <div className="ml-auto hidden md:flex items-center gap-4 pb-2">
               <span className="text-[12px] text-muted-foreground">
                 <span style={{ fontWeight: 600 }} className="text-foreground">
                   {clients.filter((c) => c.status === "Active").length}
@@ -957,10 +957,10 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.25 }}
-              className="grid grid-cols-5 gap-8"
+              className="grid grid-cols-1 md:grid-cols-5 gap-8"
             >
               {/* Signals */}
-              <div className="col-span-2">
+              <div className="md:col-span-2">
                 <div className="flex items-center gap-2 mb-4">
                   <Zap className="w-3.5 h-3.5 text-muted-foreground" />
                   <span
@@ -1036,7 +1036,7 @@ export default function Home() {
               </div>
 
               {/* Recent activity */}
-              <div className="col-span-3">
+              <div className="md:col-span-3">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <Clock className="w-3.5 h-3.5 text-muted-foreground" />
@@ -1120,7 +1120,7 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.25 }}
-              className="grid grid-cols-2 gap-8"
+              className="grid grid-cols-1 md:grid-cols-2 gap-8"
             >
               {/* Revenue leaderboard */}
               <div>
@@ -1383,7 +1383,7 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.25 }}
-              className="grid grid-cols-2 gap-8"
+              className="grid grid-cols-1 md:grid-cols-2 gap-8"
             >
               {/* Weekly pace */}
               <div>
