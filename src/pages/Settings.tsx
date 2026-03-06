@@ -353,7 +353,7 @@ export default function Settings() {
   }, []);
 
   return (
-    <motion.div className="max-w-6xl mx-auto px-6 lg:px-12 py-6 md:py-12" variants={container} initial="hidden" animate="show">
+    <motion.div className="w-full min-w-0 max-w-6xl mx-auto px-6 lg:px-12 py-6 md:py-12" variants={container} initial="hidden" animate="show">
       <motion.div variants={item} className="mb-8">
         <h1 className="text-[20px] md:text-[24px] tracking-tight mb-1" style={{ fontWeight: 600 }}>
           Settings
