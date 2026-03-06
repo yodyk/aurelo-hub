@@ -98,7 +98,7 @@ export function OnboardingPlanPicker({ onContinue }: Props) {
 
       {/* Plan cards */}
       <motion.div
-        className="grid grid-cols-3 gap-3 mb-8 max-w-2xl mx-auto"
+        className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-8 max-w-2xl mx-auto"
         initial="hidden"
         animate="show"
         variants={{ hidden: {}, show: { transition: { staggerChildren: 0.08 } } }}
