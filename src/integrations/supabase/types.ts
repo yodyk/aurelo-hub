@@ -174,6 +174,35 @@ export type Database = {
           },
         ]
       }
+      email_quotas: {
+        Row: {
+          emails_sent: number
+          month: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          emails_sent?: number
+          month?: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          emails_sent?: number
+          month?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_quotas_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: true
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoice_sequences: {
         Row: {
           next_number: number
@@ -433,6 +462,8 @@ export type Database = {
         Row: {
           category: string
           email: boolean
+          email_monthly_limit: number | null
+          frequency: string
           id: string
           in_app: boolean
           updated_at: string
@@ -442,6 +473,8 @@ export type Database = {
         Insert: {
           category: string
           email?: boolean
+          email_monthly_limit?: number | null
+          frequency?: string
           id?: string
           in_app?: boolean
           updated_at?: string
@@ -451,6 +484,8 @@ export type Database = {
         Update: {
           category?: string
           email?: boolean
+          email_monthly_limit?: number | null
+          frequency?: string
           id?: string
           in_app?: boolean
           updated_at?: string
@@ -460,6 +495,45 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "notification_preferences_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_recipients: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          member_id: string
+          workspace_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          member_id: string
+          workspace_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          member_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_recipients_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "workspace_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_recipients_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"

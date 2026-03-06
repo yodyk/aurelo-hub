@@ -24,6 +24,23 @@ export interface NotificationPreference {
   category: string;
   in_app: boolean;
   email: boolean;
+  frequency: string; // 'instant' | 'daily' | 'weekly' | 'monthly'
+  email_monthly_limit: number | null;
+}
+
+export interface NotificationRecipient {
+  id: string;
+  workspace_id: string;
+  category: string;
+  member_id: string;
+  created_at: string;
+}
+
+export interface EmailQuota {
+  workspace_id: string;
+  month: string;
+  emails_sent: number;
+  updated_at: string;
 }
 
 // ── Fetch notifications ─────────────────────────────────────────────
@@ -113,6 +130,7 @@ export async function upsertPreference(params: {
   category: string;
   inApp: boolean;
   email: boolean;
+  frequency?: string;
 }): Promise<void> {
   const { error } = await supabase
     .from('notification_preferences')
@@ -122,9 +140,62 @@ export async function upsertPreference(params: {
       category: params.category,
       in_app: params.inApp,
       email: params.email,
+      frequency: params.frequency || 'instant',
       updated_at: new Date().toISOString(),
     }, { onConflict: 'workspace_id,user_id,category' });
   if (error) console.error('[notificationsApi] upsertPreference:', error);
+}
+
+// ── Recipients ──────────────────────────────────────────────────────
+
+export async function loadRecipients(workspaceId: string): Promise<NotificationRecipient[]> {
+  const { data, error } = await supabase
+    .from('notification_recipients')
+    .select('*')
+    .eq('workspace_id', workspaceId);
+  if (error) { console.error('[notificationsApi] loadRecipients:', error); return []; }
+  return (data || []) as unknown as NotificationRecipient[];
+}
+
+export async function setRecipients(workspaceId: string, category: string, memberIds: string[]): Promise<void> {
+  // Delete existing for this category
+  await supabase
+    .from('notification_recipients')
+    .delete()
+    .eq('workspace_id', workspaceId)
+    .eq('category', category);
+
+  // Insert new
+  if (memberIds.length > 0) {
+    const rows = memberIds.map(mid => ({
+      workspace_id: workspaceId,
+      category,
+      member_id: mid,
+    }));
+    const { error } = await supabase
+      .from('notification_recipients')
+      .insert(rows);
+    if (error) console.error('[notificationsApi] setRecipients:', error);
+  }
+}
+
+// ── Email Quotas ────────────────────────────────────────────────────
+
+export async function loadEmailQuota(workspaceId: string): Promise<EmailQuota | null> {
+  const currentMonth = new Date().toISOString().slice(0, 7);
+  const { data, error } = await supabase
+    .from('email_quotas')
+    .select('*')
+    .eq('workspace_id', workspaceId)
+    .maybeSingle();
+  if (error) { console.error('[notificationsApi] loadEmailQuota:', error); return null; }
+  if (!data) return null;
+  // Reset if month has changed
+  const quota = data as unknown as EmailQuota;
+  if (quota.month !== currentMonth) {
+    return { ...quota, emails_sent: 0, month: currentMonth };
+  }
+  return quota;
 }
 
 // ── Realtime subscription ───────────────────────────────────────────
