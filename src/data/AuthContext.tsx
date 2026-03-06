@@ -167,25 +167,62 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (alreadyResolved) return; // Still provisioning or failed
 
     // If user has no workspaces yet (e.g. first sign-in after email confirmation),
-    // auto-provision one now — but only if no other call is already doing it
+    // check if they have a pending invite first — if so, skip auto-provisioning
+    // and let the accept-invite flow handle workspace joining
     if (workspaces.length === 0) {
-      if (moduleProvisioningLock) {
-        // Another call is already provisioning — bail out
-        return;
+      // Check for pending invites before auto-provisioning
+      const { data: pendingInvites } = await supabase
+        .from('pending_invites')
+        .select('id, workspace_id, role')
+        .eq('email', u.email)
+        .limit(1);
+
+      if (pendingInvites && pendingInvites.length > 0) {
+        // User has pending invite(s) — auto-accept the first one instead of provisioning
+        const invite = pendingInvites[0];
+        try {
+          const { error: memErr } = await supabase
+            .from('workspace_members')
+            .insert({
+              workspace_id: invite.workspace_id,
+              user_id: u.id,
+              email: u.email,
+              name: u.name || u.email.split('@')[0],
+              role: invite.role || 'Member',
+              status: 'active',
+              joined_at: new Date().toISOString(),
+            });
+          if (!memErr) {
+            // Clean up the invite
+            await supabase.from('pending_invites').delete().eq('id', invite.id);
+            // Re-resolve workspaces
+            workspaces = await resolveAllWorkspaces(u.id);
+          }
+        } catch (err) {
+          console.error('Auto-accept invite failed:', err);
+        }
       }
-      moduleProvisioningLock = true;
-      try {
-        const wsId = await createWorkspaceForUser(u.id, u.email, u.name);
-        const wsName = u.name ? `${u.name}'s Workspace` : 'My Workspace';
-        workspaces = [{ id: wsId, name: wsName, role: 'Owner', planId: 'starter' }];
-        setIsNewUser(true);
-      } catch (err) {
-        console.error('Auto-provisioning workspace failed:', err);
+
+      // If still no workspaces after invite check, provision one
+      if (workspaces.length === 0) {
+        if (moduleProvisioningLock) {
+          // Another call is already provisioning — bail out
+          return;
+        }
+        moduleProvisioningLock = true;
+        try {
+          const wsId = await createWorkspaceForUser(u.id, u.email, u.name);
+          const wsName = u.name ? `${u.name}'s Workspace` : 'My Workspace';
+          workspaces = [{ id: wsId, name: wsName, role: 'Owner', planId: 'starter' }];
+          setIsNewUser(true);
+        } catch (err) {
+          console.error('Auto-provisioning workspace failed:', err);
+          moduleProvisioningLock = false;
+          moduleResolvedUserId = null; // Allow retry
+          return;
+        }
         moduleProvisioningLock = false;
-        moduleResolvedUserId = null; // Allow retry
-        return;
       }
-      moduleProvisioningLock = false;
     }
 
     setAllWorkspaces(workspaces);
