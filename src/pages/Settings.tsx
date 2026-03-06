@@ -73,7 +73,7 @@ import BillingTab from "../components/BillingTab";
 import EmailActivityLog from "../components/EmailActivityLog";
 import { usePlan } from "../data/PlanContext";
 import { FeatureGate } from "../components/FeatureGate";
-import { STARTER_NOTIFICATION_TYPES, PLANS } from "../data/plans";
+import { STARTER_NOTIFICATION_TYPES, PLANS, PLAN_EMAIL_TYPES as PLAN_EMAIL_TYPES_MAP, PLAN_FREQUENCIES as PLAN_FREQUENCIES_MAP, EMAIL_QUOTA as EMAIL_QUOTA_MAP } from "../data/plans";
 import WebhooksSection from "../components/WebhooksSection";
 import {
   SettingsSaveContext,
@@ -2650,16 +2650,13 @@ function NotificationsTab() {
 
   // Plan-based limits
   const planEmailTypes = useMemo(() => {
-    const { PLAN_EMAIL_TYPES } = require('../data/plans');
-    return PLAN_EMAIL_TYPES[planId] || [];
+    return PLAN_EMAIL_TYPES_MAP[planId] || [];
   }, [planId]);
   const planFrequencies = useMemo(() => {
-    const { PLAN_FREQUENCIES } = require('../data/plans');
-    return PLAN_FREQUENCIES[planId] || ['instant'];
+    return PLAN_FREQUENCIES_MAP[planId] || ['instant'];
   }, [planId]);
   const emailLimit = useMemo(() => {
-    const { EMAIL_QUOTA } = require('../data/plans');
-    return EMAIL_QUOTA[planId];
+    return EMAIL_QUOTA_MAP[planId];
   }, [planId]);
 
   useEffect(() => {
