@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, Navigate } from "react-router";
+import { useRoleAccess } from "../data/useRoleAccess";
 import {
   TrendingUp,
   ArrowUpRight,
@@ -151,8 +152,11 @@ function SectionLabel({ children, pro, count }: { children: React.ReactNode; pro
 
 export default function Insights() {
   const navigate = useNavigate();
+  const { canViewInsights } = useRoleAccess();
   const { sessions, clients, netMultiplier, insightsMetrics: baseMetrics } = useData();
   const { can } = usePlan();
+
+
   const [viewMode, setViewMode] = useState<"gross" | "net">("gross");
   const [sortBy, setSortBy] = useState<SortKey>("revenue");
   const [invoices, setInvoices] = useState<any[]>([]);
@@ -201,6 +205,8 @@ export default function Insights() {
     metrics.profitability.forEach(p => Object.keys(p.months).forEach(m => all.add(m)));
     return [...all].sort().slice(-6);
   }, [metrics.profitability]);
+
+  if (!canViewInsights) return <Navigate to="/" replace />;
 
   return (
     <motion.div

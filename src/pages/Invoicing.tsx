@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, Navigate } from "react-router";
+import { useRoleAccess } from "../data/useRoleAccess";
 import { motion, AnimatePresence } from "motion/react";
 import {
   FileText,
@@ -95,10 +96,12 @@ function daysUntil(dateStr: string): number {
 
 export default function Invoicing() {
   const { can } = usePlan();
+  const { canViewInvoicing } = useRoleAccess();
   const hasInvoicing = can("clientInvoicing");
   const hasBatchInvoicing = can("batchInvoicing");
   const navigate = useNavigate();
   const { clients, sessions } = useData();
+
 
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
@@ -351,6 +354,8 @@ export default function Invoicing() {
       toast.error(err.message || "Failed to create payment link", { id: "payment-link" });
     }
   }, []);
+
+  if (!canViewInvoicing) return <Navigate to="/" replace />;
 
   if (!hasInvoicing) {
     return <LockedInvoicingPreview />;
