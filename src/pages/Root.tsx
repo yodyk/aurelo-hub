@@ -514,11 +514,19 @@ function RootLayout() {
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
-            className="fixed inset-0 z-50 bg-background flex flex-col lg:hidden"
+            className="fixed inset-0 z-50 bg-background flex flex-col lg:hidden touch-none"
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
+            exit={{ opacity: 0, y: '-100%' }}
             transition={{ duration: 0.2 }}
+            drag="y"
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={{ top: 0.4, bottom: 0 }}
+            onDragEnd={(_e, info) => {
+              if (info.offset.y < -80 || info.velocity.y < -300) {
+                setMobileMenuOpen(false);
+              }
+            }}
           >
             {/* Modal header */}
             <div className="h-14 flex items-center justify-between px-5 border-b border-border">
