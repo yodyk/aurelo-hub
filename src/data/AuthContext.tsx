@@ -1,6 +1,7 @@
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode } from 'react';
 import * as auth from './authService';
 import { supabase } from '@/integrations/supabase/client';
+import { NotificationEvents } from './notificationsApi';
 
 export interface WorkspaceInfo {
   id: string;
@@ -189,6 +190,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     setAllWorkspaces(workspaces);
     pickWorkspace(workspaces);
+
+    // Fire "member joined" notification for non-Owner workspaces on first resolution
+    // This covers the case where a user accepts an invite and logs in
+    for (const ws of workspaces) {
+      if (ws.role !== 'Owner') {
+        // Check if we've already notified for this user+workspace (avoid duplicates)
+        const notifKey = `aurelo_join_notified_${ws.id}`;
+        if (!sessionStorage.getItem(notifKey)) {
+          sessionStorage.setItem(notifKey, '1');
+          const memberName = u.name || u.email || 'A team member';
+          NotificationEvents.memberJoined(ws.id, memberName, {
+            userId: u.id,
+            email: u.email,
+            role: ws.role,
+          }).catch(e => console.error('[AuthContext] memberJoined notification error:', e));
+        }
+      }
+    }
   }, [pickWorkspace]);
 
   useEffect(() => {

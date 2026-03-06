@@ -297,6 +297,16 @@ export const NotificationEvents = {
       metadata: meta || {},
     }),
 
+  teamSessionLogged: (wsId: string, memberName: string, clientName: string, hours: number, meta?: Record<string, any>) =>
+    createNotification({
+      workspaceId: wsId,
+      category: 'team',
+      eventType: 'team_session_logged',
+      title: `${memberName} logged ${hours.toFixed(1)}h for ${clientName}`,
+      body: meta?.task ? `Task: ${meta.task}` : undefined,
+      metadata: meta || {},
+    }),
+
   retainerWarning: async (wsId: string, clientName: string, pctUsed: number, meta?: Record<string, any>) => {
     // Create in-app notification
     const notif = await createNotification({
