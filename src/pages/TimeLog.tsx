@@ -340,14 +340,14 @@ export default function TimeLog() {
   return (
     <motion.div
       data-tour="time-log"
-      className="max-w-7xl mx-auto px-6 lg:px-12 py-12"
+      className="max-w-7xl mx-auto px-6 lg:px-12 py-6 md:py-12"
       variants={container}
       initial="hidden"
       animate="show"
     >
-      <motion.div variants={item} className="flex items-end justify-between mb-8">
+      <motion.div variants={item} className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-[24px] tracking-tight mb-1" style={{ fontWeight: 600 }}>
+          <h1 className="text-[20px] md:text-[24px] tracking-tight mb-1" style={{ fontWeight: 600 }}>
             Time Log
           </h1>
           <p className="text-[14px] text-muted-foreground">
@@ -375,7 +375,7 @@ export default function TimeLog() {
       </motion.div>
 
       {/* Summary */}
-      <motion.div variants={item} className="grid grid-cols-3 gap-4 mb-8">
+      <motion.div variants={item} className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <div className="bg-card border border-border rounded-xl p-6 group hover:-translate-y-0.5 transition-all duration-300 shadow-[0_1px_4px_rgba(0,0,0,0.03),0_1px_2px_rgba(0,0,0,0.02)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.05),0_1px_3px_rgba(0,0,0,0.03)]">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-8 h-8 rounded-lg bg-accent/60 flex items-center justify-center group-hover:bg-primary/8 transition-colors">
@@ -428,7 +428,7 @@ export default function TimeLog() {
 
       {/* Filters */}
       <motion.div variants={item} className="mb-6 space-y-3">
-        <div className="flex gap-2 flex-wrap items-center">
+        <div className="flex gap-2 flex-wrap items-center flex-col md:flex-row">
           {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />

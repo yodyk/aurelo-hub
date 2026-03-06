@@ -211,15 +211,15 @@ export default function Insights() {
   return (
     <motion.div
       data-tour="insights-view"
-      className="max-w-7xl mx-auto px-6 lg:px-12 py-12"
+      className="max-w-7xl mx-auto px-6 lg:px-12 py-6 md:py-12"
       variants={container}
       initial="hidden"
       animate="show"
     >
       {/* Header */}
-      <motion.div variants={item} className="flex items-end justify-between mb-8">
+      <motion.div variants={item} className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-[24px] tracking-tight mb-1" style={{ fontWeight: 600 }}>Insights</h1>
+          <h1 className="text-[20px] md:text-[24px] tracking-tight mb-1" style={{ fontWeight: 600 }}>Insights</h1>
           <p className="text-[14px] text-muted-foreground">
             {hasFullInsights ? "Strategic layer" : "Basic insights"} &middot; {metrics.periodLabel}
           </p>
@@ -536,7 +536,8 @@ export default function Insights() {
               <div className="text-[12px] text-muted-foreground mt-1">Log billable sessions to see rankings</div>
             </div>
           ) : (
-            <div className="bg-card border border-border rounded-xl overflow-hidden">
+             <div className="bg-card border border-border rounded-xl overflow-hidden">
+              <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-border bg-accent/30">
@@ -591,6 +592,7 @@ export default function Insights() {
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           )}
         </div>

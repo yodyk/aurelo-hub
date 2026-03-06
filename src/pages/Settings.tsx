@@ -353,25 +353,25 @@ export default function Settings() {
   }, []);
 
   return (
-    <motion.div className="max-w-6xl mx-auto px-6 lg:px-12 py-12" variants={container} initial="hidden" animate="show">
+    <motion.div className="max-w-6xl mx-auto px-6 lg:px-12 py-6 md:py-12" variants={container} initial="hidden" animate="show">
       <motion.div variants={item} className="mb-8">
-        <h1 className="text-[24px] tracking-tight mb-1" style={{ fontWeight: 600 }}>
+        <h1 className="text-[20px] md:text-[24px] tracking-tight mb-1" style={{ fontWeight: 600 }}>
           Settings
         </h1>
         <p className="text-[14px] text-muted-foreground">Manage your workspace, billing, team, and preferences</p>
       </motion.div>
 
-      <div className="flex gap-8">
-        {/* Vertical tab nav */}
-        <motion.nav variants={item} className="w-52 flex-shrink-0">
-          <div className="sticky top-[80px] space-y-0.5">
+      <div className="flex flex-col md:flex-row gap-8">
+        {/* Vertical tab nav — hidden on mobile, horizontal scroll on mobile */}
+        <motion.nav variants={item} className="w-full md:w-52 flex-shrink-0">
+          <div className="md:sticky md:top-[80px] flex md:flex-col gap-0.5 overflow-x-auto md:overflow-x-visible pb-2 md:pb-0 border-b md:border-b-0 border-border -mx-6 px-6 md:mx-0 md:px-0">
             {visibleTabs.map((tab) => {
               const isActive = activeTab === tab.id;
               return (
                 <button
                   key={tab.id}
                   onClick={() => handleTabChange(tab.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] text-left transition-all duration-200 relative ${
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] text-left transition-all duration-200 relative whitespace-nowrap ${
                     isActive
                       ? "bg-primary/8 text-primary"
                       : "text-muted-foreground hover:text-foreground hover:bg-accent/60"
@@ -381,7 +381,7 @@ export default function Settings() {
                   {isActive && (
                     <motion.div
                       layoutId="settings-tab-indicator"
-                      className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full"
+                      className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full hidden md:block"
                       transition={{ type: "spring", stiffness: 350, damping: 30 }}
                     />
                   )}

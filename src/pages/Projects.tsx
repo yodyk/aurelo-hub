@@ -134,7 +134,6 @@ export default function Projects() {
     await addProject(clientId, project);
     loadAllProjects();
     toast.success("Project added");
-    toast.success("Project added");
   };
 
   if (loading || dataLoading) {
@@ -150,15 +149,15 @@ export default function Projects() {
   return (
     <motion.div
       data-tour="projects-view"
-      className="max-w-7xl mx-auto px-6 lg:px-12 py-12"
+      className="max-w-7xl mx-auto px-6 lg:px-12 py-6 md:py-12"
       variants={container}
       initial="hidden"
       animate="show"
     >
       {/* Header */}
-      <motion.div variants={item} className="flex items-end justify-between mb-8">
+      <motion.div variants={item} className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-[24px] tracking-tight mb-1" style={{ fontWeight: 600 }}>
+          <h1 className="text-[20px] md:text-[24px] tracking-tight mb-1" style={{ fontWeight: 600 }}>
             Projects
           </h1>
           <p className="text-[14px] text-muted-foreground">
@@ -176,7 +175,7 @@ export default function Projects() {
       </motion.div>
 
       {/* Summary Cards */}
-      <motion.div variants={item} className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <motion.div variants={item} className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <div className="bg-card border border-border rounded-xl p-6 group hover:-translate-y-0.5 transition-all duration-300 shadow-[0_1px_4px_rgba(0,0,0,0.03),0_1px_2px_rgba(0,0,0,0.02)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.05),0_1px_3px_rgba(0,0,0,0.03)]">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-8 h-8 rounded-lg bg-accent/60 flex items-center justify-center group-hover:bg-primary/8 transition-colors">
@@ -316,6 +315,7 @@ export default function Projects() {
             className="bg-card border border-border rounded-xl overflow-hidden"
             style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.03), 0 1px 2px rgba(0,0,0,0.02)" }}
           >
+            <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="bg-accent/30 border-b border-border">
@@ -442,6 +442,7 @@ export default function Projects() {
                 })}
               </tbody>
             </table>
+            </div>
           </div>
         ) : (
           <div
