@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { format } from "date-fns";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@radix-ui/react-tooltip";
 import { useParams, Link, useNavigate, useSearchParams } from "react-router";
@@ -31,6 +31,11 @@ import {
   MapPin,
   ClipboardList,
   User,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  Save,
+  X,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
