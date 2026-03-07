@@ -27,6 +27,10 @@ import {
   FolderOpen,
   Settings as SettingsIcon,
   LayoutDashboard,
+  Phone,
+  MapPin,
+  ClipboardList,
+  User,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
