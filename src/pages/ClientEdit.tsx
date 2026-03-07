@@ -1,17 +1,18 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 import {
   ChevronLeft, User, FolderKanban, DollarSign, Eye, Clock, Repeat,
   MapPin, Phone, MessageSquare, Flag, ShieldAlert, Plus, Trash2,
-  ChevronDown, X, Info, Loader2, GripVertical,
+  ChevronDown, X, Info, Loader2, GripVertical, Globe,
 } from 'lucide-react';
 import { useData } from '../data/DataContext';
 import { usePlan } from '@/data/PlanContext';
 import { useRoleAccess } from '@/data/useRoleAccess';
 import { supabase } from '@/integrations/supabase/client';
 import { SettingsSaveBar } from '@/components/SettingsSaveBar';
+import * as settingsApi from '@/data/settingsApi';
 
 // ── Types ───────────────────────────────────────────────────────────
 
