@@ -482,7 +482,14 @@ export default function ClientEdit() {
     portalGreeting !== (client.portalGreeting || '') ||
     priorityLevel !== (client.priorityLevel || 'medium') ||
     riskLevel !== (client.riskLevel || 'low') ||
-    JSON.stringify(customFields) !== JSON.stringify(Array.isArray(client.customFields) ? client.customFields : [])
+    JSON.stringify({ workspace: wsFieldValues, client: clientFields }) !== JSON.stringify(
+      (() => {
+        const cf = client.customFields;
+        if (cf && typeof cf === 'object' && !Array.isArray(cf) && 'workspace' in cf) return { workspace: (cf as any).workspace || {}, client: (cf as any).client || [] };
+        if (Array.isArray(cf)) return { workspace: {}, client: cf.slice(0, 3) };
+        return { workspace: {}, client: [] };
+      })()
+    )
   );
 
   const rateNum = Number(rate) || 0;
@@ -524,7 +531,7 @@ export default function ClientEdit() {
       }
 
       if (isStudio) {
-        updates.customFields = customFields;
+        updates.customFields = { workspace: wsFieldValues, client: clientFields };
       }
 
       await updateClient(client.id, updates);
@@ -541,9 +548,9 @@ export default function ClientEdit() {
     navigate(`/clients/${clientId}`);
   };
 
-  const addCustomField = () => {
-    if (customFields.length >= 10) return;
-    setCustomFields(prev => [...prev, { id: crypto.randomUUID(), label: '', type: 'text', value: '' }]);
+  const addClientField = () => {
+    if (clientFields.length >= 3) return;
+    setClientFields(prev => [...prev, { id: crypto.randomUUID(), label: '', type: 'text', value: '' }]);
   };
 
   // Logo upload handlers
