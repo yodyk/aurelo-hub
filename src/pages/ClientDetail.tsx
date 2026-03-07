@@ -1038,7 +1038,7 @@ function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (
 
     if (type === 'toggle' || type === 'checkbox') {
       return (
-        <button onClick={onToggle} className="relative w-9 h-5 rounded-full transition-colors duration-200" style={{ background: value ? 'hsl(var(--primary))' : 'hsl(var(--switch-background))' }}>
+        <button onClick={onToggle} className={`relative w-9 h-5 rounded-full transition-colors duration-200 ${value ? 'bg-primary' : 'bg-switch-background'}`}>
           <motion.div className="absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm" animate={{ left: value ? 18 : 2 }} transition={{ type: "spring", stiffness: 400, damping: 30 }} />
         </button>
       );
