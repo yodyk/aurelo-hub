@@ -950,17 +950,24 @@ function OverviewTab({
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// Details Tab (Inline-Editable Custom Fields + Extended Info)
+// Details Tab (Standard Fields + Custom Fields — all inline-editable)
 // ═══════════════════════════════════════════════════════════════════
 function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (updates: any) => Promise<void> }) {
   const [wsSchemas, setWsSchemas] = useState<any[]>([]);
   const { isAtLeast } = usePlan();
+  const { canViewFinancials } = useRoleAccess();
   const navigate = useNavigate();
 
   // Editable state
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<any>('');
   const [saving, setSaving] = useState(false);
+
+  // New custom field form
+  const [showAddField, setShowAddField] = useState(false);
+  const [newFieldLabel, setNewFieldLabel] = useState('');
+  const [newFieldType, setNewFieldType] = useState<'text' | 'textarea' | 'toggle' | 'select'>('text');
+  const [newFieldOptions, setNewFieldOptions] = useState('');
 
   useEffect(() => {
     settingsApi.loadSetting('custom_fields_schema').then((schemas) => {
@@ -981,7 +988,6 @@ function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (
 
   const wsFieldsWithValues = wsSchemas.filter(s => s.label);
   const clientFieldsWithValues = clientSpecific.filter((f: any) => f.label);
-  const hasExtendedContact = client.phone || client.address;
 
   const startEdit = (fieldId: string, currentValue: any) => {
     setEditingField(fieldId);
@@ -991,6 +997,16 @@ function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (
   const cancelEdit = () => {
     setEditingField(null);
     setEditValue('');
+  };
+
+  // Save a standard client field
+  const saveStandardField = async (fieldKey: string, value: any) => {
+    setSaving(true);
+    try {
+      await onUpdateClient({ [fieldKey]: value });
+      toast.success('Field updated');
+    } catch { toast.error('Failed to save'); }
+    finally { setSaving(false); setEditingField(null); }
   };
 
   const saveWsField = async (fieldId: string, value: any) => {
@@ -1024,6 +1040,48 @@ function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (
     finally { setSaving(false); setEditingField(null); }
   };
 
+  const deleteClientField = async (index: number) => {
+    setSaving(true);
+    try {
+      const currentCf = client.customFields && typeof client.customFields === 'object' && !Array.isArray(client.customFields)
+        ? client.customFields
+        : { workspace: wsValues, client: [...clientSpecific] };
+      const newClientFields = [...(currentCf.client || [])];
+      newClientFields.splice(index, 1);
+      const newCf = { ...currentCf, client: newClientFields };
+      await onUpdateClient({ customFields: newCf });
+      toast.success('Field removed');
+    } catch { toast.error('Failed to remove'); }
+    finally { setSaving(false); }
+  };
+
+  const addClientField = async () => {
+    if (!newFieldLabel.trim()) return;
+    setSaving(true);
+    try {
+      const currentCf = client.customFields && typeof client.customFields === 'object' && !Array.isArray(client.customFields)
+        ? client.customFields
+        : { workspace: wsValues, client: [...clientSpecific] };
+      const newField: any = {
+        id: crypto.randomUUID(),
+        label: newFieldLabel.trim(),
+        type: newFieldType,
+        value: newFieldType === 'toggle' ? false : '',
+      };
+      if (newFieldType === 'select' && newFieldOptions.trim()) {
+        newField.options = newFieldOptions.split(',').map(o => o.trim()).filter(Boolean);
+      }
+      const newCf = { ...currentCf, client: [...(currentCf.client || []), newField] };
+      await onUpdateClient({ customFields: newCf });
+      setNewFieldLabel('');
+      setNewFieldType('text');
+      setNewFieldOptions('');
+      setShowAddField(false);
+      toast.success('Custom field added');
+    } catch { toast.error('Failed to add field'); }
+    finally { setSaving(false); }
+  };
+
   const toggleWsField = async (fieldId: string, currentValue: boolean) => {
     await saveWsField(fieldId, !currentValue);
   };
@@ -1032,6 +1090,7 @@ function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (
     await saveClientField(index, !currentValue);
   };
 
+  // Render an inline-editable field
   const renderEditableField = (fieldKey: string, schema: { type: string; label: string; options?: string[] }, value: any, onSave: (val: any) => void, onToggle?: () => void) => {
     const isEditing = editingField === fieldKey;
     const type = schema.type;
@@ -1065,6 +1124,15 @@ function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (
               <option value="">Select...</option>
               {(schema.options || []).map((opt: string) => <option key={opt} value={opt}>{opt}</option>)}
             </select>
+          ) : type === 'date' ? (
+            <input
+              type="date"
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              className="flex-1 px-2.5 py-1.5 text-[14px] bg-input-background border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+              autoFocus
+              onKeyDown={(e) => { if (e.key === 'Enter') onSave(editValue); if (e.key === 'Escape') cancelEdit(); }}
+            />
           ) : (
             <input
               type="text"
@@ -1086,8 +1154,13 @@ function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (
     }
 
     // Display mode
-    const displayValue = value !== undefined && value !== '' && value !== null
-      ? <span className="text-[14px] text-foreground">{String(value)}</span>
+    let displayText = value;
+    if (type === 'date' && value) {
+      try { displayText = format(parseISO(value), 'MMM d, yyyy'); } catch { displayText = value; }
+    }
+
+    const displayValue = displayText !== undefined && displayText !== '' && displayText !== null
+      ? <span className="text-[14px] text-foreground">{String(displayText)}</span>
       : <span className="text-[13px] text-muted-foreground/50 italic">Empty — click to set</span>;
 
     return (
@@ -1100,34 +1173,62 @@ function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (
     );
   };
 
+  // Standard fields definition
+  const standardFields: { key: string; label: string; icon: any; type: string; options?: string[]; financialOnly?: boolean }[] = [
+    { key: 'contactName', label: 'Contact Name', icon: User, type: 'text' },
+    { key: 'contactEmail', label: 'Contact Email', icon: Mail, type: 'text' },
+    { key: 'phone', label: 'Phone', icon: Phone, type: 'text' },
+    { key: 'website', label: 'Website', icon: Globe, type: 'text' },
+    { key: 'address', label: 'Address', icon: MapPin, type: 'text' },
+    { key: 'startDate', label: 'Start / Sign-On Date', icon: ClipboardList, type: 'date' },
+    { key: 'status', label: 'Status', icon: ClipboardList, type: 'select', options: ['Active', 'Prospect', 'Archived'] },
+    { key: 'model', label: 'Billing Model', icon: ClipboardList, type: 'select', options: ['Hourly', 'Retainer', 'Project'] },
+    { key: 'rate', label: 'Rate', icon: ClipboardList, type: 'text', financialOnly: true },
+    { key: 'priorityLevel', label: 'Priority', icon: Flag, type: 'select', options: ['low', 'medium', 'high'] },
+    { key: 'riskLevel', label: 'Risk', icon: ShieldAlert, type: 'select', options: ['low', 'medium', 'high'] },
+    { key: 'portalGreeting', label: 'Portal Greeting', icon: ClipboardList, type: 'textarea' },
+  ];
+
+  const visibleStandardFields = standardFields.filter(f => !f.financialOnly || canViewFinancials);
+
   return (
     <>
-      {/* Extended contact info */}
-      {hasExtendedContact && (
-        <SectionCard>
-          <div className="text-[13px] text-muted-foreground mb-4" style={{ fontWeight: 600 }}>Location & Contact</div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {client.phone && (
-              <div className="flex items-start gap-3 p-3.5 rounded-lg bg-accent/30">
-                <Phone className="w-4 h-4 text-muted-foreground/60 mt-0.5" />
-                <div>
-                  <div className="text-[11px] text-muted-foreground mb-0.5" style={{ fontWeight: 500 }}>Phone</div>
-                  <a href={`tel:${client.phone}`} className="text-[14px] text-foreground hover:text-primary transition-colors">{client.phone}</a>
+      {/* Standard Client Details */}
+      <div className="bg-card border border-border rounded-xl overflow-hidden" style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.03)" }}>
+        <div className="h-0.5 bg-gradient-to-r from-primary/40 to-transparent" />
+        <div className="p-5 md:p-6">
+          <div className="text-[13px] text-muted-foreground mb-5" style={{ fontWeight: 600 }}>Client Details</div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {visibleStandardFields.map((field) => {
+              const val = (client as any)[field.key];
+              const displayVal = field.key === 'rate' && val !== undefined && val !== '' && val !== null ? `$${val}` : val;
+              return (
+                <div key={field.key} className="p-3.5 rounded-lg bg-accent/20 border border-border/50">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <field.icon className="w-3 h-3 text-muted-foreground/50" />
+                    <div className="text-[11px] text-muted-foreground uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.05em' }}>{field.label}</div>
+                  </div>
+                  {field.key === 'rate' ? (
+                    renderEditableField(
+                      `std-${field.key}`,
+                      { type: 'text', label: field.label },
+                      val ?? '',
+                      (v) => saveStandardField(field.key, parseFloat(v) || 0),
+                    )
+                  ) : (
+                    renderEditableField(
+                      `std-${field.key}`,
+                      { type: field.type, label: field.label, options: field.options },
+                      val ?? '',
+                      (v) => saveStandardField(field.key, v || null),
+                    )
+                  )}
                 </div>
-              </div>
-            )}
-            {client.address && (
-              <div className="flex items-start gap-3 p-3.5 rounded-lg bg-accent/30">
-                <MapPin className="w-4 h-4 text-muted-foreground/60 mt-0.5" />
-                <div>
-                  <div className="text-[11px] text-muted-foreground mb-0.5" style={{ fontWeight: 500 }}>Address</div>
-                  <div className="text-[14px] text-foreground">{client.address}</div>
-                </div>
-              </div>
-            )}
+              );
+            })}
           </div>
-        </SectionCard>
-      )}
+        </div>
+      </div>
 
       {/* External links */}
       {client.externalLinks && Array.isArray(client.externalLinks) && client.externalLinks.length > 0 && (
@@ -1154,9 +1255,9 @@ function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (
               <div className="text-[13px] text-muted-foreground" style={{ fontWeight: 600 }}>Workspace Fields</div>
               <span className="text-[10px] text-muted-foreground/60 bg-accent/60 px-1.5 py-0.5 rounded" style={{ fontWeight: 500 }}>Shared</span>
             </div>
-            <div className="divide-y divide-border">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {wsSchemas.filter(s => s.label).map((schema: any) => (
-                <div key={schema.id} className="py-3 first:pt-0 last:pb-0">
+                <div key={schema.id} className="p-3.5 rounded-lg bg-accent/20 border border-border/50">
                   <div className="text-[11px] text-muted-foreground mb-1.5 uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.05em' }}>{schema.label}</div>
                   {renderEditableField(
                     `ws-${schema.id}`,
@@ -1172,17 +1273,95 @@ function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (
         </div>
       )}
 
-      {/* Client-specific custom fields — inline editable */}
-      {clientFieldsWithValues.length > 0 && (
-        <div className="bg-card border border-border rounded-xl overflow-hidden" style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.03)" }}>
-          <div className="h-0.5 bg-gradient-to-r from-warning/40 to-transparent" />
-          <div className="p-5 md:p-6">
-            <div className="text-[13px] text-muted-foreground mb-5" style={{ fontWeight: 600 }}>Client-Specific Fields</div>
-            <div className="divide-y divide-border">
+      {/* Client-specific custom fields — inline editable + add new */}
+      <div className="bg-card border border-border rounded-xl overflow-hidden" style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.03)" }}>
+        <div className="h-0.5 bg-gradient-to-r from-warning/40 to-transparent" />
+        <div className="p-5 md:p-6">
+          <div className="flex items-center justify-between mb-5">
+            <div className="text-[13px] text-muted-foreground" style={{ fontWeight: 600 }}>Client-Specific Fields</div>
+            <button
+              onClick={() => setShowAddField(!showAddField)}
+              className="inline-flex items-center gap-1 px-2.5 py-1 text-[12px] text-primary bg-primary/[0.06] border border-primary/10 rounded-lg hover:bg-primary/10 transition-colors"
+              style={{ fontWeight: 500 }}
+            >
+              {showAddField ? <X className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
+              {showAddField ? 'Cancel' : 'Add field'}
+            </button>
+          </div>
+
+          {/* Add new field form */}
+          <AnimatePresence>
+            {showAddField && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="overflow-hidden mb-4"
+              >
+                <div className="p-4 rounded-lg bg-accent/30 border border-border/50 space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <div className="text-[11px] text-muted-foreground mb-1" style={{ fontWeight: 500 }}>Label</div>
+                      <input
+                        type="text"
+                        value={newFieldLabel}
+                        onChange={(e) => setNewFieldLabel(e.target.value)}
+                        placeholder="e.g. Preferred Name"
+                        className="w-full px-2.5 py-1.5 text-[14px] bg-input-background border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
+                    <div>
+                      <div className="text-[11px] text-muted-foreground mb-1" style={{ fontWeight: 500 }}>Type</div>
+                      <select
+                        value={newFieldType}
+                        onChange={(e) => setNewFieldType(e.target.value as any)}
+                        className="w-full px-2.5 py-1.5 text-[14px] bg-input-background border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+                      >
+                        <option value="text">Text</option>
+                        <option value="textarea">Long text</option>
+                        <option value="toggle">Toggle</option>
+                        <option value="select">Dropdown</option>
+                      </select>
+                    </div>
+                  </div>
+                  {newFieldType === 'select' && (
+                    <div>
+                      <div className="text-[11px] text-muted-foreground mb-1" style={{ fontWeight: 500 }}>Options (comma-separated)</div>
+                      <input
+                        type="text"
+                        value={newFieldOptions}
+                        onChange={(e) => setNewFieldOptions(e.target.value)}
+                        placeholder="Option 1, Option 2, Option 3"
+                        className="w-full px-2.5 py-1.5 text-[14px] bg-input-background border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
+                  )}
+                  <button
+                    onClick={addClientField}
+                    disabled={!newFieldLabel.trim() || saving}
+                    className="px-3 py-1.5 text-[13px] bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all disabled:opacity-50"
+                    style={{ fontWeight: 500 }}
+                  >
+                    {saving ? 'Adding...' : 'Add field'}
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {clientFieldsWithValues.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {clientFieldsWithValues.map((field: any, i: number) => {
                 const realIndex = clientSpecific.indexOf(field);
                 return (
-                  <div key={i} className="py-3 first:pt-0 last:pb-0">
+                  <div key={i} className="p-3.5 rounded-lg bg-accent/20 border border-border/50 group relative">
+                    <button
+                      onClick={() => deleteClientField(realIndex)}
+                      className="absolute top-2 right-2 w-5 h-5 flex items-center justify-center rounded text-muted-foreground/0 group-hover:text-muted-foreground/40 hover:!text-destructive hover:bg-destructive/10 transition-all"
+                      title="Remove field"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
                     <div className="text-[11px] text-muted-foreground mb-1.5 uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.05em' }}>{field.label}</div>
                     {renderEditableField(
                       `cl-${realIndex}`,
@@ -1195,27 +1374,14 @@ function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (
                 );
               })}
             </div>
-          </div>
+          ) : !showAddField ? (
+            <div className="text-center py-6">
+              <ClipboardList className="w-6 h-6 text-muted-foreground/20 mx-auto mb-2" />
+              <div className="text-[13px] text-muted-foreground/50">No client-specific fields yet</div>
+            </div>
+          ) : null}
         </div>
-      )}
-
-      {/* Empty state */}
-      {wsSchemas.length === 0 && clientFieldsWithValues.length === 0 && !hasExtendedContact && !(client.externalLinks?.length > 0) && (
-        <SectionCard>
-          <div className="text-center py-8">
-            <ClipboardList className="w-8 h-8 text-muted-foreground/30 mx-auto mb-3" />
-            <div className="text-[14px] text-muted-foreground mb-1" style={{ fontWeight: 500 }}>No additional details</div>
-            <div className="text-[13px] text-muted-foreground/60 mb-4">Add custom fields, contact info, or links via the edit page.</div>
-            <button
-              onClick={() => navigate(`/clients/${client.id}/edit`)}
-              className="px-4 py-2 text-[13px] bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all"
-              style={{ fontWeight: 500 }}
-            >
-              Edit client
-            </button>
-          </div>
-        </SectionCard>
-      )}
+      </div>
     </>
   );
 }
