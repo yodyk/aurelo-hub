@@ -40,6 +40,7 @@ import ClientNotes from "../components/ClientNotes";
 import EmailActivityLog from "../components/EmailActivityLog";
 import BulkSessionActions from "../components/BulkSessionActions";
 import { supabase } from "@/integrations/supabase/client";
+import * as settingsApi from "@/data/settingsApi";
 import { usePlan } from "@/data/PlanContext";
 import { useRoleAccess } from "@/data/useRoleAccess";
 
@@ -898,28 +899,69 @@ function OverviewTab({
       )}
 
       {/* Custom fields display */}
-      {Array.isArray(client.customFields) && client.customFields.some((f: any) => f.label) && (
-        <SectionCard>
-          <div className="text-[13px] text-muted-foreground mb-4" style={{ fontWeight: 600 }}>Custom Fields</div>
-          <div className="space-y-2">
-            {client.customFields.filter((f: any) => f.label).map((field: any, i: number) => {
-              let displayValue: React.ReactNode = '—';
-              if (field.type === 'toggle' || field.type === 'checkbox') {
-                displayValue = field.value ? <span className="text-primary text-[12px]" style={{ fontWeight: 500 }}>Yes</span> : <span className="text-muted-foreground text-[12px]">No</span>;
-              } else if (typeof field.value === 'string' && field.value) {
-                displayValue = <span className="text-[13px] text-foreground">{field.value}</span>;
-              }
-              return (
-                <div key={i} className="flex items-center justify-between py-1.5">
-                  <span className="text-[13px] text-muted-foreground" style={{ fontWeight: 500 }}>{field.label}</span>
-                  <div className="text-right max-w-[60%]">{displayValue}</div>
-                </div>
-              );
-            })}
-          </div>
-        </SectionCard>
-      )}
+      <CustomFieldsDisplay client={client} />
     </>
+  );
+}
+
+// ── Custom Fields Display (handles both workspace + client-specific) ──
+function CustomFieldsDisplay({ client }: { client: any }) {
+  const [wsSchemas, setWsSchemas] = useState<any[]>([]);
+
+  useEffect(() => {
+    settingsApi.loadSetting('custom_fields_schema').then((schemas) => {
+      if (Array.isArray(schemas)) setWsSchemas(schemas);
+    });
+  }, []);
+
+  const cf = client.customFields;
+  let wsValues: Record<string, string | boolean> = {};
+  let clientSpecific: any[] = [];
+
+  if (cf && typeof cf === 'object' && !Array.isArray(cf) && 'workspace' in cf) {
+    wsValues = cf.workspace || {};
+    clientSpecific = Array.isArray(cf.client) ? cf.client : [];
+  } else if (Array.isArray(cf)) {
+    // Legacy format
+    clientSpecific = cf;
+  }
+
+  const wsFieldsWithValues = wsSchemas.filter(s => s.label && wsValues[s.id] !== undefined && wsValues[s.id] !== '' && wsValues[s.id] !== false);
+  const clientFieldsWithValues = clientSpecific.filter((f: any) => f.label && (f.value !== '' && f.value !== undefined));
+
+  if (wsFieldsWithValues.length === 0 && clientFieldsWithValues.length === 0) return null;
+
+  const renderValue = (type: string, value: any): React.ReactNode => {
+    if (type === 'toggle' || type === 'checkbox') {
+      return value ? <span className="text-primary text-[12px]" style={{ fontWeight: 500 }}>Yes</span> : <span className="text-muted-foreground text-[12px]">No</span>;
+    }
+    if (typeof value === 'string' && value) {
+      return <span className="text-[13px] text-foreground">{value}</span>;
+    }
+    return <span className="text-muted-foreground">—</span>;
+  };
+
+  return (
+    <SectionCard>
+      <div className="text-[13px] text-muted-foreground mb-4" style={{ fontWeight: 600 }}>Custom Fields</div>
+      <div className="space-y-2">
+        {wsFieldsWithValues.map((schema: any) => (
+          <div key={schema.id} className="flex items-center justify-between py-1.5">
+            <span className="text-[13px] text-muted-foreground flex items-center gap-1.5" style={{ fontWeight: 500 }}>
+              <Globe className="w-3 h-3 text-muted-foreground/40" />
+              {schema.label}
+            </span>
+            <div className="text-right max-w-[60%]">{renderValue(schema.type, wsValues[schema.id])}</div>
+          </div>
+        ))}
+        {clientFieldsWithValues.map((field: any, i: number) => (
+          <div key={i} className="flex items-center justify-between py-1.5">
+            <span className="text-[13px] text-muted-foreground" style={{ fontWeight: 500 }}>{field.label}</span>
+            <div className="text-right max-w-[60%]">{renderValue(field.type, field.value)}</div>
+          </div>
+        ))}
+      </div>
+    </SectionCard>
   );
 }
 
