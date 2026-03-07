@@ -1,17 +1,18 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 import {
   ChevronLeft, User, FolderKanban, DollarSign, Eye, Clock, Repeat,
   MapPin, Phone, MessageSquare, Flag, ShieldAlert, Plus, Trash2,
-  ChevronDown, X, Info, Loader2, GripVertical,
+  ChevronDown, X, Info, Loader2, GripVertical, Globe,
 } from 'lucide-react';
 import { useData } from '../data/DataContext';
 import { usePlan } from '@/data/PlanContext';
 import { useRoleAccess } from '@/data/useRoleAccess';
 import { supabase } from '@/integrations/supabase/client';
 import { SettingsSaveBar } from '@/components/SettingsSaveBar';
+import * as settingsApi from '@/data/settingsApi';
 
 // ── Types ───────────────────────────────────────────────────────────
 
@@ -394,8 +395,11 @@ export default function ClientEdit() {
   const [priorityLevel, setPriorityLevel] = useState('medium');
   const [riskLevel, setRiskLevel] = useState('low');
 
-  // ── Custom Fields (Studio)
-  const [customFields, setCustomFields] = useState<CustomField[]>([]);
+  // ── Custom Fields (Studio) — split: workspace-level values + client-specific fields
+  interface WsFieldSchema { id: string; label: string; type: FieldType; options?: string[]; }
+  const [wsFieldSchemas, setWsFieldSchemas] = useState<WsFieldSchema[]>([]);
+  const [wsFieldValues, setWsFieldValues] = useState<Record<string, string | boolean>>({});
+  const [clientFields, setClientFields] = useState<CustomField[]>([]);
 
   // ── Branding (Studio)
   const [clientFaviconUrl, setClientFaviconUrl] = useState<string | null>(null);
@@ -426,9 +430,29 @@ export default function ClientEdit() {
     setPortalGreeting(client.portalGreeting || '');
     setPriorityLevel(client.priorityLevel || 'medium');
     setRiskLevel(client.riskLevel || 'low');
-    setCustomFields(Array.isArray(client.customFields) ? client.customFields : []);
+    // Parse custom fields — new format: { workspace: {id: value}, client: [CustomField] }
+    const cf = client.customFields;
+    if (cf && typeof cf === 'object' && !Array.isArray(cf) && 'workspace' in cf) {
+      setWsFieldValues((cf as any).workspace || {});
+      setClientFields(Array.isArray((cf as any).client) ? (cf as any).client : []);
+    } else if (Array.isArray(cf)) {
+      // Legacy: all fields were client-specific, migrate first 3 only
+      setClientFields(cf.slice(0, 3));
+      setWsFieldValues({});
+    } else {
+      setWsFieldValues({});
+      setClientFields([]);
+    }
     setInitialized(true);
   }, [client]);
+
+  // Load workspace-level field schemas
+  useEffect(() => {
+    if (!isStudio) return;
+    settingsApi.loadSetting('custom_fields_schema').then((schemas) => {
+      if (Array.isArray(schemas)) setWsFieldSchemas(schemas);
+    });
+  }, [isStudio]);
 
   // Load client logos
   useEffect(() => {
@@ -458,7 +482,14 @@ export default function ClientEdit() {
     portalGreeting !== (client.portalGreeting || '') ||
     priorityLevel !== (client.priorityLevel || 'medium') ||
     riskLevel !== (client.riskLevel || 'low') ||
-    JSON.stringify(customFields) !== JSON.stringify(Array.isArray(client.customFields) ? client.customFields : [])
+    JSON.stringify({ workspace: wsFieldValues, client: clientFields }) !== JSON.stringify(
+      (() => {
+        const cf = client.customFields;
+        if (cf && typeof cf === 'object' && !Array.isArray(cf) && 'workspace' in cf) return { workspace: (cf as any).workspace || {}, client: (cf as any).client || [] };
+        if (Array.isArray(cf)) return { workspace: {}, client: cf.slice(0, 3) };
+        return { workspace: {}, client: [] };
+      })()
+    )
   );
 
   const rateNum = Number(rate) || 0;
@@ -500,7 +531,7 @@ export default function ClientEdit() {
       }
 
       if (isStudio) {
-        updates.customFields = customFields;
+        updates.customFields = { workspace: wsFieldValues, client: clientFields };
       }
 
       await updateClient(client.id, updates);
@@ -517,9 +548,9 @@ export default function ClientEdit() {
     navigate(`/clients/${clientId}`);
   };
 
-  const addCustomField = () => {
-    if (customFields.length >= 10) return;
-    setCustomFields(prev => [...prev, { id: crypto.randomUUID(), label: '', type: 'text', value: '' }]);
+  const addClientField = () => {
+    if (clientFields.length >= 3) return;
+    setClientFields(prev => [...prev, { id: crypto.randomUUID(), label: '', type: 'text', value: '' }]);
   };
 
   // Logo upload handlers
@@ -734,25 +765,104 @@ export default function ClientEdit() {
 
         {/* ── Custom Fields (Studio) ────────────── */}
         {isStudio && (
-          <SectionCard icon={Plus} title="Custom Fields" badge={<PlanBadge label="Studio" />} description="Add up to 10 custom fields for this client">
+          <SectionCard icon={Plus} title="Custom Fields" badge={<PlanBadge label="Studio" />} description="Workspace fields apply to all clients. You can also add fields unique to this client.">
+
+            {/* Workspace-level fields (schema from Settings) */}
+            {wsFieldSchemas.filter(s => s.label).length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Globe className="w-3 h-3 text-muted-foreground/60" />
+                  <span className="text-[11px] text-muted-foreground" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Workspace fields</span>
+                  <span className="text-[10px] text-muted-foreground/50">· Managed in Settings</span>
+                </div>
+                {wsFieldSchemas.filter(s => s.label).map(schema => {
+                  const val = wsFieldValues[schema.id];
+                  return (
+                    <div key={schema.id} className="border border-border/60 rounded-lg p-3 bg-accent/10">
+                      <FieldLabel>{schema.label}</FieldLabel>
+                      {schema.type === 'text' && (
+                        <FieldInput
+                          value={typeof val === 'string' ? val : ''}
+                          onChange={e => setWsFieldValues(prev => ({ ...prev, [schema.id]: e.target.value }))}
+                          placeholder="Enter value…"
+                          maxLength={200}
+                        />
+                      )}
+                      {schema.type === 'textarea' && (
+                        <FieldTextarea
+                          value={typeof val === 'string' ? val : ''}
+                          onChange={e => setWsFieldValues(prev => ({ ...prev, [schema.id]: e.target.value }))}
+                          placeholder="Enter value…"
+                          maxLength={1000}
+                        />
+                      )}
+                      {schema.type === 'toggle' && (
+                        <button
+                          onClick={() => setWsFieldValues(prev => ({ ...prev, [schema.id]: !prev[schema.id] }))}
+                          className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${val ? 'bg-primary' : 'bg-[var(--switch-background)]'}`}
+                        >
+                          <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white transition-transform ${val ? 'translate-x-4' : 'translate-x-0.5'}`} style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.12)' }} />
+                        </button>
+                      )}
+                      {schema.type === 'checkbox' && (
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={!!val}
+                            onChange={e => setWsFieldValues(prev => ({ ...prev, [schema.id]: e.target.checked }))}
+                            className="w-4 h-4 rounded border-border accent-primary"
+                          />
+                          <span className="text-[13px] text-muted-foreground">Enabled</span>
+                        </label>
+                      )}
+                      {schema.type === 'select' && (
+                        <div className="relative">
+                          <select
+                            value={typeof val === 'string' ? val : ''}
+                            onChange={e => setWsFieldValues(prev => ({ ...prev, [schema.id]: e.target.value }))}
+                            className="w-full px-3 py-2 text-[14px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all appearance-none pr-7"
+                          >
+                            <option value="">Select…</option>
+                            {(schema.options || []).filter(Boolean).map((opt, i) => <option key={i} value={opt}>{opt}</option>)}
+                          </select>
+                          <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Divider between workspace and client fields */}
+            {wsFieldSchemas.filter(s => s.label).length > 0 && (
+              <div className="border-t border-border my-4" />
+            )}
+
+            {/* Client-specific fields */}
             <div className="space-y-3">
-              {customFields.map((field, idx) => (
+              <div className="flex items-center gap-1.5 mb-1">
+                <User className="w-3 h-3 text-muted-foreground/60" />
+                <span className="text-[11px] text-muted-foreground" style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Client-specific fields</span>
+                <span className="text-[10px] text-muted-foreground/50">· Unique to this client</span>
+              </div>
+              {clientFields.map((field, idx) => (
                 <CustomFieldEditor
                   key={field.id}
                   field={field}
-                  onChange={f => setCustomFields(prev => prev.map((existing, i) => i === idx ? f : existing))}
-                  onRemove={() => setCustomFields(prev => prev.filter((_, i) => i !== idx))}
+                  onChange={f => setClientFields(prev => prev.map((existing, i) => i === idx ? f : existing))}
+                  onRemove={() => setClientFields(prev => prev.filter((_, i) => i !== idx))}
                 />
               ))}
             </div>
-            {customFields.length < 10 && (
+            {clientFields.length < 3 && (
               <button
-                onClick={addCustomField}
+                onClick={addClientField}
                 className="flex items-center gap-2 px-3 py-2 text-[13px] text-muted-foreground hover:text-foreground border border-dashed border-border rounded-lg hover:bg-accent/30 transition-all w-full justify-center"
                 style={{ fontWeight: 500 }}
               >
-                <Plus className="w-3.5 h-3.5" /> Add field
-                <span className="text-[11px] text-muted-foreground/60 ml-1">{customFields.length}/10</span>
+                <Plus className="w-3.5 h-3.5" /> Add client field
+                <span className="text-[11px] text-muted-foreground/60 ml-1">{clientFields.length}/3</span>
               </button>
             )}
           </SectionCard>

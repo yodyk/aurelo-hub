@@ -1272,6 +1272,9 @@ function WorkspaceTab() {
         </SectionCard>
       </FeatureGate>
 
+      {/* Workspace Custom Fields (Studio) */}
+      <WorkspaceCustomFieldsSection />
+
       {/* Identity & Categories */}
       <IdentitySection />
 
@@ -1299,6 +1302,173 @@ function WorkspaceTab() {
         </AlertDialogContent>
       </AlertDialog>
     </motion.div>
+  );
+}
+
+// ── Workspace Custom Fields Section (Studio) ────────────────────────
+
+type WsFieldType = 'text' | 'textarea' | 'toggle' | 'checkbox' | 'select';
+
+interface WsFieldSchema {
+  id: string;
+  label: string;
+  type: WsFieldType;
+  options?: string[];
+}
+
+const WS_FIELD_TYPES: { value: WsFieldType; label: string }[] = [
+  { value: 'text', label: 'Text' },
+  { value: 'textarea', label: 'Text Area' },
+  { value: 'toggle', label: 'Toggle' },
+  { value: 'checkbox', label: 'Checkbox' },
+  { value: 'select', label: 'Select' },
+];
+
+function WorkspaceCustomFieldsSection() {
+  const { isAtLeast } = usePlan();
+  const { markDirty } = useSettingsSave();
+  const isStudio = isAtLeast('studio');
+  const [fields, loading, setFields] = useSettingsSection<WsFieldSchema[]>('custom_fields_schema', []);
+  const [expandedOptions, setExpandedOptions] = useState<string | null>(null);
+
+  const save = useCallback(async () => {
+    await api.saveSetting('custom_fields_schema', fields);
+    toast.success('Custom fields saved');
+  }, [fields]);
+
+  useRegisterSave(save);
+
+  if (!isStudio) return null;
+  if (loading) return null;
+
+  const addField = () => {
+    if (fields.length >= 7) return;
+    setFields([...fields, { id: crypto.randomUUID(), label: '', type: 'text' }]);
+    markDirty();
+  };
+
+  const updateField = (idx: number, patch: Partial<WsFieldSchema>) => {
+    setFields(fields.map((f, i) => i === idx ? { ...f, ...patch } : f));
+    markDirty();
+  };
+
+  const removeField = (idx: number) => {
+    setFields(fields.filter((_, i) => i !== idx));
+    markDirty();
+  };
+
+  return (
+    <SectionCard>
+      <SectionHeader
+        title="Custom fields"
+        description="Define up to 7 fields that appear on every client. Clients also get 3 additional fields unique to them."
+      />
+      <div className="space-y-3">
+        {fields.map((field, idx) => (
+          <div key={field.id} className="border border-border rounded-lg p-3 bg-accent/20 space-y-2.5">
+            <div className="flex items-start gap-2">
+              <GripVertical className="w-3.5 h-3.5 text-muted-foreground/40 mt-2 flex-shrink-0" />
+              <div className="flex-1 grid grid-cols-1 sm:grid-cols-[1fr_140px] gap-2">
+                <TextInput
+                  value={field.label}
+                  onChange={(e) => updateField(idx, { label: e.target.value })}
+                  placeholder="Label (e.g. Industry)"
+                  maxLength={50}
+                />
+                <div className="relative">
+                  <select
+                    value={field.type}
+                    onChange={(e) => {
+                      const newType = e.target.value as WsFieldType;
+                      const patch: Partial<WsFieldSchema> = { type: newType };
+                      if (newType === 'select' && !field.options?.length) patch.options = [''];
+                      updateField(idx, patch);
+                    }}
+                    className="w-full px-3 py-2 text-[14px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all appearance-none pr-7"
+                  >
+                    {WS_FIELD_TYPES.map(ft => <option key={ft.value} value={ft.value}>{ft.label}</option>)}
+                  </select>
+                  <ChevronRight className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none rotate-90" />
+                </div>
+              </div>
+              <button onClick={() => removeField(idx)} className="p-1 text-muted-foreground hover:text-destructive transition-colors mt-1 flex-shrink-0">
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {/* Select options editor */}
+            {field.type === 'select' && (
+              <div className="ml-[22px] space-y-1.5">
+                <button
+                  onClick={() => setExpandedOptions(expandedOptions === field.id ? null : field.id)}
+                  className="text-[11px] text-primary hover:text-primary/80 transition-colors"
+                  style={{ fontWeight: 500 }}
+                >
+                  {expandedOptions === field.id ? 'Hide options' : 'Edit options'}
+                </button>
+                <AnimatePresence>
+                  {expandedOptions === field.id && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden space-y-1.5"
+                    >
+                      {(field.options || []).map((opt, i) => (
+                        <div key={i} className="flex items-center gap-1.5">
+                          <TextInput
+                            value={opt}
+                            onChange={(e) => {
+                              const newOpts = [...(field.options || [])];
+                              newOpts[i] = e.target.value;
+                              updateField(idx, { options: newOpts });
+                            }}
+                            placeholder={`Option ${i + 1}`}
+                            maxLength={50}
+                          />
+                          <button
+                            onClick={() => {
+                              const newOpts = (field.options || []).filter((_, j) => j !== i);
+                              updateField(idx, { options: newOpts });
+                            }}
+                            className="p-0.5 text-muted-foreground hover:text-destructive"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                      {(field.options || []).length < 8 && (
+                        <button
+                          onClick={() => updateField(idx, { options: [...(field.options || []), ''] })}
+                          className="text-[11px] text-muted-foreground hover:text-foreground flex items-center gap-1"
+                          style={{ fontWeight: 500 }}
+                        >
+                          <Plus className="w-3 h-3" /> Add option
+                        </button>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+      {fields.length < 7 && (
+        <button
+          onClick={addField}
+          className="flex items-center gap-2 px-3 py-2 text-[13px] text-muted-foreground hover:text-foreground border border-dashed border-border rounded-lg hover:bg-accent/30 transition-all w-full justify-center mt-3"
+          style={{ fontWeight: 500 }}
+        >
+          <Plus className="w-3.5 h-3.5" /> Add field
+          <span className="text-[11px] text-muted-foreground/60 ml-1">{fields.length}/7</span>
+        </button>
+      )}
+      <div className="text-[11px] text-muted-foreground/60 mt-3 flex items-center gap-1.5">
+        <Globe className="w-3 h-3" />
+        These fields will appear on every client. Each client also gets 3 additional unique fields.
+      </div>
+    </SectionCard>
   );
 }
 
