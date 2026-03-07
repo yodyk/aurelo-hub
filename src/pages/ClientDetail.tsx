@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { format } from "date-fns";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@radix-ui/react-tooltip";
 import { useParams, Link, useNavigate, useSearchParams } from "react-router";
@@ -31,6 +31,11 @@ import {
   MapPin,
   ClipboardList,
   User,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  Save,
+  X,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
@@ -525,37 +530,31 @@ export default function ClientDetail() {
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h1 className="text-[20px] md:text-[24px] tracking-tight mb-1" style={{ fontWeight: 600 }}>{client.name}</h1>
-                <div className="flex flex-wrap items-center gap-2">
-                  <div className={`flex items-center gap-1.5 px-2.5 py-0.5 ${statusColors[client.status]?.bg} ${statusColors[client.status]?.text} text-[11px] rounded-full`} style={{ fontWeight: 500 }}>
-                    <div className={`w-1.5 h-1.5 rounded-full ${statusColors[client.status]?.dot}`} />
-                    {client.status}
-                  </div>
-                  <div className="text-[12px] text-muted-foreground px-2 py-0.5 bg-accent/60 rounded-full">{client.model}</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                {/* Inline flag badges */}
-                <span className="hidden sm:inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px]" style={{ fontWeight: 600, color: priorityCfg.color, background: priorityCfg.bg }}>
-                  <Flag className="w-3 h-3" /> {priorityLevel.charAt(0).toUpperCase() + priorityLevel.slice(1)} Priority
-                </span>
-                {riskLevel !== 'low' && (
-                  <span className="hidden sm:inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px]" style={{ fontWeight: 600, color: riskCfg.color, background: riskCfg.bg }}>
-                    <ShieldAlert className="w-3 h-3" /> {riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1)} Risk
-                  </span>
-                )}
-                <button
-                  onClick={() => navigate(`/clients/${clientId}/edit`)}
-                  className="px-3 py-1.5 text-[13px] border border-border rounded-lg hover:bg-accent/40 transition-all"
-                  style={{ fontWeight: 500 }}
-                >
-                  Edit
-                </button>
-              </div>
+            <div className="flex items-center justify-between gap-3">
+              <h1 className="text-[20px] md:text-[24px] tracking-tight" style={{ fontWeight: 600 }}>{client.name}</h1>
+              <button
+                onClick={() => navigate(`/clients/${clientId}/edit`)}
+                className="px-3 py-1.5 text-[13px] border border-border rounded-lg hover:bg-accent/40 transition-all flex-shrink-0"
+                style={{ fontWeight: 500 }}
+              >
+                Edit
+              </button>
             </div>
           </div>
+        </div>
+        {/* Divider + tags row */}
+        <div className="border-t border-border mt-4 pt-3 ml-16 flex flex-wrap items-center gap-2">
+          <div className={`flex items-center gap-1.5 px-2.5 py-0.5 ${statusColors[client.status]?.bg} ${statusColors[client.status]?.text} text-[11px] rounded-full`} style={{ fontWeight: 500 }}>
+            <div className={`w-1.5 h-1.5 rounded-full ${statusColors[client.status]?.dot}`} />
+            {client.status}
+          </div>
+          <div className="text-[12px] text-muted-foreground px-2 py-0.5 bg-accent/60 rounded-full" style={{ fontWeight: 500 }}>{client.model}</div>
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px]" style={{ fontWeight: 600, color: priorityCfg.color, background: priorityCfg.bg }}>
+            <Flag className="w-3 h-3" /> {priorityLevel.charAt(0).toUpperCase() + priorityLevel.slice(1)} Priority
+          </span>
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px]" style={{ fontWeight: 600, color: riskCfg.color, background: riskCfg.bg }}>
+            <ShieldAlert className="w-3 h-3" /> {riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1)} Risk
+          </span>
         </div>
       </motion.div>
 
@@ -624,7 +623,7 @@ export default function ClientDetail() {
                 />
               )}
               {activeTab === "details" && (
-                <DetailsTab client={client} />
+                <DetailsTab client={client} onUpdateClient={handleEditSave} />
               )}
               {activeTab === "projects" && (
                 <ProjectsTab
@@ -721,6 +720,29 @@ function OverviewTab({
   revenueShare, revenueTrend, lastMonthEarnings, utilizationRate, billableHours, totalHours,
   projects, clientSessions, priorityLevel, riskLevel, priorityCfg, riskCfg,
 }: any) {
+  // Build a simple 7-day sparkline from sessions
+  const last7Days = useMemo(() => {
+    const days: number[] = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateStr = format(d, 'yyyy-MM-dd');
+      const hours = clientSessions
+        .filter((s: any) => s.date === dateStr)
+        .reduce((sum: number, s: any) => sum + s.duration, 0);
+      days.push(hours);
+    }
+    return days;
+  }, [clientSessions]);
+
+  const maxHours = Math.max(...last7Days, 1);
+  const sparkPoints = last7Days.map((h, i) => {
+    const x = (i / 6) * 200;
+    const y = 40 - (h / maxHours) * 36;
+    return `${x},${y}`;
+  }).join(' ');
+  const sparkFillPoints = `0,40 ${sparkPoints} 200,40`;
+
   return (
     <>
       {/* Contact bar */}
@@ -760,150 +782,185 @@ function OverviewTab({
         </div>
       </SectionCard>
 
-      {/* Financial metrics */}
+      {/* Financial metrics with sparkline */}
       {canViewFinancials && (
-        <SectionCard>
-          <div className="flex items-center justify-between mb-5">
-            <div className="text-[13px] text-muted-foreground" style={{ fontWeight: 600 }}>Financial Overview</div>
-            <div className="inline-flex gap-0 bg-accent/60 rounded-lg p-0.5">
-              {(["gross", "net"] as const).map(mode => (
-                <button
-                  key={mode}
-                  onClick={() => setViewMode(mode)}
-                  className={`px-3 py-1 text-[12px] rounded-md transition-all duration-200 capitalize ${
-                    viewMode === mode ? "bg-card text-foreground" : "text-muted-foreground hover:text-foreground"
-                  }`}
-                  style={{ fontWeight: 500, boxShadow: viewMode === mode ? "0 1px 3px rgba(0,0,0,0.04)" : "none" }}
-                >
-                  {mode}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div>
-              <div className="text-[12px] text-muted-foreground mb-1.5" style={{ fontWeight: 500 }}>This month</div>
-              <div className="text-[24px] md:text-[28px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600 }}>
-                ${viewMode === "gross" ? (client.monthlyEarnings || 0).toLocaleString() : Math.round((client.monthlyEarnings || 0) * netMultiplier).toLocaleString()}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {/* Revenue card with accent bar */}
+          <div className="lg:col-span-2 bg-card border border-border rounded-xl overflow-hidden" style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.03)" }}>
+            <div className="h-1 bg-gradient-to-r from-primary/60 to-primary/20" />
+            <div className="p-5 md:p-6">
+              <div className="flex items-center justify-between mb-5">
+                <div className="text-[13px] text-muted-foreground" style={{ fontWeight: 600 }}>Financial Overview</div>
+                <div className="inline-flex gap-0 bg-accent/60 rounded-lg p-0.5">
+                  {(["gross", "net"] as const).map(mode => (
+                    <button
+                      key={mode}
+                      onClick={() => setViewMode(mode)}
+                      className={`px-3 py-1 text-[12px] rounded-md transition-all duration-200 capitalize ${
+                        viewMode === mode ? "bg-card text-foreground" : "text-muted-foreground hover:text-foreground"
+                      }`}
+                      style={{ fontWeight: 500, boxShadow: viewMode === mode ? "0 1px 3px rgba(0,0,0,0.04)" : "none" }}
+                    >
+                      {mode}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-            <div>
-              <div className="text-[12px] text-muted-foreground mb-1.5" style={{ fontWeight: 500 }}>Effective rate</div>
-              <div className="text-[24px] md:text-[28px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600 }}>
-                ${viewMode === "gross" ? client.trueHourlyRate || client.rate || 0 : Math.round((client.trueHourlyRate || client.rate || 0) * netMultiplier)}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                  <div className="text-[12px] text-muted-foreground mb-1.5" style={{ fontWeight: 500 }}>This month</div>
+                  <div className="text-[24px] md:text-[28px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600 }}>
+                    ${viewMode === "gross" ? (client.monthlyEarnings || 0).toLocaleString() : Math.round((client.monthlyEarnings || 0) * netMultiplier).toLocaleString()}
+                  </div>
+                  <div className="flex items-center gap-1 mt-1">
+                    {revenueTrend === "up" && <TrendingUp className="w-3 h-3 text-primary" />}
+                    {revenueTrend === "down" && <TrendingDown className="w-3 h-3 text-destructive" />}
+                    {revenueTrend === "flat" && <Minus className="w-3 h-3 text-muted-foreground" />}
+                    <span className={`text-[11px] ${revenueTrend === 'up' ? 'text-primary' : revenueTrend === 'down' ? 'text-destructive' : 'text-muted-foreground'}`} style={{ fontWeight: 500 }}>
+                      {revenueTrend === "up" ? "+" : ""}{lastMonthEarnings > 0 ? Math.round(((client.monthlyEarnings || 0) - lastMonthEarnings) / lastMonthEarnings * 100) : 0}% vs last
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[12px] text-muted-foreground mb-1.5" style={{ fontWeight: 500 }}>Effective rate</div>
+                  <div className="text-[24px] md:text-[28px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600 }}>
+                    ${viewMode === "gross" ? client.trueHourlyRate || client.rate || 0 : Math.round((client.trueHourlyRate || client.rate || 0) * netMultiplier)}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[12px] text-muted-foreground mb-1.5" style={{ fontWeight: 500 }}>Lifetime revenue</div>
+                  <div className="text-[24px] md:text-[28px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600 }}>
+                    ${(client.lifetimeRevenue || 0).toLocaleString()}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[12px] text-muted-foreground mb-1.5" style={{ fontWeight: 500 }}>Hours logged</div>
+                  <div className="text-[24px] md:text-[28px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600 }}>
+                    {client.hoursLogged || 0}
+                  </div>
+                </div>
               </div>
-            </div>
-            <div>
-              <div className="text-[12px] text-muted-foreground mb-1.5" style={{ fontWeight: 500 }}>Lifetime revenue</div>
-              <div className="text-[24px] md:text-[28px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600 }}>
-                ${(client.lifetimeRevenue || 0).toLocaleString()}
-              </div>
-            </div>
-            <div>
-              <div className="text-[12px] text-muted-foreground mb-1.5" style={{ fontWeight: 500 }}>Hours logged</div>
-              <div className="text-[24px] md:text-[28px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600 }}>
-                {client.hoursLogged || 0}
-              </div>
+
+              {/* Retainer mini bar */}
+              {client.model === "Retainer" && (() => {
+                const hoursUsed = (client.retainerTotal || 0) - (client.retainerRemaining || 0);
+                const usagePct = client.retainerTotal ? Math.round((hoursUsed / client.retainerTotal) * 100) : 0;
+                return (
+                  <div className="mt-5 pt-5 border-t border-border">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Retainer: {hoursUsed}h / {client.retainerTotal || 0}h</div>
+                      <div className="text-[14px] tabular-nums" style={{ fontWeight: 600, color: getUsageTextColor(usagePct) }}>{usagePct}%</div>
+                    </div>
+                    <div className="h-1.5 bg-accent/60 rounded-full overflow-hidden">
+                      <motion.div className="h-full rounded-full" style={{ background: getUsageBarColor(usagePct) }} initial={{ width: 0 }} animate={{ width: `${usagePct}%` }} transition={{ delay: 0.3, duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }} />
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           </div>
 
-          {/* Retainer mini bar if applicable */}
-          {client.model === "Retainer" && (() => {
-            const hoursUsed = (client.retainerTotal || 0) - (client.retainerRemaining || 0);
-            const usagePct = client.retainerTotal ? Math.round((hoursUsed / client.retainerTotal) * 100) : 0;
-            return (
-              <div className="mt-5 pt-5 border-t border-border">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Retainer: {hoursUsed}h / {client.retainerTotal || 0}h</div>
-                  <div className="text-[14px] tabular-nums" style={{ fontWeight: 600, color: getUsageTextColor(usagePct) }}>{usagePct}%</div>
-                </div>
-                <div className="h-1.5 bg-accent/60 rounded-full overflow-hidden">
-                  <motion.div className="h-full rounded-full" style={{ background: getUsageBarColor(usagePct) }} initial={{ width: 0 }} animate={{ width: `${usagePct}%` }} transition={{ delay: 0.3, duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }} />
-                </div>
+          {/* 7-day activity sparkline card */}
+          <div className="bg-card border border-border rounded-xl p-5 md:p-6 flex flex-col justify-between" style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.03)" }}>
+            <div>
+              <div className="text-[13px] text-muted-foreground mb-1" style={{ fontWeight: 600 }}>7-Day Activity</div>
+              <div className="text-[28px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600 }}>
+                {last7Days.reduce((a, b) => a + b, 0).toFixed(1)}h
               </div>
-            );
-          })()}
-        </SectionCard>
-      )}
-
-      {/* Activity summary */}
-      <SectionCard>
-        <div className="text-[13px] text-muted-foreground mb-4" style={{ fontWeight: 600 }}>Activity</div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="p-3.5 rounded-lg bg-accent/30">
-            <div className="text-[12px] text-muted-foreground mb-1" style={{ fontWeight: 500 }}>Projects</div>
-            <div className="text-[18px] tabular-nums" style={{ fontWeight: 600 }}>{projects.length}</div>
-          </div>
-          <div className="p-3.5 rounded-lg bg-accent/30">
-            <div className="text-[12px] text-muted-foreground mb-1" style={{ fontWeight: 500 }}>Sessions</div>
-            <div className="text-[18px] tabular-nums" style={{ fontWeight: 600 }}>{clientSessions.length}</div>
-          </div>
-          <div className="p-3.5 rounded-lg bg-accent/30">
-            <div className="text-[12px] text-muted-foreground mb-1" style={{ fontWeight: 500 }}>Utilization</div>
-            <div className="text-[18px] tabular-nums" style={{ fontWeight: 600 }}>{utilizationRate}%</div>
-          </div>
-          {canViewFinancials && (
-            <div className="p-3.5 rounded-lg bg-accent/30">
-              <div className="text-[12px] text-muted-foreground mb-1" style={{ fontWeight: 500 }}>Revenue share</div>
-              <div className="text-[18px] tabular-nums" style={{ fontWeight: 600 }}>{revenueShare}%</div>
+              <div className="text-[11px] text-muted-foreground mt-1" style={{ fontWeight: 500 }}>total this week</div>
             </div>
-          )}
+            <svg viewBox="0 0 200 44" className="w-full mt-3" style={{ height: 52 }}>
+              <defs>
+                <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.2" />
+                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              <polygon points={sparkFillPoints} fill="url(#sparkGrad)" />
+              <polyline points={sparkPoints} fill="none" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              {last7Days.map((h, i) => {
+                const x = (i / 6) * 200;
+                const y = 40 - (h / maxHours) * 36;
+                return h > 0 ? <circle key={i} cx={x} cy={y} r="2.5" fill="hsl(var(--primary))" /> : null;
+              })}
+            </svg>
+            <div className="flex justify-between text-[10px] text-muted-foreground/50 mt-1" style={{ fontWeight: 500 }}>
+              {last7Days.map((_, i) => {
+                const d = new Date();
+                d.setDate(d.getDate() - (6 - i));
+                return <span key={i}>{format(d, 'EEE')}</span>;
+              })}
+            </div>
+          </div>
         </div>
-      </SectionCard>
+      )}
 
-      {/* Insights */}
-      {canViewFinancials && (
+      {/* Activity + Insights combined */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <SectionCard>
-          <div className="flex items-center gap-2 mb-4">
-            <Lightbulb className="w-4 h-4 text-muted-foreground" />
-            <div className="text-[13px] text-muted-foreground" style={{ fontWeight: 600 }}>Insights</div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {revenueShare > 40 && (
-              <div className="p-4 rounded-lg bg-primary/[0.04] border border-primary/10">
-                <div className="text-[13px] text-primary mb-1" style={{ fontWeight: 500 }}>Client dependency</div>
-                <div className="text-[13px] text-muted-foreground">
-                  This client accounts for <span className="text-foreground" style={{ fontWeight: 500 }}>{revenueShare}%</span> of your monthly revenue. Consider diversifying.
-                </div>
+          <div className="text-[13px] text-muted-foreground mb-4" style={{ fontWeight: 600 }}>Activity</div>
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { label: 'Projects', value: projects.length, accent: false },
+              { label: 'Sessions', value: clientSessions.length, accent: false },
+              { label: 'Utilization', value: `${utilizationRate}%`, accent: utilizationRate >= 80 },
+              ...(canViewFinancials ? [{ label: 'Revenue share', value: `${revenueShare}%`, accent: revenueShare > 40 }] : []),
+            ].map((item, i) => (
+              <div key={i} className={`p-3.5 rounded-lg ${item.accent ? 'bg-primary/[0.06] border border-primary/10' : 'bg-accent/30'}`}>
+                <div className="text-[12px] text-muted-foreground mb-1" style={{ fontWeight: 500 }}>{item.label}</div>
+                <div className={`text-[18px] tabular-nums ${item.accent ? 'text-primary' : ''}`} style={{ fontWeight: 600 }}>{item.value}</div>
               </div>
-            )}
-            <div className="p-4 rounded-lg bg-accent/30">
-              <div className="text-[13px] mb-1" style={{ fontWeight: 500 }}>Revenue trend</div>
-              <div className="text-[13px] text-muted-foreground flex items-center gap-1.5">
-                {revenueTrend === "up" && <span className="text-primary">↑</span>}
-                {revenueTrend === "down" && <span className="text-muted-foreground">↓</span>}
-                {revenueTrend === "flat" && <span className="text-muted-foreground">→</span>}
-                {revenueTrend === "up" ? "Up" : revenueTrend === "down" ? "Down" : "Flat"} vs. last month (
-                {revenueTrend === "up" ? "+" : ""}
-                {lastMonthEarnings > 0 ? Math.round(((client.monthlyEarnings || 0) - lastMonthEarnings) / lastMonthEarnings * 100) : 0}%)
-              </div>
-            </div>
-            <div className="p-4 rounded-lg bg-accent/30">
-              <div className="text-[13px] mb-1" style={{ fontWeight: 500 }}>Utilization rate</div>
-              <div className="text-[13px] text-muted-foreground">
-                <span className="text-foreground" style={{ fontWeight: 500 }}>{utilizationRate}%</span> billable — {billableHours}h billable of {totalHours}h total
-              </div>
-            </div>
-            <div className="p-4 rounded-lg bg-accent/30">
-              <div className="text-[13px] mb-1" style={{ fontWeight: 500 }}>Pacing</div>
-              <div className="text-[13px] text-muted-foreground">
-                On pace for <span className="text-foreground" style={{ fontWeight: 500 }}>${Math.round((client.monthlyEarnings || 0) * 1.15).toLocaleString()}</span> this month
-              </div>
-            </div>
+            ))}
           </div>
         </SectionCard>
-      )}
+
+        {canViewFinancials && (
+          <SectionCard>
+            <div className="flex items-center gap-2 mb-4">
+              <Lightbulb className="w-4 h-4 text-primary/60" />
+              <div className="text-[13px] text-muted-foreground" style={{ fontWeight: 600 }}>Insights</div>
+            </div>
+            <div className="space-y-2.5">
+              {revenueShare > 40 && (
+                <div className="p-3 rounded-lg bg-primary/[0.04] border border-primary/10">
+                  <div className="text-[13px] text-primary mb-0.5" style={{ fontWeight: 500 }}>Client dependency</div>
+                  <div className="text-[12px] text-muted-foreground leading-relaxed">
+                    <span className="text-foreground" style={{ fontWeight: 500 }}>{revenueShare}%</span> of monthly revenue. Consider diversifying.
+                  </div>
+                </div>
+              )}
+              <div className="p-3 rounded-lg bg-accent/30">
+                <div className="text-[13px] mb-0.5" style={{ fontWeight: 500 }}>Utilization rate</div>
+                <div className="text-[12px] text-muted-foreground leading-relaxed">
+                  <span className="text-foreground" style={{ fontWeight: 500 }}>{utilizationRate}%</span> billable — {billableHours}h of {totalHours}h total
+                </div>
+              </div>
+              <div className="p-3 rounded-lg bg-accent/30">
+                <div className="text-[13px] mb-0.5" style={{ fontWeight: 500 }}>Pacing</div>
+                <div className="text-[12px] text-muted-foreground leading-relaxed">
+                  On pace for <span className="text-foreground" style={{ fontWeight: 500 }}>${Math.round((client.monthlyEarnings || 0) * 1.15).toLocaleString()}</span> this month
+                </div>
+              </div>
+            </div>
+          </SectionCard>
+        )}
+      </div>
     </>
   );
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// Details Tab (Custom Fields + Extended Info)
+// Details Tab (Inline-Editable Custom Fields + Extended Info)
 // ═══════════════════════════════════════════════════════════════════
-function DetailsTab({ client }: { client: any }) {
+function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (updates: any) => Promise<void> }) {
   const [wsSchemas, setWsSchemas] = useState<any[]>([]);
   const { isAtLeast } = usePlan();
   const navigate = useNavigate();
+
+  // Editable state
+  const [editingField, setEditingField] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState<any>('');
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     settingsApi.loadSetting('custom_fields_schema').then((schemas) => {
@@ -922,20 +979,125 @@ function DetailsTab({ client }: { client: any }) {
     clientSpecific = cf;
   }
 
-  const wsFieldsWithValues = wsSchemas.filter(s => s.label && wsValues[s.id] !== undefined && wsValues[s.id] !== '' && wsValues[s.id] !== false);
-  const clientFieldsWithValues = clientSpecific.filter((f: any) => f.label && (f.value !== '' && f.value !== undefined));
+  const wsFieldsWithValues = wsSchemas.filter(s => s.label);
+  const clientFieldsWithValues = clientSpecific.filter((f: any) => f.label);
   const hasExtendedContact = client.phone || client.address;
 
-  const renderValue = (type: string, value: any): React.ReactNode => {
+  const startEdit = (fieldId: string, currentValue: any) => {
+    setEditingField(fieldId);
+    setEditValue(currentValue ?? '');
+  };
+
+  const cancelEdit = () => {
+    setEditingField(null);
+    setEditValue('');
+  };
+
+  const saveWsField = async (fieldId: string, value: any) => {
+    setSaving(true);
+    try {
+      const currentCf = client.customFields && typeof client.customFields === 'object' && !Array.isArray(client.customFields)
+        ? client.customFields
+        : { workspace: {}, client: clientSpecific };
+      const newCf = {
+        ...currentCf,
+        workspace: { ...currentCf.workspace, [fieldId]: value },
+      };
+      await onUpdateClient({ customFields: newCf });
+      toast.success('Field updated');
+    } catch { toast.error('Failed to save'); }
+    finally { setSaving(false); setEditingField(null); }
+  };
+
+  const saveClientField = async (index: number, value: any) => {
+    setSaving(true);
+    try {
+      const currentCf = client.customFields && typeof client.customFields === 'object' && !Array.isArray(client.customFields)
+        ? client.customFields
+        : { workspace: wsValues, client: [...clientSpecific] };
+      const newClientFields = [...(currentCf.client || [])];
+      newClientFields[index] = { ...newClientFields[index], value };
+      const newCf = { ...currentCf, client: newClientFields };
+      await onUpdateClient({ customFields: newCf });
+      toast.success('Field updated');
+    } catch { toast.error('Failed to save'); }
+    finally { setSaving(false); setEditingField(null); }
+  };
+
+  const toggleWsField = async (fieldId: string, currentValue: boolean) => {
+    await saveWsField(fieldId, !currentValue);
+  };
+
+  const toggleClientField = async (index: number, currentValue: boolean) => {
+    await saveClientField(index, !currentValue);
+  };
+
+  const renderEditableField = (fieldKey: string, schema: { type: string; label: string; options?: string[] }, value: any, onSave: (val: any) => void, onToggle?: () => void) => {
+    const isEditing = editingField === fieldKey;
+    const type = schema.type;
+
     if (type === 'toggle' || type === 'checkbox') {
-      return value
-        ? <span className="px-2 py-0.5 rounded-md bg-primary/8 text-primary text-[12px]" style={{ fontWeight: 500 }}>Yes</span>
-        : <span className="px-2 py-0.5 rounded-md bg-accent text-muted-foreground text-[12px]">No</span>;
+      return (
+        <button onClick={onToggle} className="relative w-9 h-5 rounded-full transition-colors duration-200" style={{ background: value ? 'hsl(var(--primary))' : 'hsl(var(--switch-background))' }}>
+          <motion.div className="absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm" animate={{ left: value ? 18 : 2 }} transition={{ type: "spring", stiffness: 400, damping: 30 }} />
+        </button>
+      );
     }
-    if (typeof value === 'string' && value) {
-      return <span className="text-[14px] text-foreground">{value}</span>;
+
+    if (isEditing) {
+      return (
+        <div className="flex items-center gap-2 w-full">
+          {type === 'textarea' ? (
+            <textarea
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              className="flex-1 px-2.5 py-1.5 text-[14px] bg-input-background border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+              rows={2}
+              autoFocus
+            />
+          ) : type === 'select' ? (
+            <select
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              className="flex-1 px-2.5 py-1.5 text-[14px] bg-input-background border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+              autoFocus
+            >
+              <option value="">Select...</option>
+              {(schema.options || []).map((opt: string) => <option key={opt} value={opt}>{opt}</option>)}
+            </select>
+          ) : (
+            <input
+              type="text"
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              className="flex-1 px-2.5 py-1.5 text-[14px] bg-input-background border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+              autoFocus
+              onKeyDown={(e) => { if (e.key === 'Enter') onSave(editValue); if (e.key === 'Escape') cancelEdit(); }}
+            />
+          )}
+          <button onClick={() => onSave(editValue)} disabled={saving} className="w-7 h-7 flex items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
+            {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+          </button>
+          <button onClick={cancelEdit} className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-accent/60 text-muted-foreground transition-colors">
+            <X className="w-3 h-3" />
+          </button>
+        </div>
+      );
     }
-    return <span className="text-muted-foreground text-[13px]">—</span>;
+
+    // Display mode
+    const displayValue = value !== undefined && value !== '' && value !== null
+      ? <span className="text-[14px] text-foreground">{String(value)}</span>
+      : <span className="text-[13px] text-muted-foreground/50 italic">Empty — click to set</span>;
+
+    return (
+      <button onClick={() => startEdit(fieldKey, value)} className="text-left group/field hover:bg-accent/40 -mx-1 px-1 py-0.5 rounded transition-colors w-full">
+        <div className="flex items-center justify-between">
+          {displayValue}
+          <Pencil className="w-3 h-3 text-muted-foreground/0 group-hover/field:text-muted-foreground/50 transition-all ml-2 flex-shrink-0" />
+        </div>
+      </button>
+    );
   };
 
   return (
@@ -982,46 +1144,63 @@ function DetailsTab({ client }: { client: any }) {
         </SectionCard>
       )}
 
-      {/* Workspace custom fields */}
-      {wsFieldsWithValues.length > 0 && (
-        <SectionCard>
-          <div className="flex items-center gap-2 mb-4">
-            <div className="text-[13px] text-muted-foreground" style={{ fontWeight: 600 }}>Workspace Fields</div>
-            <span className="text-[10px] text-muted-foreground/60 bg-accent/60 px-1.5 py-0.5 rounded" style={{ fontWeight: 500 }}>Shared</span>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {wsFieldsWithValues.map((schema: any) => (
-              <div key={schema.id} className="flex items-start gap-3 p-3.5 rounded-lg bg-accent/30">
-                <Globe className="w-3.5 h-3.5 text-muted-foreground/40 mt-0.5" />
-                <div>
-                  <div className="text-[11px] text-muted-foreground mb-0.5" style={{ fontWeight: 500 }}>{schema.label}</div>
-                  {renderValue(schema.type, wsValues[schema.id])}
+      {/* Workspace custom fields — inline editable */}
+      {wsSchemas.length > 0 && (
+        <div className="bg-card border border-border rounded-xl overflow-hidden" style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.03)" }}>
+          <div className="h-0.5 bg-gradient-to-r from-primary/40 to-transparent" />
+          <div className="p-5 md:p-6">
+            <div className="flex items-center gap-2 mb-5">
+              <Globe className="w-3.5 h-3.5 text-muted-foreground/50" />
+              <div className="text-[13px] text-muted-foreground" style={{ fontWeight: 600 }}>Workspace Fields</div>
+              <span className="text-[10px] text-muted-foreground/60 bg-accent/60 px-1.5 py-0.5 rounded" style={{ fontWeight: 500 }}>Shared</span>
+            </div>
+            <div className="divide-y divide-border">
+              {wsSchemas.filter(s => s.label).map((schema: any) => (
+                <div key={schema.id} className="py-3 first:pt-0 last:pb-0">
+                  <div className="text-[11px] text-muted-foreground mb-1.5 uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.05em' }}>{schema.label}</div>
+                  {renderEditableField(
+                    `ws-${schema.id}`,
+                    schema,
+                    wsValues[schema.id],
+                    (val) => saveWsField(schema.id, val),
+                    (schema.type === 'toggle' || schema.type === 'checkbox') ? () => toggleWsField(schema.id, !!wsValues[schema.id]) : undefined,
+                  )}
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </SectionCard>
+        </div>
       )}
 
-      {/* Client-specific custom fields */}
+      {/* Client-specific custom fields — inline editable */}
       {clientFieldsWithValues.length > 0 && (
-        <SectionCard>
-          <div className="text-[13px] text-muted-foreground mb-4" style={{ fontWeight: 600 }}>Client-Specific Fields</div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {clientFieldsWithValues.map((field: any, i: number) => (
-              <div key={i} className="flex items-start gap-3 p-3.5 rounded-lg bg-accent/30">
-                <div>
-                  <div className="text-[11px] text-muted-foreground mb-0.5" style={{ fontWeight: 500 }}>{field.label}</div>
-                  {renderValue(field.type, field.value)}
-                </div>
-              </div>
-            ))}
+        <div className="bg-card border border-border rounded-xl overflow-hidden" style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.03)" }}>
+          <div className="h-0.5 bg-gradient-to-r from-warning/40 to-transparent" />
+          <div className="p-5 md:p-6">
+            <div className="text-[13px] text-muted-foreground mb-5" style={{ fontWeight: 600 }}>Client-Specific Fields</div>
+            <div className="divide-y divide-border">
+              {clientFieldsWithValues.map((field: any, i: number) => {
+                const realIndex = clientSpecific.indexOf(field);
+                return (
+                  <div key={i} className="py-3 first:pt-0 last:pb-0">
+                    <div className="text-[11px] text-muted-foreground mb-1.5 uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.05em' }}>{field.label}</div>
+                    {renderEditableField(
+                      `cl-${realIndex}`,
+                      field,
+                      field.value,
+                      (val) => saveClientField(realIndex, val),
+                      (field.type === 'toggle' || field.type === 'checkbox') ? () => toggleClientField(realIndex, !!field.value) : undefined,
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </SectionCard>
+        </div>
       )}
 
       {/* Empty state */}
-      {wsFieldsWithValues.length === 0 && clientFieldsWithValues.length === 0 && !hasExtendedContact && (
+      {wsSchemas.length === 0 && clientFieldsWithValues.length === 0 && !hasExtendedContact && !(client.externalLinks?.length > 0) && (
         <SectionCard>
           <div className="text-center py-8">
             <ClipboardList className="w-8 h-8 text-muted-foreground/30 mx-auto mb-3" />
