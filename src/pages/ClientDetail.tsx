@@ -544,15 +544,15 @@ export default function ClientDetail() {
         </div>
         {/* Divider + tags row */}
         <div className="border-t border-border mt-4 pt-3 ml-16 flex flex-wrap items-center gap-2">
-          <div className={`flex items-center gap-1.5 px-2.5 py-0.5 ${statusColors[client.status]?.bg} ${statusColors[client.status]?.text} text-[11px] rounded-full`} style={{ fontWeight: 500 }}>
+          <div className={`flex items-center gap-1.5 px-2.5 py-0.5 ${statusColors[client.status]?.bg} ${statusColors[client.status]?.text} text-[11px]`} style={{ fontWeight: 500, borderRadius: 3 }}>
             <div className={`w-1.5 h-1.5 rounded-full ${statusColors[client.status]?.dot}`} />
             {client.status}
           </div>
-          <div className="text-[12px] text-muted-foreground px-2 py-0.5 bg-accent/60 rounded-full" style={{ fontWeight: 500 }}>{client.model}</div>
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px]" style={{ fontWeight: 600, color: priorityCfg.color, background: priorityCfg.bg }}>
+          <div className="text-[12px] text-muted-foreground px-2 py-0.5 bg-accent/60" style={{ fontWeight: 500, borderRadius: 3 }}>{client.model}</div>
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px]" style={{ fontWeight: 600, borderRadius: 3, color: priorityCfg.color, background: priorityCfg.bg }}>
             <Flag className="w-3 h-3" /> {priorityLevel.charAt(0).toUpperCase() + priorityLevel.slice(1)} Priority
           </span>
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px]" style={{ fontWeight: 600, color: riskCfg.color, background: riskCfg.bg }}>
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px]" style={{ fontWeight: 600, borderRadius: 3, color: riskCfg.color, background: riskCfg.bg }}>
             <ShieldAlert className="w-3 h-3" /> {riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1)} Risk
           </span>
         </div>
