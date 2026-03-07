@@ -37,6 +37,7 @@ function snakeToCamel(row: Record<string, any>): Record<string, any> {
     priority_level: 'priorityLevel',
     risk_level: 'riskLevel',
     custom_fields: 'customFields',
+    start_date: 'startDate',
   };
   const out: Record<string, any> = {};
   for (const [k, v] of Object.entries(row)) {
@@ -76,6 +77,7 @@ function camelToSnake(obj: Record<string, any>): Record<string, any> {
     priorityLevel: 'priority_level',
     riskLevel: 'risk_level',
     customFields: 'custom_fields',
+    startDate: 'start_date',
   };
   const out: Record<string, any> = {};
   for (const [k, v] of Object.entries(obj)) {
