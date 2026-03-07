@@ -626,6 +626,7 @@ export default function ClientDetail() {
               {activeTab === "details" && (
                 <DetailsTab client={client} />
               )}
+              {activeTab === "projects" && (
                 <ProjectsTab
                   projects={projects}
                   client={client}
