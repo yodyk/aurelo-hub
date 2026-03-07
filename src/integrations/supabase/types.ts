@@ -67,6 +67,7 @@ export type Database = {
           risk_level: string | null
           show_portal_costs: boolean
           slug: string
+          start_date: string | null
           status: string
           true_hourly_rate: number | null
           updated_at: string
@@ -96,6 +97,7 @@ export type Database = {
           risk_level?: string | null
           show_portal_costs?: boolean
           slug: string
+          start_date?: string | null
           status?: string
           true_hourly_rate?: number | null
           updated_at?: string
@@ -125,6 +127,7 @@ export type Database = {
           risk_level?: string | null
           show_portal_costs?: boolean
           slug?: string
+          start_date?: string | null
           status?: string
           true_hourly_rate?: number | null
           updated_at?: string

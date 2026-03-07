@@ -1,0 +1,1 @@
+ALTER TABLE public.clients ADD COLUMN start_date date NULL;
