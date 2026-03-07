@@ -623,7 +623,9 @@ export default function ClientDetail() {
                   riskCfg={riskCfg}
                 />
               )}
-              {activeTab === "projects" && (
+              {activeTab === "details" && (
+                <DetailsTab client={client} />
+              )}
                 <ProjectsTab
                   projects={projects}
                   client={client}
@@ -720,57 +722,40 @@ function OverviewTab({
 }: any) {
   return (
     <>
-      {/* Contact & Details */}
+      {/* Contact bar */}
       <SectionCard>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-3">
-            <div className="text-[13px] text-muted-foreground mb-1" style={{ fontWeight: 600 }}>Contact</div>
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-[14px]">
-                <Mail className="w-3.5 h-3.5 text-muted-foreground" />
-                <span>{client.contactName}</span>
-                <span className="text-muted-foreground">·</span>
-                <span className="text-muted-foreground">{client.contactEmail}</span>
-              </div>
-              {client.website && (
-                <a href={`https://${client.website}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[14px] text-primary hover:text-primary/80 transition-colors">
-                  <Globe className="w-3.5 h-3.5" />
-                  {client.website}
-                </a>
-              )}
-              {client.phone && (
-                <div className="flex items-center gap-2 text-[14px] text-muted-foreground">
-                  <span className="text-[13px]">📞</span>
-                  {client.phone}
-                </div>
-              )}
-              {client.address && (
-                <div className="flex items-center gap-2 text-[14px] text-muted-foreground">
-                  <span className="text-[13px]">📍</span>
-                  {client.address}
-                </div>
-              )}
+        <div className="text-[13px] text-muted-foreground mb-4" style={{ fontWeight: 600 }}>Contact</div>
+        <div className="flex flex-wrap gap-x-6 gap-y-3">
+          {client.contactName && (
+            <div className="flex items-center gap-2 text-[14px]">
+              <User className="w-3.5 h-3.5 text-muted-foreground/60" />
+              <span>{client.contactName}</span>
             </div>
-          </div>
-          <div className="space-y-3">
-            <div className="text-[13px] text-muted-foreground mb-1" style={{ fontWeight: 600 }}>Flags</div>
-            <div className="space-y-2.5">
-              <div className="flex items-center justify-between">
-                <span className="text-[13px] text-muted-foreground">Priority</span>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[12px]" style={{ fontWeight: 600, color: priorityCfg.color, background: priorityCfg.bg }}>
-                  <span className="text-[11px]">{priorityCfg.icon}</span>
-                  {priorityLevel.charAt(0).toUpperCase() + priorityLevel.slice(1)}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-[13px] text-muted-foreground">Risk</span>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[12px]" style={{ fontWeight: 600, color: riskCfg.color, background: riskCfg.bg }}>
-                  <span className="text-[11px]">{riskCfg.icon}</span>
-                  {riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1)}
-                </span>
-              </div>
+          )}
+          {client.contactEmail && (
+            <a href={`mailto:${client.contactEmail}`} className="flex items-center gap-2 text-[14px] text-muted-foreground hover:text-foreground transition-colors">
+              <Mail className="w-3.5 h-3.5 text-muted-foreground/60" />
+              {client.contactEmail}
+            </a>
+          )}
+          {client.phone && (
+            <a href={`tel:${client.phone}`} className="flex items-center gap-2 text-[14px] text-muted-foreground hover:text-foreground transition-colors">
+              <Phone className="w-3.5 h-3.5 text-muted-foreground/60" />
+              {client.phone}
+            </a>
+          )}
+          {client.website && (
+            <a href={`https://${client.website}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[14px] text-primary hover:text-primary/80 transition-colors">
+              <Globe className="w-3.5 h-3.5" />
+              {client.website}
+            </a>
+          )}
+          {client.address && (
+            <div className="flex items-center gap-2 text-[14px] text-muted-foreground">
+              <MapPin className="w-3.5 h-3.5 text-muted-foreground/60" />
+              {client.address}
             </div>
-          </div>
+          )}
         </div>
       </SectionCard>
 
@@ -907,16 +892,17 @@ function OverviewTab({
           </div>
         </SectionCard>
       )}
-
-      {/* Custom fields display */}
-      <CustomFieldsDisplay client={client} />
     </>
   );
 }
 
-// ── Custom Fields Display (handles both workspace + client-specific) ──
-function CustomFieldsDisplay({ client }: { client: any }) {
+// ═══════════════════════════════════════════════════════════════════
+// Details Tab (Custom Fields + Extended Info)
+// ═══════════════════════════════════════════════════════════════════
+function DetailsTab({ client }: { client: any }) {
   const [wsSchemas, setWsSchemas] = useState<any[]>([]);
+  const { isAtLeast } = usePlan();
+  const navigate = useNavigate();
 
   useEffect(() => {
     settingsApi.loadSetting('custom_fields_schema').then((schemas) => {
@@ -932,46 +918,125 @@ function CustomFieldsDisplay({ client }: { client: any }) {
     wsValues = cf.workspace || {};
     clientSpecific = Array.isArray(cf.client) ? cf.client : [];
   } else if (Array.isArray(cf)) {
-    // Legacy format
     clientSpecific = cf;
   }
 
   const wsFieldsWithValues = wsSchemas.filter(s => s.label && wsValues[s.id] !== undefined && wsValues[s.id] !== '' && wsValues[s.id] !== false);
   const clientFieldsWithValues = clientSpecific.filter((f: any) => f.label && (f.value !== '' && f.value !== undefined));
-
-  if (wsFieldsWithValues.length === 0 && clientFieldsWithValues.length === 0) return null;
+  const hasExtendedContact = client.phone || client.address;
 
   const renderValue = (type: string, value: any): React.ReactNode => {
     if (type === 'toggle' || type === 'checkbox') {
-      return value ? <span className="text-primary text-[12px]" style={{ fontWeight: 500 }}>Yes</span> : <span className="text-muted-foreground text-[12px]">No</span>;
+      return value
+        ? <span className="px-2 py-0.5 rounded-md bg-primary/8 text-primary text-[12px]" style={{ fontWeight: 500 }}>Yes</span>
+        : <span className="px-2 py-0.5 rounded-md bg-accent text-muted-foreground text-[12px]">No</span>;
     }
     if (typeof value === 'string' && value) {
-      return <span className="text-[13px] text-foreground">{value}</span>;
+      return <span className="text-[14px] text-foreground">{value}</span>;
     }
-    return <span className="text-muted-foreground">—</span>;
+    return <span className="text-muted-foreground text-[13px]">—</span>;
   };
 
   return (
-    <SectionCard>
-      <div className="text-[13px] text-muted-foreground mb-4" style={{ fontWeight: 600 }}>Custom Fields</div>
-      <div className="space-y-2">
-        {wsFieldsWithValues.map((schema: any) => (
-          <div key={schema.id} className="flex items-center justify-between py-1.5">
-            <span className="text-[13px] text-muted-foreground flex items-center gap-1.5" style={{ fontWeight: 500 }}>
-              <Globe className="w-3 h-3 text-muted-foreground/40" />
-              {schema.label}
-            </span>
-            <div className="text-right max-w-[60%]">{renderValue(schema.type, wsValues[schema.id])}</div>
+    <>
+      {/* Extended contact info */}
+      {hasExtendedContact && (
+        <SectionCard>
+          <div className="text-[13px] text-muted-foreground mb-4" style={{ fontWeight: 600 }}>Location & Contact</div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {client.phone && (
+              <div className="flex items-start gap-3 p-3.5 rounded-lg bg-accent/30">
+                <Phone className="w-4 h-4 text-muted-foreground/60 mt-0.5" />
+                <div>
+                  <div className="text-[11px] text-muted-foreground mb-0.5" style={{ fontWeight: 500 }}>Phone</div>
+                  <a href={`tel:${client.phone}`} className="text-[14px] text-foreground hover:text-primary transition-colors">{client.phone}</a>
+                </div>
+              </div>
+            )}
+            {client.address && (
+              <div className="flex items-start gap-3 p-3.5 rounded-lg bg-accent/30">
+                <MapPin className="w-4 h-4 text-muted-foreground/60 mt-0.5" />
+                <div>
+                  <div className="text-[11px] text-muted-foreground mb-0.5" style={{ fontWeight: 500 }}>Address</div>
+                  <div className="text-[14px] text-foreground">{client.address}</div>
+                </div>
+              </div>
+            )}
           </div>
-        ))}
-        {clientFieldsWithValues.map((field: any, i: number) => (
-          <div key={i} className="flex items-center justify-between py-1.5">
-            <span className="text-[13px] text-muted-foreground" style={{ fontWeight: 500 }}>{field.label}</span>
-            <div className="text-right max-w-[60%]">{renderValue(field.type, field.value)}</div>
+        </SectionCard>
+      )}
+
+      {/* External links */}
+      {client.externalLinks && Array.isArray(client.externalLinks) && client.externalLinks.length > 0 && (
+        <SectionCard>
+          <div className="text-[13px] text-muted-foreground mb-4" style={{ fontWeight: 600 }}>External Links</div>
+          <div className="flex flex-wrap gap-2">
+            {client.externalLinks.map((link: any, i: number) => (
+              <a key={i} href={link.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[13px] text-primary bg-primary/[0.04] border border-primary/10 rounded-lg hover:bg-primary/8 transition-colors" style={{ fontWeight: 500 }}>
+                <ExternalLink className="w-3 h-3" />
+                {link.label || link.url}
+              </a>
+            ))}
           </div>
-        ))}
-      </div>
-    </SectionCard>
+        </SectionCard>
+      )}
+
+      {/* Workspace custom fields */}
+      {wsFieldsWithValues.length > 0 && (
+        <SectionCard>
+          <div className="flex items-center gap-2 mb-4">
+            <div className="text-[13px] text-muted-foreground" style={{ fontWeight: 600 }}>Workspace Fields</div>
+            <span className="text-[10px] text-muted-foreground/60 bg-accent/60 px-1.5 py-0.5 rounded" style={{ fontWeight: 500 }}>Shared</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {wsFieldsWithValues.map((schema: any) => (
+              <div key={schema.id} className="flex items-start gap-3 p-3.5 rounded-lg bg-accent/30">
+                <Globe className="w-3.5 h-3.5 text-muted-foreground/40 mt-0.5" />
+                <div>
+                  <div className="text-[11px] text-muted-foreground mb-0.5" style={{ fontWeight: 500 }}>{schema.label}</div>
+                  {renderValue(schema.type, wsValues[schema.id])}
+                </div>
+              </div>
+            ))}
+          </div>
+        </SectionCard>
+      )}
+
+      {/* Client-specific custom fields */}
+      {clientFieldsWithValues.length > 0 && (
+        <SectionCard>
+          <div className="text-[13px] text-muted-foreground mb-4" style={{ fontWeight: 600 }}>Client-Specific Fields</div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {clientFieldsWithValues.map((field: any, i: number) => (
+              <div key={i} className="flex items-start gap-3 p-3.5 rounded-lg bg-accent/30">
+                <div>
+                  <div className="text-[11px] text-muted-foreground mb-0.5" style={{ fontWeight: 500 }}>{field.label}</div>
+                  {renderValue(field.type, field.value)}
+                </div>
+              </div>
+            ))}
+          </div>
+        </SectionCard>
+      )}
+
+      {/* Empty state */}
+      {wsFieldsWithValues.length === 0 && clientFieldsWithValues.length === 0 && !hasExtendedContact && (
+        <SectionCard>
+          <div className="text-center py-8">
+            <ClipboardList className="w-8 h-8 text-muted-foreground/30 mx-auto mb-3" />
+            <div className="text-[14px] text-muted-foreground mb-1" style={{ fontWeight: 500 }}>No additional details</div>
+            <div className="text-[13px] text-muted-foreground/60 mb-4">Add custom fields, contact info, or links via the edit page.</div>
+            <button
+              onClick={() => navigate(`/clients/${client.id}/edit`)}
+              className="px-4 py-2 text-[13px] bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all"
+              style={{ fontWeight: 500 }}
+            >
+              Edit client
+            </button>
+          </div>
+        </SectionCard>
+      )}
+    </>
   );
 }
 
