@@ -578,7 +578,7 @@ export default function ClientDetail() {
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto">
             <button
-              onClick={() => setShowEditModal(true)}
+              onClick={() => navigate(`/clients/${clientId}/edit`)}
               className="px-3 py-1.5 text-[13px] border border-border rounded-lg hover:bg-accent/40 transition-all"
               style={{ fontWeight: 500 }}
             >

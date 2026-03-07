@@ -7,6 +7,7 @@ import { AuthProvider } from "./data/AuthContext";
 const Home = lazy(() => import("./pages/Home"));
 const Clients = lazy(() => import("./pages/Clients"));
 const ClientDetail = lazy(() => import("./pages/ClientDetail"));
+const ClientEdit = lazy(() => import("./pages/ClientEdit"));
 const Projects = lazy(() => import("./pages/Projects"));
 const ProjectDetail = lazy(() => import("./pages/ProjectDetail"));
 const TimeLog = lazy(() => import("./pages/TimeLog"));
@@ -96,6 +97,7 @@ export const router = createBrowserRouter([
       { index: true, element: <SuspensePage><Home /></SuspensePage> },
       { path: "clients", element: <SuspensePage><Clients /></SuspensePage> },
       { path: "clients/:clientId", element: <SuspensePage><ClientDetail /></SuspensePage> },
+      { path: "clients/:clientId/edit", element: <SuspensePage><ClientEdit /></SuspensePage> },
       { path: "projects", element: <SuspensePage><Projects /></SuspensePage> },
       { path: "projects/:clientId/:projectId", element: <SuspensePage><ProjectDetail /></SuspensePage> },
       { path: "time", element: <SuspensePage><TimeLog /></SuspensePage> },
