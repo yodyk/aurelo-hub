@@ -430,9 +430,29 @@ export default function ClientEdit() {
     setPortalGreeting(client.portalGreeting || '');
     setPriorityLevel(client.priorityLevel || 'medium');
     setRiskLevel(client.riskLevel || 'low');
-    setCustomFields(Array.isArray(client.customFields) ? client.customFields : []);
+    // Parse custom fields — new format: { workspace: {id: value}, client: [CustomField] }
+    const cf = client.customFields;
+    if (cf && typeof cf === 'object' && !Array.isArray(cf) && 'workspace' in cf) {
+      setWsFieldValues((cf as any).workspace || {});
+      setClientFields(Array.isArray((cf as any).client) ? (cf as any).client : []);
+    } else if (Array.isArray(cf)) {
+      // Legacy: all fields were client-specific, migrate first 3 only
+      setClientFields(cf.slice(0, 3));
+      setWsFieldValues({});
+    } else {
+      setWsFieldValues({});
+      setClientFields([]);
+    }
     setInitialized(true);
   }, [client]);
+
+  // Load workspace-level field schemas
+  useEffect(() => {
+    if (!isStudio) return;
+    settingsApi.loadSetting('custom_fields_schema').then((schemas) => {
+      if (Array.isArray(schemas)) setWsFieldSchemas(schemas);
+    });
+  }, [isStudio]);
 
   // Load client logos
   useEffect(() => {
