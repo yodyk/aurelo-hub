@@ -45,9 +45,11 @@ export type Database = {
       }
       clients: {
         Row: {
+          address: string | null
           contact_email: string | null
           contact_name: string | null
           created_at: string
+          custom_fields: Json | null
           external_links: Json | null
           hours_logged: number | null
           id: string
@@ -56,9 +58,13 @@ export type Database = {
           model: string
           monthly_earnings: number | null
           name: string
+          phone: string | null
+          portal_greeting: string | null
+          priority_level: string | null
           rate: number
           retainer_remaining: number | null
           retainer_total: number | null
+          risk_level: string | null
           show_portal_costs: boolean
           slug: string
           status: string
@@ -68,9 +74,11 @@ export type Database = {
           workspace_id: string
         }
         Insert: {
+          address?: string | null
           contact_email?: string | null
           contact_name?: string | null
           created_at?: string
+          custom_fields?: Json | null
           external_links?: Json | null
           hours_logged?: number | null
           id?: string
@@ -79,9 +87,13 @@ export type Database = {
           model?: string
           monthly_earnings?: number | null
           name: string
+          phone?: string | null
+          portal_greeting?: string | null
+          priority_level?: string | null
           rate?: number
           retainer_remaining?: number | null
           retainer_total?: number | null
+          risk_level?: string | null
           show_portal_costs?: boolean
           slug: string
           status?: string
@@ -91,9 +103,11 @@ export type Database = {
           workspace_id: string
         }
         Update: {
+          address?: string | null
           contact_email?: string | null
           contact_name?: string | null
           created_at?: string
+          custom_fields?: Json | null
           external_links?: Json | null
           hours_logged?: number | null
           id?: string
@@ -102,9 +116,13 @@ export type Database = {
           model?: string
           monthly_earnings?: number | null
           name?: string
+          phone?: string | null
+          portal_greeting?: string | null
+          priority_level?: string | null
           rate?: number
           retainer_remaining?: number | null
           retainer_total?: number | null
+          risk_level?: string | null
           show_portal_costs?: boolean
           slug?: string
           status?: string
