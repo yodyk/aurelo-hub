@@ -34,6 +34,7 @@ import { EditClientModal, LogSessionModal, AddProjectModal, EditSessionModal } f
 import * as dataApi from "../data/dataApi";
 import * as portalApi from "../data/portalApi";
 import ClientNotes from "../components/ClientNotes";
+import ClientDetailsPanel from "../components/ClientDetailsPanel";
 import EmailActivityLog from "../components/EmailActivityLog";
 import BulkSessionActions from "../components/BulkSessionActions";
 import { supabase } from "@/integrations/supabase/client";
@@ -823,6 +824,11 @@ export default function ClientDetail() {
               );
             })()}
         </div>
+      </motion.div>
+
+      {/* Client Details Panel (Pro+) */}
+      <motion.div variants={item} className="mb-3">
+        <ClientDetailsPanel client={client} onSave={handleEditSave} />
       </motion.div>
 
       {/* Collapsible Sections */}
