@@ -395,8 +395,11 @@ export default function ClientEdit() {
   const [priorityLevel, setPriorityLevel] = useState('medium');
   const [riskLevel, setRiskLevel] = useState('low');
 
-  // ── Custom Fields (Studio)
-  const [customFields, setCustomFields] = useState<CustomField[]>([]);
+  // ── Custom Fields (Studio) — split: workspace-level values + client-specific fields
+  interface WsFieldSchema { id: string; label: string; type: FieldType; options?: string[]; }
+  const [wsFieldSchemas, setWsFieldSchemas] = useState<WsFieldSchema[]>([]);
+  const [wsFieldValues, setWsFieldValues] = useState<Record<string, string | boolean>>({});
+  const [clientFields, setClientFields] = useState<CustomField[]>([]);
 
   // ── Branding (Studio)
   const [clientFaviconUrl, setClientFaviconUrl] = useState<string | null>(null);
