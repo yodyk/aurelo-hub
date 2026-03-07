@@ -33,6 +33,10 @@ function snakeToCamel(row: Record<string, any>): Record<string, any> {
     end_date: 'endDate',
     budget_type: 'budgetType',
     budget_amount: 'budgetAmount',
+    portal_greeting: 'portalGreeting',
+    priority_level: 'priorityLevel',
+    risk_level: 'riskLevel',
+    custom_fields: 'customFields',
   };
   const out: Record<string, any> = {};
   for (const [k, v] of Object.entries(row)) {
@@ -68,6 +72,10 @@ function camelToSnake(obj: Record<string, any>): Record<string, any> {
     endDate: 'end_date',
     budgetType: 'budget_type',
     budgetAmount: 'budget_amount',
+    portalGreeting: 'portal_greeting',
+    priorityLevel: 'priority_level',
+    riskLevel: 'risk_level',
+    customFields: 'custom_fields',
   };
   const out: Record<string, any> = {};
   for (const [k, v] of Object.entries(obj)) {
