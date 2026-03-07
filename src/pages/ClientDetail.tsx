@@ -30,7 +30,7 @@ import { toast } from "sonner";
 import { useData } from "../data/DataContext";
 import { useAuth } from "@/data/AuthContext";
 import { NotificationEvents } from "@/data/notificationsApi";
-import { EditClientModal, LogSessionModal, AddProjectModal, EditSessionModal } from "../components/Modals";
+import { LogSessionModal, AddProjectModal, EditSessionModal } from "../components/Modals";
 import * as dataApi from "../data/dataApi";
 import * as portalApi from "../data/portalApi";
 import ClientNotes from "../components/ClientNotes";
@@ -87,7 +87,7 @@ export default function ClientDetail() {
   const [copied, setCopied] = useState(false);
 
   // Modal states
-  const [showEditModal, setShowEditModal] = useState(false);
+  // Modal states (edit modal removed — now a dedicated page)
   const [showLogModal, setShowLogModal] = useState(false);
   const [showProjectModal, setShowProjectModal] = useState(false);
 
@@ -578,7 +578,7 @@ export default function ClientDetail() {
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto">
             <button
-              onClick={() => setShowEditModal(true)}
+              onClick={() => navigate(`/clients/${clientId}/edit`)}
               className="px-3 py-1.5 text-[13px] border border-border rounded-lg hover:bg-accent/40 transition-all"
               style={{ fontWeight: 500 }}
             >
@@ -1575,20 +1575,6 @@ export default function ClientDetail() {
       </motion.div>
 
       {/* Modals */}
-      <EditClientModal
-        open={showEditModal}
-        onClose={() => setShowEditModal(false)}
-        client={client}
-        onSave={handleEditSave}
-        workspaceId={workspaceId}
-        isStudio={isAtLeast('studio')}
-        clientFaviconUrl={clientFaviconUrl}
-        clientLogoUrl={clientLogoUrl}
-        onLogoChange={(type, url) => {
-          if (type === 'favicon') setClientFaviconUrl(url);
-          else setClientLogoUrl(url);
-        }}
-      />
       <LogSessionModal
         open={showLogModal}
         onClose={() => setShowLogModal(false)}
