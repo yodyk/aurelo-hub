@@ -623,7 +623,7 @@ export default function ClientDetail() {
                 />
               )}
               {activeTab === "details" && (
-                <DetailsTab client={client} />
+                <DetailsTab client={client} onUpdateClient={handleEditSave} />
               )}
               {activeTab === "projects" && (
                 <ProjectsTab
