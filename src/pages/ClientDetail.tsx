@@ -91,11 +91,12 @@ const statusColors: Record<string, { bg: string; text: string; dot: string }> = 
 };
 
 // ── Tab definitions ─────────────────────────────────────────────────
-type TabId = "overview" | "projects" | "sessions" | "retainer" | "files" | "notes" | "portal" | "settings";
+type TabId = "overview" | "details" | "projects" | "sessions" | "retainer" | "files" | "notes" | "portal" | "settings";
 
 function getTabsForClient(client: any, canViewFinancials: boolean): { id: TabId; label: string; icon: any }[] {
   const tabs: { id: TabId; label: string; icon: any }[] = [
     { id: "overview", label: "Overview", icon: LayoutDashboard },
+    { id: "details", label: "Details", icon: ClipboardList },
     { id: "projects", label: "Projects", icon: FileText },
     {
       id: "sessions",
