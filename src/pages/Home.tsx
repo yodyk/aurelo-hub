@@ -584,18 +584,18 @@ export default function Home() {
         <div className="flex flex-col md:flex-row gap-3 mb-8">
           <button
             onClick={() => setFinancialOpen((o) => !o)}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] rounded-lg border transition-all duration-200 ${financialOpen ? "bg-primary/8 border-primary/20 text-primary" : "border-border text-muted-foreground hover:text-foreground hover:bg-accent/40"}`}
+            className={`flex items-center justify-between md:inline-flex md:justify-start gap-1.5 px-3 py-1.5 text-[12px] rounded-lg border transition-all duration-200 ${financialOpen ? "bg-primary/8 border-primary/20 text-primary" : "border-border text-muted-foreground hover:text-foreground hover:bg-accent/40"}`}
             style={{ fontWeight: 500 }}
           >
-            Financial breakdown{" "}
+            Financial breakdown
             <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${financialOpen ? "rotate-180" : ""}`} />
           </button>
           <button
             onClick={() => setSourceOpen((o) => !o)}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] rounded-lg border transition-all duration-200 ${sourceOpen ? "bg-primary/8 border-primary/20 text-primary" : "border-border text-muted-foreground hover:text-foreground hover:bg-accent/40"}`}
+            className={`flex items-center justify-between md:inline-flex md:justify-start gap-1.5 px-3 py-1.5 text-[12px] rounded-lg border transition-all duration-200 ${sourceOpen ? "bg-primary/8 border-primary/20 text-primary" : "border-border text-muted-foreground hover:text-foreground hover:bg-accent/40"}`}
             style={{ fontWeight: 500 }}
           >
-            Source breakdown{" "}
+            Source breakdown
             <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${sourceOpen ? "rotate-180" : ""}`} />
           </button>
         </div>
