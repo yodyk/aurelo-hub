@@ -530,37 +530,31 @@ export default function ClientDetail() {
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h1 className="text-[20px] md:text-[24px] tracking-tight mb-1" style={{ fontWeight: 600 }}>{client.name}</h1>
-                <div className="flex flex-wrap items-center gap-2">
-                  <div className={`flex items-center gap-1.5 px-2.5 py-0.5 ${statusColors[client.status]?.bg} ${statusColors[client.status]?.text} text-[11px] rounded-full`} style={{ fontWeight: 500 }}>
-                    <div className={`w-1.5 h-1.5 rounded-full ${statusColors[client.status]?.dot}`} />
-                    {client.status}
-                  </div>
-                  <div className="text-[12px] text-muted-foreground px-2 py-0.5 bg-accent/60 rounded-full">{client.model}</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                {/* Inline flag badges */}
-                <span className="hidden sm:inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px]" style={{ fontWeight: 600, color: priorityCfg.color, background: priorityCfg.bg }}>
-                  <Flag className="w-3 h-3" /> {priorityLevel.charAt(0).toUpperCase() + priorityLevel.slice(1)} Priority
-                </span>
-                {riskLevel !== 'low' && (
-                  <span className="hidden sm:inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px]" style={{ fontWeight: 600, color: riskCfg.color, background: riskCfg.bg }}>
-                    <ShieldAlert className="w-3 h-3" /> {riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1)} Risk
-                  </span>
-                )}
-                <button
-                  onClick={() => navigate(`/clients/${clientId}/edit`)}
-                  className="px-3 py-1.5 text-[13px] border border-border rounded-lg hover:bg-accent/40 transition-all"
-                  style={{ fontWeight: 500 }}
-                >
-                  Edit
-                </button>
-              </div>
+            <div className="flex items-center justify-between gap-3">
+              <h1 className="text-[20px] md:text-[24px] tracking-tight" style={{ fontWeight: 600 }}>{client.name}</h1>
+              <button
+                onClick={() => navigate(`/clients/${clientId}/edit`)}
+                className="px-3 py-1.5 text-[13px] border border-border rounded-lg hover:bg-accent/40 transition-all flex-shrink-0"
+                style={{ fontWeight: 500 }}
+              >
+                Edit
+              </button>
             </div>
           </div>
+        </div>
+        {/* Divider + tags row */}
+        <div className="border-t border-border mt-4 pt-3 ml-16 flex flex-wrap items-center gap-2">
+          <div className={`flex items-center gap-1.5 px-2.5 py-0.5 ${statusColors[client.status]?.bg} ${statusColors[client.status]?.text} text-[11px] rounded-full`} style={{ fontWeight: 500 }}>
+            <div className={`w-1.5 h-1.5 rounded-full ${statusColors[client.status]?.dot}`} />
+            {client.status}
+          </div>
+          <div className="text-[12px] text-muted-foreground px-2 py-0.5 bg-accent/60 rounded-full" style={{ fontWeight: 500 }}>{client.model}</div>
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px]" style={{ fontWeight: 600, color: priorityCfg.color, background: priorityCfg.bg }}>
+            <Flag className="w-3 h-3" /> {priorityLevel.charAt(0).toUpperCase() + priorityLevel.slice(1)} Priority
+          </span>
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px]" style={{ fontWeight: 600, color: riskCfg.color, background: riskCfg.bg }}>
+            <ShieldAlert className="w-3 h-3" /> {riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1)} Risk
+          </span>
         </div>
       </motion.div>
 
