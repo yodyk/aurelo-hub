@@ -1272,6 +1272,9 @@ function WorkspaceTab() {
         </SectionCard>
       </FeatureGate>
 
+      {/* Workspace Custom Fields (Studio) */}
+      <WorkspaceCustomFieldsSection />
+
       {/* Identity & Categories */}
       <IdentitySection />
 
