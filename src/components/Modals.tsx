@@ -1646,7 +1646,7 @@ export function EditSessionModal({ open, onClose, session, onSave, onDelete, cli
   const selectableProjects = clientProjects.filter((p: any) => p.status !== 'Complete');
 
   return (
-    <ModalShell open={open} onClose={onClose} title="Edit session" subtitle="Update or remove this time entry" wide>
+    <ModalShell open={open} onClose={onClose} title="Edit session" subtitle="Update or remove this time entry" wide isDirty={!!hasChanges}>
       <div className="space-y-5">
         <SectionDivider icon={Calendar} label="When & where" />
 
