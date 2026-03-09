@@ -947,7 +947,7 @@ export function LogSessionModal({ open, onClose, onSave, clients, preSelectedCli
     <ModalShell open={open} onClose={onClose} title="Log session" subtitle="Record work you've completed" wide isDirty={!!(clientId || task.trim() || duration)}>
       <div className="space-y-5">
         {/* ── When & where ──────────────────── */}
-        <SectionDivider icon={Calendar} label="When & where" />
+        <SectionDivider icon={CalendarIcon} label="When & where" />
 
         <div className="grid grid-cols-2 gap-3">
           <div>
