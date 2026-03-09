@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, Loader2, User, Globe, Mail, DollarSign, Clock, Repeat, FolderKanban, Eye, EyeOff, ChevronRight, StickyNote, Calendar, FileText, Pause, Play, CircleDot, CheckCircle2, Archive, Info, AlertTriangle } from 'lucide-react';
+import { X, Loader2, User, Globe, Mail, DollarSign, Clock, Repeat, FolderKanban, Eye, EyeOff, ChevronRight, StickyNote, Calendar as CalendarIcon, FileText, Pause, Play, CircleDot, CheckCircle2, Archive, Info, AlertTriangle } from 'lucide-react';
+import { DatePicker } from '@/components/ui/date-picker';
 import { motion, AnimatePresence } from 'motion/react';
 import { useData } from '../data/DataContext';
 
@@ -946,17 +947,16 @@ export function LogSessionModal({ open, onClose, onSave, clients, preSelectedCli
     <ModalShell open={open} onClose={onClose} title="Log session" subtitle="Record work you've completed" wide isDirty={!!(clientId || task.trim() || duration)}>
       <div className="space-y-5">
         {/* ── When & where ──────────────────── */}
-        <SectionDivider icon={Calendar} label="When & where" />
+        <SectionDivider icon={CalendarIcon} label="When & where" />
 
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label>Date</Label>
-            <input
-              type="date"
+            <DatePicker
               value={sessionDate}
-              onChange={e => setSessionDate(e.target.value)}
-              max={new Date().toISOString().split('T')[0]}
-              className="w-full px-3 py-2 text-[14px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all tabular-nums"
+              onChange={setSessionDate}
+              maxDate={new Date().toISOString().split('T')[0]}
+              placeholder="Select date"
             />
             {isBackdated && sessionDate && (
               <div className="text-[11px] text-muted-foreground mt-1">
@@ -1450,26 +1450,24 @@ export function AddProjectModal({ open, onClose, onSave, clients, preSelectedCli
         </div>
 
         {/* ── Timeline ──────────────────────── */}
-        <SectionDivider icon={Calendar} label="Timeline" />
+        <SectionDivider icon={CalendarIcon} label="Timeline" />
 
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label>Start date</Label>
-            <input
-              type="date"
+            <DatePicker
               value={startDate}
-              onChange={e => setStartDate(e.target.value)}
-              className="w-full px-3 py-2 text-[14px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all tabular-nums"
+              onChange={setStartDate}
+              placeholder="Start date"
             />
           </div>
           <div>
             <Label hint="optional">End date</Label>
-            <input
-              type="date"
+            <DatePicker
               value={endDate}
-              onChange={e => setEndDate(e.target.value)}
-              min={startDate}
-              className="w-full px-3 py-2 text-[14px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all tabular-nums"
+              onChange={setEndDate}
+              minDate={startDate}
+              placeholder="End date"
             />
           </div>
         </div>
@@ -1648,17 +1646,16 @@ export function EditSessionModal({ open, onClose, session, onSave, onDelete, cli
   return (
     <ModalShell open={open} onClose={onClose} title="Edit session" subtitle="Update or remove this time entry" wide isDirty={!!hasChanges}>
       <div className="space-y-5">
-        <SectionDivider icon={Calendar} label="When & where" />
+        <SectionDivider icon={CalendarIcon} label="When & where" />
 
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label>Date</Label>
-            <input
-              type="date"
+            <DatePicker
               value={sessionDate}
-              onChange={e => setSessionDate(e.target.value)}
-              max={new Date().toISOString().split('T')[0]}
-              className="w-full px-3 py-2 text-[14px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all tabular-nums"
+              onChange={setSessionDate}
+              maxDate={new Date().toISOString().split('T')[0]}
+              placeholder="Select date"
             />
           </div>
           <div>

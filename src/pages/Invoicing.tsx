@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { DatePicker } from "@/components/ui/date-picker";
 import { useNavigate, Navigate } from "react-router";
 import { useRoleAccess } from "../data/useRoleAccess";
 import { motion, AnimatePresence } from "motion/react";
@@ -1232,11 +1233,10 @@ function InvoiceBuilder({
               <label className="block text-[12px] text-muted-foreground mb-1.5" style={{ fontWeight: 500 }}>
                 Due date
               </label>
-              <input
-                type="date"
+              <DatePicker
                 value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                className="w-full text-[13px] px-3 py-2 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
+                onChange={setDueDate}
+                placeholder="Select due date"
               />
             </div>
           </div>

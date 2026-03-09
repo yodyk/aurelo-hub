@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { format, parseISO } from "date-fns";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@radix-ui/react-tooltip";
 import { useParams, Link, useNavigate, useSearchParams } from "react-router";
 import {
@@ -1126,13 +1127,10 @@ function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (
               {(schema.options || []).map((opt: string) => <option key={opt} value={opt}>{opt}</option>)}
             </select>
           ) : type === 'date' ? (
-            <input
-              type="date"
+            <DatePicker
               value={editValue}
-              onChange={(e) => setEditValue(e.target.value)}
-              className="flex-1 px-2.5 py-1.5 text-[14px] bg-input-background border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
-              autoFocus
-              onKeyDown={(e) => { if (e.key === 'Enter') onSave(editValue); if (e.key === 'Escape') cancelEdit(); }}
+              onChange={(val) => { setEditValue(val); onSave(val); }}
+              placeholder="Pick a date"
             />
           ) : (
             <input
