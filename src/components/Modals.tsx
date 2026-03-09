@@ -1651,12 +1651,11 @@ export function EditSessionModal({ open, onClose, session, onSave, onDelete, cli
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label>Date</Label>
-            <input
-              type="date"
+            <DatePicker
               value={sessionDate}
-              onChange={e => setSessionDate(e.target.value)}
-              max={new Date().toISOString().split('T')[0]}
-              className="w-full px-3 py-2 text-[14px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all tabular-nums"
+              onChange={setSessionDate}
+              maxDate={new Date().toISOString().split('T')[0]}
+              placeholder="Select date"
             />
           </div>
           <div>
