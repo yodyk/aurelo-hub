@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router';
+import { useParams, useNavigate, useBlocker } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 import {
@@ -11,7 +11,7 @@ import { useData } from '../data/DataContext';
 import { usePlan } from '@/data/PlanContext';
 import { useRoleAccess } from '@/data/useRoleAccess';
 import { supabase } from '@/integrations/supabase/client';
-import { SettingsSaveBar } from '@/components/SettingsSaveBar';
+import { SettingsSaveBar, UnsavedChangesDialog } from '@/components/SettingsSaveBar';
 import * as settingsApi from '@/data/settingsApi';
 
 // ── Types ───────────────────────────────────────────────────────────
@@ -492,6 +492,27 @@ export default function ClientEdit() {
     )
   );
 
+  // ── Navigation guard ──────────────────────────────────────────────
+  // Warn on browser close/reload
+  useEffect(() => {
+    if (!isDirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [isDirty]);
+
+  // Block react-router navigation
+  const blocker = useBlocker(isDirty || false);
+  const [showNavGuard, setShowNavGuard] = useState(false);
+
+  useEffect(() => {
+    if (blocker.state === 'blocked') {
+      setShowNavGuard(true);
+    }
+  }, [blocker.state]);
+
   const rateNum = Number(rate) || 0;
   const retainerTotalNum = Number(retainerTotal) || 0;
   const retainerRemainingNum = Number(retainerRemaining) || 0;
@@ -958,6 +979,25 @@ export default function ClientEdit() {
         saving={saving}
         onSave={handleSave}
         onDiscard={handleDiscard}
+      />
+
+      {/* Navigation guard dialog */}
+      <UnsavedChangesDialog
+        open={showNavGuard}
+        onDiscard={() => {
+          setShowNavGuard(false);
+          blocker.proceed?.();
+        }}
+        onSave={async () => {
+          await handleSave();
+          setShowNavGuard(false);
+          blocker.proceed?.();
+        }}
+        onCancel={() => {
+          setShowNavGuard(false);
+          blocker.reset?.();
+        }}
+        saving={saving}
       />
     </motion.div>
   );
