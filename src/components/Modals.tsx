@@ -531,7 +531,7 @@ export function EditClientModal({ open, onClose, client, onSave, workspaceId, is
   };
 
   return (
-    <ModalShell open={open} onClose={onClose} title="Edit client" subtitle={client?.name ? `Editing ${client.name}` : undefined} wide>
+    <ModalShell open={open} onClose={onClose} title="Edit client" subtitle={client?.name ? `Editing ${client.name}` : undefined} wide isDirty={!!hasChanges}>
       <div className="space-y-5">
         {/* ── Identity ────────────────────────── */}
         <SectionDivider icon={User} label="Identity" />
