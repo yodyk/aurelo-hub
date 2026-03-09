@@ -11,7 +11,7 @@ import { useData } from '../data/DataContext';
 import { usePlan } from '@/data/PlanContext';
 import { useRoleAccess } from '@/data/useRoleAccess';
 import { supabase } from '@/integrations/supabase/client';
-import { SettingsSaveBar } from '@/components/SettingsSaveBar';
+import { SettingsSaveBar, UnsavedChangesDialog } from '@/components/SettingsSaveBar';
 import * as settingsApi from '@/data/settingsApi';
 
 // ── Types ───────────────────────────────────────────────────────────
