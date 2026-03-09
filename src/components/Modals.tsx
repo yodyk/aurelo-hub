@@ -1,17 +1,87 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, Loader2, User, Globe, Mail, DollarSign, Clock, Repeat, FolderKanban, Eye, EyeOff, ChevronRight, StickyNote, Calendar, FileText, Pause, Play, CircleDot, CheckCircle2, Archive, Info } from 'lucide-react';
+import { X, Loader2, User, Globe, Mail, DollarSign, Clock, Repeat, FolderKanban, Eye, EyeOff, ChevronRight, StickyNote, Calendar, FileText, Pause, Play, CircleDot, CheckCircle2, Archive, Info, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useData } from '../data/DataContext';
 
+// ── Unsaved Changes Confirmation (inline in modal) ─────────────────
+function UnsavedChangesConfirm({ onDiscard, onCancel }: { onDiscard: () => void; onCancel: () => void }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.15 }}
+      className="absolute inset-0 z-10 flex items-center justify-center bg-black/20 backdrop-blur-[1px] rounded-xl"
+      onClick={onCancel}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 6 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 6 }}
+        transition={{ duration: 0.18 }}
+        className="bg-card border border-border rounded-xl p-6 max-w-[300px] w-full mx-4"
+        style={{ boxShadow: '0 12px 36px rgba(0,0,0,0.14), 0 4px 12px rgba(0,0,0,0.06)' }}
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center mx-auto mb-3">
+          <AlertTriangle className="w-4.5 h-4.5 text-destructive" />
+        </div>
+        <h3 className="text-[15px] text-foreground text-center mb-1" style={{ fontWeight: 600 }}>
+          Discard changes?
+        </h3>
+        <p className="text-[12px] text-muted-foreground text-center leading-relaxed mb-4">
+          You have unsaved changes that will be lost if you close this.
+        </p>
+        <div className="flex flex-col gap-2">
+          <button
+            onClick={onDiscard}
+            className="w-full py-2 text-[13px] rounded-lg bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-all"
+            style={{ fontWeight: 500 }}
+          >
+            Discard and close
+          </button>
+          <button
+            onClick={onCancel}
+            className="w-full py-1.5 text-[13px] text-muted-foreground hover:text-foreground rounded-lg hover:bg-accent/40 transition-all"
+            style={{ fontWeight: 500 }}
+          >
+            Keep editing
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 // ── Shared Modal Shell ─────────────────────────────────────────────
-function ModalShell({ open, onClose, title, subtitle, children, wide }: {
-  open: boolean; onClose: () => void; title: string; subtitle?: string; children: React.ReactNode; wide?: boolean;
+function ModalShell({ open, onClose, title, subtitle, children, wide, isDirty }: {
+  open: boolean; onClose: () => void; title: string; subtitle?: string; children: React.ReactNode; wide?: boolean; isDirty?: boolean;
 }) {
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  // Reset confirm state when modal opens/closes
+  useEffect(() => {
+    if (!open) setShowConfirm(false);
+  }, [open]);
+
   useEffect(() => {
     if (open) document.body.style.overflow = 'hidden';
     else document.body.style.overflow = '';
     return () => { document.body.style.overflow = ''; };
   }, [open]);
+
+  const handleAttemptClose = () => {
+    if (isDirty) {
+      setShowConfirm(true);
+    } else {
+      onClose();
+    }
+  };
+
+  const handleConfirmDiscard = () => {
+    setShowConfirm(false);
+    onClose();
+  };
 
   return (
     <AnimatePresence>
@@ -22,7 +92,7 @@ function ModalShell({ open, onClose, title, subtitle, children, wide }: {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          onClick={onClose}
+          onClick={handleAttemptClose}
         >
           <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" />
           <motion.div
@@ -39,11 +109,19 @@ function ModalShell({ open, onClose, title, subtitle, children, wide }: {
                 <h2 className="text-[16px]" style={{ fontWeight: 600 }}>{title}</h2>
                 {subtitle && <p className="text-[12px] text-muted-foreground mt-0.5">{subtitle}</p>}
               </div>
-              <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-accent/60 text-muted-foreground hover:text-foreground transition-all">
+              <button onClick={handleAttemptClose} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-accent/60 text-muted-foreground hover:text-foreground transition-all">
                 <X className="w-4 h-4" />
               </button>
             </div>
             <div className="p-6">{children}</div>
+            <AnimatePresence>
+              {showConfirm && (
+                <UnsavedChangesConfirm
+                  onDiscard={handleConfirmDiscard}
+                  onCancel={() => setShowConfirm(false)}
+                />
+              )}
+            </AnimatePresence>
           </motion.div>
         </motion.div>
       )}
