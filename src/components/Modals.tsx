@@ -1591,6 +1591,16 @@ export function EditSessionModal({ open, onClose, session, onSave, onDelete, cli
     );
   };
 
+  const hasChanges = session && (
+    clientId !== (session.clientId || '') ||
+    task !== (session.task || '') ||
+    duration !== String(session.duration || '') ||
+    billable !== (session.billable !== false) ||
+    JSON.stringify(selectedTags) !== JSON.stringify(session.workTags || session.tags || []) ||
+    allocationType !== (session.allocationType || 'general') ||
+    selectedProjectId !== (session.projectId ? String(session.projectId) : '')
+  );
+
   const selectedClient = clients.find(c => c.id === clientId);
   const durationNum = parseFloat(duration) || 0;
   const revenue = billable && selectedClient ? Math.round(durationNum * selectedClient.rate) : 0;
