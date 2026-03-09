@@ -74,6 +74,7 @@ import EmailActivityLog from "../components/EmailActivityLog";
 import { usePlan } from "../data/PlanContext";
 import { FeatureGate } from "../components/FeatureGate";
 import { STARTER_NOTIFICATION_TYPES, PLANS, PLAN_EMAIL_TYPES as PLAN_EMAIL_TYPES_MAP, PLAN_FREQUENCIES as PLAN_FREQUENCIES_MAP, EMAIL_QUOTA as EMAIL_QUOTA_MAP } from "../data/plans";
+import { ColorPicker } from "../components/ui/color-picker";
 import WebhooksSection from "../components/WebhooksSection";
 import {
   SettingsSaveContext,
