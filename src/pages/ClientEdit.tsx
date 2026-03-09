@@ -980,6 +980,25 @@ export default function ClientEdit() {
         onSave={handleSave}
         onDiscard={handleDiscard}
       />
+
+      {/* Navigation guard dialog */}
+      <UnsavedChangesDialog
+        open={showNavGuard}
+        onDiscard={() => {
+          setShowNavGuard(false);
+          blocker.proceed?.();
+        }}
+        onSave={async () => {
+          await handleSave();
+          setShowNavGuard(false);
+          blocker.proceed?.();
+        }}
+        onCancel={() => {
+          setShowNavGuard(false);
+          blocker.reset?.();
+        }}
+        saving={saving}
+      />
     </motion.div>
   );
 }
