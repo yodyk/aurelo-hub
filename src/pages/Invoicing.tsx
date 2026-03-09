@@ -1238,7 +1238,7 @@ function InvoiceBuilder({
                 onChange={setDueDate}
                 placeholder="Select due date"
               />
-          </div>
+            </div>
 
           {/* Payment terms */}
           <div className="grid grid-cols-2 gap-4">
