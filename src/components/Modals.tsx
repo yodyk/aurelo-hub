@@ -1455,11 +1455,10 @@ export function AddProjectModal({ open, onClose, onSave, clients, preSelectedCli
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label>Start date</Label>
-            <input
-              type="date"
+            <DatePicker
               value={startDate}
-              onChange={e => setStartDate(e.target.value)}
-              className="w-full px-3 py-2 text-[14px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all tabular-nums"
+              onChange={setStartDate}
+              placeholder="Start date"
             />
           </div>
           <div>
