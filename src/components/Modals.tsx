@@ -312,7 +312,7 @@ export function AddClientModal({ open, onClose, onSave }: {
   };
 
   return (
-    <ModalShell open={open} onClose={onClose} title="Add client" subtitle="Set up a new client relationship" wide>
+    <ModalShell open={open} onClose={onClose} title="Add client" subtitle="Set up a new client relationship" wide isDirty={!!name.trim()}>
       <div className="space-y-5">
         {/* ── Identity ────────────────────────── */}
         <SectionDivider icon={User} label="Identity" />
