@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, Loader2, User, Globe, Mail, DollarSign, Clock, Repeat, FolderKanban, Eye, EyeOff, ChevronRight, StickyNote, Calendar, FileText, Pause, Play, CircleDot, CheckCircle2, Archive, Info, AlertTriangle } from 'lucide-react';
+import { X, Loader2, User, Globe, Mail, DollarSign, Clock, Repeat, FolderKanban, Eye, EyeOff, ChevronRight, StickyNote, Calendar as CalendarIcon, FileText, Pause, Play, CircleDot, CheckCircle2, Archive, Info, AlertTriangle } from 'lucide-react';
+import { DatePicker } from '@/components/ui/date-picker';
 import { motion, AnimatePresence } from 'motion/react';
 import { useData } from '../data/DataContext';
 
