@@ -74,6 +74,7 @@ import EmailActivityLog from "../components/EmailActivityLog";
 import { usePlan } from "../data/PlanContext";
 import { FeatureGate } from "../components/FeatureGate";
 import { STARTER_NOTIFICATION_TYPES, PLANS, PLAN_EMAIL_TYPES as PLAN_EMAIL_TYPES_MAP, PLAN_FREQUENCIES as PLAN_FREQUENCIES_MAP, EMAIL_QUOTA as EMAIL_QUOTA_MAP } from "../data/plans";
+import { ColorPicker } from "../components/ui/color-picker";
 import WebhooksSection from "../components/WebhooksSection";
 import {
   SettingsSaveContext,
@@ -1035,26 +1036,10 @@ function WorkspaceTab() {
           <FeatureGate feature="whiteLabelPortal" hideIfLocked>
             <div>
               <FieldLabel>Brand color</FieldLabel>
-              <div className="flex items-center gap-3">
-                <label className="relative">
-                  <div
-                    className="w-9 h-9 rounded-lg border border-border cursor-pointer"
-                    style={{ backgroundColor: ws.brandColor }}
-                  />
-                  <input
-                    type="color"
-                    value={ws.brandColor}
-                    onChange={(e) => update({ brandColor: e.target.value })}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  />
-                </label>
-                <TextInput
-                  value={ws.brandColor}
-                  onChange={(e) => update({ brandColor: e.target.value })}
-                  className="!w-28 tabular-nums"
-                  style={{ fontFamily: "ui-monospace, monospace" }}
-                />
-              </div>
+              <ColorPicker
+                value={ws.brandColor}
+                onChange={(color) => update({ brandColor: color })}
+              />
               <div className="text-[11px] text-muted-foreground mt-1.5">Used as the accent color on your client portal</div>
             </div>
           </FeatureGate>
