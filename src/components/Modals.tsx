@@ -1451,7 +1451,7 @@ export function AddProjectModal({ open, onClose, onSave, clients, preSelectedCli
         </div>
 
         {/* ── Timeline ──────────────────────── */}
-        <SectionDivider icon={Calendar} label="Timeline" />
+        <SectionDivider icon={CalendarIcon} label="Timeline" />
 
         <div className="grid grid-cols-2 gap-3">
           <div>
