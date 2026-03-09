@@ -1463,12 +1463,11 @@ export function AddProjectModal({ open, onClose, onSave, clients, preSelectedCli
           </div>
           <div>
             <Label hint="optional">End date</Label>
-            <input
-              type="date"
+            <DatePicker
               value={endDate}
-              onChange={e => setEndDate(e.target.value)}
-              min={startDate}
-              className="w-full px-3 py-2 text-[14px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all tabular-nums"
+              onChange={setEndDate}
+              minDate={startDate}
+              placeholder="End date"
             />
           </div>
         </div>
