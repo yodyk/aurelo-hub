@@ -492,6 +492,27 @@ export default function ClientEdit() {
     )
   );
 
+  // ── Navigation guard ──────────────────────────────────────────────
+  // Warn on browser close/reload
+  useEffect(() => {
+    if (!isDirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [isDirty]);
+
+  // Block react-router navigation
+  const blocker = useBlocker(isDirty || false);
+  const [showNavGuard, setShowNavGuard] = useState(false);
+
+  useEffect(() => {
+    if (blocker.state === 'blocked') {
+      setShowNavGuard(true);
+    }
+  }, [blocker.state]);
+
   const rateNum = Number(rate) || 0;
   const retainerTotalNum = Number(retainerTotal) || 0;
   const retainerRemainingNum = Number(retainerRemaining) || 0;
