@@ -1391,7 +1391,7 @@ export function AddProjectModal({ open, onClose, onSave, clients, preSelectedCli
   };
 
   return (
-    <ModalShell open={open} onClose={onClose} title="Add project" subtitle="Define scope and timeline for a new project" wide>
+    <ModalShell open={open} onClose={onClose} title="Add project" subtitle="Define scope and timeline for a new project" wide isDirty={!!name.trim()}>
       <div className="space-y-5">
         {/* ── Project details ───────────────── */}
         <SectionDivider icon={FolderKanban} label="Project details" />
