@@ -1649,7 +1649,7 @@ export function EditSessionModal({ open, onClose, session, onSave, onDelete, cli
   return (
     <ModalShell open={open} onClose={onClose} title="Edit session" subtitle="Update or remove this time entry" wide isDirty={!!hasChanges}>
       <div className="space-y-5">
-        <SectionDivider icon={Calendar} label="When & where" />
+        <SectionDivider icon={CalendarIcon} label="When & where" />
 
         <div className="grid grid-cols-2 gap-3">
           <div>
