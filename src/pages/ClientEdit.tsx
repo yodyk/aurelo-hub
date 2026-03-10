@@ -142,15 +142,15 @@ function StatusPill({ active, onClick, label, dot }: { active: boolean; onClick:
 const LEVELS = ['Low', 'Medium', 'High'] as const;
 
 const PRIORITY_CONFIG: Record<string, { color: string; bg: string; icon: string }> = {
-  Low: { color: 'hsl(var(--muted-foreground))', bg: 'hsl(var(--accent))', icon: '○' },
+  Low: { color: 'var(--muted-foreground)', bg: 'var(--accent)', icon: '○' },
   Medium: { color: 'hsl(45 60% 50%)', bg: 'hsl(45 60% 50% / 0.1)', icon: '◑' },
-  High: { color: 'hsl(var(--destructive))', bg: 'hsl(var(--destructive) / 0.1)', icon: '●' },
+  High: { color: 'var(--destructive)', bg: 'color-mix(in srgb, var(--destructive) 12%, transparent)', icon: '●' },
 };
 
 const RISK_CONFIG: Record<string, { color: string; bg: string; icon: string }> = {
   Low: { color: 'hsl(142 71% 45%)', bg: 'hsl(142 71% 45% / 0.1)', icon: '✓' },
   Medium: { color: 'hsl(45 60% 50%)', bg: 'hsl(45 60% 50% / 0.1)', icon: '⚠' },
-  High: { color: 'hsl(var(--destructive))', bg: 'hsl(var(--destructive) / 0.1)', icon: '✕' },
+  High: { color: 'var(--destructive)', bg: 'color-mix(in srgb, var(--destructive) 12%, transparent)', icon: '✕' },
 };
 
 function LevelSelector({ value, onChange, config, label }: {
