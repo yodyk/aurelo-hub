@@ -398,6 +398,21 @@ export default function ClientDetail() {
     navigate("/clients");
   };
 
+  const handlePermanentDelete = async () => {
+    try {
+      // Also clean up storage files for this client
+      try {
+        const fileList = await dataApi.loadFiles(workspaceId!, clientId!);
+        await Promise.all(fileList.map((f: any) => dataApi.deleteFile(workspaceId!, clientId!, f.name)));
+      } catch (_) { /* ignore storage cleanup errors */ }
+      await deleteClientFromContext(client.id);
+      toast.success(`${client.name} permanently deleted`);
+      navigate("/clients");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to delete client");
+    }
+  };
+
   const handleCopyPortalLink = () => {
     if (portalConfig?.token) {
       const portalUrl = `${window.location.origin}/portal/${portalConfig.token}`;
