@@ -80,15 +80,15 @@ function getUsageTextColor(usagePct: number): string {
 }
 
 const PRIORITY_CONFIG: Record<string, { color: string; bg: string; icon: string }> = {
-  low: { color: 'hsl(var(--muted-foreground))', bg: 'hsl(var(--accent))', icon: '○' },
+  low: { color: 'var(--muted-foreground)', bg: 'var(--accent)', icon: '○' },
   medium: { color: 'hsl(45 60% 50%)', bg: 'hsl(45 60% 50% / 0.1)', icon: '◑' },
-  high: { color: 'hsl(var(--destructive))', bg: 'hsl(var(--destructive) / 0.1)', icon: '●' },
+  high: { color: 'var(--destructive)', bg: 'color-mix(in srgb, var(--destructive) 12%, transparent)', icon: '●' },
 };
 
 const RISK_CONFIG: Record<string, { color: string; bg: string; icon: string }> = {
   low: { color: 'hsl(142 71% 45%)', bg: 'hsl(142 71% 45% / 0.1)', icon: '✓' },
   medium: { color: 'hsl(45 60% 50%)', bg: 'hsl(45 60% 50% / 0.1)', icon: '⚠' },
-  high: { color: 'hsl(var(--destructive))', bg: 'hsl(var(--destructive) / 0.1)', icon: '✕' },
+  high: { color: 'var(--destructive)', bg: 'color-mix(in srgb, var(--destructive) 12%, transparent)', icon: '✕' },
 };
 
 const statusColors: Record<string, { bg: string; text: string; dot: string }> = {
