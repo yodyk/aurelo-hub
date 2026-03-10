@@ -1779,7 +1779,7 @@ function PortalTab({ client, clientId, portalConfig, portalLoading, copied, onCo
 // ═══════════════════════════════════════════════════════════════════
 // Settings Tab (Edit + Danger Zone)
 // ═══════════════════════════════════════════════════════════════════
-function SettingsTab({ client, clientId, confirmArchive, setConfirmArchive, onArchive, onPermanentDelete, onNavigateEdit }: any) {
+function SettingsTab({ client, clientId, confirmArchive, setConfirmArchive, onArchive, onRestore, onPermanentDelete, onNavigateEdit }: any) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const isArchived = client.status === 'Archived';
 
