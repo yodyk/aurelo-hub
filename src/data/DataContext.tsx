@@ -213,6 +213,16 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setClients(prev => prev.map(c => c.id === clientId ? { ...c, ...updates } : c));
   }, []);
 
+  const handleDeleteClient = useCallback(async (clientId: string) => {
+    const wsId = workspaceIdRef.current;
+    if (!wsId) throw new Error('No workspace');
+    await api.deleteClient(wsId, clientId);
+    setClients(prev => prev.filter(c => c.id !== clientId));
+    setSessions(prev => prev.filter(s => s.clientId !== clientId));
+    setProjectsCache(prev => { const next = { ...prev }; delete next[clientId]; return next; });
+    setAllProjects(prev => prev.filter(p => p.clientId !== clientId));
+  }, []);
+
   const getProjectsForClient = useCallback((clientId: string) => projectsCacheRef.current[clientId] || [], []);
 
   const handleAddSession = useCallback(async (session: any) => {
