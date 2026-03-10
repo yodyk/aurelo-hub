@@ -413,6 +413,11 @@ export default function ClientDetail() {
     }
   };
 
+  const handleRestore = async () => {
+    await updateClient(client.id, { status: "Active" });
+    toast.success(`${client.name} restored to active`);
+  };
+
   const handleCopyPortalLink = () => {
     if (portalConfig?.token) {
       const portalUrl = `${window.location.origin}/portal/${portalConfig.token}`;
