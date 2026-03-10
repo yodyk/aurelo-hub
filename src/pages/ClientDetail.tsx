@@ -413,6 +413,11 @@ export default function ClientDetail() {
     }
   };
 
+  const handleRestore = async () => {
+    await updateClient(client.id, { status: "Active" });
+    toast.success(`${client.name} restored to active`);
+  };
+
   const handleCopyPortalLink = () => {
     if (portalConfig?.token) {
       const portalUrl = `${window.location.origin}/portal/${portalConfig.token}`;
@@ -712,6 +717,7 @@ export default function ClientDetail() {
                   confirmArchive={confirmArchive}
                   setConfirmArchive={setConfirmArchive}
                   onArchive={handleArchive}
+                  onRestore={handleRestore}
                   onPermanentDelete={handlePermanentDelete}
                   onNavigateEdit={() => navigate(`/clients/${clientId}/edit`)}
                 />
@@ -1778,7 +1784,7 @@ function PortalTab({ client, clientId, portalConfig, portalLoading, copied, onCo
 // ═══════════════════════════════════════════════════════════════════
 // Settings Tab (Edit + Danger Zone)
 // ═══════════════════════════════════════════════════════════════════
-function SettingsTab({ client, clientId, confirmArchive, setConfirmArchive, onArchive, onPermanentDelete, onNavigateEdit }: any) {
+function SettingsTab({ client, clientId, confirmArchive, setConfirmArchive, onArchive, onRestore, onPermanentDelete, onNavigateEdit }: any) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const isArchived = client.status === 'Archived';
 
@@ -1821,6 +1827,19 @@ function SettingsTab({ client, clientId, confirmArchive, setConfirmArchive, onAr
                 </button>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Restore — only for archived clients */}
+        {isArchived && (
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 pb-4 border-b border-border/50">
+            <div>
+              <div className="text-[14px] mb-1" style={{ fontWeight: 500 }}>Restore this client</div>
+              <div className="text-[13px] text-muted-foreground">Move this client back to active status. All data will be preserved.</div>
+            </div>
+            <button onClick={onRestore} className="px-4 py-2 text-[13px] border border-border rounded-lg hover:bg-accent/60 transition-all whitespace-nowrap" style={{ fontWeight: 500 }}>
+              Restore to active
+            </button>
           </div>
         )}
 
