@@ -712,6 +712,7 @@ export default function ClientDetail() {
                   confirmArchive={confirmArchive}
                   setConfirmArchive={setConfirmArchive}
                   onArchive={handleArchive}
+                  onRestore={handleRestore}
                   onPermanentDelete={handlePermanentDelete}
                   onNavigateEdit={() => navigate(`/clients/${clientId}/edit`)}
                 />
