@@ -381,7 +381,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       identity, identityLoaded, workCategories, workCategoryNames,
       setIdentityAndCategories: handleSetIdentityAndCategories,
       updateWorkCategories: handleUpdateWorkCategories,
-      addClient: handleAddClient, updateClient: handleUpdateClient,
+      addClient: handleAddClient, updateClient: handleUpdateClient, deleteClient: handleDeleteClient,
       addSession: handleAddSession, updateSession: handleUpdateSession, deleteSession: handleDeleteSession,
       getProjects, loadProjectsForClient,
       addProject: handleAddProject, updateProject: handleUpdateProject,
