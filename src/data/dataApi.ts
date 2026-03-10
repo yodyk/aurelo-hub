@@ -116,7 +116,8 @@ export async function loadInitData(workspaceId: string) {
     const s = snakeToCamel(row);
     s.client = row.clients?.name || '';
     delete s.clients;
-    const dateObj = new Date(row.date);
+    s.rawDate = String(row.date);
+    const dateObj = parseLocalDate(row.date);
     const today = new Date();
     const yesterday = new Date(); yesterday.setDate(today.getDate() - 1);
     s.dateGroup = dateObj.toDateString() === today.toDateString() ? 'Today'
