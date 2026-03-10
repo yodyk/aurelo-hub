@@ -30,6 +30,7 @@ interface DataContextType {
   updateWorkCategories: (categories: WorkCategory[]) => Promise<void>;
   addClient: (client: any) => Promise<any>;
   updateClient: (clientId: string, updates: any) => Promise<void>;
+  deleteClient: (clientId: string) => Promise<void>;
   addSession: (session: any) => Promise<any>;
   updateSession: (sessionId: string, updates: any) => Promise<any>;
   deleteSession: (sessionId: string) => Promise<void>;
@@ -78,6 +79,7 @@ const safeDefaults: DataContextType = {
   updateWorkCategories: async () => {},
   addClient: async () => ({}),
   updateClient: async () => {},
+  deleteClient: async () => {},
   addSession: async () => ({}),
   updateSession: async () => ({}),
   deleteSession: async () => {},
@@ -209,6 +211,16 @@ export function DataProvider({ children }: { children: ReactNode }) {
     if (!wsId) return;
     await api.updateClient(wsId, clientId, updates);
     setClients(prev => prev.map(c => c.id === clientId ? { ...c, ...updates } : c));
+  }, []);
+
+  const handleDeleteClient = useCallback(async (clientId: string) => {
+    const wsId = workspaceIdRef.current;
+    if (!wsId) throw new Error('No workspace');
+    await api.deleteClient(wsId, clientId);
+    setClients(prev => prev.filter(c => c.id !== clientId));
+    setSessions(prev => prev.filter(s => s.clientId !== clientId));
+    setProjectsCache(prev => { const next = { ...prev }; delete next[clientId]; return next; });
+    setAllProjects(prev => prev.filter(p => p.clientId !== clientId));
   }, []);
 
   const getProjectsForClient = useCallback((clientId: string) => projectsCacheRef.current[clientId] || [], []);
@@ -379,7 +391,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       identity, identityLoaded, workCategories, workCategoryNames,
       setIdentityAndCategories: handleSetIdentityAndCategories,
       updateWorkCategories: handleUpdateWorkCategories,
-      addClient: handleAddClient, updateClient: handleUpdateClient,
+      addClient: handleAddClient, updateClient: handleUpdateClient, deleteClient: handleDeleteClient,
       addSession: handleAddSession, updateSession: handleUpdateSession, deleteSession: handleDeleteSession,
       getProjects, loadProjectsForClient,
       addProject: handleAddProject, updateProject: handleUpdateProject,
