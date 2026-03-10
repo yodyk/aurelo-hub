@@ -1830,6 +1830,19 @@ function SettingsTab({ client, clientId, confirmArchive, setConfirmArchive, onAr
           </div>
         )}
 
+        {/* Restore — only for archived clients */}
+        {isArchived && (
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 pb-4 border-b border-border/50">
+            <div>
+              <div className="text-[14px] mb-1" style={{ fontWeight: 500 }}>Restore this client</div>
+              <div className="text-[13px] text-muted-foreground">Move this client back to active status. All data will be preserved.</div>
+            </div>
+            <button onClick={onRestore} className="px-4 py-2 text-[13px] border border-border rounded-lg hover:bg-accent/60 transition-all whitespace-nowrap" style={{ fontWeight: 500 }}>
+              Restore to active
+            </button>
+          </div>
+        )}
+
         {/* Permanent delete — only for archived clients */}
         {isArchived && (
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
