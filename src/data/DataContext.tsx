@@ -79,6 +79,7 @@ const safeDefaults: DataContextType = {
   updateWorkCategories: async () => {},
   addClient: async () => ({}),
   updateClient: async () => {},
+  deleteClient: async () => {},
   addSession: async () => ({}),
   updateSession: async () => ({}),
   deleteSession: async () => {},
