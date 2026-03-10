@@ -271,7 +271,8 @@ export async function updateSession(workspaceId: string, sessionId: string, upda
   const s = snakeToCamel(data);
   s.client = data.clients?.name || '';
   delete s.clients;
-  const dateObj = new Date(data.date);
+  s.rawDate = String(data.date);
+  const dateObj = parseLocalDate(data.date);
   const today = new Date();
   const yesterday = new Date(); yesterday.setDate(today.getDate() - 1);
   s.dateGroup = dateObj.toDateString() === today.toDateString() ? 'Today'
