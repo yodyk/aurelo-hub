@@ -1564,11 +1564,16 @@ export function EditSessionModal({ open, onClose, session, onSave, onDelete, cli
     setSelectedProjectId(session.projectId ? String(session.projectId) : '');
     setConfirmDelete(false);
 
-    // Parse the display date back to YYYY-MM-DD
-    if (session.date) {
+    // Use rawDate (YYYY-MM-DD) if available, otherwise parse display date
+    if (session.rawDate) {
+      setSessionDate(session.rawDate);
+    } else if (session.date) {
       const parsed = new Date(session.date);
       if (!isNaN(parsed.getTime())) {
-        setSessionDate(parsed.toISOString().split('T')[0]);
+        const y = parsed.getFullYear();
+        const m = String(parsed.getMonth() + 1).padStart(2, '0');
+        const d = String(parsed.getDate()).padStart(2, '0');
+        setSessionDate(`${y}-${m}-${d}`);
       }
     }
   }, [session]);
