@@ -4,6 +4,13 @@ import * as storage from './storageApi';
 import { dispatchWebhookEvent } from './webhookDispatch';
 // ── Helpers ─────────────────────────────────────────────────────────
 
+/** Parse a YYYY-MM-DD string as a local-timezone Date (avoids UTC midnight shift) */
+function parseLocalDate(dateStr: string): Date {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+
+
 function snakeToCamel(row: Record<string, any>): Record<string, any> {
   const map: Record<string, string> = {
     contact_name: 'contactName',
