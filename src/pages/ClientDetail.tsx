@@ -1778,7 +1778,10 @@ function PortalTab({ client, clientId, portalConfig, portalLoading, copied, onCo
 // ═══════════════════════════════════════════════════════════════════
 // Settings Tab (Edit + Danger Zone)
 // ═══════════════════════════════════════════════════════════════════
-function SettingsTab({ client, clientId, confirmArchive, setConfirmArchive, onArchive, onNavigateEdit }: any) {
+function SettingsTab({ client, clientId, confirmArchive, setConfirmArchive, onArchive, onPermanentDelete, onNavigateEdit }: any) {
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const isArchived = client.status === 'Archived';
+
   return (
     <>
       <SectionCard>
@@ -1798,24 +1801,50 @@ function SettingsTab({ client, clientId, confirmArchive, setConfirmArchive, onAr
           <AlertTriangle className="w-4 h-4 text-[#c27272]" />
           <div className="text-[15px]" style={{ fontWeight: 600 }}>Danger zone</div>
         </div>
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="text-[14px] mb-1" style={{ fontWeight: 500 }}>Archive this client</div>
-            <div className="text-[13px] text-muted-foreground">This will hide the client from active views. Data will be preserved.</div>
-          </div>
-          {!confirmArchive ? (
-            <button onClick={() => setConfirmArchive(true)} className="px-4 py-2 text-[13px] text-[#c27272] border border-[rgba(194,114,114,0.3)] rounded-lg hover:bg-[rgba(194,114,114,0.08)] transition-all" style={{ fontWeight: 500 }}>
-              Archive client
-            </button>
-          ) : (
-            <div className="flex items-center gap-2">
-              <button onClick={() => setConfirmArchive(false)} className="px-3 py-1.5 text-[13px] rounded-lg border border-border text-muted-foreground hover:bg-accent/40 transition-all" style={{ fontWeight: 500 }}>Cancel</button>
-              <button onClick={onArchive} className="px-3 py-1.5 text-[13px] rounded-lg bg-[rgba(194,114,114,0.1)] border border-[rgba(194,114,114,0.3)] text-[#b05656] hover:bg-[rgba(194,114,114,0.18)] transition-all" style={{ fontWeight: 500 }}>
-                Confirm archive
-              </button>
+
+        {/* Archive */}
+        {!isArchived && (
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div className="text-[14px] mb-1" style={{ fontWeight: 500 }}>Archive this client</div>
+              <div className="text-[13px] text-muted-foreground">This will hide the client from active views. Data will be preserved.</div>
             </div>
-          )}
-        </div>
+            {!confirmArchive ? (
+              <button onClick={() => setConfirmArchive(true)} className="px-4 py-2 text-[13px] text-[#c27272] border border-[rgba(194,114,114,0.3)] rounded-lg hover:bg-[rgba(194,114,114,0.08)] transition-all" style={{ fontWeight: 500 }}>
+                Archive client
+              </button>
+            ) : (
+              <div className="flex items-center gap-2">
+                <button onClick={() => setConfirmArchive(false)} className="px-3 py-1.5 text-[13px] rounded-lg border border-border text-muted-foreground hover:bg-accent/40 transition-all" style={{ fontWeight: 500 }}>Cancel</button>
+                <button onClick={onArchive} className="px-3 py-1.5 text-[13px] rounded-lg bg-[rgba(194,114,114,0.1)] border border-[rgba(194,114,114,0.3)] text-[#b05656] hover:bg-[rgba(194,114,114,0.18)] transition-all" style={{ fontWeight: 500 }}>
+                  Confirm archive
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Permanent delete — only for archived clients */}
+        {isArchived && (
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div className="text-[14px] mb-1" style={{ fontWeight: 500 }}>Permanently delete this client</div>
+              <div className="text-[13px] text-muted-foreground">This will permanently remove the client and all associated sessions, projects, invoices, notes, and files. This action cannot be undone.</div>
+            </div>
+            {!confirmDelete ? (
+              <button onClick={() => setConfirmDelete(true)} className="px-4 py-2 text-[13px] text-[#c27272] border border-[rgba(194,114,114,0.3)] rounded-lg hover:bg-[rgba(194,114,114,0.08)] transition-all whitespace-nowrap" style={{ fontWeight: 500 }}>
+                Delete permanently
+              </button>
+            ) : (
+              <div className="flex items-center gap-2">
+                <button onClick={() => setConfirmDelete(false)} className="px-3 py-1.5 text-[13px] rounded-lg border border-border text-muted-foreground hover:bg-accent/40 transition-all" style={{ fontWeight: 500 }}>Cancel</button>
+                <button onClick={onPermanentDelete} className="px-3 py-1.5 text-[13px] rounded-lg bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-all whitespace-nowrap" style={{ fontWeight: 500 }}>
+                  Yes, delete everything
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </SectionCard>
     </>
   );
