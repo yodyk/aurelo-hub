@@ -155,7 +155,7 @@ export default function ClientDetail() {
   const { clientId } = useParams();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { workspaceId, clients, sessions, updateClient, addSession, updateSession, deleteSession, getProjects, loadProjectsForClient, addProject, netMultiplier, workCategoryNames } =
+  const { workspaceId, clients, sessions, updateClient, deleteClient: deleteClientFromContext, addSession, updateSession, deleteSession, getProjects, loadProjectsForClient, addProject, netMultiplier, workCategoryNames } =
     useData();
   const { user } = useAuth();
   const { isAtLeast } = usePlan();
