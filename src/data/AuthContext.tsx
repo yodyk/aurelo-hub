@@ -306,7 +306,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     moduleProvisioningLock = true;
     try {
       const wsId = await createWorkspaceForUser(u.id, u.email, name);
-      const ws: WorkspaceInfo = { id: wsId, name: name ? `${name}'s Workspace` : 'My Workspace', role: 'Owner', planId: 'starter' };
+      const ws: WorkspaceInfo = { id: wsId, name: name ? `${name}'s Workspace` : 'My Workspace', role: 'Owner', planId: 'starter', isApproved: false };
       setAllWorkspaces([ws]);
       setWorkspaceId(wsId);
       setWorkspaceRole('Owner');
