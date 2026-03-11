@@ -8,6 +8,7 @@ export interface WorkspaceInfo {
   name: string;
   role: string;
   planId: string;
+  isApproved: boolean;
 }
 
 interface AuthContextType {
@@ -17,6 +18,7 @@ interface AuthContextType {
   workspaceRole: string | null;
   allWorkspaces: WorkspaceInfo[];
   isNewUser: boolean;
+  isApproved: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, name: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -36,6 +38,7 @@ const safeAuthDefaults: AuthContextType = {
   workspaceRole: null,
   allWorkspaces: [],
   isNewUser: false,
+  isApproved: true,
   signIn: async () => {},
   signUp: async () => {},
   signOut: async () => {},
@@ -61,7 +64,7 @@ async function createWorkspaceForUser(userId: string, email: string, name: strin
 
   const { data: ws, error: wsErr } = await supabase
     .from('workspaces')
-    .insert({ name: workspaceName, owner_id: userId, owner_email: email })
+    .insert({ name: workspaceName, owner_id: userId, owner_email: email, is_approved: false })
     .select('id')
     .single();
 
@@ -93,7 +96,7 @@ async function createWorkspaceForUser(userId: string, email: string, name: strin
 async function resolveAllWorkspaces(userId: string): Promise<WorkspaceInfo[]> {
   const { data, error } = await supabase
     .from('workspace_members')
-    .select('workspace_id, role, workspaces(id, name, plan_id)')
+    .select('workspace_id, role, workspaces(id, name, plan_id, is_approved)')
     .eq('user_id', userId)
     .eq('status', 'active');
 
@@ -106,6 +109,7 @@ async function resolveAllWorkspaces(userId: string): Promise<WorkspaceInfo[]> {
       name: (row.workspaces as any).name || 'Workspace',
       role: row.role,
       planId: (row.workspaces as any).plan_id || 'starter',
+      isApproved: (row.workspaces as any).is_approved !== false,
     }));
 }
 
@@ -213,8 +217,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
           const wsId = await createWorkspaceForUser(u.id, u.email, u.name);
           const wsName = u.name ? `${u.name}'s Workspace` : 'My Workspace';
-          workspaces = [{ id: wsId, name: wsName, role: 'Owner', planId: 'starter' }];
+          workspaces = [{ id: wsId, name: wsName, role: 'Owner', planId: 'starter', isApproved: false }];
           setIsNewUser(true);
+          // Notify admin of new signup
+          try {
+            const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+            fetch(`https://${projectId}.supabase.co/functions/v1/notify-signup`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userName: u.name, userEmail: u.email, workspaceId: wsId }),
+            }).catch(() => {});
+          } catch {}
+
         } catch (err) {
           console.error('Auto-provisioning workspace failed:', err);
           moduleProvisioningLock = false;
@@ -302,13 +316,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     moduleProvisioningLock = true;
     try {
       const wsId = await createWorkspaceForUser(u.id, u.email, name);
-      const ws: WorkspaceInfo = { id: wsId, name: name ? `${name}'s Workspace` : 'My Workspace', role: 'Owner', planId: 'starter' };
+      const ws: WorkspaceInfo = { id: wsId, name: name ? `${name}'s Workspace` : 'My Workspace', role: 'Owner', planId: 'starter', isApproved: false };
       setAllWorkspaces([ws]);
       setWorkspaceId(wsId);
       setWorkspaceRole('Owner');
       localStorage.setItem(WS_STORAGE_KEY, wsId);
       setIsNewUser(true);
       moduleResolvedUserId = u.id;
+      // Notify admin
+      try {
+        const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+        fetch(`https://${projectId}.supabase.co/functions/v1/notify-signup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userName: name, userEmail: email, workspaceId: wsId }),
+        }).catch(() => {});
+      } catch {}
     } finally {
       moduleProvisioningLock = false;
     }
@@ -337,7 +360,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const handleCreateWorkspace = useCallback(async (name: string) => {
     if (!user) throw new Error('Not authenticated');
     const wsId = await createWorkspaceForUser(user.id, user.email, name, true);
-    const ws: WorkspaceInfo = { id: wsId, name, role: 'Owner', planId: 'starter' };
+    const ws: WorkspaceInfo = { id: wsId, name, role: 'Owner', planId: 'starter', isApproved: true };
     setAllWorkspaces(prev => [...prev, ws]);
     setWorkspaceId(wsId);
     setWorkspaceRole('Owner');
@@ -373,6 +396,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <AuthContext.Provider value={{
       user, loading, workspaceId, workspaceRole, allWorkspaces, isNewUser,
+      isApproved: !workspaceId || (allWorkspaces.find(w => w.id === workspaceId)?.isApproved !== false),
       signIn: handleSignIn, signUp: handleSignUp, signOut: handleSignOut,
       switchWorkspace, createWorkspace: handleCreateWorkspace, renameWorkspace: handleRenameWorkspace,
       deleteWorkspace: handleDeleteWorkspace, clearNewUser,
