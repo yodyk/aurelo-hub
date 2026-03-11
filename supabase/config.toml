@@ -33,6 +33,10 @@ project_id = "oqrqypuulgeqzjcgqruw"
     verify_jwt = false
   [functions.geo-check]
     verify_jwt = false
+  [functions.approve-user]
+    verify_jwt = false
+  [functions.notify-signup]
+    verify_jwt = false
   [functions.send-digest-email]
     verify_jwt = false
   [functions.send-insight-email]
