@@ -96,7 +96,7 @@ async function createWorkspaceForUser(userId: string, email: string, name: strin
 async function resolveAllWorkspaces(userId: string): Promise<WorkspaceInfo[]> {
   const { data, error } = await supabase
     .from('workspace_members')
-    .select('workspace_id, role, workspaces(id, name, plan_id)')
+    .select('workspace_id, role, workspaces(id, name, plan_id, is_approved)')
     .eq('user_id', userId)
     .eq('status', 'active');
 
@@ -109,6 +109,7 @@ async function resolveAllWorkspaces(userId: string): Promise<WorkspaceInfo[]> {
       name: (row.workspaces as any).name || 'Workspace',
       role: row.role,
       planId: (row.workspaces as any).plan_id || 'starter',
+      isApproved: (row.workspaces as any).is_approved !== false,
     }));
 }
 
