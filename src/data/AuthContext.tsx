@@ -8,6 +8,7 @@ export interface WorkspaceInfo {
   name: string;
   role: string;
   planId: string;
+  isApproved: boolean;
 }
 
 interface AuthContextType {
