@@ -323,6 +323,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem(WS_STORAGE_KEY, wsId);
       setIsNewUser(true);
       moduleResolvedUserId = u.id;
+      // Notify admin
+      try {
+        const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+        fetch(`https://${projectId}.supabase.co/functions/v1/notify-signup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userName: name, userEmail: email, workspaceId: wsId }),
+        }).catch(() => {});
+      } catch {}
     } finally {
       moduleProvisioningLock = false;
     }
