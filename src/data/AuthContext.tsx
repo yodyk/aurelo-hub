@@ -377,6 +377,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <AuthContext.Provider value={{
       user, loading, workspaceId, workspaceRole, allWorkspaces, isNewUser,
+      isApproved: !workspaceId || (allWorkspaces.find(w => w.id === workspaceId)?.isApproved !== false),
       signIn: handleSignIn, signUp: handleSignUp, signOut: handleSignOut,
       switchWorkspace, createWorkspace: handleCreateWorkspace, renameWorkspace: handleRenameWorkspace,
       deleteWorkspace: handleDeleteWorkspace, clearNewUser,
