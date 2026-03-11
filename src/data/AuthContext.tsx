@@ -219,6 +219,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const wsName = u.name ? `${u.name}'s Workspace` : 'My Workspace';
           workspaces = [{ id: wsId, name: wsName, role: 'Owner', planId: 'starter', isApproved: false }];
           setIsNewUser(true);
+          // Notify admin of new signup
+          try {
+            const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+            fetch(`https://${projectId}.supabase.co/functions/v1/notify-signup`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userName: u.name, userEmail: u.email, workspaceId: wsId }),
+            }).catch(() => {});
+          } catch {}
+
         } catch (err) {
           console.error('Auto-provisioning workspace failed:', err);
           moduleProvisioningLock = false;
