@@ -64,7 +64,7 @@ async function createWorkspaceForUser(userId: string, email: string, name: strin
 
   const { data: ws, error: wsErr } = await supabase
     .from('workspaces')
-    .insert({ name: workspaceName, owner_id: userId, owner_email: email })
+    .insert({ name: workspaceName, owner_id: userId, owner_email: email, is_approved: false })
     .select('id')
     .single();
 
