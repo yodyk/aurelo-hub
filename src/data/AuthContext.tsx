@@ -341,7 +341,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const handleCreateWorkspace = useCallback(async (name: string) => {
     if (!user) throw new Error('Not authenticated');
     const wsId = await createWorkspaceForUser(user.id, user.email, name, true);
-    const ws: WorkspaceInfo = { id: wsId, name, role: 'Owner', planId: 'starter' };
+    const ws: WorkspaceInfo = { id: wsId, name, role: 'Owner', planId: 'starter', isApproved: true };
     setAllWorkspaces(prev => [...prev, ws]);
     setWorkspaceId(wsId);
     setWorkspaceRole('Owner');
