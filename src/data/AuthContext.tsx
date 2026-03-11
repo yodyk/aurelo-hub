@@ -18,6 +18,7 @@ interface AuthContextType {
   workspaceRole: string | null;
   allWorkspaces: WorkspaceInfo[];
   isNewUser: boolean;
+  isApproved: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, name: string) => Promise<void>;
   signOut: () => Promise<void>;
