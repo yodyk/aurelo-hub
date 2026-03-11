@@ -127,9 +127,17 @@ export default function Signup() {
 
           {/* Heading */}
           <div className="mb-8">
-            <h1 className="text-[24px] text-[#1c1c1c] mb-2" style={{ fontWeight: 600, letterSpacing: "-0.01em" }}>
-              Create your account
-            </h1>
+            <div className="flex items-center gap-2.5 mb-2">
+              <h1 className="text-[24px] text-[#1c1c1c]" style={{ fontWeight: 600, letterSpacing: "-0.01em" }}>
+                Create your account
+              </h1>
+              <span
+                className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] text-white tracking-wide"
+                style={{ fontWeight: 600, background: "linear-gradient(135deg, #3d7a99, #5ea1bf)" }}
+              >
+                Waitlist
+              </span>
+            </div>
             <p className="text-[14px] text-[#717182]" style={{ fontWeight: 400 }}>
               Start managing your freelance business
             </p>
