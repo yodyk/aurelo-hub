@@ -217,7 +217,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
           const wsId = await createWorkspaceForUser(u.id, u.email, u.name);
           const wsName = u.name ? `${u.name}'s Workspace` : 'My Workspace';
-          workspaces = [{ id: wsId, name: wsName, role: 'Owner', planId: 'starter' }];
+          workspaces = [{ id: wsId, name: wsName, role: 'Owner', planId: 'starter', isApproved: false }];
           setIsNewUser(true);
         } catch (err) {
           console.error('Auto-provisioning workspace failed:', err);
