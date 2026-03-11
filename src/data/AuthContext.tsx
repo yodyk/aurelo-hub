@@ -38,6 +38,7 @@ const safeAuthDefaults: AuthContextType = {
   workspaceRole: null,
   allWorkspaces: [],
   isNewUser: false,
+  isApproved: true,
   signIn: async () => {},
   signUp: async () => {},
   signOut: async () => {},
