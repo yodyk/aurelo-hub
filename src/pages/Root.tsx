@@ -51,7 +51,8 @@ export default function Root() {
 
 /* AuthGate checks if user is authenticated; if not, redirects to /login */
 function AuthGate() {
-  const { user, loading, workspaceId, isNewUser, clearNewUser } = useAuth();
+  const { user, loading, workspaceId, isNewUser, clearNewUser, isApproved, signOut } = useAuth();
+  const navigate = useNavigate();
 
   if (loading) {
     return (
@@ -79,6 +80,52 @@ function AuthGate() {
   if (isNewUser) {
     clearNewUser();
     return <Navigate to="/onboarding" replace />;
+  }
+
+  // Waitlist gate — user not yet approved
+  if (!isApproved) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#fafaf9] px-6">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="text-center max-w-md"
+        >
+          <div className="w-14 h-14 rounded-2xl bg-[#5ea1bf]/10 flex items-center justify-center mx-auto mb-6">
+            <AureloIcon className="w-7 h-7 text-[#5ea1bf]" />
+          </div>
+          <h1 className="text-[22px] text-[#1c1c1c] mb-3" style={{ fontWeight: 600, letterSpacing: '-0.01em' }}>
+            You're on the waitlist!
+          </h1>
+          <p className="text-[14px] text-[#717182] leading-relaxed mb-2">
+            Thanks for signing up for Aurelo. Your account is pending approval.
+          </p>
+          <p className="text-[13px] text-[#b0b0b8] mb-8">
+            You'll receive an email once your account has been approved. This usually happens within 24 hours.
+          </p>
+          <div className="flex items-center justify-center gap-3">
+            <button
+              onClick={() => window.location.reload()}
+              className="px-5 py-2.5 rounded-lg border border-black/10 bg-white text-[#1c1c1c] text-[13px] hover:bg-[#f5f5f5] transition-colors"
+              style={{ fontWeight: 500 }}
+            >
+              Check again
+            </button>
+            <button
+              onClick={async () => {
+                await signOut();
+                navigate('/login', { replace: true });
+              }}
+              className="px-5 py-2.5 rounded-lg text-[13px] text-[#717182] hover:text-[#1c1c1c] transition-colors"
+              style={{ fontWeight: 500 }}
+            >
+              Sign out
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    );
   }
 
   return (
