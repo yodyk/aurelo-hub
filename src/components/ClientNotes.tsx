@@ -435,22 +435,22 @@ function NoteComposer({
         )}
       </div>
 
-      {/* Content */}
+      {/* Content — WYSIWYG */}
       <div className="px-4">
-        <textarea
-          ref={textareaRef}
-          value={content}
-          onChange={e => setContent(e.target.value)}
-          placeholder={
-            type === 'meeting' ? 'Meeting notes — what was discussed?' :
-            type === 'decision' ? 'What was decided and why?' :
-            type === 'action-item' ? 'What needs to be done?' :
-            type === 'feedback' ? 'What feedback was received?' :
-            'Write a note...'
-          }
-          className="w-full text-[14px] bg-transparent resize-none focus:outline-none placeholder:text-muted-foreground/50 leading-relaxed"
-          style={{ minHeight: '72px' }}
-        />
+        <Suspense fallback={<div className="min-h-[72px]" />}>
+          <NoteEditor
+            content={content}
+            onChange={setContent}
+            placeholder={
+              type === 'meeting' ? 'Meeting notes — what was discussed?' :
+              type === 'decision' ? 'What was decided and why?' :
+              type === 'action-item' ? 'What needs to be done?' :
+              type === 'feedback' ? 'What feedback was received?' :
+              'Write a note...'
+            }
+            autoFocus={!initialNote}
+          />
+        </Suspense>
       </div>
 
       {/* Tags */}
