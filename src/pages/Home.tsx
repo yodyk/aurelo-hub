@@ -450,9 +450,9 @@ export default function Home() {
     return days.map((label, i) => {
       const day = new Date(monday);
       day.setDate(monday.getDate() + i);
-      const dayStr = day.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+      const dayYmd = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
       const hours = sessions
-        .filter((s) => s.date === dayStr)
+        .filter((s: any) => s.rawDate === dayYmd)
         .reduce((sum: number, s: any) => sum + (s.duration || 0), 0);
       return { label, hours, isFuture: day > wNow, isToday: day.toDateString() === wNow.toDateString() };
     });
