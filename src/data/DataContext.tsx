@@ -323,6 +323,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
     if (!wsId) throw new Error('No workspace');
     const saved = await api.updateSession(wsId, sessionId, updates);
     setSessions(prev => prev.map(s => s.id === sessionId ? saved : s));
+    // Refresh client data from DB (trigger recalculates aggregates server-side)
+    const clientId = saved.clientId || updates.clientId;
+    if (clientId) {
+      api.loadClients(wsId).then(cl => { if (cl?.length) setClients(cl); });
+    }
     return saved;
   }, []);
 
