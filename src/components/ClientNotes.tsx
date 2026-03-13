@@ -355,6 +355,7 @@ function NoteComposer({
   const [tagInput, setTagInput] = useState('');
   const [projectId, setProjectId] = useState(initialNote?.projectId || presetProjectId || '');
   const [saving, setSaving] = useState(false);
+  const [showTagSuggestions, setShowTagSuggestions] = useState(false);
   const textareaRef = useRef<HTMLDivElement>(null);
   const tagInputRef = useRef<HTMLInputElement>(null);
 
