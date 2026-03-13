@@ -334,9 +334,15 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const handleDeleteSession = useCallback(async (sessionId: string) => {
     const wsId = workspaceIdRef.current;
     if (!wsId) throw new Error('No workspace');
+    // Capture client ID before removing from state
+    const session = sessions.find(s => s.id === sessionId);
     await api.deleteSession(wsId, sessionId);
     setSessions(prev => prev.filter(s => s.id !== sessionId));
-  }, []);
+    // Refresh client data from DB (trigger recalculates aggregates server-side)
+    if (session?.clientId) {
+      api.loadClients(wsId).then(cl => { if (cl?.length) setClients(cl); });
+    }
+  }, [sessions]);
 
   const getProjects = useCallback((clientId: string) => projectsCacheRef.current[clientId] || [], []);
 

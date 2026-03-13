@@ -752,7 +752,7 @@ function OverviewTab({
       d.setDate(d.getDate() - i);
       const dateStr = format(d, 'yyyy-MM-dd');
       const hours = clientSessions
-        .filter((s: any) => s.date === dateStr)
+        .filter((s: any) => s.rawDate === dateStr)
         .reduce((sum: number, s: any) => sum + s.duration, 0);
       days.push(hours);
     }
