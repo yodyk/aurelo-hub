@@ -479,7 +479,12 @@ function NoteComposer({
               onBlur={() => setTimeout(() => setShowTagSuggestions(false), 150)}
               onKeyDown={handleTagKeyDown}
               placeholder={tags.length === 0 ? 'Add tags...' : '+'}
-              className="w-20 text-[12px] bg-transparent focus:outline-none text-muted-foreground placeholder:text-muted-foreground/40 py-0.5"
+              name="note-tag-input"
+              autoComplete="off"
+              data-1p-ignore
+              data-lpignore="true"
+              data-form-type="other"
+              className="min-w-[80px] max-w-[140px] text-[12px] bg-transparent focus:outline-none text-muted-foreground placeholder:text-muted-foreground/40 py-0.5"
             />
             <AnimatePresence>
               {showTagSuggestions && filteredSuggestions.length > 0 && (
