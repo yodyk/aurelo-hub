@@ -312,6 +312,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
           }
         }
       }
+      // Refresh client aggregates from DB (trigger recalculates hours, revenue, etc.)
+      api.loadClients(wsId).then(cl => { if (cl?.length) setClients(cl); });
     } catch (err) {
       console.error('Session side-effect error (non-fatal):', err);
     }
@@ -323,15 +325,26 @@ export function DataProvider({ children }: { children: ReactNode }) {
     if (!wsId) throw new Error('No workspace');
     const saved = await api.updateSession(wsId, sessionId, updates);
     setSessions(prev => prev.map(s => s.id === sessionId ? saved : s));
+    // Refresh client data from DB (trigger recalculates aggregates server-side)
+    const clientId = saved.clientId || updates.clientId;
+    if (clientId) {
+      api.loadClients(wsId).then(cl => { if (cl?.length) setClients(cl); });
+    }
     return saved;
   }, []);
 
   const handleDeleteSession = useCallback(async (sessionId: string) => {
     const wsId = workspaceIdRef.current;
     if (!wsId) throw new Error('No workspace');
+    // Capture client ID before removing from state
+    const session = sessions.find(s => s.id === sessionId);
     await api.deleteSession(wsId, sessionId);
     setSessions(prev => prev.filter(s => s.id !== sessionId));
-  }, []);
+    // Refresh client data from DB (trigger recalculates aggregates server-side)
+    if (session?.clientId) {
+      api.loadClients(wsId).then(cl => { if (cl?.length) setClients(cl); });
+    }
+  }, [sessions]);
 
   const getProjects = useCallback((clientId: string) => projectsCacheRef.current[clientId] || [], []);
 
