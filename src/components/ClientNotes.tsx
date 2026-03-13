@@ -358,18 +358,7 @@ function NoteComposer({
   const textareaRef = useRef<HTMLDivElement>(null);
   const tagInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    textareaRef.current?.focus();
-  }, []);
-
-  // Auto-resize textarea
-  useEffect(() => {
-    const ta = textareaRef.current;
-    if (ta) {
-      ta.style.height = 'auto';
-      ta.style.height = Math.max(72, ta.scrollHeight) + 'px';
-    }
-  }, [content]);
+  // no-op: editor handles focus
 
   const handleAddTag = (tag: string) => {
     const t = tag.trim().toLowerCase();
