@@ -312,6 +312,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
           }
         }
       }
+      // Refresh client aggregates from DB (trigger recalculates hours, revenue, etc.)
+      api.loadClients(wsId).then(cl => { if (cl?.length) setClients(cl); });
     } catch (err) {
       console.error('Session side-effect error (non-fatal):', err);
     }
