@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
 import { useAuth } from '../data/AuthContext';
 import {
   Plus, Pin, PinOff, Check, CheckCircle2, Circle, Trash2, X,
@@ -9,7 +9,9 @@ import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 import * as notesApi from '../data/notesApi';
 import type { ClientNote, NoteType } from '../data/notesApi';
-import { usePlan } from '../data/PlanContext';
+
+const NoteEditor = lazy(() => import('./NoteEditor'));
+
 
 // ── Note type config ───────────────────────────────────────────────
 
@@ -345,8 +347,7 @@ function NoteComposer({
   presetProjectId?: string;
   presetProjectName?: string;
 }) {
-  const { can } = usePlan();
-  const hasRichNotes = can('richNotes');
+  const hasRichNotes = true; // WYSIWYG always available now
   const availableTypes = hasRichNotes ? NOTE_TYPES : NOTE_TYPES.filter(t => t.value === 'general');
   const [content, setContent] = useState(initialNote?.content || '');
   const [type, setType] = useState<NoteType>(initialNote?.type || 'general');
@@ -355,21 +356,10 @@ function NoteComposer({
   const [projectId, setProjectId] = useState(initialNote?.projectId || presetProjectId || '');
   const [saving, setSaving] = useState(false);
   const [showTagSuggestions, setShowTagSuggestions] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const textareaRef = useRef<HTMLDivElement>(null);
   const tagInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    textareaRef.current?.focus();
-  }, []);
-
-  // Auto-resize textarea
-  useEffect(() => {
-    const ta = textareaRef.current;
-    if (ta) {
-      ta.style.height = 'auto';
-      ta.style.height = Math.max(72, ta.scrollHeight) + 'px';
-    }
-  }, [content]);
+  // no-op: editor handles focus
 
   const handleAddTag = (tag: string) => {
     const t = tag.trim().toLowerCase();
@@ -439,29 +429,24 @@ function NoteComposer({
             {t.label}
           </button>
         ))}
-        {!hasRichNotes && (
-          <span className="inline-flex items-center gap-1 px-2 py-1 text-[10px] text-[#5ea1bf] bg-[#5ea1bf]/8 rounded-md ml-1" style={{ fontWeight: 600 }}>
-            PRO for more types
-          </span>
-        )}
       </div>
 
-      {/* Content */}
+      {/* Content — WYSIWYG */}
       <div className="px-4">
-        <textarea
-          ref={textareaRef}
-          value={content}
-          onChange={e => setContent(e.target.value)}
-          placeholder={
-            type === 'meeting' ? 'Meeting notes — what was discussed?' :
-            type === 'decision' ? 'What was decided and why?' :
-            type === 'action-item' ? 'What needs to be done?' :
-            type === 'feedback' ? 'What feedback was received?' :
-            'Write a note...'
-          }
-          className="w-full text-[14px] bg-transparent resize-none focus:outline-none placeholder:text-muted-foreground/50 leading-relaxed"
-          style={{ minHeight: '72px' }}
-        />
+        <Suspense fallback={<div className="min-h-[72px]" />}>
+          <NoteEditor
+            content={content}
+            onChange={setContent}
+            placeholder={
+              type === 'meeting' ? 'Meeting notes — what was discussed?' :
+              type === 'decision' ? 'What was decided and why?' :
+              type === 'action-item' ? 'What needs to be done?' :
+              type === 'feedback' ? 'What feedback was received?' :
+              'Write a note...'
+            }
+            autoFocus={!initialNote}
+          />
+        </Suspense>
       </div>
 
       {/* Tags */}
@@ -489,7 +474,12 @@ function NoteComposer({
               onBlur={() => setTimeout(() => setShowTagSuggestions(false), 150)}
               onKeyDown={handleTagKeyDown}
               placeholder={tags.length === 0 ? 'Add tags...' : '+'}
-              className="w-20 text-[12px] bg-transparent focus:outline-none text-muted-foreground placeholder:text-muted-foreground/40 py-0.5"
+              name="note-tag-input"
+              autoComplete="off"
+              data-1p-ignore
+              data-lpignore="true"
+              data-form-type="other"
+              className="min-w-[80px] max-w-[140px] text-[12px] bg-transparent focus:outline-none text-muted-foreground placeholder:text-muted-foreground/40 py-0.5"
             />
             <AnimatePresence>
               {showTagSuggestions && filteredSuggestions.length > 0 && (
@@ -740,10 +730,11 @@ function NoteCard({
           </div>
         </div>
 
-        {/* Content */}
-        <div className={`text-[13px] leading-relaxed whitespace-pre-wrap ${note.isResolved ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
-          {note.content}
-        </div>
+        {/* Content — render as HTML from WYSIWYG */}
+        <div
+          className={`note-rendered-content text-[13px] leading-relaxed ${note.isResolved ? 'line-through text-muted-foreground' : 'text-foreground'}`}
+          dangerouslySetInnerHTML={{ __html: note.content }}
+        />
 
         {/* Tags + timestamp */}
         <div className="flex items-center justify-between mt-2.5 gap-3">

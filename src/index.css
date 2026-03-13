@@ -527,3 +527,74 @@ select {
 .dark .legal-content strong {
   color: #d6d3d1;
 }
+
+/* ── Tiptap / Note Editor ───────────────────────────────────── */
+.note-editor-content p {
+  margin: 0;
+}
+.note-editor-content p + p {
+  margin-top: 0.25em;
+}
+.note-editor-content ul,
+.note-editor-content ol {
+  padding-left: 1.25em;
+  margin: 0.25em 0;
+}
+.note-editor-content ul {
+  list-style-type: disc;
+}
+.note-editor-content ol {
+  list-style-type: decimal;
+}
+.note-editor-content li {
+  margin: 0.125em 0;
+}
+.note-editor-content li p {
+  margin: 0;
+}
+.note-editor-content strong {
+  font-weight: 600;
+}
+.note-editor-content em {
+  font-style: italic;
+}
+.note-editor-content s {
+  text-decoration: line-through;
+}
+.note-editor-content h3 {
+  font-size: 1.05em;
+  font-weight: 600;
+  margin: 0.5em 0 0.25em;
+}
+.note-editor-content .is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  pointer-events: none;
+  height: 0;
+  color: var(--muted-foreground);
+  opacity: 0.5;
+}
+/* Rendered note content (read-only cards) */
+.note-rendered-content ul,
+.note-rendered-content ol {
+  padding-left: 1.25em;
+  margin: 0.25em 0;
+}
+.note-rendered-content ul {
+  list-style-type: disc;
+}
+.note-rendered-content ol {
+  list-style-type: decimal;
+}
+.note-rendered-content li {
+  margin: 0.125em 0;
+}
+.note-rendered-content strong {
+  font-weight: 600;
+}
+.note-rendered-content em {
+  font-style: italic;
+}
+.note-rendered-content s {
+  text-decoration: line-through;
+}
