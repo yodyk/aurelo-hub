@@ -429,11 +429,6 @@ function NoteComposer({
             {t.label}
           </button>
         ))}
-        {!hasRichNotes && (
-          <span className="inline-flex items-center gap-1 px-2 py-1 text-[10px] text-[#5ea1bf] bg-[#5ea1bf]/8 rounded-md ml-1" style={{ fontWeight: 600 }}>
-            PRO for more types
-          </span>
-        )}
       </div>
 
       {/* Content — WYSIWYG */}
