@@ -347,8 +347,7 @@ function NoteComposer({
   presetProjectId?: string;
   presetProjectName?: string;
 }) {
-  const { can } = usePlan();
-  const hasRichNotes = can('richNotes');
+  const hasRichNotes = true; // WYSIWYG always available now
   const availableTypes = hasRichNotes ? NOTE_TYPES : NOTE_TYPES.filter(t => t.value === 'general');
   const [content, setContent] = useState(initialNote?.content || '');
   const [type, setType] = useState<NoteType>(initialNote?.type || 'general');
