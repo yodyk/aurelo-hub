@@ -11,7 +11,7 @@ import * as notesApi from '../data/notesApi';
 import type { ClientNote, NoteType } from '../data/notesApi';
 
 const NoteEditor = lazy(() => import('./NoteEditor'));
-import { usePlan } from '../data/PlanContext';
+
 
 // ── Note type config ───────────────────────────────────────────────
 
