@@ -735,10 +735,11 @@ function NoteCard({
           </div>
         </div>
 
-        {/* Content */}
-        <div className={`text-[13px] leading-relaxed whitespace-pre-wrap ${note.isResolved ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
-          {note.content}
-        </div>
+        {/* Content — render as HTML from WYSIWYG */}
+        <div
+          className={`note-rendered-content text-[13px] leading-relaxed ${note.isResolved ? 'line-through text-muted-foreground' : 'text-foreground'}`}
+          dangerouslySetInnerHTML={{ __html: note.content }}
+        />
 
         {/* Tags + timestamp */}
         <div className="flex items-center justify-between mt-2.5 gap-3">
