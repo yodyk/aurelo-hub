@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
 import { useAuth } from '../data/AuthContext';
 import {
   Plus, Pin, PinOff, Check, CheckCircle2, Circle, Trash2, X,
@@ -9,6 +9,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 import * as notesApi from '../data/notesApi';
 import type { ClientNote, NoteType } from '../data/notesApi';
+
+const NoteEditor = lazy(() => import('./NoteEditor'));
 import { usePlan } from '../data/PlanContext';
 
 // ── Note type config ───────────────────────────────────────────────
