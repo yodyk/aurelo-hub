@@ -284,7 +284,18 @@ export default function ClientPortal() {
               </div>
             </motion.div>
           )}
-        </motion.div>
+
+          {/* Checklists */}
+          {checklists && checklists.length > 0 && (
+            <motion.div variants={itemVariants}>
+              <SectionTitle icon={CheckSquare} title="Checklists" accent={accent} />
+              <div className="space-y-4 mt-4">
+                {checklists.map(cl => (
+                  <PortalChecklistCard key={cl.id} checklist={cl} accent={accent} token={token!} />
+                ))}
+              </div>
+            </motion.div>
+          )}
 
         {/* Footer */}
         {!branding.isWhiteLabel && (
