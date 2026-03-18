@@ -157,8 +157,15 @@ function RootLayout() {
   const { canViewFinancials } = useRoleAccess();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [timerRunning, setTimerRunning] = useState(false);
-  const [timerSeconds, setTimerSeconds] = useState(0);
+  // Timer — persist start timestamp so it survives remounts / midnight
+  const [timerRunning, setTimerRunning] = useState(() => {
+    return localStorage.getItem('aurelo_timer_start') !== null;
+  });
+  const [timerSeconds, setTimerSeconds] = useState(() => {
+    const stored = localStorage.getItem('aurelo_timer_start');
+    if (!stored) return 0;
+    return Math.max(0, Math.floor((Date.now() - Number(stored)) / 1000));
+  });
   const [showLogModal, setShowLogModal] = useState(false);
   const [stoppedDuration, setStoppedDuration] = useState(0);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -212,9 +219,15 @@ function RootLayout() {
 
   useEffect(() => {
     if (timerRunning) {
-      timerRef.current = setInterval(() => {
-        setTimerSeconds(s => s + 1);
-      }, 1000);
+      // Compute elapsed from stored start timestamp each tick
+      const tick = () => {
+        const stored = localStorage.getItem('aurelo_timer_start');
+        if (stored) {
+          setTimerSeconds(Math.max(0, Math.floor((Date.now() - Number(stored)) / 1000)));
+        }
+      };
+      tick(); // immediate sync
+      timerRef.current = setInterval(tick, 1000);
     } else if (timerRef.current) {
       clearInterval(timerRef.current);
     }
@@ -222,13 +235,17 @@ function RootLayout() {
   }, [timerRunning]);
 
   const handleStartTimer = () => {
+    localStorage.setItem('aurelo_timer_start', String(Date.now()));
     setTimerSeconds(0);
     setTimerRunning(true);
   };
 
   const handleStopTimer = () => {
+    const stored = localStorage.getItem('aurelo_timer_start');
+    const elapsed = stored ? Math.max(0, Math.floor((Date.now() - Number(stored)) / 1000)) : timerSeconds;
+    localStorage.removeItem('aurelo_timer_start');
     setTimerRunning(false);
-    setStoppedDuration(timerSeconds);
+    setStoppedDuration(elapsed);
     setShowLogModal(true);
   };
 

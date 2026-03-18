@@ -54,6 +54,7 @@ Deno.serve(async (req) => {
       invoicesRes,
       workspaceRes,
       brandingRes,
+      checklistsRes,
     ] = await Promise.all([
       sb.from('clients').select('*').eq('id', client_id).single(),
       sb.from('projects').select('*').eq('client_id', client_id).eq('workspace_id', workspace_id).order('created_at', { ascending: false }),
@@ -61,6 +62,7 @@ Deno.serve(async (req) => {
       sb.from('invoices').select('*').eq('client_id', client_id).eq('workspace_id', workspace_id).order('created_at', { ascending: false }),
       sb.from('workspaces').select('name, plan_id').eq('id', workspace_id).single(),
       sb.from('workspace_settings').select('data').eq('workspace_id', workspace_id).eq('section', 'workspace').maybeSingle(),
+      sb.from('checklists').select('*').eq('client_id', client_id).eq('workspace_id', workspace_id).order('created_at', { ascending: true }),
     ]);
 
     if (clientRes.error || !clientRes.data) {
@@ -143,6 +145,37 @@ Deno.serve(async (req) => {
         }))
       : [];
 
+    // Load checklist items for all checklists
+    const checklistRows = checklistsRes.data || [];
+    let checklists: any[] = [];
+    if (checklistRows.length > 0) {
+      const checklistIds = checklistRows.map((c: any) => c.id);
+      const { data: itemsData } = await sb
+        .from('checklist_items')
+        .select('*')
+        .in('checklist_id', checklistIds)
+        .order('sort_order', { ascending: true });
+
+      const itemsByChecklist: Record<string, any[]> = {};
+      (itemsData || []).forEach((item: any) => {
+        if (!itemsByChecklist[item.checklist_id]) itemsByChecklist[item.checklist_id] = [];
+        itemsByChecklist[item.checklist_id].push({
+          id: item.id,
+          text: item.text,
+          completed: item.completed,
+          sort_order: item.sort_order,
+          added_by: item.added_by,
+        });
+      });
+
+      checklists = checklistRows.map((c: any) => ({
+        id: c.id,
+        title: c.title,
+        project_id: c.project_id,
+        items: itemsByChecklist[c.id] || [],
+      }));
+    }
+
     const portalData = {
       client: {
         name: client.name,
@@ -163,6 +196,7 @@ Deno.serve(async (req) => {
       projects,
       sessions,
       invoices,
+      checklists,
       showCosts,
       branding: {
         isWhiteLabel,

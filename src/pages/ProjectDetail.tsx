@@ -29,6 +29,7 @@ import {
   X,
   ExternalLink,
   Link2,
+  CheckSquare,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
@@ -36,6 +37,7 @@ import { useData } from "../data/DataContext";
 import { usePlan } from "../data/PlanContext";
 import * as dataApi from "../data/dataApi";
 import ClientNotes from "../components/ClientNotes";
+import ChecklistPanel from "../components/ChecklistPanel";
 import { useRoleAccess } from "@/data/useRoleAccess";
 
 // ── Constants ──────────────────────────────────────────────────────
@@ -1369,6 +1371,19 @@ export default function ProjectDetail() {
                 />
               )}
             </div>
+
+            {/* Checklists */}
+            {workspaceId && clientId && projectId && (
+              <div className="mb-8">
+                <div className="flex items-center gap-2 mb-4">
+                  <CheckSquare className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-[14px]" style={{ fontWeight: 600 }}>
+                    Checklists
+                  </span>
+                </div>
+                <ChecklistPanel clientId={clientId} workspaceId={workspaceId} projectId={projectId} />
+              </div>
+            )}
 
             {/* Files */}
             <div>
