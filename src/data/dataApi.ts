@@ -234,6 +234,7 @@ export async function addSession(workspaceId: string, session: any) {
     revenue: session.revenue || 0,
     billable: session.billable ?? true,
     task: session.task || null,
+    notes: session.notes || null,
     work_tags: session.workTags || [],
     allocation_type: session.allocationType || null,
     project_id: session.projectId || null,
