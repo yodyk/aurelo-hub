@@ -1371,6 +1371,19 @@ export default function ProjectDetail() {
               )}
             </div>
 
+            {/* Checklists */}
+            {workspaceId && clientId && projectId && (
+              <div className="mb-8">
+                <div className="flex items-center gap-2 mb-4">
+                  <CheckSquare className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-[14px]" style={{ fontWeight: 600 }}>
+                    Checklists
+                  </span>
+                </div>
+                <ChecklistPanel clientId={clientId} workspaceId={workspaceId} projectId={projectId} />
+              </div>
+            )}
+
             {/* Files */}
             <div>
               <div className="flex items-center justify-between mb-4">
