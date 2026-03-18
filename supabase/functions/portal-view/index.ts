@@ -181,6 +181,7 @@ Deno.serve(async (req) => {
         name: client.name,
         model: client.model,
         status: client.status,
+        portalGreeting: client.portal_greeting || null,
         ...(showCosts ? {
           rate: client.rate,
           retainerTotal: client.retainer_total,
