@@ -598,3 +598,36 @@ select {
 .note-rendered-content s {
   text-decoration: line-through;
 }
+
+/* ── Task list (checklist) styles ─────────────────────────── */
+.note-editor-content ul[data-type="taskList"],
+.note-rendered-content ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0;
+  margin: 0.25em 0;
+}
+.note-editor-content ul[data-type="taskList"] li,
+.note-rendered-content ul[data-type="taskList"] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4em;
+  margin: 0.2em 0;
+}
+.note-editor-content ul[data-type="taskList"] li label,
+.note-rendered-content ul[data-type="taskList"] li label {
+  flex-shrink: 0;
+  margin-top: 0.15em;
+}
+.note-editor-content ul[data-type="taskList"] li label input[type="checkbox"],
+.note-rendered-content ul[data-type="taskList"] li label input[type="checkbox"] {
+  accent-color: hsl(var(--primary));
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  border-radius: 3px;
+}
+.note-editor-content ul[data-type="taskList"] li[data-checked="true"] > div > p,
+.note-rendered-content ul[data-type="taskList"] li[data-checked="true"] > div > p {
+  text-decoration: line-through;
+  opacity: 0.55;
+}
