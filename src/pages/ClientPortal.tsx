@@ -82,11 +82,19 @@ interface PortalInvoice {
   currency: string;
 }
 
+interface PortalChecklist {
+  id: string;
+  title: string;
+  project_id?: string;
+  items: { id: string; text: string; completed: boolean; sort_order: number; added_by: string }[];
+}
+
 interface PortalData {
   client: PortalClient;
   projects: PortalProject[];
   sessions: PortalSession[];
   invoices: PortalInvoice[];
+  checklists: PortalChecklist[];
   showCosts: boolean;
   branding: PortalBranding;
 }
