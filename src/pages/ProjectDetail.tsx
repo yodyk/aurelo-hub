@@ -36,6 +36,7 @@ import { useData } from "../data/DataContext";
 import { usePlan } from "../data/PlanContext";
 import * as dataApi from "../data/dataApi";
 import ClientNotes from "../components/ClientNotes";
+import ChecklistPanel from "../components/ChecklistPanel";
 import { useRoleAccess } from "@/data/useRoleAccess";
 
 // ── Constants ──────────────────────────────────────────────────────
