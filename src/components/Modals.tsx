@@ -1558,6 +1558,7 @@ export function EditSessionModal({ open, onClose, session, onSave, onDelete, cli
     if (!session) return;
     setClientId(session.clientId || '');
     setTask(session.task || '');
+    setNotes(session.notes || '');
     setDuration(String(session.duration || ''));
     setBillable(session.billable !== false);
     setSelectedTags(session.workTags || session.tags || []);
