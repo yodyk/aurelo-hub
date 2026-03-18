@@ -1622,6 +1622,7 @@ export function EditSessionModal({ open, onClose, session, onSave, onDelete, cli
       await onSave(session.id, {
         clientId,
         task: task.trim(),
+        notes: notes.trim(),
         duration: durationNum,
         revenue,
         billable,
