@@ -987,6 +987,11 @@ function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (
   const [editValue, setEditValue] = useState<any>('');
   const [saving, setSaving] = useState(false);
 
+  // Shared links state
+  const [addingLink, setAddingLink] = useState(false);
+  const [newLinkUrl, setNewLinkUrl] = useState('');
+  const [newLinkLabel, setNewLinkLabel] = useState('');
+
   // New custom field form
   const [showAddField, setShowAddField] = useState(false);
   const [newFieldLabel, setNewFieldLabel] = useState('');
