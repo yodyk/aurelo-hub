@@ -48,6 +48,7 @@ import { LogSessionModal, AddProjectModal, EditSessionModal } from "../component
 import * as dataApi from "../data/dataApi";
 import * as portalApi from "../data/portalApi";
 import ClientNotes from "../components/ClientNotes";
+import ChecklistPanel from "../components/ChecklistPanel";
 import EmailActivityLog from "../components/EmailActivityLog";
 import BulkSessionActions from "../components/BulkSessionActions";
 import { supabase } from "@/integrations/supabase/client";
