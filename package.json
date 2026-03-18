@@ -43,6 +43,7 @@
     "@radix-ui/react-tooltip": "1.1.8",
     "@supabase/supabase-js": "^2.98.0",
     "@tiptap/extension-placeholder": "^3.20.1",
+    "@tiptap/extension-task-item": "^3.20.4",
     "@tiptap/react": "^3.20.1",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
