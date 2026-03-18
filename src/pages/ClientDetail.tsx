@@ -1256,20 +1256,89 @@ function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (
         </div>
       </div>
 
-      {/* External links */}
-      {client.externalLinks && Array.isArray(client.externalLinks) && client.externalLinks.length > 0 && (
-        <SectionCard>
-          <div className="text-[13px] text-muted-foreground mb-4" style={{ fontWeight: 600 }}>External Links</div>
-          <div className="flex flex-wrap gap-2">
-            {client.externalLinks.map((link: any, i: number) => (
-              <a key={i} href={link.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[13px] text-primary bg-primary/[0.04] border border-primary/10 rounded-lg hover:bg-primary/8 transition-colors" style={{ fontWeight: 500 }}>
-                <ExternalLink className="w-3 h-3" />
-                {link.label || link.url}
-              </a>
-            ))}
-          </div>
-        </SectionCard>
-      )}
+      {/* Shared links — interactive */}
+      <SectionCard>
+        <div className="text-[13px] text-muted-foreground mb-4" style={{ fontWeight: 600 }}>Shared Links</div>
+        {(() => {
+          const LINK_TYPES = [
+            { value: "google-drive", label: "Google Drive", icon: "📁" },
+            { value: "dropbox", label: "Dropbox", icon: "📦" },
+            { value: "figma", label: "Figma", icon: "🎨" },
+            { value: "notion", label: "Notion", icon: "📝" },
+            { value: "github", label: "GitHub", icon: "🐙" },
+            { value: "miro", label: "Miro", icon: "🟡" },
+            { value: "slack", label: "Slack", icon: "💬" },
+            { value: "other", label: "Other", icon: "🔗" },
+          ];
+          const detectType = (url: string) => {
+            const u = url.toLowerCase();
+            if (u.includes("drive.google") || u.includes("docs.google")) return "google-drive";
+            if (u.includes("dropbox.com")) return "dropbox";
+            if (u.includes("figma.com")) return "figma";
+            if (u.includes("notion.")) return "notion";
+            if (u.includes("github.com")) return "github";
+            if (u.includes("miro.com")) return "miro";
+            if (u.includes("slack.com")) return "slack";
+            return "other";
+          };
+          const getConfig = (type: string) => LINK_TYPES.find(t => t.value === type) || LINK_TYPES[LINK_TYPES.length - 1];
+          const links: { id: string; label: string; url: string; type: string }[] = Array.isArray(client.externalLinks) ? client.externalLinks : [];
+
+          const handleAddLink = async () => {
+            if (!newLinkUrl.trim()) return;
+            let url = newLinkUrl.trim();
+            if (!url.startsWith("http")) url = "https://" + url;
+            const type = detectType(url);
+            const config = getConfig(type);
+            const link = { id: Date.now().toString(), label: newLinkLabel.trim() || config.label, url, type };
+            await onUpdateClient({ externalLinks: [...links, link] });
+            setNewLinkUrl('');
+            setNewLinkLabel('');
+            setAddingLink(false);
+            toast.success('Link added');
+          };
+          const handleDeleteLink = async (id: string) => {
+            await onUpdateClient({ externalLinks: links.filter(l => l.id !== id) });
+            toast.success('Link removed');
+          };
+
+          return (
+            <>
+              {links.length > 0 && (
+                <div className="flex items-center gap-2 flex-wrap mb-3">
+                  {links.map((link) => {
+                    const config = getConfig(link.type);
+                    return (
+                      <a key={link.id} href={link.url} target="_blank" rel="noopener noreferrer" className="group/link inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-border bg-card hover:bg-accent/40 text-[12px] transition-all" style={{ fontWeight: 500 }}>
+                        <span className="text-[13px]">{config.icon}</span>
+                        <span className="text-foreground">{link.label}</span>
+                        <ExternalLink className="w-3 h-3 text-muted-foreground opacity-0 group-hover/link:opacity-100 transition-opacity" />
+                        <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeleteLink(link.id); }} className="ml-0.5 opacity-0 group-hover/link:opacity-100 p-0.5 rounded hover:bg-accent/60 text-muted-foreground hover:text-destructive transition-all">
+                          <X className="w-2.5 h-2.5" />
+                        </button>
+                      </a>
+                    );
+                  })}
+                </div>
+              )}
+              {addingLink ? (
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                  <input autoFocus value={newLinkUrl} onChange={(e) => setNewLinkUrl(e.target.value)} placeholder="Paste URL (Dropbox, Google Drive, Figma...)" className="flex-1 text-[13px] px-3 py-1.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20" onKeyDown={(e) => { if (e.key === 'Enter') handleAddLink(); if (e.key === 'Escape') setAddingLink(false); }} />
+                  <div className="flex items-center gap-2">
+                    <input value={newLinkLabel} onChange={(e) => setNewLinkLabel(e.target.value)} placeholder="Label (optional)" className="w-full sm:w-36 text-[13px] px-3 py-1.5 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20" onKeyDown={(e) => { if (e.key === 'Enter') handleAddLink(); }} />
+                    <button onClick={handleAddLink} disabled={!newLinkUrl.trim()} className="p-1.5 rounded-lg hover:bg-accent/60 text-primary disabled:opacity-40"><Check className="w-4 h-4" /></button>
+                    <button onClick={() => { setAddingLink(false); setNewLinkUrl(''); setNewLinkLabel(''); }} className="p-1.5 rounded-lg hover:bg-accent/60 text-muted-foreground"><X className="w-4 h-4" /></button>
+                  </div>
+                </div>
+              ) : (
+                <button onClick={() => setAddingLink(true)} className="inline-flex items-center gap-1 text-[12px] text-muted-foreground hover:text-primary transition-colors" style={{ fontWeight: 500 }}>
+                  <Link2 className="w-3 h-3" /> Add shared link
+                </button>
+              )}
+            </>
+          );
+        })()}
+      </SectionCard>
 
       {/* Workspace custom fields — inline editable */}
       {wsSchemas.length > 0 && (
