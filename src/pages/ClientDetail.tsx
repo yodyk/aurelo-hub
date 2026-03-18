@@ -699,6 +699,9 @@ export default function ClientDetail() {
               {activeTab === "notes" && (
                 <NotesTab clientId={clientId} projects={projects} />
               )}
+              {activeTab === "checklists" && workspaceId && clientId && (
+                <ChecklistsTab clientId={clientId} workspaceId={workspaceId} />
+              )}
               {activeTab === "portal" && (
                 <PortalTab
                   client={client}
