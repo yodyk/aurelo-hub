@@ -1600,6 +1600,7 @@ export function EditSessionModal({ open, onClose, session, onSave, onDelete, cli
   const hasChanges = session && (
     clientId !== (session.clientId || '') ||
     task !== (session.task || '') ||
+    notes !== (session.notes || '') ||
     duration !== String(session.duration || '') ||
     billable !== (session.billable !== false) ||
     JSON.stringify(selectedTags) !== JSON.stringify(session.workTags || session.tags || []) ||
