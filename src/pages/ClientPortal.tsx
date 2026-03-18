@@ -175,7 +175,7 @@ export default function ClientPortal() {
     );
   }
 
-  const { client, projects, sessions, invoices, showCosts, branding } = data;
+  const { client, projects, sessions, invoices, checklists, showCosts, branding } = data;
   const accent = branding.isWhiteLabel && branding.brandColor ? branding.brandColor : "#5ea1bf";
 
   return (
