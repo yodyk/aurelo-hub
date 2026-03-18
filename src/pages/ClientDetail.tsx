@@ -130,6 +130,7 @@ function getTabsForClient(client: any, canViewFinancials: boolean): { id: TabId;
   tabs.push(
     { id: "files", label: "Files", icon: FolderOpen },
     { id: "notes", label: "Notes", icon: StickyNote },
+    { id: "checklists", label: "Checklists", icon: CheckSquare },
     { id: "portal", label: "Portal", icon: Link2 },
     { id: "settings", label: "Settings", icon: SettingsIcon },
   );
