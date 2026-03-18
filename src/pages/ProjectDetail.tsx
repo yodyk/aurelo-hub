@@ -29,6 +29,7 @@ import {
   X,
   ExternalLink,
   Link2,
+  CheckSquare,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
