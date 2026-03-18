@@ -447,7 +447,7 @@ function SessionAccordion({ session: s, projects, showCosts, accent }: { session
     return projects.find(p => p.id === s.project_id)?.name || null;
   }, [s.project_id, projects]);
 
-  const hasDetails = !!(s.task || (s.work_tags && s.work_tags.length > 0));
+  const hasDetails = !!(s.task || s.notes || (s.work_tags && s.work_tags.length > 0));
 
   return (
     <div className="bg-white rounded-xl border border-[#e5e7eb] overflow-hidden hover:shadow-sm transition-shadow">
@@ -462,6 +462,9 @@ function SessionAccordion({ session: s, projects, showCosts, accent }: { session
               <span className="text-[11px] text-[#9ca3af] truncate">· {projectName}</span>
             )}
           </div>
+          {s.task && (
+            <p className="text-[12px] text-[#6b7280] mt-0.5 truncate">{s.task}</p>
+          )}
         </div>
         <div className="flex items-center gap-2.5 flex-shrink-0">
           <span className="text-[13px] font-semibold tabular-nums text-[#1a1a2e]">{fmtHours(s.duration)}</span>
@@ -484,8 +487,11 @@ function SessionAccordion({ session: s, projects, showCosts, accent }: { session
           >
             <div className="px-3.5 pb-3.5 pt-0 border-t border-[#f3f4f6]">
               <div className="pt-3 space-y-2">
-                {s.task && (
-                  <p className="text-[13px] text-[#6b7280] leading-relaxed">{s.task}</p>
+                {s.notes && (
+                  <div>
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-[#9ca3af]">Notes</span>
+                    <p className="text-[13px] text-[#4b5563] leading-relaxed mt-1 whitespace-pre-wrap">{s.notes}</p>
+                  </div>
                 )}
                 {s.work_tags && s.work_tags.length > 0 && (
                   <div className="flex items-center gap-1.5 flex-wrap">
