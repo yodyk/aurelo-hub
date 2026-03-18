@@ -145,6 +145,37 @@ Deno.serve(async (req) => {
         }))
       : [];
 
+    // Load checklist items for all checklists
+    const checklistRows = checklistsRes.data || [];
+    let checklists: any[] = [];
+    if (checklistRows.length > 0) {
+      const checklistIds = checklistRows.map((c: any) => c.id);
+      const { data: itemsData } = await sb
+        .from('checklist_items')
+        .select('*')
+        .in('checklist_id', checklistIds)
+        .order('sort_order', { ascending: true });
+
+      const itemsByChecklist: Record<string, any[]> = {};
+      (itemsData || []).forEach((item: any) => {
+        if (!itemsByChecklist[item.checklist_id]) itemsByChecklist[item.checklist_id] = [];
+        itemsByChecklist[item.checklist_id].push({
+          id: item.id,
+          text: item.text,
+          completed: item.completed,
+          sort_order: item.sort_order,
+          added_by: item.added_by,
+        });
+      });
+
+      checklists = checklistRows.map((c: any) => ({
+        id: c.id,
+        title: c.title,
+        project_id: c.project_id,
+        items: itemsByChecklist[c.id] || [],
+      }));
+    }
+
     const portalData = {
       client: {
         name: client.name,
@@ -165,6 +196,7 @@ Deno.serve(async (req) => {
       projects,
       sessions,
       invoices,
+      checklists,
       showCosts,
       branding: {
         isWhiteLabel,
