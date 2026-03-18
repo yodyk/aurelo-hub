@@ -261,7 +261,7 @@ export default function ClientPortal() {
           {/* Retainer bar */}
           {client.model === "Retainer" && client.retainerTotal != null && client.retainerTotal > 0 && (
             <motion.div variants={itemVariants} className="mb-8">
-              <RetainerBar total={client.retainerTotal} remaining={client.retainerRemaining || 0} accent={accent} />
+              <RetainerBar total={client.retainerTotal} remaining={client.retainerRemaining || 0} />
             </motion.div>
           )}
 
