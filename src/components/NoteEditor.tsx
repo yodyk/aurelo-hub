@@ -1,8 +1,10 @@
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
+import TaskList from '@tiptap/extension-task-list';
+import TaskItem from '@tiptap/extension-task-item';
 import {
-  Bold, Italic, List, ListOrdered, Strikethrough, Undo, Redo,
+  Bold, Italic, List, ListOrdered, Strikethrough, Undo, Redo, CheckSquare,
 } from 'lucide-react';
 import { useEffect } from 'react';
 
@@ -20,6 +22,8 @@ export default function NoteEditor({ content, onChange, placeholder, autoFocus }
         heading: { levels: [3] },
       }),
       Placeholder.configure({ placeholder: placeholder || 'Write a note...' }),
+      TaskList,
+      TaskItem.configure({ nested: true }),
     ],
     content,
     onUpdate: ({ editor }) => onChange(editor.getHTML()),
@@ -102,6 +106,13 @@ export default function NoteEditor({ content, onChange, placeholder, autoFocus }
           title="Numbered list"
         >
           <ListOrdered className="w-3.5 h-3.5" />
+        </ToolBtn>
+        <ToolBtn
+          active={editor.isActive('taskList')}
+          onClick={() => editor.chain().focus().toggleTaskList().run()}
+          title="Checklist"
+        >
+          <CheckSquare className="w-3.5 h-3.5" />
         </ToolBtn>
         <div className="w-px h-4 bg-border mx-1" />
         <ToolBtn
