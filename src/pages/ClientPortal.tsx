@@ -16,6 +16,9 @@ import {
   CheckCircle2,
   Circle,
   Timer,
+  CheckSquare,
+  Square,
+  Plus,
 } from "lucide-react";
 import { format } from "date-fns";
 
