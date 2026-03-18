@@ -482,3 +482,114 @@ function InvoiceRow({ invoice: inv, accent }: { invoice: PortalInvoice; accent: 
     </div>
   );
 }
+
+// ── Portal Checklist Card ───────────────────────────────────────────
+
+function PortalChecklistCard({ checklist, accent, token }: { checklist: PortalChecklist; accent: string; token: string }) {
+  const [items, setItems] = useState(checklist.items);
+  const [newText, setNewText] = useState("");
+  const [adding, setAdding] = useState(false);
+
+  const completedCount = items.filter(i => i.completed).length;
+  const totalCount = items.length;
+  const progress = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
+
+  const handleToggle = async (itemId: string, current: boolean) => {
+    setItems(prev => prev.map(i => i.id === itemId ? { ...i, completed: !current } : i));
+    try {
+      await fetch(`${SUPABASE_URL}/functions/v1/portal-checklist`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, action: 'toggle', checklist_id: checklist.id, item_id: itemId, completed: !current }),
+      });
+    } catch {
+      setItems(prev => prev.map(i => i.id === itemId ? { ...i, completed: current } : i));
+    }
+  };
+
+  const handleAdd = async () => {
+    if (!newText.trim()) return;
+    setAdding(true);
+    try {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/portal-checklist`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, action: 'add', checklist_id: checklist.id, text: newText.trim() }),
+      });
+      const data = await res.json();
+      if (data.item) {
+        setItems(prev => [...prev, {
+          id: data.item.id,
+          text: data.item.text,
+          completed: data.item.completed,
+          sort_order: data.item.sort_order,
+          added_by: 'client',
+        }]);
+        setNewText("");
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  return (
+    <div className="rounded-xl border border-border bg-card overflow-hidden">
+      <div className="h-1 bg-muted/40">
+        <div className="h-full transition-all duration-300" style={{ width: `${progress}%`, backgroundColor: accent }} />
+      </div>
+      <div className="p-4 md:p-5">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-[14px] font-semibold text-foreground">{checklist.title}</span>
+          <span className="text-[11px] text-muted-foreground tabular-nums">{completedCount}/{totalCount}</span>
+        </div>
+
+        <div className="space-y-1">
+          {items.map(item => (
+            <button
+              key={item.id}
+              onClick={() => handleToggle(item.id, item.completed)}
+              className="flex items-center gap-2 w-full py-1.5 px-1 -mx-1 rounded-md hover:bg-muted/30 transition-colors text-left"
+            >
+              {item.completed ? (
+                <CheckSquare className="w-4 h-4 flex-shrink-0" style={{ color: accent }} />
+              ) : (
+                <Square className="w-4 h-4 flex-shrink-0 text-muted-foreground/50" />
+              )}
+              <span className={`text-[13px] ${item.completed ? 'line-through text-muted-foreground/60' : 'text-foreground'}`}>
+                {item.text}
+              </span>
+              {item.added_by === 'client' && (
+                <span className="text-[10px] text-muted-foreground/60 bg-muted/50 px-1.5 py-0.5 rounded ml-auto" style={{ fontWeight: 500 }}>You</span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Add item input */}
+        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/50">
+          <Plus className="w-3.5 h-3.5 text-muted-foreground/40 flex-shrink-0" />
+          <input
+            value={newText}
+            onChange={(e) => setNewText(e.target.value)}
+            placeholder="Add an item…"
+            className="flex-1 text-[13px] bg-transparent focus:outline-none placeholder:text-muted-foreground/40"
+            onKeyDown={(e) => { if (e.key === 'Enter') handleAdd(); }}
+            disabled={adding}
+          />
+          {newText.trim() && (
+            <button
+              onClick={handleAdd}
+              disabled={adding}
+              className="text-[12px] font-medium px-2.5 py-1 rounded-lg transition-colors"
+              style={{ backgroundColor: `${accent}15`, color: accent }}
+            >
+              Add
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
