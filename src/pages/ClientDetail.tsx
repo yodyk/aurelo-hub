@@ -98,7 +98,7 @@ const statusColors: Record<string, { bg: string; text: string; dot: string }> = 
 };
 
 // ── Tab definitions ─────────────────────────────────────────────────
-type TabId = "overview" | "details" | "projects" | "sessions" | "retainer" | "files" | "notes" | "portal" | "settings";
+type TabId = "overview" | "details" | "projects" | "sessions" | "retainer" | "files" | "notes" | "checklists" | "portal" | "settings";
 
 function getTabsForClient(client: any, canViewFinancials: boolean): { id: TabId; label: string; icon: any }[] {
   const tabs: { id: TabId; label: string; icon: any }[] = [
