@@ -368,7 +368,7 @@ function SectionHeader({ icon: Icon, title, count, accent }: { icon: any; title:
   );
 }
 
-function RetainerBar({ total, remaining, accent }: { total: number; remaining: number }) {
+function RetainerBar({ total, remaining }: { total: number; remaining: number }) {
   const used = total - remaining;
   const pct = Math.min(100, Math.round((used / total) * 100));
   const barColor = pct >= 90 ? "#ef4444" : pct >= 70 ? "#f59e0b" : "#22c55e";
