@@ -1537,6 +1537,7 @@ export function EditSessionModal({ open, onClose, session, onSave, onDelete, cli
   const { getProjects, loadProjectsForClient, workCategoryNames } = useData();
   const [clientId, setClientId] = useState('');
   const [task, setTask] = useState('');
+  const [notes, setNotes] = useState('');
   const [duration, setDuration] = useState('');
   const [billable, setBillable] = useState(true);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
