@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { friendlyPaymentTerms } from "@/data/paymentTermsMap";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import { containerVariants, itemVariants } from "@/lib/motion";
 import { useParams } from "react-router";
 import AureloLogo from "@/components/AureloLogo";
@@ -9,16 +8,17 @@ import {
   FileText,
   FolderOpen,
   DollarSign,
-  CalendarDays,
   Activity,
   Loader2,
   AlertTriangle,
   CheckCircle2,
-  Circle,
   Timer,
   CheckSquare,
   Square,
   Plus,
+  ChevronDown,
+  ChevronRight,
+  Tag,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -37,6 +37,7 @@ interface PortalClient {
   name: string;
   model: string;
   status: string;
+  portalGreeting?: string | null;
   rate?: number;
   retainerTotal?: number;
   retainerRemaining?: number;
@@ -127,6 +128,13 @@ function statusColor(status: string) {
   return "text-muted-foreground bg-muted/30";
 }
 
+function statusDot(status: string) {
+  const s = status.toLowerCase();
+  if (s === "active") return "bg-emerald-500";
+  if (s === "paused" || s === "on hold") return "bg-amber-400";
+  return "bg-muted-foreground/40";
+}
+
 // ── Portal Page ─────────────────────────────────────────────────────
 
 export default function ClientPortal() {
@@ -135,7 +143,6 @@ export default function ClientPortal() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Force light mode for the portal page
   useEffect(() => {
     const root = document.documentElement;
     const wasDark = root.classList.contains("dark");
@@ -157,19 +164,19 @@ export default function ClientPortal() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-6 h-6 text-primary animate-spin" />
+      <div className="min-h-screen bg-[#f8f9fb] flex items-center justify-center">
+        <Loader2 className="w-6 h-6 text-[#5ea1bf] animate-spin" />
       </div>
     );
   }
 
   if (error || !data) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-[#f8f9fb] flex items-center justify-center">
         <div className="text-center max-w-md px-6">
-          <AlertTriangle className="w-10 h-10 text-destructive mx-auto mb-3" />
-          <h2 className="text-lg font-semibold text-foreground mb-1">Portal unavailable</h2>
-          <p className="text-sm text-muted-foreground">{error || "This portal link is invalid or has been deactivated."}</p>
+          <AlertTriangle className="w-10 h-10 text-red-400 mx-auto mb-3" />
+          <h2 className="text-lg font-semibold text-[#1a1a2e] mb-1">Portal unavailable</h2>
+          <p className="text-sm text-[#6b7280]">{error || "This portal link is invalid or has been deactivated."}</p>
         </div>
       </div>
     );
@@ -178,132 +185,151 @@ export default function ClientPortal() {
   const { client, projects, sessions, invoices, checklists, showCosts, branding } = data;
   const accent = branding.isWhiteLabel && branding.brandColor ? branding.brandColor : "#5ea1bf";
 
+  const totalInvoiced = invoices.reduce((sum, inv) => sum + inv.total, 0);
+  const paidInvoices = invoices.filter(i => i.status.toLowerCase() === "paid");
+  const outstandingInvoices = invoices.filter(i => ["sent", "issued", "overdue"].includes(i.status.toLowerCase()));
+
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-[#f8f9fb] text-[#1a1a2e]">
       {/* Header */}
-      <header className="border-b border-border px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          {branding.isWhiteLabel && branding.logoUrl ? (
-            <img src={branding.logoUrl} alt={branding.workspaceName || ""} className="h-7 w-auto max-w-[180px] object-contain" />
-          ) : (
-            <AureloLogo className="h-5" />
-          )}
+      <header className="bg-white border-b border-[#e5e7eb] px-6 lg:px-10 py-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            {branding.isWhiteLabel && branding.logoUrl ? (
+              <img src={branding.logoUrl} alt={branding.workspaceName || ""} className="h-7 w-auto max-w-[180px] object-contain" />
+            ) : (
+              <AureloLogo className="h-5" />
+            )}
+          </div>
+          <span className="text-[11px] font-semibold tracking-wide uppercase px-3 py-1.5 rounded-full" style={{ backgroundColor: `${accent}12`, color: accent }}>
+            Client Portal
+          </span>
         </div>
-        <span className="text-xs font-medium px-2.5 py-1 rounded-full" style={{ backgroundColor: `${accent}15`, color: accent }}>
-          Client Portal
-        </span>
       </header>
 
-      <div className="max-w-5xl mx-auto px-6 py-10">
-        <motion.div initial="hidden" animate="show" variants={containerVariants} className="space-y-8">
-          {/* Client header */}
-          <motion.div variants={itemVariants} className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              {branding.clientFaviconUrl ? (
-                <img src={branding.clientFaviconUrl} alt={client.name} className="h-12 w-12 rounded-xl object-cover" />
-              ) : (
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center border border-border bg-white">
-                  <span className="text-[20px] font-semibold" style={{ color: accent }}>{client.name.charAt(0)}</span>
-                </div>
-              )}
-              <div>
-                <h1 className="text-2xl font-semibold tracking-tight text-foreground">{client.name}</h1>
-                <div className="flex items-center gap-3 mt-2">
-                  <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: `${accent}15`, color: accent }}>
-                    {client.model}
-                  </span>
-                  <span className="text-xs text-muted-foreground">·</span>
-                  <span className="text-xs font-medium" style={{ color: client.status === "Active" ? "#059669" : undefined }}>
-                    {client.status === "Active" ? client.status : <span className="text-muted-foreground">{client.status}</span>}
-                  </span>
+      <div className="max-w-7xl mx-auto px-6 lg:px-10 py-8 lg:py-12">
+        <motion.div initial="hidden" animate="show" variants={containerVariants}>
+          {/* Client hero */}
+          <motion.div variants={itemVariants} className="mb-8">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-center gap-4">
+                {branding.clientFaviconUrl ? (
+                  <img src={branding.clientFaviconUrl} alt={client.name} className="h-14 w-14 rounded-2xl object-cover shadow-sm" />
+                ) : (
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm" style={{ background: `linear-gradient(135deg, ${accent}20, ${accent}08)` }}>
+                    <span className="text-2xl font-bold" style={{ color: accent }}>{client.name.charAt(0)}</span>
+                  </div>
+                )}
+                <div>
+                  <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-[#1a1a2e]">{client.name}</h1>
+                  <div className="flex items-center gap-3 mt-1.5">
+                    <div className="flex items-center gap-1.5">
+                      <div className={`w-2 h-2 rounded-full ${statusDot(client.status)}`} />
+                      <span className="text-sm text-[#6b7280]">{client.status}</span>
+                    </div>
+                    <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-[#f3f4f6] text-[#6b7280]">{client.model}</span>
+                  </div>
                 </div>
               </div>
+              {branding.clientLogoUrl && (
+                <img src={branding.clientLogoUrl} alt={client.name} className="h-12 w-auto max-w-[180px] object-contain hidden md:block" />
+              )}
             </div>
-            {branding.clientLogoUrl && (
-              <img src={branding.clientLogoUrl} alt={client.name} className="h-14 w-auto max-w-[200px] object-contain" />
+            {client.portalGreeting && (
+              <p className="mt-4 text-[15px] text-[#6b7280] max-w-2xl leading-relaxed">{client.portalGreeting}</p>
             )}
           </motion.div>
 
-          {/* Summary cards */}
-          <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <SummaryCard icon={Clock} label="Hours logged" value={fmtHours(client.hoursLogged || 0)} accent={accent} />
-            <SummaryCard icon={FolderOpen} label="Projects" value={String(projects.length)} accent={accent} />
+          {/* Summary stats row */}
+          <motion.div variants={itemVariants} className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
+            <StatCard icon={Clock} label="Hours Logged" value={fmtHours(client.hoursLogged || 0)} accent={accent} />
+            <StatCard icon={FolderOpen} label="Active Projects" value={String(projects.filter(p => p.status.toLowerCase() === "in progress").length)} accent={accent} />
             {showCosts && (
               <>
-                <SummaryCard icon={DollarSign} label="This month" value={fmt$(client.monthlyEarnings || 0)} accent={accent} />
-                <SummaryCard icon={FileText} label="Invoices" value={String(invoices.length)} accent={accent} />
+                <StatCard icon={DollarSign} label="This Month" value={fmt$(client.monthlyEarnings || 0)} accent={accent} />
+                <StatCard icon={FileText} label="Total Invoiced" value={fmt$(totalInvoiced)} accent={accent} />
               </>
             )}
             {!showCosts && (
-              <SummaryCard icon={Activity} label="Sessions" value={String(sessions.length)} accent={accent} />
+              <>
+                <StatCard icon={Activity} label="Total Sessions" value={String(sessions.length)} accent={accent} />
+                <StatCard icon={FolderOpen} label="All Projects" value={String(projects.length)} accent={accent} />
+              </>
             )}
           </motion.div>
 
           {/* Retainer bar */}
           {client.model === "Retainer" && client.retainerTotal != null && client.retainerTotal > 0 && (
-            <motion.div variants={itemVariants}>
-              <RetainerBar
-                total={client.retainerTotal}
-                remaining={client.retainerRemaining || 0}
-                accent={accent}
-                showCosts={showCosts}
-              />
+            <motion.div variants={itemVariants} className="mb-8">
+              <RetainerBar total={client.retainerTotal} remaining={client.retainerRemaining || 0} />
             </motion.div>
           )}
 
-          {/* Projects */}
-          {projects.length > 0 && (
-            <motion.div variants={itemVariants}>
-              <SectionTitle icon={FolderOpen} title="Projects" accent={accent} />
-              <div className="space-y-3 mt-4">
-                {projects.map(p => (
-                  <ProjectRow key={p.id} project={p} showCosts={showCosts} accent={accent} />
-                ))}
-              </div>
-            </motion.div>
-          )}
+          {/* ── Two column layout ── */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+            {/* Left column — Projects + Checklists */}
+            <div className="lg:col-span-7 space-y-6">
+              {/* Projects */}
+              {projects.length > 0 && (
+                <motion.div variants={itemVariants}>
+                  <SectionHeader icon={FolderOpen} title="Projects" count={projects.length} accent={accent} />
+                  <div className="space-y-3 mt-3">
+                    {projects.map(p => <ProjectCard key={p.id} project={p} showCosts={showCosts} accent={accent} />)}
+                  </div>
+                </motion.div>
+              )}
 
-          {/* Recent sessions */}
-          {sessions.length > 0 && (
-            <motion.div variants={itemVariants}>
-              <SectionTitle icon={Timer} title="Recent activity" accent={accent} />
-              <div className="mt-4 overflow-x-auto">
-                <SessionsTable sessions={sessions.slice(0, 30)} projects={projects} showCosts={showCosts} accent={accent} />
-              </div>
-            </motion.div>
-          )}
+              {/* Checklists */}
+              {checklists && checklists.length > 0 && (
+                <motion.div variants={itemVariants}>
+                  <SectionHeader icon={CheckSquare} title="Checklists" count={checklists.length} accent={accent} />
+                  <div className="space-y-3 mt-3">
+                    {checklists.map(cl => (
+                      <PortalChecklistCard key={cl.id} checklist={cl} accent={accent} token={token!} />
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </div>
 
-          {/* Invoices */}
-          {invoices.length > 0 && showCosts && (
-            <motion.div variants={itemVariants}>
-              <SectionTitle icon={FileText} title="Invoices" accent={accent} />
-              <div className="space-y-2 mt-4">
-                {invoices.map(inv => (
-                  <InvoiceRow key={inv.id} invoice={inv} accent={accent} />
-                ))}
-              </div>
-            </motion.div>
-          )}
+            {/* Right column — Activity + Invoices */}
+            <div className="lg:col-span-5 space-y-6">
+              {/* Recent activity */}
+              {sessions.length > 0 && (
+                <motion.div variants={itemVariants}>
+                  <SectionHeader icon={Timer} title="Recent Activity" count={sessions.length} accent={accent} />
+                  <div className="mt-3 space-y-2">
+                    {sessions.slice(0, 20).map(s => (
+                      <SessionAccordion key={s.id} session={s} projects={projects} showCosts={showCosts} accent={accent} />
+                    ))}
+                    {sessions.length > 20 && (
+                      <p className="text-[12px] text-[#9ca3af] text-center py-2">
+                        Showing 20 of {sessions.length} sessions
+                      </p>
+                    )}
+                  </div>
+                </motion.div>
+              )}
 
-          {/* Checklists */}
-          {checklists && checklists.length > 0 && (
-            <motion.div variants={itemVariants}>
-              <SectionTitle icon={CheckSquare} title="Checklists" accent={accent} />
-              <div className="space-y-4 mt-4">
-                {checklists.map(cl => (
-                  <PortalChecklistCard key={cl.id} checklist={cl} accent={accent} token={token!} />
-                ))}
-              </div>
-            </motion.div>
-          )}
+              {/* Invoices */}
+              {invoices.length > 0 && showCosts && (
+                <motion.div variants={itemVariants}>
+                  <SectionHeader icon={FileText} title="Invoices" count={invoices.length} accent={accent} />
+                  <div className="space-y-2 mt-3">
+                    {invoices.map(inv => <InvoiceRow key={inv.id} invoice={inv} accent={accent} />)}
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          </div>
         </motion.div>
 
         {/* Footer */}
         {!branding.isWhiteLabel && (
-          <div className="mt-16 pb-8 text-center">
-            <p className="text-[11px] text-muted-foreground/50">
+          <div className="mt-20 pb-8 text-center">
+            <p className="text-[11px] text-[#d1d5db]">
               Powered by{" "}
-              <a href="https://getaurelo.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+              <a href="https://getaurelo.com" target="_blank" rel="noopener noreferrer" className="hover:text-[#9ca3af] transition-colors">
                 Aurelo
               </a>
             </p>
@@ -316,167 +342,196 @@ export default function ClientPortal() {
 
 // ── Sub-components ──────────────────────────────────────────────────
 
-function SummaryCard({ icon: Icon, label, value, accent }: { icon: any; label: string; value: string; accent: string }) {
+function StatCard({ icon: Icon, label, value, accent }: { icon: any; label: string; value: string; accent: string }) {
   return (
-    <div className="p-4 rounded-xl border border-border bg-card">
-      <div className="flex items-center gap-2 mb-2">
-        <Icon className="w-3.5 h-3.5" style={{ color: accent }} />
-        <span className="text-[11px] font-medium text-muted-foreground">{label}</span>
+    <div className="bg-white rounded-2xl border border-[#e5e7eb] p-4 lg:p-5">
+      <div className="flex items-center gap-2 mb-1.5">
+        <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${accent}10` }}>
+          <Icon className="w-3.5 h-3.5" style={{ color: accent }} />
+        </div>
       </div>
-      <div className="text-lg font-semibold text-foreground">{value}</div>
+      <div className="text-xl lg:text-2xl font-bold text-[#1a1a2e] tabular-nums">{value}</div>
+      <div className="text-[11px] font-medium text-[#9ca3af] mt-0.5 uppercase tracking-wide">{label}</div>
     </div>
   );
 }
 
-function SectionTitle({ icon: Icon, title, accent }: { icon: any; title: string; accent: string }) {
+function SectionHeader({ icon: Icon, title, count, accent }: { icon: any; title: string; count?: number; accent: string }) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2.5">
       <Icon className="w-4 h-4" style={{ color: accent }} />
-      <h2 className="text-[15px] font-semibold text-foreground">{title}</h2>
+      <h2 className="text-[16px] font-semibold text-[#1a1a2e]">{title}</h2>
+      {count != null && (
+        <span className="text-[11px] font-medium text-[#9ca3af] bg-[#f3f4f6] px-2 py-0.5 rounded-full">{count}</span>
+      )}
     </div>
   );
 }
 
-function RetainerBar({ total, remaining, accent, showCosts }: { total: number; remaining: number; accent: string; showCosts: boolean }) {
+function RetainerBar({ total, remaining }: { total: number; remaining: number }) {
   const used = total - remaining;
   const pct = Math.min(100, Math.round((used / total) * 100));
-  // Bright status colors: green = healthy, amber/orange = caution, red = critical
   const barColor = pct >= 90 ? "#ef4444" : pct >= 70 ? "#f59e0b" : "#22c55e";
 
   return (
-    <div className="p-5 rounded-xl border border-border bg-card">
+    <div className="bg-white p-5 rounded-2xl border border-[#e5e7eb]">
       <div className="flex items-center justify-between mb-3">
-        <span className="text-[13px] font-medium text-foreground">Retainer usage</span>
-        <span className="text-[13px] font-semibold" style={{ color: barColor }}>{pct}% used</span>
+        <span className="text-sm font-semibold text-[#1a1a2e]">Retainer Usage</span>
+        <span className="text-sm font-bold tabular-nums" style={{ color: barColor }}>{pct}%</span>
       </div>
-      <div className="h-2.5 rounded-full overflow-hidden bg-muted/50">
+      <div className="h-3 rounded-full overflow-hidden bg-[#f3f4f6]">
         <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: barColor }} />
       </div>
-      <div className="flex justify-between mt-2">
-        <span className="text-[11px] text-muted-foreground">{fmtHours(used)} used</span>
-        <span className="text-[11px] text-muted-foreground">{fmtHours(remaining)} remaining of {fmtHours(total)}</span>
+      <div className="flex justify-between mt-2.5">
+        <span className="text-[12px] text-[#9ca3af]">{fmtHours(used)} used</span>
+        <span className="text-[12px] text-[#9ca3af]">{fmtHours(remaining)} remaining of {fmtHours(total)}</span>
       </div>
     </div>
   );
 }
 
-function ProjectRow({ project: p, showCosts, accent }: { project: PortalProject; showCosts: boolean; accent: string }) {
+function ProjectCard({ project: p, showCosts, accent }: { project: PortalProject; showCosts: boolean; accent: string }) {
   const progress = p.estimated_hours && p.hours ? Math.min(100, Math.round((p.hours / p.estimated_hours) * 100)) : null;
 
   return (
-    <div className="p-4 rounded-xl border border-border bg-card">
-      <div className="flex items-center justify-between mb-1">
-        <div className="flex items-center gap-2">
-          <span className="text-[14px] font-medium text-foreground">{p.name}</span>
-          <span className={`text-[11px] font-medium px-1.5 py-0.5 rounded-full ${statusColor(p.status)}`}>
-            {p.status}
-          </span>
+    <div className="bg-white p-5 rounded-2xl border border-[#e5e7eb] hover:shadow-sm transition-shadow">
+      <div className="flex items-start justify-between mb-2">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[15px] font-semibold text-[#1a1a2e]">{p.name}</span>
+            <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${statusColor(p.status)}`}>
+              {p.status}
+            </span>
+          </div>
+          {p.description && (
+            <p className="text-[13px] mt-1.5 text-[#6b7280] line-clamp-2 leading-relaxed">{p.description}</p>
+          )}
         </div>
         {showCosts && p.total_value != null && p.total_value > 0 && (
-          <span className="text-[13px] font-medium" style={{ color: accent }}>{fmt$(p.total_value)}</span>
+          <span className="text-[15px] font-bold tabular-nums ml-4 flex-shrink-0" style={{ color: accent }}>{fmt$(p.total_value)}</span>
         )}
       </div>
-      {p.description && (
-        <p className="text-[12px] mt-1 line-clamp-2 text-muted-foreground">{p.description}</p>
-      )}
-      <div className="flex items-center gap-4 mt-3">
+
+      <div className="flex items-center gap-4 mt-3 text-[12px] text-[#9ca3af]">
         {p.hours != null && (
-          <span className="text-[11px] text-muted-foreground">
+          <span className="flex items-center gap-1">
+            <Clock className="w-3 h-3" />
             {fmtHours(p.hours)}{p.estimated_hours ? ` / ${fmtHours(p.estimated_hours)}` : ""}
           </span>
         )}
         {p.start_date && (
-          <span className="text-[11px] text-muted-foreground">
-            {fmtDate(p.start_date)}{p.end_date ? ` → ${fmtDate(p.end_date)}` : ""}
-          </span>
+          <span>{fmtDate(p.start_date)}{p.end_date ? ` → ${fmtDate(p.end_date)}` : ""}</span>
         )}
       </div>
+
       {progress !== null && (
-        <div className="mt-3 h-1.5 rounded-full overflow-hidden bg-muted/50">
-          <div className="h-full rounded-full" style={{ width: `${progress}%`, backgroundColor: accent }} />
+        <div className="mt-3">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[11px] text-[#9ca3af]">Progress</span>
+            <span className="text-[11px] font-medium tabular-nums" style={{ color: accent }}>{progress}%</span>
+          </div>
+          <div className="h-1.5 rounded-full overflow-hidden bg-[#f3f4f6]">
+            <div className="h-full rounded-full transition-all" style={{ width: `${progress}%`, backgroundColor: accent }} />
+          </div>
         </div>
       )}
     </div>
   );
 }
 
-function SessionsTable({ sessions, projects, showCosts, accent }: { sessions: PortalSession[]; projects: PortalProject[]; showCosts: boolean; accent: string }) {
-  const projectMap = useMemo(() => {
-    const m: Record<string, string> = {};
-    projects.forEach(p => { m[p.id] = p.name; });
-    return m;
-  }, [projects]);
+function SessionAccordion({ session: s, projects, showCosts, accent }: { session: PortalSession; projects: PortalProject[]; showCosts: boolean; accent: string }) {
+  const [open, setOpen] = useState(false);
+  const projectName = useMemo(() => {
+    if (!s.project_id) return null;
+    return projects.find(p => p.id === s.project_id)?.name || null;
+  }, [s.project_id, projects]);
+
+  const hasDetails = !!(s.task || (s.work_tags && s.work_tags.length > 0));
 
   return (
-    <table className="w-full text-left">
-      <thead>
-        <tr className="text-[11px] font-medium text-muted-foreground">
-          <th className="py-2 pr-4">Date</th>
-          <th className="py-2 pr-4">Task</th>
-          <th className="py-2 pr-4">Project</th>
-          <th className="py-2 pr-4 text-right">Hours</th>
-          {showCosts && <th className="py-2 text-right">Revenue</th>}
-        </tr>
-      </thead>
-      <tbody>
-        {sessions.map(s => (
-          <tr key={s.id} className="border-t border-border/50">
-            <td className="py-2.5 pr-4 text-[13px] text-foreground">{fmtDate(s.date)}</td>
-            <td className="py-2.5 pr-4 text-[13px] text-muted-foreground">
-              {s.task || "—"}
-              {s.work_tags && s.work_tags.length > 0 && (
-                <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: `${accent}15`, color: accent }}>
-                  {s.work_tags[0]}
-                </span>
-              )}
-            </td>
-            <td className="py-2.5 pr-4 text-[13px] text-muted-foreground">
-              {s.project_id ? (projectMap[s.project_id] || "—") : "—"}
-            </td>
-            <td className="py-2.5 pr-4 text-[13px] text-right tabular-nums text-foreground">
-              {fmtHours(s.duration)}
-            </td>
-            {showCosts && (
-              <td className="py-2.5 text-[13px] text-right tabular-nums" style={{ color: accent }}>
-                {s.revenue != null ? fmt$(s.revenue) : "—"}
-              </td>
+    <div className="bg-white rounded-xl border border-[#e5e7eb] overflow-hidden hover:shadow-sm transition-shadow">
+      <button
+        onClick={() => hasDetails && setOpen(o => !o)}
+        className={`w-full flex items-center gap-3 p-3.5 text-left ${hasDetails ? "cursor-pointer" : "cursor-default"}`}
+      >
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="text-[13px] font-medium text-[#1a1a2e]">{fmtDate(s.date)}</span>
+            {projectName && (
+              <span className="text-[11px] text-[#9ca3af] truncate">· {projectName}</span>
             )}
-          </tr>
-        ))}
-      </tbody>
-    </table>
+          </div>
+        </div>
+        <div className="flex items-center gap-2.5 flex-shrink-0">
+          <span className="text-[13px] font-semibold tabular-nums text-[#1a1a2e]">{fmtHours(s.duration)}</span>
+          {showCosts && s.revenue != null && (
+            <span className="text-[12px] font-medium tabular-nums" style={{ color: accent }}>{fmt$(s.revenue)}</span>
+          )}
+          {hasDetails && (
+            <ChevronDown className={`w-3.5 h-3.5 text-[#9ca3af] transition-transform ${open ? "rotate-180" : ""}`} />
+          )}
+        </div>
+      </button>
+      <AnimatePresence>
+        {open && hasDetails && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="px-3.5 pb-3.5 pt-0 border-t border-[#f3f4f6]">
+              <div className="pt-3 space-y-2">
+                {s.task && (
+                  <p className="text-[13px] text-[#6b7280] leading-relaxed">{s.task}</p>
+                )}
+                {s.work_tags && s.work_tags.length > 0 && (
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <Tag className="w-3 h-3 text-[#9ca3af]" />
+                    {s.work_tags.map(tag => (
+                      <span key={tag} className="text-[11px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: `${accent}12`, color: accent }}>
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 
 function InvoiceRow({ invoice: inv, accent }: { invoice: PortalInvoice; accent: string }) {
   const isPaid = inv.status.toLowerCase() === "paid";
   return (
-    <div className="flex items-center justify-between p-4 rounded-xl border border-border bg-card">
+    <div className="flex items-center justify-between p-4 rounded-xl bg-white border border-[#e5e7eb] hover:shadow-sm transition-shadow">
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: isPaid ? "rgba(5,150,105,0.08)" : `${accent}15` }}>
-          {isPaid ? <CheckCircle2 className="w-4 h-4 text-green-600" /> : <FileText className="w-4 h-4" style={{ color: accent }} />}
+        <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: isPaid ? "#ecfdf5" : `${accent}10` }}>
+          {isPaid ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <FileText className="w-4 h-4" style={{ color: accent }} />}
         </div>
         <div>
-          <span className="text-[13px] font-medium text-foreground">{inv.number}</span>
+          <span className="text-[14px] font-semibold text-[#1a1a2e]">{inv.number}</span>
           <div className="flex items-center gap-2 mt-0.5">
             <span className={`text-[11px] font-medium px-1.5 py-0.5 rounded-full ${statusColor(inv.status)}`}>
               {inv.status}
             </span>
             {inv.issued_date && (
-              <span className="text-[11px] text-muted-foreground">Issued {fmtDate(inv.issued_date)}</span>
+              <span className="text-[11px] text-[#9ca3af]">Issued {fmtDate(inv.issued_date)}</span>
             )}
           </div>
         </div>
       </div>
       <div className="text-right">
-        <div className="text-[14px] font-semibold text-foreground">
-          {fmt$(inv.total, inv.currency)}
-        </div>
+        <div className="text-[15px] font-bold tabular-nums text-[#1a1a2e]">{fmt$(inv.total, inv.currency)}</div>
         {inv.due_date && !isPaid && (
-          <span className="text-[11px] text-muted-foreground">Due {fmtDate(inv.due_date)}</span>
+          <span className="text-[11px] text-[#9ca3af]">Due {fmtDate(inv.due_date)}</span>
         )}
         {inv.paid_date && isPaid && (
-          <span className="text-[11px] text-green-600">Paid {fmtDate(inv.paid_date)}</span>
+          <span className="text-[11px] text-emerald-500">Paid {fmtDate(inv.paid_date)}</span>
         )}
       </div>
     </div>
@@ -535,46 +590,49 @@ function PortalChecklistCard({ checklist, accent, token }: { checklist: PortalCh
   };
 
   return (
-    <div className="rounded-xl border border-border bg-card overflow-hidden">
-      <div className="h-1 bg-muted/40">
-        <div className="h-full transition-all duration-300" style={{ width: `${progress}%`, backgroundColor: accent }} />
+    <div className="bg-white rounded-2xl border border-[#e5e7eb] overflow-hidden">
+      {/* Progress stripe */}
+      <div className="h-1.5 bg-[#f3f4f6]">
+        <div className="h-full transition-all duration-300 rounded-r-full" style={{ width: `${progress}%`, backgroundColor: progress === 100 ? "#22c55e" : accent }} />
       </div>
-      <div className="p-4 md:p-5">
+
+      <div className="p-4 lg:p-5">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-[14px] font-semibold text-foreground">{checklist.title}</span>
-          <span className="text-[11px] text-muted-foreground tabular-nums">{completedCount}/{totalCount}</span>
+          <span className="text-[14px] font-semibold text-[#1a1a2e]">{checklist.title}</span>
+          <span className="text-[12px] font-medium tabular-nums" style={{ color: progress === 100 ? "#22c55e" : "#9ca3af" }}>
+            {completedCount}/{totalCount}
+          </span>
         </div>
 
-        <div className="space-y-1">
+        <div className="space-y-0.5">
           {items.map(item => (
             <button
               key={item.id}
               onClick={() => handleToggle(item.id, item.completed)}
-              className="flex items-center gap-2 w-full py-1.5 px-1 -mx-1 rounded-md hover:bg-muted/30 transition-colors text-left"
+              className="flex items-center gap-2.5 w-full py-2 px-2 -mx-2 rounded-lg hover:bg-[#f9fafb] transition-colors text-left"
             >
               {item.completed ? (
                 <CheckSquare className="w-4 h-4 flex-shrink-0" style={{ color: accent }} />
               ) : (
-                <Square className="w-4 h-4 flex-shrink-0 text-muted-foreground/50" />
+                <Square className="w-4 h-4 flex-shrink-0 text-[#d1d5db]" />
               )}
-              <span className={`text-[13px] ${item.completed ? 'line-through text-muted-foreground/60' : 'text-foreground'}`}>
+              <span className={`text-[13px] flex-1 ${item.completed ? 'line-through text-[#d1d5db]' : 'text-[#374151]'}`}>
                 {item.text}
               </span>
               {item.added_by === 'client' && (
-                <span className="text-[10px] text-muted-foreground/60 bg-muted/50 px-1.5 py-0.5 rounded ml-auto" style={{ fontWeight: 500 }}>You</span>
+                <span className="text-[10px] font-medium text-[#9ca3af] bg-[#f3f4f6] px-1.5 py-0.5 rounded">You</span>
               )}
             </button>
           ))}
         </div>
 
-        {/* Add item input */}
-        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/50">
-          <Plus className="w-3.5 h-3.5 text-muted-foreground/40 flex-shrink-0" />
+        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-[#f3f4f6]">
+          <Plus className="w-3.5 h-3.5 text-[#d1d5db] flex-shrink-0" />
           <input
             value={newText}
             onChange={(e) => setNewText(e.target.value)}
             placeholder="Add an item…"
-            className="flex-1 text-[13px] bg-transparent focus:outline-none placeholder:text-muted-foreground/40"
+            className="flex-1 text-[13px] bg-transparent focus:outline-none placeholder:text-[#d1d5db] text-[#374151]"
             onKeyDown={(e) => { if (e.key === 'Enter') handleAdd(); }}
             disabled={adding}
           />
@@ -582,8 +640,8 @@ function PortalChecklistCard({ checklist, accent, token }: { checklist: PortalCh
             <button
               onClick={handleAdd}
               disabled={adding}
-              className="text-[12px] font-medium px-2.5 py-1 rounded-lg transition-colors"
-              style={{ backgroundColor: `${accent}15`, color: accent }}
+              className="text-[12px] font-semibold px-3 py-1.5 rounded-lg transition-colors text-white"
+              style={{ backgroundColor: accent }}
             >
               Add
             </button>
