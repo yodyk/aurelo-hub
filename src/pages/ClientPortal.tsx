@@ -66,6 +66,7 @@ interface PortalSession {
   date: string;
   duration: number;
   task?: string;
+  notes?: string;
   work_tags?: string[];
   billable: boolean;
   project_id?: string;

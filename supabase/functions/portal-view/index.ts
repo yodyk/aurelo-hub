@@ -114,6 +114,7 @@ Deno.serve(async (req) => {
       date: s.date,
       duration: s.duration,
       task: s.task,
+      notes: s.notes,
       work_tags: s.work_tags,
       billable: s.billable,
       project_id: s.project_id,

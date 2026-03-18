@@ -259,6 +259,7 @@ export async function addSession(workspaceId: string, session: any) {
 export async function updateSession(workspaceId: string, sessionId: string, updates: any) {
   const row: any = {};
   if (updates.task !== undefined) row.task = updates.task;
+  if (updates.notes !== undefined) row.notes = updates.notes;
   if (updates.duration !== undefined) row.duration = updates.duration;
   if (updates.revenue !== undefined) row.revenue = updates.revenue;
   if (updates.billable !== undefined) row.billable = updates.billable;
