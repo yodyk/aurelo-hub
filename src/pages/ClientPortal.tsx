@@ -296,6 +296,7 @@ export default function ClientPortal() {
               </div>
             </motion.div>
           )}
+        </motion.div>
 
         {/* Footer */}
         {!branding.isWhiteLabel && (
