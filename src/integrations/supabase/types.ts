@@ -867,6 +867,7 @@ export type Database = {
           duration: number
           id: string
           logged_by: string
+          notes: string | null
           project_id: string | null
           revenue: number
           task: string | null
@@ -884,6 +885,7 @@ export type Database = {
           duration?: number
           id?: string
           logged_by: string
+          notes?: string | null
           project_id?: string | null
           revenue?: number
           task?: string | null
@@ -901,6 +903,7 @@ export type Database = {
           duration?: number
           id?: string
           logged_by?: string
+          notes?: string | null
           project_id?: string | null
           revenue?: number
           task?: string | null

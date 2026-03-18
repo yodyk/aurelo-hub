@@ -1537,6 +1537,7 @@ export function EditSessionModal({ open, onClose, session, onSave, onDelete, cli
   const { getProjects, loadProjectsForClient, workCategoryNames } = useData();
   const [clientId, setClientId] = useState('');
   const [task, setTask] = useState('');
+  const [notes, setNotes] = useState('');
   const [duration, setDuration] = useState('');
   const [billable, setBillable] = useState(true);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -1557,6 +1558,7 @@ export function EditSessionModal({ open, onClose, session, onSave, onDelete, cli
     if (!session) return;
     setClientId(session.clientId || '');
     setTask(session.task || '');
+    setNotes(session.notes || '');
     setDuration(String(session.duration || ''));
     setBillable(session.billable !== false);
     setSelectedTags(session.workTags || session.tags || []);
@@ -1598,6 +1600,7 @@ export function EditSessionModal({ open, onClose, session, onSave, onDelete, cli
   const hasChanges = session && (
     clientId !== (session.clientId || '') ||
     task !== (session.task || '') ||
+    notes !== (session.notes || '') ||
     duration !== String(session.duration || '') ||
     billable !== (session.billable !== false) ||
     JSON.stringify(selectedTags) !== JSON.stringify(session.workTags || session.tags || []) ||
@@ -1619,6 +1622,7 @@ export function EditSessionModal({ open, onClose, session, onSave, onDelete, cli
       await onSave(session.id, {
         clientId,
         task: task.trim(),
+        notes: notes.trim(),
         duration: durationNum,
         revenue,
         billable,
@@ -1733,6 +1737,17 @@ export function EditSessionModal({ open, onClose, session, onSave, onDelete, cli
         <div>
           <Label>Description</Label>
           <Input value={task} onChange={e => setTask(e.target.value)} placeholder="Brand refresh — icon exploration" />
+        </div>
+
+        <div>
+          <Label hint="optional">Session notes</Label>
+          <textarea
+            value={notes}
+            onChange={e => setNotes(e.target.value)}
+            placeholder="Key decisions, blockers, next steps..."
+            rows={2}
+            className="w-full px-3 py-2 text-[14px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all resize-none"
+          />
         </div>
 
         <div>
