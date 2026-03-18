@@ -1740,6 +1740,17 @@ export function EditSessionModal({ open, onClose, session, onSave, onDelete, cli
         </div>
 
         <div>
+          <Label hint="optional">Session notes</Label>
+          <textarea
+            value={notes}
+            onChange={e => setNotes(e.target.value)}
+            placeholder="Key decisions, blockers, next steps..."
+            rows={2}
+            className="w-full px-3 py-2 text-[14px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all resize-none"
+          />
+        </div>
+
+        <div>
           <Label>Categories</Label>
           <div className="flex flex-wrap gap-1.5">
             {allTags.map(tag => (
