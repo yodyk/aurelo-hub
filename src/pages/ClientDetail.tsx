@@ -1801,6 +1801,18 @@ function NotesTab({ clientId, projects }: { clientId?: string; projects: any[] }
 }
 
 // ═══════════════════════════════════════════════════════════════════
+// Checklists Tab
+// ═══════════════════════════════════════════════════════════════════
+function ChecklistsTab({ clientId, workspaceId }: { clientId: string; workspaceId: string }) {
+  return (
+    <div>
+      <div className="text-[15px] mb-5" style={{ fontWeight: 600 }}>Checklists</div>
+      <ChecklistPanel clientId={clientId} workspaceId={workspaceId} />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════
 // Portal Tab
 // ═══════════════════════════════════════════════════════════════════
 function PortalTab({ client, clientId, portalConfig, portalLoading, copied, onCopyPortalLink, onGeneratePortal, onTogglePortal }: any) {
