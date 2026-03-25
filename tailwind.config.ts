@@ -77,10 +77,12 @@ export default {
         },
       },
       borderRadius: {
-        xl: "4px",
+        "3xl": "6px",
+        "2xl": "6px",
+        xl: "5px",
         lg: "4px",
         md: "3px",
-        sm: "3px",
+        sm: "2px",
       },
       boxShadow: {
         'whisper': '0 1px 2px rgba(0,0,0,0.03)',
