@@ -139,13 +139,31 @@ function getTabsForClient(client: any, canViewFinancials: boolean): { id: TabId;
 }
 
 // ── SectionCard (reused in tabs) ────────────────────────────────────
-function SectionCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+function SectionCard({ children, className = "", accent = false }: { children: React.ReactNode; className?: string; accent?: boolean }) {
   return (
-    <div
-      className={`bg-card border border-border rounded-xl p-5 md:p-6 ${className}`}
-      style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.03)" }}
-    >
-      {children}
+    <div className={`bg-card border border-border/60 rounded-2xl overflow-hidden ${className}`}
+      style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02)" }}>
+      {accent && <div className="h-[2px] bg-gradient-to-r from-primary/50 via-primary/20 to-transparent" />}
+      <div className="p-5 md:p-6">{children}</div>
+    </div>
+  );
+}
+
+function SectionHeader({ children, action }: { children: React.ReactNode; action?: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between mb-5">
+      <h3 className="text-[14px] tracking-tight" style={{ fontWeight: 600, letterSpacing: '-0.01em' }}>{children}</h3>
+      {action}
+    </div>
+  );
+}
+
+function MetricCard({ label, value, sub, accent }: { label: string; value: string | number; sub?: React.ReactNode; accent?: boolean }) {
+  return (
+    <div className={`p-4 rounded-xl ${accent ? 'bg-primary/[0.05] border border-primary/10' : 'bg-accent/30 border border-border/30'}`}>
+      <div className="text-[11px] text-muted-foreground mb-2 uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>{label}</div>
+      <div className={`text-[20px] tabular-nums leading-none ${accent ? 'text-primary' : ''}`} style={{ fontWeight: 600, letterSpacing: '-0.02em' }}>{value}</div>
+      {sub && <div className="mt-1.5">{sub}</div>}
     </div>
   );
 }
@@ -534,78 +552,83 @@ export default function ClientDetail() {
   // RENDER
   // ═════════════════════════════════════════════════════════════════
   return (
-    <motion.div className="w-full min-w-0 max-w-6xl mx-auto px-6 lg:px-12 py-6 md:py-12" variants={container} initial="hidden" animate="show">
+    <motion.div className="w-full min-w-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-6 md:py-10" variants={container} initial="hidden" animate="show">
       {/* Back link */}
       <motion.div variants={item}>
-        <Link to="/clients" className="inline-flex items-center gap-1 text-[14px] text-muted-foreground hover:text-foreground mb-6 transition-colors group">
-          <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-          Back to clients
+        <Link to="/clients" className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground mb-5 transition-colors group">
+          <ChevronLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
+          Clients
         </Link>
       </motion.div>
 
-      {/* Client identity bar */}
-      <motion.div variants={item} className="mb-8">
-        <div className="flex items-start gap-4">
-          <div className="w-12 h-12 bg-primary/8 rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0">
-            {clientFaviconUrl ? (
-              <img src={clientFaviconUrl} alt={client.name} className="w-full h-full object-cover rounded-xl" />
-            ) : (
-              <div className="text-[18px] text-primary" style={{ fontWeight: 600 }}>{client.name.charAt(0)}</div>
-            )}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between gap-3">
-              <h1 className="text-[20px] md:text-[24px] tracking-tight" style={{ fontWeight: 600 }}>{client.name}</h1>
-              <button
-                onClick={() => navigate(`/clients/${clientId}/edit`)}
-                className="px-3 py-1.5 text-[13px] border border-border rounded-lg hover:bg-accent/40 transition-all flex-shrink-0"
-                style={{ fontWeight: 500 }}
-              >
-                Edit
-              </button>
+      {/* Client identity bar — premium header */}
+      <motion.div variants={item} className="mb-8 bg-card border border-border/60 rounded-2xl overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02)" }}>
+        <div className="h-[3px] bg-gradient-to-r from-primary/60 via-primary/30 to-transparent" />
+        <div className="p-5 md:p-6">
+          <div className="flex items-start gap-4">
+            <div className="w-14 h-14 bg-primary/[0.07] rounded-2xl flex items-center justify-center overflow-hidden flex-shrink-0 ring-1 ring-primary/10">
+              {clientFaviconUrl ? (
+                <img src={clientFaviconUrl} alt={client.name} className="w-full h-full object-cover" />
+              ) : (
+                <div className="text-[20px] text-primary" style={{ fontWeight: 600 }}>{client.name.charAt(0)}</div>
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-3">
+                <h1 className="text-[22px] md:text-[26px] tracking-tight" style={{ fontWeight: 600, letterSpacing: '-0.02em' }}>{client.name}</h1>
+                <button
+                  onClick={() => navigate(`/clients/${clientId}/edit`)}
+                  className="px-3.5 py-1.5 text-[13px] border border-border/80 rounded-xl hover:bg-accent/50 transition-all flex-shrink-0 flex items-center gap-1.5"
+                  style={{ fontWeight: 500 }}
+                >
+                  <Pencil className="w-3 h-3" />
+                  Edit
+                </button>
+              </div>
+              {/* Tags row */}
+              <div className="flex flex-wrap items-center gap-2 mt-3">
+                <div className={`flex items-center gap-1.5 px-2.5 py-1 ${statusColors[client.status]?.bg} ${statusColors[client.status]?.text} text-[11px] rounded-lg`} style={{ fontWeight: 600 }}>
+                  <div className={`w-1.5 h-1.5 rounded-full ${statusColors[client.status]?.dot}`} />
+                  {client.status}
+                </div>
+                <div className="text-[11px] text-muted-foreground px-2.5 py-1 bg-accent/60 rounded-lg" style={{ fontWeight: 600 }}>{client.model}</div>
+                <div className="w-px h-4 bg-border/60 mx-0.5 hidden sm:block" />
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] rounded-lg" style={{ fontWeight: 600, color: priorityCfg.color, background: priorityCfg.bg }}>
+                  <Flag className="w-3 h-3" /> {priorityLevel.charAt(0).toUpperCase() + priorityLevel.slice(1)}
+                </span>
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] rounded-lg" style={{ fontWeight: 600, color: riskCfg.color, background: riskCfg.bg }}>
+                  <ShieldAlert className="w-3 h-3" /> {riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1)} Risk
+                </span>
+              </div>
             </div>
           </div>
-        </div>
-        {/* Divider + tags row */}
-        <div className="border-t border-border mt-4 pt-3 ml-16 flex flex-wrap items-center gap-2">
-          <div className={`flex items-center gap-1.5 px-2.5 py-0.5 ${statusColors[client.status]?.bg} ${statusColors[client.status]?.text} text-[11px]`} style={{ fontWeight: 500, borderRadius: 3 }}>
-            <div className={`w-1.5 h-1.5 rounded-full ${statusColors[client.status]?.dot}`} />
-            {client.status}
-          </div>
-          <div className="text-[12px] text-muted-foreground px-2 py-0.5 bg-accent/60" style={{ fontWeight: 500, borderRadius: 3 }}>{client.model}</div>
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px]" style={{ fontWeight: 600, borderRadius: 3, color: priorityCfg.color, background: priorityCfg.bg }}>
-            <Flag className="w-3 h-3" /> {priorityLevel.charAt(0).toUpperCase() + priorityLevel.slice(1)} Priority
-          </span>
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px]" style={{ fontWeight: 600, borderRadius: 3, color: riskCfg.color, background: riskCfg.bg }}>
-            <ShieldAlert className="w-3 h-3" /> {riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1)} Risk
-          </span>
         </div>
       </motion.div>
 
       {/* Tab layout */}
-      <div className="flex flex-col md:flex-row gap-8">
+      <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
         {/* Vertical tab nav */}
-        <motion.nav variants={item} className="w-full md:w-48 flex-shrink-0">
-          <div className="md:sticky md:top-[80px] flex md:flex-col gap-0.5 overflow-x-auto md:overflow-x-visible pb-2 md:pb-0 border-b md:border-b-0 border-border -mx-6 px-6 md:mx-0 md:px-0">
+        <motion.nav variants={item} className="w-full lg:w-52 flex-shrink-0">
+          <div className="lg:sticky lg:top-[80px] flex lg:flex-col gap-0.5 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0 border-b lg:border-b-0 border-border -mx-4 sm:-mx-6 px-4 sm:px-6 lg:mx-0 lg:px-0">
             {visibleTabs.map((tab) => {
               const isActive = activeTab === tab.id;
               return (
                 <button
                   key={tab.id}
                   onClick={() => handleTabChange(tab.id)}
-                  className={`w-auto md:w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] text-left transition-all duration-200 relative whitespace-nowrap ${
-                    isActive ? "bg-primary/8 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-accent/60"
+                  className={`w-auto lg:w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] text-left transition-all duration-200 relative whitespace-nowrap ${
+                    isActive ? "bg-primary/[0.07] text-primary" : "text-muted-foreground hover:text-foreground hover:bg-accent/40"
                   }`}
-                  style={{ fontWeight: 500 }}
+                  style={{ fontWeight: isActive ? 600 : 500 }}
                 >
                   {isActive && (
                     <motion.div
                       layoutId="client-tab-indicator"
-                      className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full hidden md:block"
+                      className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full hidden lg:block"
                       transition={{ type: "spring", stiffness: 350, damping: 30 }}
                     />
                   )}
-                  <tab.icon className={`w-4 h-4 flex-shrink-0 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
+                  <tab.icon className={`w-4 h-4 flex-shrink-0 ${isActive ? "text-primary" : "text-muted-foreground/60"}`} />
                   {tab.label}
                 </button>
               );
