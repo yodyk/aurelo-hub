@@ -797,97 +797,94 @@ function OverviewTab({
 
   return (
     <>
-      {/* Contact bar */}
-      <SectionCard>
-        <div className="text-[13px] text-muted-foreground mb-4" style={{ fontWeight: 600 }}>Contact</div>
-        <div className="flex flex-wrap gap-x-6 gap-y-3">
-          {client.contactName && (
-            <div className="flex items-center gap-2 text-[14px]">
-              <User className="w-3.5 h-3.5 text-muted-foreground/60" />
-              <span>{client.contactName}</span>
-            </div>
-          )}
-          {client.contactEmail && (
-            <a href={`mailto:${client.contactEmail}`} className="flex items-center gap-2 text-[14px] text-muted-foreground hover:text-foreground transition-colors">
-              <Mail className="w-3.5 h-3.5 text-muted-foreground/60" />
-              {client.contactEmail}
-            </a>
-          )}
-          {client.phone && (
-            <a href={`tel:${client.phone}`} className="flex items-center gap-2 text-[14px] text-muted-foreground hover:text-foreground transition-colors">
-              <Phone className="w-3.5 h-3.5 text-muted-foreground/60" />
-              {client.phone}
-            </a>
-          )}
-          {client.website && (
-            <a href={`https://${client.website}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[14px] text-primary hover:text-primary/80 transition-colors">
-              <Globe className="w-3.5 h-3.5" />
-              {client.website}
-            </a>
-          )}
-          {client.address && (
-            <div className="flex items-center gap-2 text-[14px] text-muted-foreground">
-              <MapPin className="w-3.5 h-3.5 text-muted-foreground/60" />
-              {client.address}
-            </div>
-          )}
-        </div>
-      </SectionCard>
+      {/* Contact strip */}
+      <div className="bg-card border border-border/60 rounded-2xl p-4 md:p-5 flex flex-wrap gap-x-5 gap-y-2.5 items-center" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+        {client.contactName && (
+          <div className="flex items-center gap-2 text-[13px]">
+            <User className="w-3.5 h-3.5 text-muted-foreground/50" />
+            <span className="text-foreground" style={{ fontWeight: 500 }}>{client.contactName}</span>
+          </div>
+        )}
+        {client.contactEmail && (
+          <a href={`mailto:${client.contactEmail}`} className="flex items-center gap-2 text-[13px] text-muted-foreground hover:text-foreground transition-colors">
+            <Mail className="w-3.5 h-3.5 text-muted-foreground/50" />
+            {client.contactEmail}
+          </a>
+        )}
+        {client.phone && (
+          <a href={`tel:${client.phone}`} className="flex items-center gap-2 text-[13px] text-muted-foreground hover:text-foreground transition-colors">
+            <Phone className="w-3.5 h-3.5 text-muted-foreground/50" />
+            {client.phone}
+          </a>
+        )}
+        {client.website && (
+          <a href={`https://${client.website}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[13px] text-primary hover:text-primary/80 transition-colors">
+            <Globe className="w-3.5 h-3.5" />
+            {client.website}
+          </a>
+        )}
+        {client.address && (
+          <div className="flex items-center gap-2 text-[13px] text-muted-foreground">
+            <MapPin className="w-3.5 h-3.5 text-muted-foreground/50" />
+            {client.address}
+          </div>
+        )}
+      </div>
 
-      {/* Financial metrics with sparkline */}
+      {/* Financial metrics — hero section */}
       {canViewFinancials && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Revenue card with accent bar */}
-          <div className="lg:col-span-2 bg-card border border-border rounded-xl overflow-hidden" style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.03)" }}>
-            <div className="h-1 bg-gradient-to-r from-primary/60 to-primary/20" />
+          {/* Revenue card */}
+          <div className="lg:col-span-2 bg-card border border-border/60 rounded-2xl overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02)" }}>
+            <div className="h-[2px] bg-gradient-to-r from-primary/60 via-primary/30 to-transparent" />
             <div className="p-5 md:p-6">
-              <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center justify-between mb-6">
                 <div className="text-[13px] text-muted-foreground" style={{ fontWeight: 600 }}>Financial Overview</div>
                 <div className="inline-flex gap-0 bg-accent/60 rounded-lg p-0.5">
                   {(["gross", "net"] as const).map(mode => (
                     <button
                       key={mode}
                       onClick={() => setViewMode(mode)}
-                      className={`px-3 py-1 text-[12px] rounded-md transition-all duration-200 capitalize ${
+                      className={`px-3 py-1 text-[11px] rounded-md transition-all duration-200 capitalize ${
                         viewMode === mode ? "bg-card text-foreground" : "text-muted-foreground hover:text-foreground"
                       }`}
-                      style={{ fontWeight: 500, boxShadow: viewMode === mode ? "0 1px 3px rgba(0,0,0,0.04)" : "none" }}
+                      style={{ fontWeight: 600, boxShadow: viewMode === mode ? "0 1px 3px rgba(0,0,0,0.06)" : "none" }}
                     >
                       {mode}
                     </button>
                   ))}
                 </div>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
                 <div>
-                  <div className="text-[12px] text-muted-foreground mb-1.5" style={{ fontWeight: 500 }}>This month</div>
-                  <div className="text-[24px] md:text-[28px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600 }}>
+                  <div className="text-[11px] text-muted-foreground mb-2 uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>This month</div>
+                  <div className="text-[26px] md:text-[30px] leading-none tracking-tighter tabular-nums" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
                     ${viewMode === "gross" ? (client.monthlyEarnings || 0).toLocaleString() : Math.round((client.monthlyEarnings || 0) * netMultiplier).toLocaleString()}
                   </div>
-                  <div className="flex items-center gap-1 mt-1">
+                  <div className="flex items-center gap-1 mt-2">
                     {revenueTrend === "up" && <TrendingUp className="w-3 h-3 text-primary" />}
                     {revenueTrend === "down" && <TrendingDown className="w-3 h-3 text-destructive" />}
                     {revenueTrend === "flat" && <Minus className="w-3 h-3 text-muted-foreground" />}
-                    <span className={`text-[11px] ${revenueTrend === 'up' ? 'text-primary' : revenueTrend === 'down' ? 'text-destructive' : 'text-muted-foreground'}`} style={{ fontWeight: 500 }}>
+                    <span className={`text-[11px] ${revenueTrend === 'up' ? 'text-primary' : revenueTrend === 'down' ? 'text-destructive' : 'text-muted-foreground'}`} style={{ fontWeight: 600 }}>
                       {revenueTrend === "up" ? "+" : ""}{lastMonthEarnings > 0 ? Math.round(((client.monthlyEarnings || 0) - lastMonthEarnings) / lastMonthEarnings * 100) : 0}% vs last
                     </span>
                   </div>
                 </div>
                 <div>
-                  <div className="text-[12px] text-muted-foreground mb-1.5" style={{ fontWeight: 500 }}>Effective rate</div>
-                  <div className="text-[24px] md:text-[28px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600 }}>
+                  <div className="text-[11px] text-muted-foreground mb-2 uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>Effective rate</div>
+                  <div className="text-[26px] md:text-[30px] leading-none tracking-tighter tabular-nums" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
                     ${viewMode === "gross" ? client.trueHourlyRate || client.rate || 0 : Math.round((client.trueHourlyRate || client.rate || 0) * netMultiplier)}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[12px] text-muted-foreground mb-1.5" style={{ fontWeight: 500 }}>Lifetime revenue</div>
-                  <div className="text-[24px] md:text-[28px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600 }}>
+                  <div className="text-[11px] text-muted-foreground mb-2 uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>Lifetime</div>
+                  <div className="text-[26px] md:text-[30px] leading-none tracking-tighter tabular-nums" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
                     ${(client.lifetimeRevenue || 0).toLocaleString()}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[12px] text-muted-foreground mb-1.5" style={{ fontWeight: 500 }}>Hours logged</div>
-                  <div className="text-[24px] md:text-[28px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600 }}>
+                  <div className="text-[11px] text-muted-foreground mb-2 uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>Hours</div>
+                  <div className="text-[26px] md:text-[30px] leading-none tracking-tighter tabular-nums" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
                     {client.hoursLogged || 0}
                   </div>
                 </div>
@@ -898,12 +895,12 @@ function OverviewTab({
                 const hoursUsed = (client.retainerTotal || 0) - (client.retainerRemaining || 0);
                 const usagePct = client.retainerTotal ? Math.round((hoursUsed / client.retainerTotal) * 100) : 0;
                 return (
-                  <div className="mt-5 pt-5 border-t border-border">
-                    <div className="flex items-center justify-between mb-2">
+                  <div className="mt-6 pt-5 border-t border-border/60">
+                    <div className="flex items-center justify-between mb-2.5">
                       <div className="text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Retainer: {hoursUsed}h / {client.retainerTotal || 0}h</div>
-                      <div className="text-[14px] tabular-nums" style={{ fontWeight: 600, color: getUsageTextColor(usagePct) }}>{usagePct}%</div>
+                      <div className="text-[14px] tabular-nums" style={{ fontWeight: 700, color: getUsageTextColor(usagePct) }}>{usagePct}%</div>
                     </div>
-                    <div className="h-1.5 bg-accent/60 rounded-full overflow-hidden">
+                    <div className="h-2 bg-accent/60 rounded-full overflow-hidden">
                       <motion.div className="h-full rounded-full" style={{ background: getUsageBarColor(usagePct) }} initial={{ width: 0 }} animate={{ width: `${usagePct}%` }} transition={{ delay: 0.3, duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }} />
                     </div>
                   </div>
@@ -913,84 +910,84 @@ function OverviewTab({
           </div>
 
           {/* 7-day activity sparkline card */}
-          <div className="bg-card border border-border rounded-xl p-5 md:p-6 flex flex-col justify-between" style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.03)" }}>
-            <div>
-              <div className="text-[13px] text-muted-foreground mb-1" style={{ fontWeight: 600 }}>7-Day Activity</div>
-              <div className="text-[28px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600 }}>
-                {last7Days.reduce((a, b) => a + b, 0).toFixed(1)}h
+          <div className="bg-card border border-border/60 rounded-2xl overflow-hidden flex flex-col" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02)" }}>
+            <div className="h-[2px] bg-gradient-to-r from-primary/40 to-transparent" />
+            <div className="p-5 md:p-6 flex flex-col flex-1 justify-between">
+              <div>
+                <div className="text-[11px] text-muted-foreground mb-2 uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>7-Day Activity</div>
+                <div className="text-[30px] leading-none tracking-tighter tabular-nums" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
+                  {last7Days.reduce((a, b) => a + b, 0).toFixed(1)}h
+                </div>
+                <div className="text-[11px] text-muted-foreground mt-1.5" style={{ fontWeight: 500 }}>total this week</div>
               </div>
-              <div className="text-[11px] text-muted-foreground mt-1" style={{ fontWeight: 500 }}>total this week</div>
-            </div>
-            <svg viewBox="0 0 200 44" className="w-full mt-3" style={{ height: 52 }}>
-              <defs>
-                <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.2" />
-                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0" />
-                </linearGradient>
-              </defs>
-              <polygon points={sparkFillPoints} fill="url(#sparkGrad)" />
-              <polyline points={sparkPoints} fill="none" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              {last7Days.map((h, i) => {
-                const x = (i / 6) * 200;
-                const y = 40 - (h / maxHours) * 36;
-                return h > 0 ? <circle key={i} cx={x} cy={y} r="2.5" fill="hsl(var(--primary))" /> : null;
-              })}
-            </svg>
-            <div className="flex justify-between text-[10px] text-muted-foreground/50 mt-1" style={{ fontWeight: 500 }}>
-              {last7Days.map((_, i) => {
-                const d = new Date();
-                d.setDate(d.getDate() - (6 - i));
-                return <span key={i}>{format(d, 'EEE')}</span>;
-              })}
+              <div className="mt-4">
+                <svg viewBox="0 0 200 44" className="w-full" style={{ height: 56 }}>
+                  <defs>
+                    <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.15" />
+                      <stop offset="100%" stopColor="var(--primary)" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                  <polygon points={sparkFillPoints} fill="url(#sparkGrad)" />
+                  <polyline points={sparkPoints} fill="none" stroke="var(--primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  {last7Days.map((h, i) => {
+                    const x = (i / 6) * 200;
+                    const y = 40 - (h / maxHours) * 36;
+                    return h > 0 ? <circle key={i} cx={x} cy={y} r="3" fill="var(--primary)" /> : null;
+                  })}
+                </svg>
+                <div className="flex justify-between text-[10px] text-muted-foreground/50 mt-1.5 px-0.5" style={{ fontWeight: 600 }}>
+                  {last7Days.map((_, i) => {
+                    const d = new Date();
+                    d.setDate(d.getDate() - (6 - i));
+                    return <span key={i}>{format(d, 'EEE')}</span>;
+                  })}
+                </div>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Activity + Insights combined */}
+      {/* Activity + Insights */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <SectionCard>
-          <div className="text-[13px] text-muted-foreground mb-4" style={{ fontWeight: 600 }}>Activity</div>
+        <SectionCard accent>
+          <SectionHeader>Activity</SectionHeader>
           <div className="grid grid-cols-2 gap-3">
-            {[
-              { label: 'Projects', value: projects.length, accent: false },
-              { label: 'Sessions', value: clientSessions.length, accent: false },
-              { label: 'Utilization', value: `${utilizationRate}%`, accent: utilizationRate >= 80 },
-              ...(canViewFinancials ? [{ label: 'Revenue share', value: `${revenueShare}%`, accent: revenueShare > 40 }] : []),
-            ].map((item, i) => (
-              <div key={i} className={`p-3.5 rounded-lg ${item.accent ? 'bg-primary/[0.06] border border-primary/10' : 'bg-accent/30'}`}>
-                <div className="text-[12px] text-muted-foreground mb-1" style={{ fontWeight: 500 }}>{item.label}</div>
-                <div className={`text-[18px] tabular-nums ${item.accent ? 'text-primary' : ''}`} style={{ fontWeight: 600 }}>{item.value}</div>
-              </div>
-            ))}
+            <MetricCard label="Projects" value={projects.length} />
+            <MetricCard label="Sessions" value={clientSessions.length} />
+            <MetricCard label="Utilization" value={`${utilizationRate}%`} accent={utilizationRate >= 80} />
+            {canViewFinancials && <MetricCard label="Revenue share" value={`${revenueShare}%`} accent={revenueShare > 40} />}
           </div>
         </SectionCard>
 
         {canViewFinancials && (
-          <SectionCard>
-            <div className="flex items-center gap-2 mb-4">
-              <Lightbulb className="w-4 h-4 text-primary/60" />
-              <div className="text-[13px] text-muted-foreground" style={{ fontWeight: 600 }}>Insights</div>
-            </div>
+          <SectionCard accent>
+            <SectionHeader>
+              <span className="flex items-center gap-2">
+                <Lightbulb className="w-3.5 h-3.5 text-primary/60" />
+                Insights
+              </span>
+            </SectionHeader>
             <div className="space-y-2.5">
               {revenueShare > 40 && (
-                <div className="p-3 rounded-lg bg-primary/[0.04] border border-primary/10">
-                  <div className="text-[13px] text-primary mb-0.5" style={{ fontWeight: 500 }}>Client dependency</div>
+                <div className="p-3.5 rounded-xl bg-primary/[0.04] border border-primary/10">
+                  <div className="text-[12px] text-primary mb-1" style={{ fontWeight: 600 }}>Client dependency</div>
                   <div className="text-[12px] text-muted-foreground leading-relaxed">
-                    <span className="text-foreground" style={{ fontWeight: 500 }}>{revenueShare}%</span> of monthly revenue. Consider diversifying.
+                    <span className="text-foreground" style={{ fontWeight: 600 }}>{revenueShare}%</span> of monthly revenue. Consider diversifying.
                   </div>
                 </div>
               )}
-              <div className="p-3 rounded-lg bg-accent/30">
-                <div className="text-[13px] mb-0.5" style={{ fontWeight: 500 }}>Utilization rate</div>
+              <div className="p-3.5 rounded-xl bg-accent/30 border border-border/30">
+                <div className="text-[12px] mb-1" style={{ fontWeight: 600 }}>Utilization rate</div>
                 <div className="text-[12px] text-muted-foreground leading-relaxed">
-                  <span className="text-foreground" style={{ fontWeight: 500 }}>{utilizationRate}%</span> billable — {billableHours}h of {totalHours}h total
+                  <span className="text-foreground" style={{ fontWeight: 600 }}>{utilizationRate}%</span> billable — {billableHours}h of {totalHours}h total
                 </div>
               </div>
-              <div className="p-3 rounded-lg bg-accent/30">
-                <div className="text-[13px] mb-0.5" style={{ fontWeight: 500 }}>Pacing</div>
+              <div className="p-3.5 rounded-xl bg-accent/30 border border-border/30">
+                <div className="text-[12px] mb-1" style={{ fontWeight: 600 }}>Pacing</div>
                 <div className="text-[12px] text-muted-foreground leading-relaxed">
-                  On pace for <span className="text-foreground" style={{ fontWeight: 500 }}>${Math.round((client.monthlyEarnings || 0) * 1.15).toLocaleString()}</span> this month
+                  On pace for <span className="text-foreground" style={{ fontWeight: 600 }}>${Math.round((client.monthlyEarnings || 0) * 1.15).toLocaleString()}</span> this month
                 </div>
               </div>
             </div>
