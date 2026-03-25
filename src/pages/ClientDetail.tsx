@@ -1660,8 +1660,8 @@ function RetainerTab({ client, workspaceId, sentThresholds, setSentThresholds, r
 
   return (
     <>
-      <SectionCard>
-        <div className="text-[15px] mb-5" style={{ fontWeight: 600 }}>Retainer Usage</div>
+      <SectionCard accent>
+        <SectionHeader>Retainer Usage</SectionHeader>
         <div className="flex justify-between items-baseline mb-4">
           <div className="text-[14px] text-muted-foreground">
             <span style={{ fontWeight: 500 }} className="text-foreground">{hoursUsed}h</span> used of {client.retainerTotal || 0}h
