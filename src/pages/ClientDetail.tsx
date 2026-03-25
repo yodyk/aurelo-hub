@@ -1906,11 +1906,13 @@ function SettingsTab({ client, clientId, confirmArchive, setConfirmArchive, onAr
         </div>
       </SectionCard>
 
-      <SectionCard className="border-[rgba(194,114,114,0.3)]">
-        <div className="flex items-center gap-2 mb-4">
-          <AlertTriangle className="w-4 h-4 text-[#c27272]" />
-          <div className="text-[15px]" style={{ fontWeight: 600 }}>Danger zone</div>
-        </div>
+      <SectionCard className="border-destructive/20">
+        <SectionHeader>
+          <span className="flex items-center gap-2">
+            <AlertTriangle className="w-3.5 h-3.5 text-destructive/60" />
+            Danger zone
+          </span>
+        </SectionHeader>
 
         {/* Archive */}
         {!isArchived && (
