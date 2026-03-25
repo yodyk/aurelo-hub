@@ -1493,9 +1493,9 @@ function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (
               <div className="text-[13px] text-muted-foreground/50">No client-specific fields yet</div>
             </div>
           ) : null}
-        </div>
-      </div>
+      </SectionCard>
     </>
+  );
   );
 }
 
