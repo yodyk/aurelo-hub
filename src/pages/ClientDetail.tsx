@@ -1681,25 +1681,16 @@ function RetainerTab({ client, workspaceId, sentThresholds, setSentThresholds, r
       </SectionCard>
 
       <SectionCard>
-        <div className="text-[15px] mb-5" style={{ fontWeight: 600 }}>Retainer Details</div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <div className="text-[12px] text-muted-foreground mb-1" style={{ fontWeight: 500 }}>Monthly price</div>
-            <div className="text-[15px] tabular-nums" style={{ fontWeight: 600 }}>${((client.retainerTotal || 0) * (client.rate || 0)).toLocaleString()}</div>
-          </div>
-          <div>
-            <div className="text-[12px] text-muted-foreground mb-1" style={{ fontWeight: 500 }}>Rate</div>
-            <div className="text-[15px] tabular-nums" style={{ fontWeight: 600 }}>${client.rate || 0}/hr</div>
-          </div>
-          <div>
-            <div className="text-[12px] text-muted-foreground mb-1" style={{ fontWeight: 500 }}>Reset day</div>
-            <div className="text-[15px]" style={{ fontWeight: 600 }}>1st of month</div>
-          </div>
+        <SectionHeader>Retainer Details</SectionHeader>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <MetricCard label="Monthly price" value={`$${((client.retainerTotal || 0) * (client.rate || 0)).toLocaleString()}`} />
+          <MetricCard label="Rate" value={`$${client.rate || 0}/hr`} />
+          <MetricCard label="Reset day" value="1st of month" />
         </div>
       </SectionCard>
 
       <SectionCard>
-        <div className="text-[15px] mb-4" style={{ fontWeight: 600 }}>Send retainer update</div>
+        <SectionHeader>Send retainer update</SectionHeader>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div className="text-[13px] text-muted-foreground">
             Manually send a usage summary {client.contactEmail ? `to ${client.contactEmail}` : '(no client email set)'}
@@ -1755,7 +1746,7 @@ function RetainerTab({ client, workspaceId, sentThresholds, setSentThresholds, r
 
       {/* Email activity for retainer */}
       <SectionCard>
-        <div className="text-[15px] mb-4" style={{ fontWeight: 600 }}>Email Activity</div>
+        <SectionHeader>Email Activity</SectionHeader>
         <EmailActivityLog clientId={client.id} />
       </SectionCard>
     </>
