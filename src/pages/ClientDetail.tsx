@@ -1806,8 +1806,8 @@ function FilesTab({ files, uploading, fileInputRef, onUpload, onDelete, onDrop, 
 // ═══════════════════════════════════════════════════════════════════
 function NotesTab({ clientId, projects }: { clientId?: string; projects: any[] }) {
   return (
-    <SectionCard>
-      <div className="text-[15px] mb-5" style={{ fontWeight: 600 }}>Notes</div>
+    <SectionCard accent>
+      <SectionHeader>Notes</SectionHeader>
       {clientId && <ClientNotes clientId={clientId} projects={projects} />}
     </SectionCard>
   );
@@ -1818,10 +1818,10 @@ function NotesTab({ clientId, projects }: { clientId?: string; projects: any[] }
 // ═══════════════════════════════════════════════════════════════════
 function ChecklistsTab({ clientId, workspaceId }: { clientId: string; workspaceId: string }) {
   return (
-    <div>
-      <div className="text-[15px] mb-5" style={{ fontWeight: 600 }}>Checklists</div>
+    <SectionCard accent>
+      <SectionHeader>Checklists</SectionHeader>
       <ChecklistPanel clientId={clientId} workspaceId={workspaceId} />
-    </div>
+    </SectionCard>
   );
 }
 
@@ -1830,15 +1830,15 @@ function ChecklistsTab({ clientId, workspaceId }: { clientId: string; workspaceI
 // ═══════════════════════════════════════════════════════════════════
 function PortalTab({ client, clientId, portalConfig, portalLoading, copied, onCopyPortalLink, onGeneratePortal, onTogglePortal }: any) {
   return (
-    <SectionCard>
-      <div className="text-[15px] mb-5" style={{ fontWeight: 600 }}>Client Portal</div>
+    <SectionCard accent>
+      <SectionHeader>Client Portal</SectionHeader>
       <div className="space-y-4">
         <div className="text-[13px] text-muted-foreground">
           Generate a read-only portal link to share with this client. They'll see project progress, time logged, and{" "}
           {client.showPortalCosts !== false ? "billing totals" : "activity only (costs hidden)"}.
         </div>
         {!portalConfig ? (
-          <button onClick={onGeneratePortal} disabled={portalLoading} className="inline-flex items-center gap-2 px-4 py-2 text-[13px] bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all disabled:opacity-60" style={{ fontWeight: 500 }}>
+          <button onClick={onGeneratePortal} disabled={portalLoading} className="inline-flex items-center gap-2 px-4 py-2 text-[12px] bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all disabled:opacity-60" style={{ fontWeight: 600 }}>
             {portalLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Link2 className="w-3.5 h-3.5" />}
             Generate portal link
           </button>
