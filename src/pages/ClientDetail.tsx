@@ -1503,49 +1503,50 @@ function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (
 // ═══════════════════════════════════════════════════════════════════
 function ProjectsTab({ projects, client, canViewFinancials, onAddProject, onNavigate }: any) {
   return (
-    <SectionCard>
-      <div className="flex items-center justify-between mb-5">
-        <div className="text-[15px]" style={{ fontWeight: 600 }}>Projects <span className="text-muted-foreground text-[13px] ml-1.5">({projects.length})</span></div>
-        <button onClick={onAddProject} className="px-3 py-1.5 text-[13px] bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all" style={{ fontWeight: 500 }}>
+    <SectionCard accent>
+      <SectionHeader action={
+        <button onClick={onAddProject} className="px-3.5 py-1.5 text-[12px] bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all" style={{ fontWeight: 600 }}>
           Add project
         </button>
-      </div>
+      }>
+        Projects <span className="text-muted-foreground/60 ml-1">({projects.length})</span>
+      </SectionHeader>
       {projects.length > 0 ? (
-        <div className="overflow-hidden rounded-lg border border-border">
+        <div className="overflow-hidden rounded-xl border border-border/60">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[600px]">
               <thead>
-                <tr className="bg-accent/30 border-b border-border">
-                  <th className="text-left px-4 py-2.5 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Project</th>
-                  <th className="text-left px-4 py-2.5 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Status</th>
-                  {canViewFinancials && <th className="text-right px-4 py-2.5 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Value</th>}
-                  <th className="text-right px-4 py-2.5 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Hours</th>
-                  <th className="text-left px-4 py-2.5 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Dates</th>
+                <tr className="bg-accent/40">
+                  <th className="text-left px-4 py-3 text-[11px] text-muted-foreground uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.05em' }}>Project</th>
+                  <th className="text-left px-4 py-3 text-[11px] text-muted-foreground uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.05em' }}>Status</th>
+                  {canViewFinancials && <th className="text-right px-4 py-3 text-[11px] text-muted-foreground uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.05em' }}>Value</th>}
+                  <th className="text-right px-4 py-3 text-[11px] text-muted-foreground uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.05em' }}>Hours</th>
+                  <th className="text-left px-4 py-3 text-[11px] text-muted-foreground uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.05em' }}>Dates</th>
                 </tr>
               </thead>
               <tbody>
                 {projects.map((project: any) => (
-                  <tr key={project.id} className="border-b border-border last:border-0 hover:bg-accent/30 transition-colors cursor-pointer" onClick={() => onNavigate(project.id)}>
-                    <td className="px-4 py-3 text-[14px]" style={{ fontWeight: 500 }}>{project.name}</td>
-                    <td className="px-4 py-3">
-                      <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 text-[11px] rounded-full ${project.status === "In Progress" ? "bg-primary/8 text-primary" : "bg-zinc-100 text-zinc-500"}`} style={{ fontWeight: 500 }}>
-                        <div className={`w-1.5 h-1.5 rounded-full ${project.status === "In Progress" ? "bg-primary" : "bg-zinc-400"}`} />
+                  <tr key={project.id} className="border-t border-border/40 hover:bg-accent/20 transition-colors cursor-pointer" onClick={() => onNavigate(project.id)}>
+                    <td className="px-4 py-3.5 text-[13px]" style={{ fontWeight: 600 }}>{project.name}</td>
+                    <td className="px-4 py-3.5">
+                      <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 text-[11px] rounded-lg ${project.status === "In Progress" ? "bg-primary/[0.07] text-primary" : "bg-accent/60 text-muted-foreground"}`} style={{ fontWeight: 600 }}>
+                        <div className={`w-1.5 h-1.5 rounded-full ${project.status === "In Progress" ? "bg-primary" : "bg-muted-foreground/40"}`} />
                         {project.status}
                       </div>
                     </td>
                     {canViewFinancials && (
-                      <td className="px-4 py-3 text-[14px] text-right tabular-nums" style={{ fontWeight: 500 }}>
+                      <td className="px-4 py-3.5 text-[13px] text-right tabular-nums" style={{ fontWeight: 600 }}>
                         ${(project.totalValue || 0).toLocaleString()}
                         {(() => {
                           if (!project.totalValue || project.totalValue <= 0 || !project.hours || project.hours <= 0) return null;
                           const effRate = Math.round(project.totalValue / project.hours);
                           const rateColor = effRate < (client.rate * 0.5) ? '#c27272' : effRate < client.rate ? '#bfa044' : '#5ea1bf';
-                          return <div className="text-[11px] mt-0.5 tabular-nums" style={{ fontWeight: 500, color: rateColor }}>${effRate}/hr effective</div>;
+                          return <div className="text-[10px] mt-0.5 tabular-nums" style={{ fontWeight: 600, color: rateColor }}>${effRate}/hr effective</div>;
                         })()}
                       </td>
                     )}
-                    <td className="px-4 py-3 text-[14px] text-right tabular-nums text-muted-foreground">{project.hours || 0}/{project.estimatedHours || 0}h</td>
-                    <td className="px-4 py-3 text-[13px] text-muted-foreground">{project.startDate}{project.endDate ? ` — ${project.endDate}` : ""}</td>
+                    <td className="px-4 py-3.5 text-[13px] text-right tabular-nums text-muted-foreground">{project.hours || 0}/{project.estimatedHours || 0}h</td>
+                    <td className="px-4 py-3.5 text-[12px] text-muted-foreground">{project.startDate}{project.endDate ? ` — ${project.endDate}` : ""}</td>
                   </tr>
                 ))}
               </tbody>
@@ -1553,10 +1554,12 @@ function ProjectsTab({ projects, client, canViewFinancials, onAddProject, onNavi
           </div>
         </div>
       ) : (
-        <div className="text-center py-12 text-muted-foreground">
-          <FileText className="w-8 h-8 mx-auto mb-3 opacity-30" />
-          <div className="text-[14px]" style={{ fontWeight: 500 }}>No projects yet</div>
-          <div className="text-[13px] mt-1">Add your first project to start tracking</div>
+        <div className="text-center py-16 text-muted-foreground">
+          <div className="w-12 h-12 mx-auto mb-4 rounded-2xl bg-accent/40 flex items-center justify-center">
+            <FileText className="w-5 h-5 text-muted-foreground/30" />
+          </div>
+          <div className="text-[14px]" style={{ fontWeight: 600 }}>No projects yet</div>
+          <div className="text-[12px] text-muted-foreground/60 mt-1">Add your first project to start tracking</div>
         </div>
       )}
     </SectionCard>
