@@ -139,13 +139,31 @@ function getTabsForClient(client: any, canViewFinancials: boolean): { id: TabId;
 }
 
 // ── SectionCard (reused in tabs) ────────────────────────────────────
-function SectionCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+function SectionCard({ children, className = "", accent = false }: { children: React.ReactNode; className?: string; accent?: boolean }) {
   return (
-    <div
-      className={`bg-card border border-border rounded-xl p-5 md:p-6 ${className}`}
-      style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.03)" }}
-    >
-      {children}
+    <div className={`bg-card border border-border/60 rounded-2xl overflow-hidden ${className}`}
+      style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02)" }}>
+      {accent && <div className="h-[2px] bg-gradient-to-r from-primary/50 via-primary/20 to-transparent" />}
+      <div className="p-5 md:p-6">{children}</div>
+    </div>
+  );
+}
+
+function SectionHeader({ children, action }: { children: React.ReactNode; action?: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between mb-5">
+      <h3 className="text-[14px] tracking-tight" style={{ fontWeight: 600, letterSpacing: '-0.01em' }}>{children}</h3>
+      {action}
+    </div>
+  );
+}
+
+function MetricCard({ label, value, sub, accent }: { label: string; value: string | number; sub?: React.ReactNode; accent?: boolean }) {
+  return (
+    <div className={`p-4 rounded-xl ${accent ? 'bg-primary/[0.05] border border-primary/10' : 'bg-accent/30 border border-border/30'}`}>
+      <div className="text-[11px] text-muted-foreground mb-2 uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>{label}</div>
+      <div className={`text-[20px] tabular-nums leading-none ${accent ? 'text-primary' : ''}`} style={{ fontWeight: 600, letterSpacing: '-0.02em' }}>{value}</div>
+      {sub && <div className="mt-1.5">{sub}</div>}
     </div>
   );
 }
@@ -534,78 +552,83 @@ export default function ClientDetail() {
   // RENDER
   // ═════════════════════════════════════════════════════════════════
   return (
-    <motion.div className="w-full min-w-0 max-w-6xl mx-auto px-6 lg:px-12 py-6 md:py-12" variants={container} initial="hidden" animate="show">
+    <motion.div className="w-full min-w-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-6 md:py-10" variants={container} initial="hidden" animate="show">
       {/* Back link */}
       <motion.div variants={item}>
-        <Link to="/clients" className="inline-flex items-center gap-1 text-[14px] text-muted-foreground hover:text-foreground mb-6 transition-colors group">
-          <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-          Back to clients
+        <Link to="/clients" className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground mb-5 transition-colors group">
+          <ChevronLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
+          Clients
         </Link>
       </motion.div>
 
-      {/* Client identity bar */}
-      <motion.div variants={item} className="mb-8">
-        <div className="flex items-start gap-4">
-          <div className="w-12 h-12 bg-primary/8 rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0">
-            {clientFaviconUrl ? (
-              <img src={clientFaviconUrl} alt={client.name} className="w-full h-full object-cover rounded-xl" />
-            ) : (
-              <div className="text-[18px] text-primary" style={{ fontWeight: 600 }}>{client.name.charAt(0)}</div>
-            )}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between gap-3">
-              <h1 className="text-[20px] md:text-[24px] tracking-tight" style={{ fontWeight: 600 }}>{client.name}</h1>
-              <button
-                onClick={() => navigate(`/clients/${clientId}/edit`)}
-                className="px-3 py-1.5 text-[13px] border border-border rounded-lg hover:bg-accent/40 transition-all flex-shrink-0"
-                style={{ fontWeight: 500 }}
-              >
-                Edit
-              </button>
+      {/* Client identity bar — premium header */}
+      <motion.div variants={item} className="mb-8 bg-card border border-border/60 rounded-2xl overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02)" }}>
+        <div className="h-[3px] bg-gradient-to-r from-primary/60 via-primary/30 to-transparent" />
+        <div className="p-5 md:p-6">
+          <div className="flex items-start gap-4">
+            <div className="w-14 h-14 bg-primary/[0.07] rounded-2xl flex items-center justify-center overflow-hidden flex-shrink-0 ring-1 ring-primary/10">
+              {clientFaviconUrl ? (
+                <img src={clientFaviconUrl} alt={client.name} className="w-full h-full object-cover" />
+              ) : (
+                <div className="text-[20px] text-primary" style={{ fontWeight: 600 }}>{client.name.charAt(0)}</div>
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-3">
+                <h1 className="text-[22px] md:text-[26px] tracking-tight" style={{ fontWeight: 600, letterSpacing: '-0.02em' }}>{client.name}</h1>
+                <button
+                  onClick={() => navigate(`/clients/${clientId}/edit`)}
+                  className="px-3.5 py-1.5 text-[13px] border border-border/80 rounded-xl hover:bg-accent/50 transition-all flex-shrink-0 flex items-center gap-1.5"
+                  style={{ fontWeight: 500 }}
+                >
+                  <Pencil className="w-3 h-3" />
+                  Edit
+                </button>
+              </div>
+              {/* Tags row */}
+              <div className="flex flex-wrap items-center gap-2 mt-3">
+                <div className={`flex items-center gap-1.5 px-2.5 py-1 ${statusColors[client.status]?.bg} ${statusColors[client.status]?.text} text-[11px] rounded-lg`} style={{ fontWeight: 600 }}>
+                  <div className={`w-1.5 h-1.5 rounded-full ${statusColors[client.status]?.dot}`} />
+                  {client.status}
+                </div>
+                <div className="text-[11px] text-muted-foreground px-2.5 py-1 bg-accent/60 rounded-lg" style={{ fontWeight: 600 }}>{client.model}</div>
+                <div className="w-px h-4 bg-border/60 mx-0.5 hidden sm:block" />
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] rounded-lg" style={{ fontWeight: 600, color: priorityCfg.color, background: priorityCfg.bg }}>
+                  <Flag className="w-3 h-3" /> {priorityLevel.charAt(0).toUpperCase() + priorityLevel.slice(1)}
+                </span>
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] rounded-lg" style={{ fontWeight: 600, color: riskCfg.color, background: riskCfg.bg }}>
+                  <ShieldAlert className="w-3 h-3" /> {riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1)} Risk
+                </span>
+              </div>
             </div>
           </div>
-        </div>
-        {/* Divider + tags row */}
-        <div className="border-t border-border mt-4 pt-3 ml-16 flex flex-wrap items-center gap-2">
-          <div className={`flex items-center gap-1.5 px-2.5 py-0.5 ${statusColors[client.status]?.bg} ${statusColors[client.status]?.text} text-[11px]`} style={{ fontWeight: 500, borderRadius: 3 }}>
-            <div className={`w-1.5 h-1.5 rounded-full ${statusColors[client.status]?.dot}`} />
-            {client.status}
-          </div>
-          <div className="text-[12px] text-muted-foreground px-2 py-0.5 bg-accent/60" style={{ fontWeight: 500, borderRadius: 3 }}>{client.model}</div>
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px]" style={{ fontWeight: 600, borderRadius: 3, color: priorityCfg.color, background: priorityCfg.bg }}>
-            <Flag className="w-3 h-3" /> {priorityLevel.charAt(0).toUpperCase() + priorityLevel.slice(1)} Priority
-          </span>
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px]" style={{ fontWeight: 600, borderRadius: 3, color: riskCfg.color, background: riskCfg.bg }}>
-            <ShieldAlert className="w-3 h-3" /> {riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1)} Risk
-          </span>
         </div>
       </motion.div>
 
       {/* Tab layout */}
-      <div className="flex flex-col md:flex-row gap-8">
+      <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
         {/* Vertical tab nav */}
-        <motion.nav variants={item} className="w-full md:w-48 flex-shrink-0">
-          <div className="md:sticky md:top-[80px] flex md:flex-col gap-0.5 overflow-x-auto md:overflow-x-visible pb-2 md:pb-0 border-b md:border-b-0 border-border -mx-6 px-6 md:mx-0 md:px-0">
+        <motion.nav variants={item} className="w-full lg:w-52 flex-shrink-0">
+          <div className="lg:sticky lg:top-[80px] flex lg:flex-col gap-0.5 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0 border-b lg:border-b-0 border-border -mx-4 sm:-mx-6 px-4 sm:px-6 lg:mx-0 lg:px-0">
             {visibleTabs.map((tab) => {
               const isActive = activeTab === tab.id;
               return (
                 <button
                   key={tab.id}
                   onClick={() => handleTabChange(tab.id)}
-                  className={`w-auto md:w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] text-left transition-all duration-200 relative whitespace-nowrap ${
-                    isActive ? "bg-primary/8 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-accent/60"
+                  className={`w-auto lg:w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] text-left transition-all duration-200 relative whitespace-nowrap ${
+                    isActive ? "bg-primary/[0.07] text-primary" : "text-muted-foreground hover:text-foreground hover:bg-accent/40"
                   }`}
-                  style={{ fontWeight: 500 }}
+                  style={{ fontWeight: isActive ? 600 : 500 }}
                 >
                   {isActive && (
                     <motion.div
                       layoutId="client-tab-indicator"
-                      className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full hidden md:block"
+                      className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full hidden lg:block"
                       transition={{ type: "spring", stiffness: 350, damping: 30 }}
                     />
                   )}
-                  <tab.icon className={`w-4 h-4 flex-shrink-0 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
+                  <tab.icon className={`w-4 h-4 flex-shrink-0 ${isActive ? "text-primary" : "text-muted-foreground/60"}`} />
                   {tab.label}
                 </button>
               );
@@ -774,97 +797,94 @@ function OverviewTab({
 
   return (
     <>
-      {/* Contact bar */}
-      <SectionCard>
-        <div className="text-[13px] text-muted-foreground mb-4" style={{ fontWeight: 600 }}>Contact</div>
-        <div className="flex flex-wrap gap-x-6 gap-y-3">
-          {client.contactName && (
-            <div className="flex items-center gap-2 text-[14px]">
-              <User className="w-3.5 h-3.5 text-muted-foreground/60" />
-              <span>{client.contactName}</span>
-            </div>
-          )}
-          {client.contactEmail && (
-            <a href={`mailto:${client.contactEmail}`} className="flex items-center gap-2 text-[14px] text-muted-foreground hover:text-foreground transition-colors">
-              <Mail className="w-3.5 h-3.5 text-muted-foreground/60" />
-              {client.contactEmail}
-            </a>
-          )}
-          {client.phone && (
-            <a href={`tel:${client.phone}`} className="flex items-center gap-2 text-[14px] text-muted-foreground hover:text-foreground transition-colors">
-              <Phone className="w-3.5 h-3.5 text-muted-foreground/60" />
-              {client.phone}
-            </a>
-          )}
-          {client.website && (
-            <a href={`https://${client.website}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[14px] text-primary hover:text-primary/80 transition-colors">
-              <Globe className="w-3.5 h-3.5" />
-              {client.website}
-            </a>
-          )}
-          {client.address && (
-            <div className="flex items-center gap-2 text-[14px] text-muted-foreground">
-              <MapPin className="w-3.5 h-3.5 text-muted-foreground/60" />
-              {client.address}
-            </div>
-          )}
-        </div>
-      </SectionCard>
+      {/* Contact strip */}
+      <div className="bg-card border border-border/60 rounded-2xl p-4 md:p-5 flex flex-wrap gap-x-5 gap-y-2.5 items-center" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+        {client.contactName && (
+          <div className="flex items-center gap-2 text-[13px]">
+            <User className="w-3.5 h-3.5 text-muted-foreground/50" />
+            <span className="text-foreground" style={{ fontWeight: 500 }}>{client.contactName}</span>
+          </div>
+        )}
+        {client.contactEmail && (
+          <a href={`mailto:${client.contactEmail}`} className="flex items-center gap-2 text-[13px] text-muted-foreground hover:text-foreground transition-colors">
+            <Mail className="w-3.5 h-3.5 text-muted-foreground/50" />
+            {client.contactEmail}
+          </a>
+        )}
+        {client.phone && (
+          <a href={`tel:${client.phone}`} className="flex items-center gap-2 text-[13px] text-muted-foreground hover:text-foreground transition-colors">
+            <Phone className="w-3.5 h-3.5 text-muted-foreground/50" />
+            {client.phone}
+          </a>
+        )}
+        {client.website && (
+          <a href={`https://${client.website}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[13px] text-primary hover:text-primary/80 transition-colors">
+            <Globe className="w-3.5 h-3.5" />
+            {client.website}
+          </a>
+        )}
+        {client.address && (
+          <div className="flex items-center gap-2 text-[13px] text-muted-foreground">
+            <MapPin className="w-3.5 h-3.5 text-muted-foreground/50" />
+            {client.address}
+          </div>
+        )}
+      </div>
 
-      {/* Financial metrics with sparkline */}
+      {/* Financial metrics — hero section */}
       {canViewFinancials && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Revenue card with accent bar */}
-          <div className="lg:col-span-2 bg-card border border-border rounded-xl overflow-hidden" style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.03)" }}>
-            <div className="h-1 bg-gradient-to-r from-primary/60 to-primary/20" />
+          {/* Revenue card */}
+          <div className="lg:col-span-2 bg-card border border-border/60 rounded-2xl overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02)" }}>
+            <div className="h-[2px] bg-gradient-to-r from-primary/60 via-primary/30 to-transparent" />
             <div className="p-5 md:p-6">
-              <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center justify-between mb-6">
                 <div className="text-[13px] text-muted-foreground" style={{ fontWeight: 600 }}>Financial Overview</div>
                 <div className="inline-flex gap-0 bg-accent/60 rounded-lg p-0.5">
                   {(["gross", "net"] as const).map(mode => (
                     <button
                       key={mode}
                       onClick={() => setViewMode(mode)}
-                      className={`px-3 py-1 text-[12px] rounded-md transition-all duration-200 capitalize ${
+                      className={`px-3 py-1 text-[11px] rounded-md transition-all duration-200 capitalize ${
                         viewMode === mode ? "bg-card text-foreground" : "text-muted-foreground hover:text-foreground"
                       }`}
-                      style={{ fontWeight: 500, boxShadow: viewMode === mode ? "0 1px 3px rgba(0,0,0,0.04)" : "none" }}
+                      style={{ fontWeight: 600, boxShadow: viewMode === mode ? "0 1px 3px rgba(0,0,0,0.06)" : "none" }}
                     >
                       {mode}
                     </button>
                   ))}
                 </div>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
                 <div>
-                  <div className="text-[12px] text-muted-foreground mb-1.5" style={{ fontWeight: 500 }}>This month</div>
-                  <div className="text-[24px] md:text-[28px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600 }}>
+                  <div className="text-[11px] text-muted-foreground mb-2 uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>This month</div>
+                  <div className="text-[26px] md:text-[30px] leading-none tracking-tighter tabular-nums" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
                     ${viewMode === "gross" ? (client.monthlyEarnings || 0).toLocaleString() : Math.round((client.monthlyEarnings || 0) * netMultiplier).toLocaleString()}
                   </div>
-                  <div className="flex items-center gap-1 mt-1">
+                  <div className="flex items-center gap-1 mt-2">
                     {revenueTrend === "up" && <TrendingUp className="w-3 h-3 text-primary" />}
                     {revenueTrend === "down" && <TrendingDown className="w-3 h-3 text-destructive" />}
                     {revenueTrend === "flat" && <Minus className="w-3 h-3 text-muted-foreground" />}
-                    <span className={`text-[11px] ${revenueTrend === 'up' ? 'text-primary' : revenueTrend === 'down' ? 'text-destructive' : 'text-muted-foreground'}`} style={{ fontWeight: 500 }}>
+                    <span className={`text-[11px] ${revenueTrend === 'up' ? 'text-primary' : revenueTrend === 'down' ? 'text-destructive' : 'text-muted-foreground'}`} style={{ fontWeight: 600 }}>
                       {revenueTrend === "up" ? "+" : ""}{lastMonthEarnings > 0 ? Math.round(((client.monthlyEarnings || 0) - lastMonthEarnings) / lastMonthEarnings * 100) : 0}% vs last
                     </span>
                   </div>
                 </div>
                 <div>
-                  <div className="text-[12px] text-muted-foreground mb-1.5" style={{ fontWeight: 500 }}>Effective rate</div>
-                  <div className="text-[24px] md:text-[28px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600 }}>
+                  <div className="text-[11px] text-muted-foreground mb-2 uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>Effective rate</div>
+                  <div className="text-[26px] md:text-[30px] leading-none tracking-tighter tabular-nums" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
                     ${viewMode === "gross" ? client.trueHourlyRate || client.rate || 0 : Math.round((client.trueHourlyRate || client.rate || 0) * netMultiplier)}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[12px] text-muted-foreground mb-1.5" style={{ fontWeight: 500 }}>Lifetime revenue</div>
-                  <div className="text-[24px] md:text-[28px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600 }}>
+                  <div className="text-[11px] text-muted-foreground mb-2 uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>Lifetime</div>
+                  <div className="text-[26px] md:text-[30px] leading-none tracking-tighter tabular-nums" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
                     ${(client.lifetimeRevenue || 0).toLocaleString()}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[12px] text-muted-foreground mb-1.5" style={{ fontWeight: 500 }}>Hours logged</div>
-                  <div className="text-[24px] md:text-[28px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600 }}>
+                  <div className="text-[11px] text-muted-foreground mb-2 uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>Hours</div>
+                  <div className="text-[26px] md:text-[30px] leading-none tracking-tighter tabular-nums" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
                     {client.hoursLogged || 0}
                   </div>
                 </div>
@@ -875,12 +895,12 @@ function OverviewTab({
                 const hoursUsed = (client.retainerTotal || 0) - (client.retainerRemaining || 0);
                 const usagePct = client.retainerTotal ? Math.round((hoursUsed / client.retainerTotal) * 100) : 0;
                 return (
-                  <div className="mt-5 pt-5 border-t border-border">
-                    <div className="flex items-center justify-between mb-2">
+                  <div className="mt-6 pt-5 border-t border-border/60">
+                    <div className="flex items-center justify-between mb-2.5">
                       <div className="text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Retainer: {hoursUsed}h / {client.retainerTotal || 0}h</div>
-                      <div className="text-[14px] tabular-nums" style={{ fontWeight: 600, color: getUsageTextColor(usagePct) }}>{usagePct}%</div>
+                      <div className="text-[14px] tabular-nums" style={{ fontWeight: 700, color: getUsageTextColor(usagePct) }}>{usagePct}%</div>
                     </div>
-                    <div className="h-1.5 bg-accent/60 rounded-full overflow-hidden">
+                    <div className="h-2 bg-accent/60 rounded-full overflow-hidden">
                       <motion.div className="h-full rounded-full" style={{ background: getUsageBarColor(usagePct) }} initial={{ width: 0 }} animate={{ width: `${usagePct}%` }} transition={{ delay: 0.3, duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }} />
                     </div>
                   </div>
@@ -890,84 +910,84 @@ function OverviewTab({
           </div>
 
           {/* 7-day activity sparkline card */}
-          <div className="bg-card border border-border rounded-xl p-5 md:p-6 flex flex-col justify-between" style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.03)" }}>
-            <div>
-              <div className="text-[13px] text-muted-foreground mb-1" style={{ fontWeight: 600 }}>7-Day Activity</div>
-              <div className="text-[28px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600 }}>
-                {last7Days.reduce((a, b) => a + b, 0).toFixed(1)}h
+          <div className="bg-card border border-border/60 rounded-2xl overflow-hidden flex flex-col" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02)" }}>
+            <div className="h-[2px] bg-gradient-to-r from-primary/40 to-transparent" />
+            <div className="p-5 md:p-6 flex flex-col flex-1 justify-between">
+              <div>
+                <div className="text-[11px] text-muted-foreground mb-2 uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>7-Day Activity</div>
+                <div className="text-[30px] leading-none tracking-tighter tabular-nums" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
+                  {last7Days.reduce((a, b) => a + b, 0).toFixed(1)}h
+                </div>
+                <div className="text-[11px] text-muted-foreground mt-1.5" style={{ fontWeight: 500 }}>total this week</div>
               </div>
-              <div className="text-[11px] text-muted-foreground mt-1" style={{ fontWeight: 500 }}>total this week</div>
-            </div>
-            <svg viewBox="0 0 200 44" className="w-full mt-3" style={{ height: 52 }}>
-              <defs>
-                <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.2" />
-                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0" />
-                </linearGradient>
-              </defs>
-              <polygon points={sparkFillPoints} fill="url(#sparkGrad)" />
-              <polyline points={sparkPoints} fill="none" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              {last7Days.map((h, i) => {
-                const x = (i / 6) * 200;
-                const y = 40 - (h / maxHours) * 36;
-                return h > 0 ? <circle key={i} cx={x} cy={y} r="2.5" fill="hsl(var(--primary))" /> : null;
-              })}
-            </svg>
-            <div className="flex justify-between text-[10px] text-muted-foreground/50 mt-1" style={{ fontWeight: 500 }}>
-              {last7Days.map((_, i) => {
-                const d = new Date();
-                d.setDate(d.getDate() - (6 - i));
-                return <span key={i}>{format(d, 'EEE')}</span>;
-              })}
+              <div className="mt-4">
+                <svg viewBox="0 0 200 44" className="w-full" style={{ height: 56 }}>
+                  <defs>
+                    <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.15" />
+                      <stop offset="100%" stopColor="var(--primary)" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                  <polygon points={sparkFillPoints} fill="url(#sparkGrad)" />
+                  <polyline points={sparkPoints} fill="none" stroke="var(--primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  {last7Days.map((h, i) => {
+                    const x = (i / 6) * 200;
+                    const y = 40 - (h / maxHours) * 36;
+                    return h > 0 ? <circle key={i} cx={x} cy={y} r="3" fill="var(--primary)" /> : null;
+                  })}
+                </svg>
+                <div className="flex justify-between text-[10px] text-muted-foreground/50 mt-1.5 px-0.5" style={{ fontWeight: 600 }}>
+                  {last7Days.map((_, i) => {
+                    const d = new Date();
+                    d.setDate(d.getDate() - (6 - i));
+                    return <span key={i}>{format(d, 'EEE')}</span>;
+                  })}
+                </div>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Activity + Insights combined */}
+      {/* Activity + Insights */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <SectionCard>
-          <div className="text-[13px] text-muted-foreground mb-4" style={{ fontWeight: 600 }}>Activity</div>
+        <SectionCard accent>
+          <SectionHeader>Activity</SectionHeader>
           <div className="grid grid-cols-2 gap-3">
-            {[
-              { label: 'Projects', value: projects.length, accent: false },
-              { label: 'Sessions', value: clientSessions.length, accent: false },
-              { label: 'Utilization', value: `${utilizationRate}%`, accent: utilizationRate >= 80 },
-              ...(canViewFinancials ? [{ label: 'Revenue share', value: `${revenueShare}%`, accent: revenueShare > 40 }] : []),
-            ].map((item, i) => (
-              <div key={i} className={`p-3.5 rounded-lg ${item.accent ? 'bg-primary/[0.06] border border-primary/10' : 'bg-accent/30'}`}>
-                <div className="text-[12px] text-muted-foreground mb-1" style={{ fontWeight: 500 }}>{item.label}</div>
-                <div className={`text-[18px] tabular-nums ${item.accent ? 'text-primary' : ''}`} style={{ fontWeight: 600 }}>{item.value}</div>
-              </div>
-            ))}
+            <MetricCard label="Projects" value={projects.length} />
+            <MetricCard label="Sessions" value={clientSessions.length} />
+            <MetricCard label="Utilization" value={`${utilizationRate}%`} accent={utilizationRate >= 80} />
+            {canViewFinancials && <MetricCard label="Revenue share" value={`${revenueShare}%`} accent={revenueShare > 40} />}
           </div>
         </SectionCard>
 
         {canViewFinancials && (
-          <SectionCard>
-            <div className="flex items-center gap-2 mb-4">
-              <Lightbulb className="w-4 h-4 text-primary/60" />
-              <div className="text-[13px] text-muted-foreground" style={{ fontWeight: 600 }}>Insights</div>
-            </div>
+          <SectionCard accent>
+            <SectionHeader>
+              <span className="flex items-center gap-2">
+                <Lightbulb className="w-3.5 h-3.5 text-primary/60" />
+                Insights
+              </span>
+            </SectionHeader>
             <div className="space-y-2.5">
               {revenueShare > 40 && (
-                <div className="p-3 rounded-lg bg-primary/[0.04] border border-primary/10">
-                  <div className="text-[13px] text-primary mb-0.5" style={{ fontWeight: 500 }}>Client dependency</div>
+                <div className="p-3.5 rounded-xl bg-primary/[0.04] border border-primary/10">
+                  <div className="text-[12px] text-primary mb-1" style={{ fontWeight: 600 }}>Client dependency</div>
                   <div className="text-[12px] text-muted-foreground leading-relaxed">
-                    <span className="text-foreground" style={{ fontWeight: 500 }}>{revenueShare}%</span> of monthly revenue. Consider diversifying.
+                    <span className="text-foreground" style={{ fontWeight: 600 }}>{revenueShare}%</span> of monthly revenue. Consider diversifying.
                   </div>
                 </div>
               )}
-              <div className="p-3 rounded-lg bg-accent/30">
-                <div className="text-[13px] mb-0.5" style={{ fontWeight: 500 }}>Utilization rate</div>
+              <div className="p-3.5 rounded-xl bg-accent/30 border border-border/30">
+                <div className="text-[12px] mb-1" style={{ fontWeight: 600 }}>Utilization rate</div>
                 <div className="text-[12px] text-muted-foreground leading-relaxed">
-                  <span className="text-foreground" style={{ fontWeight: 500 }}>{utilizationRate}%</span> billable — {billableHours}h of {totalHours}h total
+                  <span className="text-foreground" style={{ fontWeight: 600 }}>{utilizationRate}%</span> billable — {billableHours}h of {totalHours}h total
                 </div>
               </div>
-              <div className="p-3 rounded-lg bg-accent/30">
-                <div className="text-[13px] mb-0.5" style={{ fontWeight: 500 }}>Pacing</div>
+              <div className="p-3.5 rounded-xl bg-accent/30 border border-border/30">
+                <div className="text-[12px] mb-1" style={{ fontWeight: 600 }}>Pacing</div>
                 <div className="text-[12px] text-muted-foreground leading-relaxed">
-                  On pace for <span className="text-foreground" style={{ fontWeight: 500 }}>${Math.round((client.monthlyEarnings || 0) * 1.15).toLocaleString()}</span> this month
+                  On pace for <span className="text-foreground" style={{ fontWeight: 600 }}>${Math.round((client.monthlyEarnings || 0) * 1.15).toLocaleString()}</span> this month
                 </div>
               </div>
             </div>
@@ -1225,45 +1245,42 @@ function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (
   return (
     <>
       {/* Standard Client Details */}
-      <div className="bg-card border border-border rounded-xl overflow-hidden" style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.03)" }}>
-        <div className="h-0.5 bg-gradient-to-r from-primary/40 to-transparent" />
-        <div className="p-5 md:p-6">
-          <div className="text-[13px] text-muted-foreground mb-5" style={{ fontWeight: 600 }}>Client Details</div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {visibleStandardFields.map((field) => {
-              const val = (client as any)[field.key];
-              const displayVal = field.key === 'rate' && val !== undefined && val !== '' && val !== null ? `$${val}` : val;
-              return (
-                <div key={field.key} className="p-3.5 rounded-lg bg-accent/20 border border-border/50">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <field.icon className="w-3 h-3 text-muted-foreground/50" />
-                    <div className="text-[11px] text-muted-foreground uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.05em' }}>{field.label}</div>
-                  </div>
-                  {field.key === 'rate' ? (
-                    renderEditableField(
-                      `std-${field.key}`,
-                      { type: 'text', label: field.label },
-                      val ?? '',
-                      (v) => saveStandardField(field.key, parseFloat(v) || 0),
-                    )
-                  ) : (
-                    renderEditableField(
-                      `std-${field.key}`,
-                      { type: field.type, label: field.label, options: field.options },
-                      val ?? '',
-                      (v) => saveStandardField(field.key, v || null),
-                    )
-                  )}
+      <SectionCard accent>
+        <SectionHeader>Client Details</SectionHeader>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {visibleStandardFields.map((field) => {
+            const val = (client as any)[field.key];
+            const displayVal = field.key === 'rate' && val !== undefined && val !== '' && val !== null ? `$${val}` : val;
+            return (
+              <div key={field.key} className="p-3.5 rounded-xl bg-accent/20 border border-border/40">
+                <div className="flex items-center gap-1.5 mb-2">
+                  <field.icon className="w-3 h-3 text-muted-foreground/40" />
+                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>{field.label}</div>
                 </div>
-              );
-            })}
-          </div>
+                {field.key === 'rate' ? (
+                  renderEditableField(
+                    `std-${field.key}`,
+                    { type: 'text', label: field.label },
+                    val ?? '',
+                    (v) => saveStandardField(field.key, parseFloat(v) || 0),
+                  )
+                ) : (
+                  renderEditableField(
+                    `std-${field.key}`,
+                    { type: field.type, label: field.label, options: field.options },
+                    val ?? '',
+                    (v) => saveStandardField(field.key, v || null),
+                  )
+                )}
+              </div>
+            );
+          })}
         </div>
-      </div>
+      </SectionCard>
 
       {/* Shared links — interactive */}
       <SectionCard>
-        <div className="text-[13px] text-muted-foreground mb-4" style={{ fontWeight: 600 }}>Shared Links</div>
+        <SectionHeader>Shared Links</SectionHeader>
         {(() => {
           const LINK_TYPES = [
             { value: "google-drive", label: "Google Drive", icon: "📁" },
@@ -1347,18 +1364,18 @@ function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (
 
       {/* Workspace custom fields — inline editable */}
       {wsSchemas.length > 0 && (
-        <div className="bg-card border border-border rounded-xl overflow-hidden" style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.03)" }}>
-          <div className="h-0.5 bg-gradient-to-r from-primary/40 to-transparent" />
-          <div className="p-5 md:p-6">
-            <div className="flex items-center gap-2 mb-5">
-              <Globe className="w-3.5 h-3.5 text-muted-foreground/50" />
-              <div className="text-[13px] text-muted-foreground" style={{ fontWeight: 600 }}>Workspace Fields</div>
-              <span className="text-[10px] text-muted-foreground/60 bg-accent/60 px-1.5 py-0.5 rounded" style={{ fontWeight: 500 }}>Shared</span>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {wsSchemas.filter(s => s.label).map((schema: any) => (
-                <div key={schema.id} className="p-3.5 rounded-lg bg-accent/20 border border-border/50">
-                  <div className="text-[11px] text-muted-foreground mb-1.5 uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.05em' }}>{schema.label}</div>
+        <SectionCard accent>
+          <SectionHeader>
+            <span className="flex items-center gap-2">
+              <Globe className="w-3.5 h-3.5 text-muted-foreground/40" />
+              Workspace Fields
+              <span className="text-[10px] text-muted-foreground/60 bg-accent/60 px-1.5 py-0.5 rounded-md ml-1" style={{ fontWeight: 500 }}>Shared</span>
+            </span>
+          </SectionHeader>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {wsSchemas.filter(s => s.label).map((schema: any) => (
+              <div key={schema.id} className="p-3.5 rounded-xl bg-accent/20 border border-border/40">
+                <div className="text-[10px] text-muted-foreground mb-2 uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>{schema.label}</div>
                   {renderEditableField(
                     `ws-${schema.id}`,
                     schema,
@@ -1368,26 +1385,22 @@ function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (
                   )}
                 </div>
               ))}
-            </div>
           </div>
-        </div>
+        </SectionCard>
       )}
 
-      {/* Client-specific custom fields — inline editable + add new */}
-      <div className="bg-card border border-border rounded-xl overflow-hidden" style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.03)" }}>
-        <div className="h-0.5 bg-gradient-to-r from-warning/40 to-transparent" />
-        <div className="p-5 md:p-6">
-          <div className="flex items-center justify-between mb-5">
-            <div className="text-[13px] text-muted-foreground" style={{ fontWeight: 600 }}>Client-Specific Fields</div>
-            <button
-              onClick={() => setShowAddField(!showAddField)}
-              className="inline-flex items-center gap-1 px-2.5 py-1 text-[12px] text-primary bg-primary/[0.06] border border-primary/10 rounded-lg hover:bg-primary/10 transition-colors"
-              style={{ fontWeight: 500 }}
-            >
-              {showAddField ? <X className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
-              {showAddField ? 'Cancel' : 'Add field'}
-            </button>
-          </div>
+      {/* Client-specific custom fields */}
+      <SectionCard accent>
+        <SectionHeader action={
+          <button
+            onClick={() => setShowAddField(!showAddField)}
+            className="inline-flex items-center gap-1 px-2.5 py-1 text-[12px] text-primary bg-primary/[0.06] border border-primary/10 rounded-xl hover:bg-primary/10 transition-colors"
+            style={{ fontWeight: 500 }}
+          >
+            {showAddField ? <X className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
+            {showAddField ? 'Cancel' : 'Add field'}
+          </button>
+        }>Client-Specific Fields</SectionHeader>
 
           {/* Add new field form */}
           <AnimatePresence>
@@ -1480,8 +1493,7 @@ function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (
               <div className="text-[13px] text-muted-foreground/50">No client-specific fields yet</div>
             </div>
           ) : null}
-        </div>
-      </div>
+      </SectionCard>
     </>
   );
 }
@@ -1491,49 +1503,50 @@ function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (
 // ═══════════════════════════════════════════════════════════════════
 function ProjectsTab({ projects, client, canViewFinancials, onAddProject, onNavigate }: any) {
   return (
-    <SectionCard>
-      <div className="flex items-center justify-between mb-5">
-        <div className="text-[15px]" style={{ fontWeight: 600 }}>Projects <span className="text-muted-foreground text-[13px] ml-1.5">({projects.length})</span></div>
-        <button onClick={onAddProject} className="px-3 py-1.5 text-[13px] bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all" style={{ fontWeight: 500 }}>
+    <SectionCard accent>
+      <SectionHeader action={
+        <button onClick={onAddProject} className="px-3.5 py-1.5 text-[12px] bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all" style={{ fontWeight: 600 }}>
           Add project
         </button>
-      </div>
+      }>
+        Projects <span className="text-muted-foreground/60 ml-1">({projects.length})</span>
+      </SectionHeader>
       {projects.length > 0 ? (
-        <div className="overflow-hidden rounded-lg border border-border">
+        <div className="overflow-hidden rounded-xl border border-border/60">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[600px]">
               <thead>
-                <tr className="bg-accent/30 border-b border-border">
-                  <th className="text-left px-4 py-2.5 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Project</th>
-                  <th className="text-left px-4 py-2.5 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Status</th>
-                  {canViewFinancials && <th className="text-right px-4 py-2.5 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Value</th>}
-                  <th className="text-right px-4 py-2.5 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Hours</th>
-                  <th className="text-left px-4 py-2.5 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Dates</th>
+                <tr className="bg-accent/40">
+                  <th className="text-left px-4 py-3 text-[11px] text-muted-foreground uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.05em' }}>Project</th>
+                  <th className="text-left px-4 py-3 text-[11px] text-muted-foreground uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.05em' }}>Status</th>
+                  {canViewFinancials && <th className="text-right px-4 py-3 text-[11px] text-muted-foreground uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.05em' }}>Value</th>}
+                  <th className="text-right px-4 py-3 text-[11px] text-muted-foreground uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.05em' }}>Hours</th>
+                  <th className="text-left px-4 py-3 text-[11px] text-muted-foreground uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.05em' }}>Dates</th>
                 </tr>
               </thead>
               <tbody>
                 {projects.map((project: any) => (
-                  <tr key={project.id} className="border-b border-border last:border-0 hover:bg-accent/30 transition-colors cursor-pointer" onClick={() => onNavigate(project.id)}>
-                    <td className="px-4 py-3 text-[14px]" style={{ fontWeight: 500 }}>{project.name}</td>
-                    <td className="px-4 py-3">
-                      <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 text-[11px] rounded-full ${project.status === "In Progress" ? "bg-primary/8 text-primary" : "bg-zinc-100 text-zinc-500"}`} style={{ fontWeight: 500 }}>
-                        <div className={`w-1.5 h-1.5 rounded-full ${project.status === "In Progress" ? "bg-primary" : "bg-zinc-400"}`} />
+                  <tr key={project.id} className="border-t border-border/40 hover:bg-accent/20 transition-colors cursor-pointer" onClick={() => onNavigate(project.id)}>
+                    <td className="px-4 py-3.5 text-[13px]" style={{ fontWeight: 600 }}>{project.name}</td>
+                    <td className="px-4 py-3.5">
+                      <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 text-[11px] rounded-lg ${project.status === "In Progress" ? "bg-primary/[0.07] text-primary" : "bg-accent/60 text-muted-foreground"}`} style={{ fontWeight: 600 }}>
+                        <div className={`w-1.5 h-1.5 rounded-full ${project.status === "In Progress" ? "bg-primary" : "bg-muted-foreground/40"}`} />
                         {project.status}
                       </div>
                     </td>
                     {canViewFinancials && (
-                      <td className="px-4 py-3 text-[14px] text-right tabular-nums" style={{ fontWeight: 500 }}>
+                      <td className="px-4 py-3.5 text-[13px] text-right tabular-nums" style={{ fontWeight: 600 }}>
                         ${(project.totalValue || 0).toLocaleString()}
                         {(() => {
                           if (!project.totalValue || project.totalValue <= 0 || !project.hours || project.hours <= 0) return null;
                           const effRate = Math.round(project.totalValue / project.hours);
                           const rateColor = effRate < (client.rate * 0.5) ? '#c27272' : effRate < client.rate ? '#bfa044' : '#5ea1bf';
-                          return <div className="text-[11px] mt-0.5 tabular-nums" style={{ fontWeight: 500, color: rateColor }}>${effRate}/hr effective</div>;
+                          return <div className="text-[10px] mt-0.5 tabular-nums" style={{ fontWeight: 600, color: rateColor }}>${effRate}/hr effective</div>;
                         })()}
                       </td>
                     )}
-                    <td className="px-4 py-3 text-[14px] text-right tabular-nums text-muted-foreground">{project.hours || 0}/{project.estimatedHours || 0}h</td>
-                    <td className="px-4 py-3 text-[13px] text-muted-foreground">{project.startDate}{project.endDate ? ` — ${project.endDate}` : ""}</td>
+                    <td className="px-4 py-3.5 text-[13px] text-right tabular-nums text-muted-foreground">{project.hours || 0}/{project.estimatedHours || 0}h</td>
+                    <td className="px-4 py-3.5 text-[12px] text-muted-foreground">{project.startDate}{project.endDate ? ` — ${project.endDate}` : ""}</td>
                   </tr>
                 ))}
               </tbody>
@@ -1541,10 +1554,12 @@ function ProjectsTab({ projects, client, canViewFinancials, onAddProject, onNavi
           </div>
         </div>
       ) : (
-        <div className="text-center py-12 text-muted-foreground">
-          <FileText className="w-8 h-8 mx-auto mb-3 opacity-30" />
-          <div className="text-[14px]" style={{ fontWeight: 500 }}>No projects yet</div>
-          <div className="text-[13px] mt-1">Add your first project to start tracking</div>
+        <div className="text-center py-16 text-muted-foreground">
+          <div className="w-12 h-12 mx-auto mb-4 rounded-2xl bg-accent/40 flex items-center justify-center">
+            <FileText className="w-5 h-5 text-muted-foreground/30" />
+          </div>
+          <div className="text-[14px]" style={{ fontWeight: 600 }}>No projects yet</div>
+          <div className="text-[12px] text-muted-foreground/60 mt-1">Add your first project to start tracking</div>
         </div>
       )}
     </SectionCard>
@@ -1556,62 +1571,63 @@ function ProjectsTab({ projects, client, canViewFinancials, onAddProject, onNavi
 // ═══════════════════════════════════════════════════════════════════
 function SessionsTab({ clientSessions, client, canViewFinancials, selectedIds, onToggleSelect, onToggleSelectAll, onLogSession, onEditSession }: any) {
   return (
-    <SectionCard>
-      <div className="flex items-center justify-between mb-5">
-        <div className="text-[15px]" style={{ fontWeight: 600 }}>Time Sessions <span className="text-muted-foreground text-[13px] ml-1.5">({clientSessions.length})</span></div>
-        <button onClick={onLogSession} className="px-3 py-1.5 text-[13px] bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all" style={{ fontWeight: 500 }}>
+    <SectionCard accent>
+      <SectionHeader action={
+        <button onClick={onLogSession} className="px-3.5 py-1.5 text-[12px] bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all" style={{ fontWeight: 600 }}>
           Log session
         </button>
-      </div>
+      }>
+        Time Sessions <span className="text-muted-foreground/60 ml-1">({clientSessions.length})</span>
+      </SectionHeader>
       {clientSessions.length > 0 ? (
-        <div className="overflow-hidden rounded-lg border border-border">
+        <div className="overflow-hidden rounded-xl border border-border/60">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[600px]">
               <thead>
-                <tr className="bg-accent/30 border-b border-border">
-                  <th className="w-10 px-2 py-2.5">
+                <tr className="bg-accent/40">
+                  <th className="w-10 px-2 py-3">
                     <button onClick={onToggleSelectAll} className="w-5 h-5 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
                       {selectedIds.size === clientSessions.length && clientSessions.length > 0 ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4" />}
                     </button>
                   </th>
-                  <th className="text-left px-4 py-2.5 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Date</th>
-                  <th className="text-left px-4 py-2.5 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Description</th>
-                  <th className="text-left px-4 py-2.5 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Tags</th>
-                  <th className="text-right px-4 py-2.5 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Duration</th>
-                  {canViewFinancials && <th className="text-right px-4 py-2.5 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Cost</th>}
-                  <th className="w-10 px-2 py-2.5" />
+                  <th className="text-left px-4 py-3 text-[11px] text-muted-foreground uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.05em' }}>Date</th>
+                  <th className="text-left px-4 py-3 text-[11px] text-muted-foreground uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.05em' }}>Description</th>
+                  <th className="text-left px-4 py-3 text-[11px] text-muted-foreground uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.05em' }}>Tags</th>
+                  <th className="text-right px-4 py-3 text-[11px] text-muted-foreground uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.05em' }}>Duration</th>
+                  {canViewFinancials && <th className="text-right px-4 py-3 text-[11px] text-muted-foreground uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.05em' }}>Cost</th>}
+                  <th className="w-10 px-2 py-3" />
                 </tr>
               </thead>
               <tbody>
                 {clientSessions.map((session: any) => (
-                  <tr key={session.id} className={`group border-b border-border last:border-0 hover:bg-accent/30 transition-colors ${selectedIds.has(session.id) ? "bg-primary/[0.04]" : ""}`}>
-                    <td className="px-2 py-3">
+                  <tr key={session.id} className={`group border-t border-border/40 hover:bg-accent/20 transition-colors ${selectedIds.has(session.id) ? "bg-primary/[0.04]" : ""}`}>
+                    <td className="px-2 py-3.5">
                       <button onClick={() => onToggleSelect(session.id)} className="w-5 h-5 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
                         {selectedIds.has(session.id) ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4" />}
                       </button>
                     </td>
-                    <td className="px-4 py-3 text-[13px] text-muted-foreground tabular-nums">{session.date}</td>
-                    <td className="px-4 py-3">
-                      <div className="text-[14px]" style={{ fontWeight: 500 }}>{session.task || "—"}</div>
-                      {session.projectName && <div className="text-[12px] text-muted-foreground mt-0.5">{session.projectName}</div>}
+                    <td className="px-4 py-3.5 text-[12px] text-muted-foreground tabular-nums" style={{ fontWeight: 500 }}>{session.date}</td>
+                    <td className="px-4 py-3.5">
+                      <div className="text-[13px]" style={{ fontWeight: 600 }}>{session.task || "—"}</div>
+                      {session.projectName && <div className="text-[11px] text-muted-foreground mt-0.5">{session.projectName}</div>}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3.5">
                       <div className="flex flex-wrap gap-1">
                         {(session.workTags || []).map((tag: string, i: number) => (
-                          <span key={i} className="px-1.5 py-0.5 bg-accent/80 text-muted-foreground text-[10px] rounded-full" style={{ fontWeight: 500 }}>{tag}</span>
+                          <span key={i} className="px-1.5 py-0.5 bg-accent/80 text-muted-foreground text-[10px] rounded-lg" style={{ fontWeight: 600 }}>{tag}</span>
                         ))}
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-[14px] text-right tabular-nums" style={{ fontWeight: 500 }}>{session.duration}h</td>
+                    <td className="px-4 py-3.5 text-[13px] text-right tabular-nums" style={{ fontWeight: 600 }}>{session.duration}h</td>
                     {canViewFinancials && (
-                      <td className="px-4 py-3 text-right">
-                        <div className="text-[14px] tabular-nums" style={{ fontWeight: 500 }}>${session.revenue.toLocaleString()}</div>
-                        {!session.billable && <span className="px-1.5 py-0.5 bg-accent/80 text-muted-foreground text-[10px] rounded-full" style={{ fontWeight: 500 }}>Non-billable</span>}
+                      <td className="px-4 py-3.5 text-right">
+                        <div className="text-[13px] tabular-nums" style={{ fontWeight: 600 }}>${session.revenue.toLocaleString()}</div>
+                        {!session.billable && <span className="px-1.5 py-0.5 bg-accent/80 text-muted-foreground text-[10px] rounded-lg" style={{ fontWeight: 600 }}>Non-billable</span>}
                       </td>
                     )}
-                    <td className="px-2 py-3">
+                    <td className="px-2 py-3.5">
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={(e) => { e.stopPropagation(); onEditSession(session); }} className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-accent/60 text-muted-foreground hover:text-foreground transition-all" title="Edit session">
+                        <button onClick={(e) => { e.stopPropagation(); onEditSession(session); }} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-accent/60 text-muted-foreground hover:text-foreground transition-all" title="Edit session">
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -1623,12 +1639,12 @@ function SessionsTab({ clientSessions, client, canViewFinancials, selectedIds, o
           </div>
         </div>
       ) : (
-        <div className="text-center py-12 text-muted-foreground">
-          <div className="w-8 h-8 mx-auto mb-3 opacity-30 flex items-center justify-center">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-8 h-8"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+        <div className="text-center py-16 text-muted-foreground">
+          <div className="w-12 h-12 mx-auto mb-4 rounded-2xl bg-accent/40 flex items-center justify-center">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5 text-muted-foreground/30"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
           </div>
-          <div className="text-[14px]" style={{ fontWeight: 500 }}>No sessions logged</div>
-          <div className="text-[13px] mt-1">Log your first session to start tracking</div>
+          <div className="text-[14px]" style={{ fontWeight: 600 }}>No sessions logged</div>
+          <div className="text-[12px] text-muted-foreground/60 mt-1">Log your first session to start tracking</div>
         </div>
       )}
     </SectionCard>
@@ -1644,8 +1660,8 @@ function RetainerTab({ client, workspaceId, sentThresholds, setSentThresholds, r
 
   return (
     <>
-      <SectionCard>
-        <div className="text-[15px] mb-5" style={{ fontWeight: 600 }}>Retainer Usage</div>
+      <SectionCard accent>
+        <SectionHeader>Retainer Usage</SectionHeader>
         <div className="flex justify-between items-baseline mb-4">
           <div className="text-[14px] text-muted-foreground">
             <span style={{ fontWeight: 500 }} className="text-foreground">{hoursUsed}h</span> used of {client.retainerTotal || 0}h
@@ -1665,25 +1681,16 @@ function RetainerTab({ client, workspaceId, sentThresholds, setSentThresholds, r
       </SectionCard>
 
       <SectionCard>
-        <div className="text-[15px] mb-5" style={{ fontWeight: 600 }}>Retainer Details</div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <div className="text-[12px] text-muted-foreground mb-1" style={{ fontWeight: 500 }}>Monthly price</div>
-            <div className="text-[15px] tabular-nums" style={{ fontWeight: 600 }}>${((client.retainerTotal || 0) * (client.rate || 0)).toLocaleString()}</div>
-          </div>
-          <div>
-            <div className="text-[12px] text-muted-foreground mb-1" style={{ fontWeight: 500 }}>Rate</div>
-            <div className="text-[15px] tabular-nums" style={{ fontWeight: 600 }}>${client.rate || 0}/hr</div>
-          </div>
-          <div>
-            <div className="text-[12px] text-muted-foreground mb-1" style={{ fontWeight: 500 }}>Reset day</div>
-            <div className="text-[15px]" style={{ fontWeight: 600 }}>1st of month</div>
-          </div>
+        <SectionHeader>Retainer Details</SectionHeader>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <MetricCard label="Monthly price" value={`$${((client.retainerTotal || 0) * (client.rate || 0)).toLocaleString()}`} />
+          <MetricCard label="Rate" value={`$${client.rate || 0}/hr`} />
+          <MetricCard label="Reset day" value="1st of month" />
         </div>
       </SectionCard>
 
       <SectionCard>
-        <div className="text-[15px] mb-4" style={{ fontWeight: 600 }}>Send retainer update</div>
+        <SectionHeader>Send retainer update</SectionHeader>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div className="text-[13px] text-muted-foreground">
             Manually send a usage summary {client.contactEmail ? `to ${client.contactEmail}` : '(no client email set)'}
@@ -1739,7 +1746,7 @@ function RetainerTab({ client, workspaceId, sentThresholds, setSentThresholds, r
 
       {/* Email activity for retainer */}
       <SectionCard>
-        <div className="text-[15px] mb-4" style={{ fontWeight: 600 }}>Email Activity</div>
+        <SectionHeader>Email Activity</SectionHeader>
         <EmailActivityLog clientId={client.id} />
       </SectionCard>
     </>
@@ -1751,23 +1758,25 @@ function RetainerTab({ client, workspaceId, sentThresholds, setSentThresholds, r
 // ═══════════════════════════════════════════════════════════════════
 function FilesTab({ files, uploading, fileInputRef, onUpload, onDelete, onDrop, formatFileSize }: any) {
   return (
-    <SectionCard>
-      <div className="text-[15px] mb-5" style={{ fontWeight: 600 }}>Files <span className="text-muted-foreground text-[13px] ml-1.5">({files.length})</span></div>
+    <SectionCard accent>
+      <SectionHeader>Files <span className="text-muted-foreground/60 ml-1">({files.length})</span></SectionHeader>
       {files.length > 0 && (
-        <div className="space-y-2 mb-4">
+        <div className="space-y-1 mb-4">
           {files.map((f: any) => (
-            <div key={f.name} className="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-accent/30 transition-colors group">
-              <FileText className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+            <div key={f.name} className="flex items-center gap-3 py-3 px-3.5 rounded-xl hover:bg-accent/30 transition-colors group border border-transparent hover:border-border/40">
+              <div className="w-9 h-9 rounded-xl bg-accent/50 flex items-center justify-center flex-shrink-0">
+                <FileText className="w-4 h-4 text-muted-foreground/60" />
+              </div>
               <div className="flex-1 min-w-0">
-                <div className="text-[13px] truncate" style={{ fontWeight: 500 }}>{f.name.replace(/^\d+-/, "")}</div>
-                <div className="text-[11px] text-muted-foreground">{formatFileSize(f.size)}</div>
+                <div className="text-[13px] truncate" style={{ fontWeight: 600 }}>{f.name.replace(/^\d+-/, "")}</div>
+                <div className="text-[11px] text-muted-foreground/60">{formatFileSize(f.size)}</div>
               </div>
               {f.url && (
-                <a href={f.url} target="_blank" rel="noopener noreferrer" className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-accent/60 text-muted-foreground transition-all">
+                <a href={f.url} target="_blank" rel="noopener noreferrer" className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-accent/60 text-muted-foreground transition-all">
                   <Download className="w-3.5 h-3.5" />
                 </a>
               )}
-              <button onClick={() => onDelete(f.name)} className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-accent/60 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all">
+              <button onClick={() => onDelete(f.name)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-accent/60 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all">
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -1778,10 +1787,14 @@ function FilesTab({ files, uploading, fileInputRef, onUpload, onDelete, onDrop, 
         onDragOver={(e) => e.preventDefault()}
         onDrop={onDrop}
         onClick={() => fileInputRef.current?.click()}
-        className="border border-dashed border-border rounded-lg p-10 flex flex-col items-center gap-2 hover:bg-accent/30 transition-colors cursor-pointer"
+        className="border-2 border-dashed border-border/60 rounded-2xl p-10 flex flex-col items-center gap-2.5 hover:bg-accent/20 hover:border-primary/20 transition-all cursor-pointer"
       >
-        {uploading ? <Loader2 className="w-5 h-5 text-muted-foreground animate-spin" /> : <Upload className="w-5 h-5 text-muted-foreground" />}
-        <span className="text-[13px] text-muted-foreground" style={{ fontWeight: 500 }}>{uploading ? "Uploading..." : "Drop files here or click to upload"}</span>
+        {uploading ? <Loader2 className="w-5 h-5 text-muted-foreground animate-spin" /> : (
+          <div className="w-10 h-10 rounded-2xl bg-accent/50 flex items-center justify-center">
+            <Upload className="w-4 h-4 text-muted-foreground/60" />
+          </div>
+        )}
+        <span className="text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>{uploading ? "Uploading..." : "Drop files here or click to upload"}</span>
       </div>
       <input ref={fileInputRef} type="file" className="hidden" onChange={(e) => { if (e.target.files?.[0]) onUpload(e.target.files[0]); }} />
     </SectionCard>
@@ -1793,8 +1806,8 @@ function FilesTab({ files, uploading, fileInputRef, onUpload, onDelete, onDrop, 
 // ═══════════════════════════════════════════════════════════════════
 function NotesTab({ clientId, projects }: { clientId?: string; projects: any[] }) {
   return (
-    <SectionCard>
-      <div className="text-[15px] mb-5" style={{ fontWeight: 600 }}>Notes</div>
+    <SectionCard accent>
+      <SectionHeader>Notes</SectionHeader>
       {clientId && <ClientNotes clientId={clientId} projects={projects} />}
     </SectionCard>
   );
@@ -1805,10 +1818,10 @@ function NotesTab({ clientId, projects }: { clientId?: string; projects: any[] }
 // ═══════════════════════════════════════════════════════════════════
 function ChecklistsTab({ clientId, workspaceId }: { clientId: string; workspaceId: string }) {
   return (
-    <div>
-      <div className="text-[15px] mb-5" style={{ fontWeight: 600 }}>Checklists</div>
+    <SectionCard accent>
+      <SectionHeader>Checklists</SectionHeader>
       <ChecklistPanel clientId={clientId} workspaceId={workspaceId} />
-    </div>
+    </SectionCard>
   );
 }
 
@@ -1817,15 +1830,15 @@ function ChecklistsTab({ clientId, workspaceId }: { clientId: string; workspaceI
 // ═══════════════════════════════════════════════════════════════════
 function PortalTab({ client, clientId, portalConfig, portalLoading, copied, onCopyPortalLink, onGeneratePortal, onTogglePortal }: any) {
   return (
-    <SectionCard>
-      <div className="text-[15px] mb-5" style={{ fontWeight: 600 }}>Client Portal</div>
+    <SectionCard accent>
+      <SectionHeader>Client Portal</SectionHeader>
       <div className="space-y-4">
         <div className="text-[13px] text-muted-foreground">
           Generate a read-only portal link to share with this client. They'll see project progress, time logged, and{" "}
           {client.showPortalCosts !== false ? "billing totals" : "activity only (costs hidden)"}.
         </div>
         {!portalConfig ? (
-          <button onClick={onGeneratePortal} disabled={portalLoading} className="inline-flex items-center gap-2 px-4 py-2 text-[13px] bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all disabled:opacity-60" style={{ fontWeight: 500 }}>
+          <button onClick={onGeneratePortal} disabled={portalLoading} className="inline-flex items-center gap-2 px-4 py-2 text-[12px] bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all disabled:opacity-60" style={{ fontWeight: 600 }}>
             {portalLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Link2 className="w-3.5 h-3.5" />}
             Generate portal link
           </button>
@@ -1881,23 +1894,25 @@ function SettingsTab({ client, clientId, confirmArchive, setConfirmArchive, onAr
 
   return (
     <>
-      <SectionCard>
+      <SectionCard accent>
         <div className="flex items-center justify-between">
           <div>
-            <div className="text-[15px] mb-1" style={{ fontWeight: 600 }}>Edit client</div>
-            <div className="text-[13px] text-muted-foreground">Update identity, financial terms, flags, custom fields, and branding</div>
+            <div className="text-[14px] mb-1" style={{ fontWeight: 600 }}>Edit client</div>
+            <div className="text-[12px] text-muted-foreground">Update identity, financial terms, flags, custom fields, and branding</div>
           </div>
-          <button onClick={onNavigateEdit} className="px-4 py-2 text-[13px] bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all" style={{ fontWeight: 500 }}>
+          <button onClick={onNavigateEdit} className="px-4 py-2 text-[12px] bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all" style={{ fontWeight: 600 }}>
             Edit client
           </button>
         </div>
       </SectionCard>
 
-      <SectionCard className="border-[rgba(194,114,114,0.3)]">
-        <div className="flex items-center gap-2 mb-4">
-          <AlertTriangle className="w-4 h-4 text-[#c27272]" />
-          <div className="text-[15px]" style={{ fontWeight: 600 }}>Danger zone</div>
-        </div>
+      <SectionCard className="border-destructive/20">
+        <SectionHeader>
+          <span className="flex items-center gap-2">
+            <AlertTriangle className="w-3.5 h-3.5 text-destructive/60" />
+            Danger zone
+          </span>
+        </SectionHeader>
 
         {/* Archive */}
         {!isArchived && (
