@@ -1496,7 +1496,6 @@ function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (
       </SectionCard>
     </>
   );
-  );
 }
 
 // ═══════════════════════════════════════════════════════════════════
