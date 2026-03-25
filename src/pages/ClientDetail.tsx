@@ -1245,45 +1245,42 @@ function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (
   return (
     <>
       {/* Standard Client Details */}
-      <div className="bg-card border border-border rounded-xl overflow-hidden" style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.03)" }}>
-        <div className="h-0.5 bg-gradient-to-r from-primary/40 to-transparent" />
-        <div className="p-5 md:p-6">
-          <div className="text-[13px] text-muted-foreground mb-5" style={{ fontWeight: 600 }}>Client Details</div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {visibleStandardFields.map((field) => {
-              const val = (client as any)[field.key];
-              const displayVal = field.key === 'rate' && val !== undefined && val !== '' && val !== null ? `$${val}` : val;
-              return (
-                <div key={field.key} className="p-3.5 rounded-lg bg-accent/20 border border-border/50">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <field.icon className="w-3 h-3 text-muted-foreground/50" />
-                    <div className="text-[11px] text-muted-foreground uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.05em' }}>{field.label}</div>
-                  </div>
-                  {field.key === 'rate' ? (
-                    renderEditableField(
-                      `std-${field.key}`,
-                      { type: 'text', label: field.label },
-                      val ?? '',
-                      (v) => saveStandardField(field.key, parseFloat(v) || 0),
-                    )
-                  ) : (
-                    renderEditableField(
-                      `std-${field.key}`,
-                      { type: field.type, label: field.label, options: field.options },
-                      val ?? '',
-                      (v) => saveStandardField(field.key, v || null),
-                    )
-                  )}
+      <SectionCard accent>
+        <SectionHeader>Client Details</SectionHeader>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {visibleStandardFields.map((field) => {
+            const val = (client as any)[field.key];
+            const displayVal = field.key === 'rate' && val !== undefined && val !== '' && val !== null ? `$${val}` : val;
+            return (
+              <div key={field.key} className="p-3.5 rounded-xl bg-accent/20 border border-border/40">
+                <div className="flex items-center gap-1.5 mb-2">
+                  <field.icon className="w-3 h-3 text-muted-foreground/40" />
+                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>{field.label}</div>
                 </div>
-              );
-            })}
-          </div>
+                {field.key === 'rate' ? (
+                  renderEditableField(
+                    `std-${field.key}`,
+                    { type: 'text', label: field.label },
+                    val ?? '',
+                    (v) => saveStandardField(field.key, parseFloat(v) || 0),
+                  )
+                ) : (
+                  renderEditableField(
+                    `std-${field.key}`,
+                    { type: field.type, label: field.label, options: field.options },
+                    val ?? '',
+                    (v) => saveStandardField(field.key, v || null),
+                  )
+                )}
+              </div>
+            );
+          })}
         </div>
-      </div>
+      </SectionCard>
 
       {/* Shared links — interactive */}
       <SectionCard>
-        <div className="text-[13px] text-muted-foreground mb-4" style={{ fontWeight: 600 }}>Shared Links</div>
+        <SectionHeader>Shared Links</SectionHeader>
         {(() => {
           const LINK_TYPES = [
             { value: "google-drive", label: "Google Drive", icon: "📁" },
@@ -1367,18 +1364,18 @@ function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (
 
       {/* Workspace custom fields — inline editable */}
       {wsSchemas.length > 0 && (
-        <div className="bg-card border border-border rounded-xl overflow-hidden" style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.03)" }}>
-          <div className="h-0.5 bg-gradient-to-r from-primary/40 to-transparent" />
-          <div className="p-5 md:p-6">
-            <div className="flex items-center gap-2 mb-5">
-              <Globe className="w-3.5 h-3.5 text-muted-foreground/50" />
-              <div className="text-[13px] text-muted-foreground" style={{ fontWeight: 600 }}>Workspace Fields</div>
-              <span className="text-[10px] text-muted-foreground/60 bg-accent/60 px-1.5 py-0.5 rounded" style={{ fontWeight: 500 }}>Shared</span>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {wsSchemas.filter(s => s.label).map((schema: any) => (
-                <div key={schema.id} className="p-3.5 rounded-lg bg-accent/20 border border-border/50">
-                  <div className="text-[11px] text-muted-foreground mb-1.5 uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.05em' }}>{schema.label}</div>
+        <SectionCard accent>
+          <SectionHeader>
+            <span className="flex items-center gap-2">
+              <Globe className="w-3.5 h-3.5 text-muted-foreground/40" />
+              Workspace Fields
+              <span className="text-[10px] text-muted-foreground/60 bg-accent/60 px-1.5 py-0.5 rounded-md ml-1" style={{ fontWeight: 500 }}>Shared</span>
+            </span>
+          </SectionHeader>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {wsSchemas.filter(s => s.label).map((schema: any) => (
+              <div key={schema.id} className="p-3.5 rounded-xl bg-accent/20 border border-border/40">
+                <div className="text-[10px] text-muted-foreground mb-2 uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>{schema.label}</div>
                   {renderEditableField(
                     `ws-${schema.id}`,
                     schema,
@@ -1388,26 +1385,22 @@ function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (
                   )}
                 </div>
               ))}
-            </div>
           </div>
-        </div>
+        </SectionCard>
       )}
 
-      {/* Client-specific custom fields — inline editable + add new */}
-      <div className="bg-card border border-border rounded-xl overflow-hidden" style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.03)" }}>
-        <div className="h-0.5 bg-gradient-to-r from-warning/40 to-transparent" />
-        <div className="p-5 md:p-6">
-          <div className="flex items-center justify-between mb-5">
-            <div className="text-[13px] text-muted-foreground" style={{ fontWeight: 600 }}>Client-Specific Fields</div>
-            <button
-              onClick={() => setShowAddField(!showAddField)}
-              className="inline-flex items-center gap-1 px-2.5 py-1 text-[12px] text-primary bg-primary/[0.06] border border-primary/10 rounded-lg hover:bg-primary/10 transition-colors"
-              style={{ fontWeight: 500 }}
-            >
-              {showAddField ? <X className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
-              {showAddField ? 'Cancel' : 'Add field'}
-            </button>
-          </div>
+      {/* Client-specific custom fields */}
+      <SectionCard accent>
+        <SectionHeader action={
+          <button
+            onClick={() => setShowAddField(!showAddField)}
+            className="inline-flex items-center gap-1 px-2.5 py-1 text-[12px] text-primary bg-primary/[0.06] border border-primary/10 rounded-xl hover:bg-primary/10 transition-colors"
+            style={{ fontWeight: 500 }}
+          >
+            {showAddField ? <X className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
+            {showAddField ? 'Cancel' : 'Add field'}
+          </button>
+        }>Client-Specific Fields</SectionHeader>
 
           {/* Add new field form */}
           <AnimatePresence>
