@@ -77,11 +77,11 @@ export default {
         },
       },
       borderRadius: {
-        "3xl": "6px",
-        "2xl": "6px",
-        xl: "5px",
-        lg: "4px",
-        md: "3px",
+        "3xl": "4px",
+        "2xl": "4px",
+        xl: "3px",
+        lg: "3px",
+        md: "2px",
         sm: "2px",
       },
       boxShadow: {
