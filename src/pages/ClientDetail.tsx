@@ -1758,23 +1758,25 @@ function RetainerTab({ client, workspaceId, sentThresholds, setSentThresholds, r
 // ═══════════════════════════════════════════════════════════════════
 function FilesTab({ files, uploading, fileInputRef, onUpload, onDelete, onDrop, formatFileSize }: any) {
   return (
-    <SectionCard>
-      <div className="text-[15px] mb-5" style={{ fontWeight: 600 }}>Files <span className="text-muted-foreground text-[13px] ml-1.5">({files.length})</span></div>
+    <SectionCard accent>
+      <SectionHeader>Files <span className="text-muted-foreground/60 ml-1">({files.length})</span></SectionHeader>
       {files.length > 0 && (
-        <div className="space-y-2 mb-4">
+        <div className="space-y-1 mb-4">
           {files.map((f: any) => (
-            <div key={f.name} className="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-accent/30 transition-colors group">
-              <FileText className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+            <div key={f.name} className="flex items-center gap-3 py-3 px-3.5 rounded-xl hover:bg-accent/30 transition-colors group border border-transparent hover:border-border/40">
+              <div className="w-9 h-9 rounded-xl bg-accent/50 flex items-center justify-center flex-shrink-0">
+                <FileText className="w-4 h-4 text-muted-foreground/60" />
+              </div>
               <div className="flex-1 min-w-0">
-                <div className="text-[13px] truncate" style={{ fontWeight: 500 }}>{f.name.replace(/^\d+-/, "")}</div>
-                <div className="text-[11px] text-muted-foreground">{formatFileSize(f.size)}</div>
+                <div className="text-[13px] truncate" style={{ fontWeight: 600 }}>{f.name.replace(/^\d+-/, "")}</div>
+                <div className="text-[11px] text-muted-foreground/60">{formatFileSize(f.size)}</div>
               </div>
               {f.url && (
-                <a href={f.url} target="_blank" rel="noopener noreferrer" className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-accent/60 text-muted-foreground transition-all">
+                <a href={f.url} target="_blank" rel="noopener noreferrer" className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-accent/60 text-muted-foreground transition-all">
                   <Download className="w-3.5 h-3.5" />
                 </a>
               )}
-              <button onClick={() => onDelete(f.name)} className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-accent/60 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all">
+              <button onClick={() => onDelete(f.name)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-accent/60 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all">
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -1785,10 +1787,14 @@ function FilesTab({ files, uploading, fileInputRef, onUpload, onDelete, onDrop, 
         onDragOver={(e) => e.preventDefault()}
         onDrop={onDrop}
         onClick={() => fileInputRef.current?.click()}
-        className="border border-dashed border-border rounded-lg p-10 flex flex-col items-center gap-2 hover:bg-accent/30 transition-colors cursor-pointer"
+        className="border-2 border-dashed border-border/60 rounded-2xl p-10 flex flex-col items-center gap-2.5 hover:bg-accent/20 hover:border-primary/20 transition-all cursor-pointer"
       >
-        {uploading ? <Loader2 className="w-5 h-5 text-muted-foreground animate-spin" /> : <Upload className="w-5 h-5 text-muted-foreground" />}
-        <span className="text-[13px] text-muted-foreground" style={{ fontWeight: 500 }}>{uploading ? "Uploading..." : "Drop files here or click to upload"}</span>
+        {uploading ? <Loader2 className="w-5 h-5 text-muted-foreground animate-spin" /> : (
+          <div className="w-10 h-10 rounded-2xl bg-accent/50 flex items-center justify-center">
+            <Upload className="w-4 h-4 text-muted-foreground/60" />
+          </div>
+        )}
+        <span className="text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>{uploading ? "Uploading..." : "Drop files here or click to upload"}</span>
       </div>
       <input ref={fileInputRef} type="file" className="hidden" onChange={(e) => { if (e.target.files?.[0]) onUpload(e.target.files[0]); }} />
     </SectionCard>
