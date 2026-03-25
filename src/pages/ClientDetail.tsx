@@ -1894,13 +1894,13 @@ function SettingsTab({ client, clientId, confirmArchive, setConfirmArchive, onAr
 
   return (
     <>
-      <SectionCard>
+      <SectionCard accent>
         <div className="flex items-center justify-between">
           <div>
-            <div className="text-[15px] mb-1" style={{ fontWeight: 600 }}>Edit client</div>
-            <div className="text-[13px] text-muted-foreground">Update identity, financial terms, flags, custom fields, and branding</div>
+            <div className="text-[14px] mb-1" style={{ fontWeight: 600 }}>Edit client</div>
+            <div className="text-[12px] text-muted-foreground">Update identity, financial terms, flags, custom fields, and branding</div>
           </div>
-          <button onClick={onNavigateEdit} className="px-4 py-2 text-[13px] bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all" style={{ fontWeight: 500 }}>
+          <button onClick={onNavigateEdit} className="px-4 py-2 text-[12px] bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all" style={{ fontWeight: 600 }}>
             Edit client
           </button>
         </div>
