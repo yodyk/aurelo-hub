@@ -538,7 +538,7 @@ select {
 }
 
 .legal-content a {
-  color: #5ea1bf;
+  color: var(--primary);
   text-decoration: none;
   transition: color 0.15s;
 }
