@@ -156,7 +156,7 @@ export default function Clients() {
                       </div>
                     </div>
                     <div
-                      className={`flex items-center gap-1.5 px-2 py-0.5 ${statusColors[client.status]?.bg || "bg-zinc-100"} ${statusColors[client.status]?.text || "text-zinc-500"} text-[11px] rounded-full`}
+                      className={`status-badge ${statusColors[client.status]?.bg || "bg-muted"} ${statusColors[client.status]?.text || "text-muted-foreground"}`}
                       style={{ fontWeight: 500 }}
                     >
                       <div
