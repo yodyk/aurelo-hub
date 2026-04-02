@@ -876,8 +876,8 @@ export default function Home() {
           <div className="relative rounded-xl overflow-hidden border border-border/60">
             <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-border/50">
               <div className="px-7 py-6">
-                <div className="text-[11px] text-muted-foreground mb-4" style={{ fontWeight: 600, letterSpacing: "0.06em" }}>
-                  HOURS THIS MONTH
+                <div className="text-[12px] text-muted-foreground mb-3" style={{ fontWeight: 500 }}>
+                  Hours this month
                 </div>
                 <div className="flex items-baseline gap-1.5 mb-1.5">
                   <span className="text-[36px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600 }}>
