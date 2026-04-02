@@ -333,7 +333,7 @@ export default function ClientDetail() {
 
   if (!client) {
     return (
-      <div className="w-full min-w-0 max-w-7xl mx-auto px-6 lg:px-12 py-12">
+      <div className="w-full min-w-0 px-6 lg:px-12 py-12">
         <div className="text-center text-muted-foreground py-24">
           <div className="text-[48px] mb-4">?</div>
           <div className="text-[16px]" style={{ fontWeight: 500 }}>Client not found</div>
