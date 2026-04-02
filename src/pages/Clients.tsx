@@ -96,7 +96,7 @@ export default function Clients() {
           <button
             onClick={handleAddClientClick}
             className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-[14px] rounded-lg hover:bg-primary/90 transition-all duration-200"
-            style={{ fontWeight: 500, boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
+            style={{ fontWeight: 500 }}
           >
             <Plus className="w-4 h-4" />
             Add client
