@@ -238,7 +238,7 @@ export default function Clients() {
               <Link
                 key={client.id}
                 to={`/clients/${client.id}`}
-                className="block bg-card border border-border rounded-xl p-6 opacity-60 hover:opacity-90 transition-all duration-300 group hover:shadow-[0_2px_8px_rgba(0,0,0,0.04)]"
+                className="block bg-card border border-border rounded-xl p-6 opacity-60 hover:opacity-90 transition-all duration-300 group hover:shadow-card"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
