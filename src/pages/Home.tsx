@@ -666,13 +666,19 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Bar Chart — compact, like the reference */}
+              {/* Chart toggle + bar chart */}
               <div>
-                <div className="text-[12px] text-muted-foreground mb-3" style={{ fontWeight: 500 }}>6-month trend</div>
-                <div className="w-full overflow-hidden" style={{ height: 80 }}>
-                  <ResponsiveContainer width="100%" height={80}>
-                    <BarChart data={chartData} margin={{ top: 4, right: 0, bottom: 0, left: 0 }} barCategoryGap="20%">
-                      <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: "var(--muted-foreground)", fontSize: 10, fontWeight: 500 }} dy={4} interval={0} />
+                <div className="inline-flex gap-0 bg-accent/60 rounded p-0.5 mb-3">
+                  {([{ key: "daily" as const, label: "Past 30 Days" }, { key: "monthly" as const, label: "Past 12 Months" }]).map((m) => (
+                    <button key={m.key} onClick={() => setChartRange(m.key)} className={`px-3 py-1 text-[11px] rounded transition-all duration-200 ${chartRange === m.key ? "bg-card text-foreground" : "text-muted-foreground hover:text-foreground"}`} style={{ fontWeight: 500, boxShadow: chartRange === m.key ? "0 1px 3px rgba(0,0,0,0.04)" : "none" }}>
+                      {m.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="w-full overflow-hidden" style={{ height: 140 }}>
+                  <ResponsiveContainer width="100%" height={140}>
+                    <BarChart data={chartData} margin={{ top: 4, right: 0, bottom: 0, left: 0 }} barCategoryGap={chartRange === "daily" ? "15%" : "20%"}>
+                      <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: "var(--muted-foreground)", fontSize: 10, fontWeight: 500 }} dy={4} interval={chartRange === "daily" ? 4 : 0} />
                       <YAxis hide domain={[0, maxChartValue * 1.1]} />
                       <Tooltip
                         cursor={false}
@@ -682,18 +688,18 @@ export default function Home() {
                           if (!d) return null;
                           return (
                             <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 4, padding: "6px 10px", boxShadow: "0 4px 12px rgba(0,0,0,0.08)", fontSize: 12, color: "var(--foreground)" }}>
-                              <div style={{ fontWeight: 600, marginBottom: 2 }}>{label}</div>
+                              <div style={{ fontWeight: 600, marginBottom: 2 }}>{chartRange === "daily" ? `Day ${label}` : label}</div>
                               <div className="flex justify-between gap-4"><span className="text-muted-foreground">Gross</span><span className="tabular-nums" style={{ fontWeight: 500 }}>${d.gross?.toLocaleString()}</span></div>
                               <div className="flex justify-between gap-4"><span className="text-muted-foreground">Net</span><span className="tabular-nums" style={{ fontWeight: 500 }}>${d.net?.toLocaleString()}</span></div>
                             </div>
                           );
                         }}
                       />
-                      <Bar dataKey="value" radius={[2, 2, 0, 0]} maxBarSize={24}>
+                      <Bar dataKey="value" radius={[2, 2, 0, 0]} maxBarSize={chartRange === "daily" ? 12 : 24}>
                         {chartData.map((entry, index) => (
                           <Cell
                             key={index}
-                            fill={index === chartData.length - 1 ? "var(--primary)" : "var(--primary)"}
+                            fill="var(--primary)"
                             opacity={index === chartData.length - 1 ? 0.85 : 0.35}
                           />
                         ))}
