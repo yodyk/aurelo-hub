@@ -74,22 +74,22 @@
   --input: transparent;
   --input-background: #2a2a29;
   --switch-background: #57534e;
-  --ring: #5ea1bf;
+  --ring: #5bb8d4;
   --font-weight-medium: 500;
   --font-weight-normal: 400;
-  --chart-1: #5ea1bf;
-  --chart-2: #7fb8d1;
-  --chart-3: #a8a29e;
+  --chart-1: #5bb8d4;
+  --chart-2: #7fc8df;
+  --chart-3: #b5b0aa;
   --chart-4: #78716c;
   --chart-5: #57534e;
   --sidebar: #1a1a19;
   --sidebar-foreground: #e7e5e4;
-  --sidebar-primary: #5ea1bf;
-  --sidebar-primary-foreground: #ffffff;
+  --sidebar-primary: #5bb8d4;
+  --sidebar-primary-foreground: #0a1e26;
   --sidebar-accent: #2a2a29;
   --sidebar-accent-foreground: #e7e5e4;
   --sidebar-border: rgba(255, 255, 255, 0.06);
-  --sidebar-ring: #5ea1bf;
+  --sidebar-ring: #5bb8d4;
 }
 
 @theme inline {
