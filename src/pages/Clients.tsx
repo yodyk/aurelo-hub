@@ -157,7 +157,6 @@ export default function Clients() {
                     </div>
                     <div
                       className={`status-badge ${statusColors[client.status]?.bg || "bg-muted"} ${statusColors[client.status]?.text || "text-muted-foreground"}`}
-                      style={{ fontWeight: 500 }}
                     >
                       <div
                         className={`w-1.5 h-1.5 rounded-full ${statusColors[client.status]?.dot || "bg-zinc-400"}`}
