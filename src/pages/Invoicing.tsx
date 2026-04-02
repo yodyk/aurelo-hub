@@ -56,13 +56,13 @@ const item = {
 };
 
 const STATUS_CONFIG: Record<InvoiceStatus, { label: string; color: string; bg: string; icon: any }> = {
-  draft: { label: "Draft", color: "#78716c", bg: "bg-stone-100 dark:bg-stone-800", icon: FileText },
-  sent: { label: "Sent", color: GOLD, bg: "bg-[#bfa044]/10", icon: Send },
-  paid: { label: "Paid", color: BLUE, bg: "bg-[#5ea1bf]/10", icon: CheckCircle2 },
-  overdue: { label: "Overdue", color: RED, bg: "bg-[#c27272]/10", icon: AlertCircle },
-  voided: { label: "Voided", color: "#a8a29e", bg: "bg-stone-100 dark:bg-stone-800", icon: Ban },
-  cancelled: { label: "Cancelled", color: "#a8a29e", bg: "bg-stone-100 dark:bg-stone-800", icon: X },
-  archived: { label: "Archived", color: "#a8a29e", bg: "bg-stone-100 dark:bg-stone-800", icon: Archive },
+  draft: { label: "Draft", color: "#78716c", bg: "bg-muted", icon: FileText },
+  sent: { label: "Sent", color: GOLD, bg: "bg-warning/10", icon: Send },
+  paid: { label: "Paid", color: BLUE, bg: "bg-primary/10", icon: CheckCircle2 },
+  overdue: { label: "Overdue", color: RED, bg: "bg-destructive/10", icon: AlertCircle },
+  voided: { label: "Voided", color: "#a8a29e", bg: "bg-muted", icon: Ban },
+  cancelled: { label: "Cancelled", color: "#a8a29e", bg: "bg-muted", icon: X },
+  archived: { label: "Archived", color: "#a8a29e", bg: "bg-muted", icon: Archive },
 };
 
 // ── Helpers ────────────────────────────────────────────────────────
