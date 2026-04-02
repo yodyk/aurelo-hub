@@ -363,6 +363,67 @@
   .status-archived {
     @apply bg-muted text-muted-foreground;
   }
+
+  /* ── Standardized card shadow ── */
+  .shadow-card {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  }
+  .shadow-card-hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.03);
+  }
+  .shadow-elevated {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+
+  /* ── Standardized stat/metric card ── */
+  .stat-card {
+    @apply bg-card border border-border rounded-xl p-5 transition-all duration-200;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  }
+  .stat-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.03);
+  }
+
+  /* ── Status dot + label pattern ── */
+  .status-badge {
+    @apply inline-flex items-center gap-1.5 px-2 py-0.5 text-[11px] rounded-md;
+    font-weight: 600;
+  }
+
+  /* ── Page header pattern ── */
+  .page-header {
+    @apply text-[20px] md:text-[24px] tracking-tight;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .page-subtitle {
+    @apply text-[14px] text-muted-foreground mt-0.5;
+  }
+
+  /* ── Primary CTA button ── */
+  .btn-primary {
+    @apply inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-[13px] rounded-md transition-all duration-200;
+    font-weight: 500;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  }
+  .btn-primary:hover {
+    opacity: 0.92;
+  }
+
+  /* ── Secondary/outline button ── */
+  .btn-secondary {
+    @apply inline-flex items-center gap-2 px-3.5 py-2 text-[13px] border border-border rounded-md text-muted-foreground transition-all duration-200;
+    font-weight: 500;
+  }
+  .btn-secondary:hover {
+    @apply text-foreground bg-accent/40;
+  }
+
+  /* ── Page container standardized ── */
+  .page-wrapper {
+    @apply w-full min-w-0 max-w-7xl mx-auto px-6 lg:px-12 py-6 md:py-10;
+  }
 }
 
 /* ── Clean native selects ──────────────────────────────────────── */
