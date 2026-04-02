@@ -476,9 +476,9 @@ export default function Home() {
   // ══════════════════════════════════════════════════════════════════
 
   return (
-    <motion.div className="max-w-7xl mx-auto px-6 lg:px-12 py-8 md:py-14" variants={container} initial="hidden" animate="show">
+    <motion.div className="w-full min-w-0 px-6 lg:px-12 py-8 md:py-14" variants={container} initial="hidden" animate="show">
       {/* ── Greeting ── */}
-      <motion.div variants={item} className="mb-10">
+      <motion.div variants={item} className="mb-8">
         <h1 className="text-[28px] md:text-[32px] tracking-tight mb-1.5" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
           {getGreeting()}, {displayFirstName}
         </h1>
@@ -493,1141 +493,486 @@ export default function Home() {
 
       {/* ── Empty state ── */}
       {!dataLoading && !hasData && (
-        <motion.div
-          variants={item}
-          className="bg-card border border-primary/15 rounded-xl p-6 mb-10"
-        >
+        <motion.div variants={item} className="bg-card border border-primary/15 rounded-xl p-6 mb-8">
           <div className="flex items-center gap-3">
             <Sparkles className="w-5 h-5 text-primary flex-shrink-0" />
             <div>
-              <div className="text-[15px] mb-1" style={{ fontWeight: 600 }}>
-                Your workspace is empty
-              </div>
-              <div className="text-[13px] text-muted-foreground">
-                Add your first client to get started — head to the Clients page to begin.
-              </div>
+              <div className="text-[15px] mb-1" style={{ fontWeight: 600 }}>Your workspace is empty</div>
+              <div className="text-[13px] text-muted-foreground">Add your first client to get started — head to the Clients page to begin.</div>
             </div>
           </div>
         </motion.div>
       )}
 
       {/* ══════════════════════════════════════════════════════════════ */}
-      {/* HERO PANEL — financial data, hidden for Members              */}
+      {/* TWO-COLUMN LAYOUT: 60/40                                      */}
+      {/* Left: Earnings hero + chart  |  Right: Activity/Clients tabs  */}
       {/* ══════════════════════════════════════════════════════════════ */}
-      {canViewFinancials ? (
-      <motion.div
-        variants={item}
-        className="bg-card border border-border rounded-xl p-6 md:p-8 mb-10 relative overflow-hidden shadow-card"
-      >
-        <div className="absolute top-0 right-0 w-72 h-72 bg-gradient-to-bl from-primary/[0.03] to-transparent rounded-bl-full pointer-events-none" />
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 mb-8">
+        {/* ── LEFT COLUMN (3/5 = 60%) ── */}
+        <div className="lg:col-span-3 space-y-6">
+          {/* Hero panel — financial */}
+          {canViewFinancials ? (
+            <motion.div variants={item} className="bg-card border border-border rounded-xl p-6 md:p-8 relative overflow-hidden shadow-card">
+              <div className="absolute top-0 right-0 w-72 h-72 bg-gradient-to-bl from-primary/[0.03] to-transparent rounded-bl-full pointer-events-none" />
 
-        {/* Headline */}
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-8 relative">
-          <div>
-            <div
-              className="text-[13px] text-muted-foreground mb-3 flex items-center gap-2"
-              style={{ fontWeight: 500, letterSpacing: "0.02em" }}
-            >
-              Earnings this month
-              {hasData && (
-                <span
-                  className="inline-flex items-center gap-1 text-[12px] px-2 py-0.5 rounded-full"
-                  style={{ fontWeight: 500, backgroundColor: isUp ? BLUE_BG : RED_BG, color: isUp ? BLUE : RED }}
-                >
-                  {isUp ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-                  {monthChange}%
-                </span>
-              )}
-            </div>
-            <div className="text-[40px] md:text-[56px] leading-none tracking-tighter text-foreground mb-2" style={{ fontWeight: 700 }}>
-              $<AnimatedNumber value={currentEarnings} />
-            </div>
-            <div className="text-[14px] text-muted-foreground">
-              {hasData ? (
-                <>
-                  On pace for{" "}
-                  <span className="text-foreground" style={{ fontWeight: 500 }}>
-                    ${projectedDisplay.toLocaleString()}
-                  </span>
-                  {lastMonthEarnings > 0 && (
-                    <>
-                      <span className="mx-1.5">&mdash;</span>
-                      <span style={{ color: isUp ? BLUE : RED }}>
-                        {paceDirection} last month by {monthChange}%
+              {/* Headline */}
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6 relative">
+                <div>
+                  <div className="text-[13px] text-muted-foreground mb-3 flex items-center gap-2" style={{ fontWeight: 500, letterSpacing: "0.02em" }}>
+                    Earnings this month
+                    {hasData && (
+                      <span className="inline-flex items-center gap-1 text-[12px] px-2 py-0.5 rounded-full" style={{ fontWeight: 500, backgroundColor: isUp ? BLUE_BG : RED_BG, color: isUp ? BLUE : RED }}>
+                        {isUp ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+                        {monthChange}%
                       </span>
-                    </>
-                  )}
-                </>
-              ) : (
-                "Log sessions to see your pulse"
-              )}
-            </div>
-          </div>
-        <div className="inline-flex gap-0 bg-accent/60 rounded-lg p-0.5 self-start w-fit">
-            {([{ key: "gross" as const, label: "Gross" }, { key: "net" as const, label: "Net" }]).map((m) => (
-              <button
-                key={m.key}
-                onClick={() => setViewMode(m.key)}
-                className={`px-4 py-1.5 text-[13px] rounded-md transition-all duration-200 ${viewMode === m.key ? "bg-card text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-                style={{ fontWeight: 500, boxShadow: viewMode === m.key ? "0 1px 3px rgba(0,0,0,0.04)" : "none" }}
-                title={m.key === "gross" ? "Gross: total billed" : "Net: minus payment fees and estimated taxes"}
-              >
-                {m.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Expandable breakdowns */}
-        <div className="flex flex-col md:flex-row gap-3 mb-8">
-          <button
-            onClick={() => setFinancialOpen((o) => !o)}
-            className={`flex items-center justify-between md:inline-flex md:justify-start gap-1.5 px-3 py-1.5 text-[12px] rounded-lg border transition-all duration-200 ${financialOpen ? "bg-primary/8 border-primary/20 text-primary" : "border-border text-muted-foreground hover:text-foreground hover:bg-accent/40"}`}
-            style={{ fontWeight: 500 }}
-          >
-            Financial breakdown
-            <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${financialOpen ? "rotate-180" : ""}`} />
-          </button>
-          <button
-            onClick={() => setSourceOpen((o) => !o)}
-            className={`flex items-center justify-between md:inline-flex md:justify-start gap-1.5 px-3 py-1.5 text-[12px] rounded-lg border transition-all duration-200 ${sourceOpen ? "bg-primary/8 border-primary/20 text-primary" : "border-border text-muted-foreground hover:text-foreground hover:bg-accent/40"}`}
-            style={{ fontWeight: 500 }}
-          >
-            Source breakdown
-            <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${sourceOpen ? "rotate-180" : ""}`} />
-          </button>
-        </div>
-
-        <AnimatePresence>
-          {financialOpen && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="overflow-hidden"
-            >
-              <div className="bg-accent/30 rounded-lg p-4 mb-6 space-y-2.5">
-                <div className="text-[11px] text-muted-foreground mb-2">
-                  Based on your settings — <a href="/settings?tab=financial" className="text-primary hover:underline">adjust in Settings → Financial</a>
+                    )}
+                  </div>
+                  <div className="text-[40px] md:text-[52px] leading-none tracking-tighter text-foreground mb-2" style={{ fontWeight: 700 }}>
+                    $<AnimatedNumber value={currentEarnings} />
+                  </div>
+                  <div className="text-[14px] text-muted-foreground">
+                    {hasData ? (
+                      <>
+                        On pace for <span className="text-foreground" style={{ fontWeight: 500 }}>${projectedDisplay.toLocaleString()}</span>
+                        {lastMonthEarnings > 0 && (
+                          <><span className="mx-1.5">&mdash;</span><span style={{ color: isUp ? BLUE : RED }}>{paceDirection} last month by {monthChange}%</span></>
+                        )}
+                      </>
+                    ) : "Log sessions to see your pulse"}
+                  </div>
                 </div>
-                <div className="flex justify-between text-[13px]">
-                  <span className="text-muted-foreground">Gross earnings</span>
-                  <span className="tabular-nums" style={{ fontWeight: 500 }}>
-                    ${grossEarnings.toLocaleString()}
-                  </span>
-                </div>
-                <div className="flex justify-between text-[13px]">
-                  <span className="text-muted-foreground">
-                    Payment processing (Stripe) ({(financialDefaults.processingFeeRate * 100).toFixed(1)}%)
-                  </span>
-                  <span className="tabular-nums text-muted-foreground">
-                    &minus;${Math.round(processingFee).toLocaleString()}
-                  </span>
-                </div>
-                <div className="flex justify-between text-[13px]">
-                  <span className="text-muted-foreground">Tax estimate ({financialDefaults.taxRate * 100}%) <span className="text-muted-foreground/60">(your estimated tax rate)</span></span>
-                  <span className="tabular-nums text-muted-foreground">
-                    &minus;${Math.round(taxEstimate).toLocaleString()}
-                  </span>
-                </div>
-                <div className="border-t border-border pt-2 flex justify-between text-[13px]">
-                  <span style={{ fontWeight: 500 }}>After fees &amp; taxes</span>
-                  <span className="tabular-nums text-primary" style={{ fontWeight: 600 }}>
-                    ${Math.round(netEarnings).toLocaleString()}
-                  </span>
+                <div className="inline-flex gap-0 bg-accent/60 rounded-lg p-0.5 self-start w-fit">
+                  {([{ key: "gross" as const, label: "Gross" }, { key: "net" as const, label: "Net" }]).map((m) => (
+                    <button key={m.key} onClick={() => setViewMode(m.key)} className={`px-4 py-1.5 text-[13px] rounded-md transition-all duration-200 ${viewMode === m.key ? "bg-card text-foreground" : "text-muted-foreground hover:text-foreground"}`} style={{ fontWeight: 500, boxShadow: viewMode === m.key ? "0 1px 3px rgba(0,0,0,0.04)" : "none" }} title={m.key === "gross" ? "Gross: total billed" : "Net: minus payment fees and estimated taxes"}>
+                      {m.label}
+                    </button>
+                  ))}
                 </div>
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
-        <AnimatePresence>
-          {sourceOpen && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="overflow-hidden"
-            >
-              <div className="bg-accent/30 rounded-lg p-4 mb-6 space-y-3">
-                {[
-                  { label: "Retainer", value: revenueBySource.retainer },
-                  { label: "Hourly", value: revenueBySource.hourly },
-                  { label: "Project", value: revenueBySource.project },
-                ]
-                  .filter((s) => s.value > 0)
-                  .map((source) => {
-                    const pct = grossEarnings > 0 ? Math.round((source.value / grossEarnings) * 100) : 0;
-                    return (
-                      <div key={source.label}>
-                        <div className="flex justify-between text-[13px] mb-1.5">
-                          <span className="text-muted-foreground">{source.label}</span>
-                          <div className="flex items-center gap-2">
-                            <span className="text-[12px] text-muted-foreground tabular-nums">{pct}%</span>
-                            <span className="tabular-nums" style={{ fontWeight: 500 }}>
-                              ${source.value.toLocaleString()}
-                            </span>
+              {/* Expandable breakdowns */}
+              <div className="flex flex-wrap gap-3 mb-6">
+                <button onClick={() => setFinancialOpen((o) => !o)} className={`flex items-center gap-1.5 px-3 py-1.5 text-[12px] rounded-lg border transition-all duration-200 ${financialOpen ? "bg-primary/8 border-primary/20 text-primary" : "border-border text-muted-foreground hover:text-foreground hover:bg-accent/40"}`} style={{ fontWeight: 500 }}>
+                  Financial breakdown <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${financialOpen ? "rotate-180" : ""}`} />
+                </button>
+                <button onClick={() => setSourceOpen((o) => !o)} className={`flex items-center gap-1.5 px-3 py-1.5 text-[12px] rounded-lg border transition-all duration-200 ${sourceOpen ? "bg-primary/8 border-primary/20 text-primary" : "border-border text-muted-foreground hover:text-foreground hover:bg-accent/40"}`} style={{ fontWeight: 500 }}>
+                  Source breakdown <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${sourceOpen ? "rotate-180" : ""}`} />
+                </button>
+              </div>
+
+              <AnimatePresence>
+                {financialOpen && (
+                  <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
+                    <div className="bg-accent/30 rounded-lg p-4 mb-6 space-y-2.5">
+                      <div className="text-[11px] text-muted-foreground mb-2">Based on your settings — <a href="/settings?tab=financial" className="text-primary hover:underline">adjust in Settings → Financial</a></div>
+                      <div className="flex justify-between text-[13px]"><span className="text-muted-foreground">Gross earnings</span><span className="tabular-nums" style={{ fontWeight: 500 }}>${grossEarnings.toLocaleString()}</span></div>
+                      <div className="flex justify-between text-[13px]"><span className="text-muted-foreground">Payment processing ({(financialDefaults.processingFeeRate * 100).toFixed(1)}%)</span><span className="tabular-nums text-muted-foreground">&minus;${Math.round(processingFee).toLocaleString()}</span></div>
+                      <div className="flex justify-between text-[13px]"><span className="text-muted-foreground">Tax estimate ({financialDefaults.taxRate * 100}%)</span><span className="tabular-nums text-muted-foreground">&minus;${Math.round(taxEstimate).toLocaleString()}</span></div>
+                      <div className="border-t border-border pt-2 flex justify-between text-[13px]"><span style={{ fontWeight: 500 }}>After fees &amp; taxes</span><span className="tabular-nums text-primary" style={{ fontWeight: 600 }}>${Math.round(netEarnings).toLocaleString()}</span></div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <AnimatePresence>
+                {sourceOpen && (
+                  <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
+                    <div className="bg-accent/30 rounded-lg p-4 mb-6 space-y-3">
+                      {[{ label: "Retainer", value: revenueBySource.retainer }, { label: "Hourly", value: revenueBySource.hourly }, { label: "Project", value: revenueBySource.project }].filter((s) => s.value > 0).map((source) => {
+                        const pct = grossEarnings > 0 ? Math.round((source.value / grossEarnings) * 100) : 0;
+                        return (
+                          <div key={source.label}>
+                            <div className="flex justify-between text-[13px] mb-1.5">
+                              <span className="text-muted-foreground">{source.label}</span>
+                              <div className="flex items-center gap-2"><span className="text-[12px] text-muted-foreground tabular-nums">{pct}%</span><span className="tabular-nums" style={{ fontWeight: 500 }}>${source.value.toLocaleString()}</span></div>
+                            </div>
+                            <div className="h-1.5 bg-accent/60 rounded-full overflow-hidden"><div className="h-full rounded-full bg-primary/40" style={{ width: `${pct}%` }} /></div>
                           </div>
-                        </div>
-                        <div className="h-1.5 bg-accent/60 rounded-full overflow-hidden">
-                          <div className="h-full rounded-full bg-primary/40" style={{ width: `${pct}%` }} />
-                        </div>
-                      </div>
-                    );
-                  })}
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Metrics strip */}
+              <div className="relative rounded-xl mb-6 overflow-hidden border border-border/60">
+                <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-border/50">
+                  <div className="px-5 py-4">
+                    <div className="text-[12px] text-muted-foreground mb-2" style={{ fontWeight: 500 }}>Time invested</div>
+                    <div className="flex items-baseline gap-1.5 mb-1">
+                      <span className="text-[28px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600 }}><AnimatedNumber value={Math.round(totalHoursThisMonth * 10) / 10} /></span>
+                      <span className="text-[13px] text-muted-foreground" style={{ fontWeight: 500 }}>hours</span>
+                    </div>
+                    <div className="text-[11px] text-muted-foreground"><span className="tabular-nums" style={{ fontWeight: 500 }}>{Math.round(billableHoursThisMonth * 10) / 10}h</span> billable<span className="mx-1 opacity-30">/</span><span className="tabular-nums" style={{ fontWeight: 500 }}>{Math.round((totalHoursThisMonth - billableHoursThisMonth) * 10) / 10}h</span> non-billable</div>
+                  </div>
+                  <div className="px-5 py-4">
+                    <div className="text-[12px] text-muted-foreground mb-2" style={{ fontWeight: 500 }}>Effective rate</div>
+                    <div className="flex items-baseline gap-1.5 mb-1">
+                      <span className="text-[28px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600, color: BLUE }}>$<AnimatedNumber value={Math.round(trueHourlyRate)} /></span>
+                      <span className="text-[13px] text-muted-foreground" style={{ fontWeight: 500 }}>/hr</span>
+                    </div>
+                    <div className="text-[11px] text-muted-foreground">Earnings ÷ all hours logged</div>
+                  </div>
+                  <div className="px-5 py-4">
+                    <div className="text-[12px] text-muted-foreground mb-2" style={{ fontWeight: 500 }}>Paid vs. unpaid</div>
+                    <div className="flex items-baseline gap-1.5 mb-1">
+                      <span className="text-[28px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600 }}><AnimatedNumber value={billablePercentage} /></span>
+                      <span className="text-[13px] text-muted-foreground" style={{ fontWeight: 500 }}>%</span>
+                    </div>
+                    <div className="text-[11px] text-muted-foreground"><span className="tabular-nums" style={{ fontWeight: 500 }}>{Math.round(billableHoursThisMonth * 10) / 10}h</span> of <span className="tabular-nums" style={{ fontWeight: 500 }}>{Math.round(totalHoursThisMonth * 10) / 10}h</span></div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Chart */}
+              <div data-tour="earnings-chart">
+                <div className="text-[13px] text-muted-foreground mb-4" style={{ fontWeight: 500 }}>6-month trend</div>
+                <div className="w-full" style={{ height: 160 }}>
+                  <ResponsiveContainer width="100%" height={160}>
+                    <AreaChart data={chartData} margin={{ top: 12, right: 16, bottom: 4, left: 16 }}>
+                      <defs>
+                        <linearGradient id="earningsGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#38bdf8" stopOpacity={0.24} />
+                          <stop offset="50%" stopColor="#38bdf8" stopOpacity={0.1} />
+                          <stop offset="100%" stopColor="#38bdf8" stopOpacity={0.02} />
+                        </linearGradient>
+                        <filter id="lineGlow" x="-10%" y="0%" width="120%" height="150%">
+                          <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur" />
+                          <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.22  0 0 0 0 0.74  0 0 0 0 0.97  0 0 0 0.30 0" result="colorBlur" />
+                          <feMerge><feMergeNode in="colorBlur" /><feMergeNode in="SourceGraphic" /></feMerge>
+                        </filter>
+                      </defs>
+                      <CartesianGrid vertical={true} horizontal={false} stroke="var(--border)" strokeOpacity={0.35} />
+                      <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: "#9a9aac", fontSize: 11, fontWeight: 500 }} dy={10} interval={0} />
+                      <YAxis hide domain={[0, "auto"]} />
+                      <Tooltip
+                        contentStyle={{ background: "var(--card, #fff)", border: "1px solid var(--border)", borderRadius: "8px", fontSize: "13px", boxShadow: "0 8px 24px rgba(0,0,0,0.08)", padding: "8px 14px", color: "var(--foreground)" }}
+                        content={({ active, payload, label }) => {
+                          if (!active || !payload?.length) return null;
+                          const d = payload[0]?.payload;
+                          if (!d) return null;
+                          return (
+                            <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, padding: "10px 14px", boxShadow: "0 8px 24px rgba(0,0,0,0.08)", fontSize: 13, color: "var(--foreground)" }}>
+                              <div style={{ fontWeight: 600, marginBottom: 4 }}>{label}</div>
+                              <div className="space-y-1 text-[12px]">
+                                <div className="flex justify-between gap-6"><span className="text-muted-foreground">Gross</span><span className="tabular-nums" style={{ fontWeight: 500 }}>${d.gross?.toLocaleString()}</span></div>
+                                <div className="flex justify-between gap-6"><span className="text-muted-foreground">Net</span><span className="tabular-nums" style={{ fontWeight: 500 }}>${d.net?.toLocaleString()}</span></div>
+                              </div>
+                            </div>
+                          );
+                        }}
+                      />
+                      <Area type="monotone" dataKey="value" stroke="#38bdf8" strokeWidth={2.5} fill="url(#earningsGradient)" filter="url(#lineGlow)" dot={false} activeDot={{ r: 4, fill: "#38bdf8", stroke: "#fff", strokeWidth: 2 }} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </motion.div>
+          ) : (
+            /* Member view — no financials */
+            <motion.div variants={item} className="bg-card border border-border rounded-xl p-6 shadow-card">
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <div className="text-[12px] text-muted-foreground mb-2" style={{ fontWeight: 500 }}>Hours this month</div>
+                  <div className="text-[28px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600 }}><AnimatedNumber value={Math.round(totalHoursThisMonth * 10) / 10} /></div>
+                </div>
+                <div>
+                  <div className="text-[12px] text-muted-foreground mb-2" style={{ fontWeight: 500 }}>This week</div>
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-[28px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600 }}><AnimatedNumber value={Math.round(weekHours * 10) / 10} /></span>
+                    <span className="text-[13px] text-muted-foreground" style={{ fontWeight: 500 }}>/ {weeklyTarget}h</span>
+                  </div>
+                  <div className="h-2 bg-accent/60 rounded-full overflow-hidden mt-3">
+                    <div className="h-full rounded-full bg-primary/50 transition-all duration-500" style={{ width: `${Math.min((weekHours / weeklyTarget) * 100, 100)}%` }} />
+                  </div>
+                </div>
               </div>
             </motion.div>
           )}
-        </AnimatePresence>
-
-        {/* Metrics strip */}
-        <div className="relative rounded-xl mb-8 overflow-hidden border border-border/60">
-        <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-border/50">
-            <div className="px-5 md:px-7 py-5 md:py-6">
-              <div
-                className="text-[12px] text-muted-foreground mb-3"
-                style={{ fontWeight: 500 }}
-              >
-                Time invested
-              </div>
-              <div className="flex items-baseline gap-1.5 mb-1.5">
-                <span className="text-[36px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600 }}>
-                  <AnimatedNumber value={Math.round(totalHoursThisMonth * 10) / 10} />
-                </span>
-                <span className="text-[14px] text-muted-foreground" style={{ fontWeight: 500 }}>
-                  hours
-                </span>
-              </div>
-              <div className="text-[12px] text-muted-foreground">
-                <span className="tabular-nums" style={{ fontWeight: 500 }}>
-                  {Math.round(billableHoursThisMonth * 10) / 10}h
-                </span>{" "}
-                billable
-                <span className="mx-1.5 opacity-30">/</span>
-                <span className="tabular-nums" style={{ fontWeight: 500 }}>
-                  {Math.round((totalHoursThisMonth - billableHoursThisMonth) * 10) / 10}h
-                </span>{" "}
-                non-billable
-              </div>
-            </div>
-            <div className="px-5 md:px-7 py-5 md:py-6">
-              <div
-                className="text-[12px] text-muted-foreground mb-3"
-                style={{ fontWeight: 500 }}
-              >
-                Effective rate
-              </div>
-              <div className="flex items-baseline gap-1.5 mb-1.5">
-                <span
-                  className="text-[36px] leading-none tracking-tight tabular-nums"
-                  style={{ fontWeight: 600, color: BLUE }}
-                >
-                  $<AnimatedNumber value={Math.round(trueHourlyRate)} />
-                </span>
-                <span className="text-[14px] text-muted-foreground" style={{ fontWeight: 500 }}>
-                  /hr
-                </span>
-              </div>
-              <div className="text-[12px] text-muted-foreground">
-                Your earnings divided by all hours — including unpaid time
-              </div>
-            </div>
-            <div className="px-5 md:px-7 py-5 md:py-6">
-              <div
-                className="text-[12px] text-muted-foreground mb-3"
-                style={{ fontWeight: 500 }}
-              >
-                Paid vs. unpaid time
-              </div>
-              <div className="flex items-baseline gap-1.5 mb-1.5">
-                <span className="text-[36px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600 }}>
-                  <AnimatedNumber value={billablePercentage} />
-                </span>
-                <span className="text-[14px] text-muted-foreground" style={{ fontWeight: 500 }}>
-                  %
-                </span>
-              </div>
-              <div className="text-[12px] text-muted-foreground">
-                <span className="tabular-nums" style={{ fontWeight: 500 }}>
-                  {Math.round(billableHoursThisMonth * 10) / 10}h
-                </span>{" "}
-                of
-                <span className="tabular-nums mx-1" style={{ fontWeight: 500 }}>
-                  {Math.round(totalHoursThisMonth * 10) / 10}h
-                </span>{" "}
-                total
-              </div>
-            </div>
-          </div>
         </div>
 
-        {/* Chart */}
-        <div data-tour="earnings-chart">
-          <div className="text-[13px] text-muted-foreground mb-4" style={{ fontWeight: 500 }}>
-            6-month trend
+        {/* ── RIGHT COLUMN (2/5 = 40%) ── */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Tab switcher for right column */}
+          <div className="flex items-center gap-1 border-b border-border">
+            {tabs.filter(t => t.id !== 'time').map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex items-center gap-2 px-3 py-2.5 text-[13px] transition-all duration-200 border-b-2 -mb-px whitespace-nowrap ${isActive ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"}`} style={{ fontWeight: isActive ? 600 : 500 }}>
+                  <Icon className="w-3.5 h-3.5" />
+                  {tab.label}
+                </button>
+              );
+            })}
           </div>
-          <div className="w-full" style={{ height: 180 }}>
-            <ResponsiveContainer width="100%" height={180}>
-              <AreaChart data={chartData} margin={{ top: 12, right: 16, bottom: 4, left: 16 }}>
-                <defs>
-                  {/* Fill gradient — richer fade */}
-                  <linearGradient id="earningsGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#38bdf8" stopOpacity={0.24} />
-                    <stop offset="50%" stopColor="#38bdf8" stopOpacity={0.1} />
-                    <stop offset="100%" stopColor="#38bdf8" stopOpacity={0.02} />
-                  </linearGradient>
-                  {/* Glow filter — tighter, downward-biased */}
-                  <filter id="lineGlow" x="-10%" y="0%" width="120%" height="150%">
-                    <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur" />
-                    <feColorMatrix
-                      in="blur"
-                      type="matrix"
-                      values="0 0 0 0 0.22  0 0 0 0 0.74  0 0 0 0 0.97  0 0 0 0.30 0"
-                      result="colorBlur"
-                    />
-                    <feMerge>
-                      <feMergeNode in="colorBlur" />
-                      <feMergeNode in="SourceGraphic" />
-                    </feMerge>
-                  </filter>
-                </defs>
-                <CartesianGrid vertical={true} horizontal={false} stroke="var(--border)" strokeOpacity={0.35} />
-                <XAxis
-                  dataKey="month"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: "#9a9aac", fontSize: 11, fontWeight: 500 }}
-                  dy={10}
-                  interval={0}
-                />
-                <YAxis hide domain={[0, "auto"]} />
-                <Tooltip
-                  contentStyle={{
-                    background: "var(--card, #fff)",
-                    border: "1px solid var(--border)",
-                    borderRadius: "8px",
-                    fontSize: "13px",
-                    boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
-                    padding: "8px 14px",
-                    color: "var(--foreground)",
-                  }}
-                  content={({ active, payload, label }) => {
-                    if (!active || !payload?.length) return null;
-                    const d = payload[0]?.payload;
-                    if (!d) return null;
-                    return (
-                      <div style={{
-                        background: "var(--card, #fff)",
-                        border: "1px solid var(--border)",
-                        borderRadius: "8px",
-                        fontSize: "13px",
-                        boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
-                        padding: "8px 14px",
-                        color: "var(--foreground)",
-                      }}>
-                        <p style={{ fontWeight: 600, marginBottom: 4 }}>{label}</p>
-                        <p style={{ color: "#38bdf8" }}>Gross: ${d.gross?.toLocaleString()}</p>
-                        <p style={{ color: "#0ea5e9" }}>Net: ${d.net?.toLocaleString()}</p>
+
+          {/* Tab content */}
+          <AnimatePresence mode="wait">
+            {/* ── ACTIVITY TAB ── */}
+            {activeTab === "activity" && (
+              <motion.div key="activity" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }} className="space-y-6">
+                {/* Signals */}
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Zap className="w-3.5 h-3.5 text-muted-foreground" />
+                    <span className="text-[13px] text-muted-foreground" style={{ fontWeight: 600, letterSpacing: "0.02em" }}>Heads up</span>
+                    {!hasFullInsights && <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] rounded-full bg-primary/10 text-primary" style={{ fontWeight: 600 }}>PRO</span>}
+                  </div>
+                  {!hasFullInsights ? (
+                    <div className="relative">
+                      <div className="absolute inset-0 z-10 backdrop-blur-[4px] bg-background/50 rounded-xl flex items-center justify-center">
+                        <button onClick={() => navigate("/settings?tab=billing")} className="flex items-center gap-1.5 px-3 py-2 text-[12px] rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-all" style={{ fontWeight: 500 }}><Sparkles className="w-3 h-3" />Upgrade for signals</button>
                       </div>
-                    );
-                  }}
-                  cursor={{ stroke: "#38bdf8", strokeWidth: 1, strokeOpacity: 0.3 }}
-                />
-                {/* Glow layer — thicker, filtered, no fill */}
-                <Area
-                  type="monotone"
-                  dataKey="value"
-                  stroke="#38bdf8"
-                  strokeWidth={5}
-                  strokeOpacity={0.12}
-                  fill="none"
-                  dot={false}
-                  activeDot={false}
-                  filter="url(#lineGlow)"
-                  baseValue={0}
-                  isAnimationActive={false}
-                />
-                {/* Main line + fill */}
-                <Area
-                  type="monotone"
-                  dataKey="value"
-                  stroke="#38bdf8"
-                  strokeWidth={2}
-                  strokeOpacity={0.85}
-                  fill="url(#earningsGradient)"
-                  dot={{ r: 2.5, fill: "#38bdf8", strokeWidth: 0 }}
-                  activeDot={{ r: 4.5, fill: "#38bdf8", strokeWidth: 0 }}
-                  baseValue={0}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
+                      <div className="bg-card border border-border rounded-xl p-6 text-center text-[13px] text-muted-foreground select-none pointer-events-none" style={{ minHeight: 100 }}>Predictive signals about your clients and revenue</div>
+                    </div>
+                  ) : forwardSignals.length > 0 ? (
+                    <div className="space-y-2">
+                      {forwardSignals.map((sig) => (
+                        <div key={sig.id} className="flex items-start gap-3 bg-card border border-border rounded-lg px-3 py-2.5 transition-all duration-200 cursor-pointer hover:bg-accent/30 group" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.02)", borderLeftWidth: "3px", borderLeftColor: sig.color }} onClick={() => sig.clientId && navigate(`/clients/${sig.clientId}`)}>
+                          <div className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5" style={{ backgroundColor: sig.bgColor }}><SignalIcon type={sig.type} color={sig.color} /></div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-[12px] leading-snug" style={{ fontWeight: 500 }}>{sig.signal}</div>
+                            <div className="text-[11px] text-muted-foreground mt-0.5">{sig.detail}</div>
+                          </div>
+                          {sig.clientId && <ChevronRight className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 mt-1" />}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="bg-card border border-border rounded-xl p-5 text-center text-[13px] text-muted-foreground">No signals to report — looking good.</div>
+                  )}
+                </div>
+
+                {/* Recent work */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2"><Clock className="w-3.5 h-3.5 text-muted-foreground" /><span className="text-[13px] text-muted-foreground" style={{ fontWeight: 600, letterSpacing: "0.02em" }}>Recent work</span></div>
+                    <button onClick={() => navigate("/time")} className="text-[12px] text-primary hover:text-primary/80 transition-colors flex items-center gap-1" style={{ fontWeight: 500 }}>View all <ArrowRight className="w-3 h-3" /></button>
+                  </div>
+                  <div className="bg-card border border-border rounded-xl overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.02)" }}>
+                    {activityFeed.length > 0 ? (
+                      activityFeed.slice(0, 3).map((group) => (
+                        <div key={group.date}>
+                          <div className="px-3 py-1.5 bg-accent/30 border-b border-border"><span className="text-[10px] text-muted-foreground" style={{ fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>{group.label}</span></div>
+                          {group.sessions.slice(0, 4).map((s: any) => (
+                            <div key={s.id} className="px-3 py-2.5 border-b border-border last:border-0 hover:bg-accent/20 transition-colors cursor-pointer flex items-center gap-3" onClick={() => navigate(`/clients/${s.clientId}`)}>
+                              <div className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0" style={{ backgroundColor: BLUE_BG }}><span className="text-[10px]" style={{ fontWeight: 600, color: BLUE }}>{(s.client || "?")[0]}</span></div>
+                              <div className="flex-1 min-w-0">
+                                <div className="text-[12px] truncate" style={{ fontWeight: 500 }}>{s.task || "Untitled"}</div>
+                                <div className="text-[11px] text-muted-foreground">{s.client}</div>
+                              </div>
+                              <div className="text-right flex-shrink-0">
+                                <div className="text-[12px] tabular-nums" style={{ fontWeight: 500 }}>{s.duration}h</div>
+                                {canViewFinancials && (s.revenue ?? 0) > 0 && <div className="text-[10px] text-muted-foreground tabular-nums">${s.revenue}</div>}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="px-4 py-8 text-center text-[13px] text-muted-foreground">No sessions logged yet</div>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* ── CLIENTS & REVENUE TAB ── */}
+            {activeTab === "clients" && (
+              <motion.div key="clients" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }} className="space-y-6">
+                {/* Revenue by client */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2"><TrendingUp className="w-3.5 h-3.5 text-muted-foreground" /><span className="text-[13px] text-muted-foreground" style={{ fontWeight: 600, letterSpacing: "0.02em" }}>Revenue by client</span></div>
+                    <button onClick={() => navigate("/clients")} className="text-[12px] text-primary hover:text-primary/80 transition-colors flex items-center gap-1" style={{ fontWeight: 500 }}>All clients <ArrowRight className="w-3 h-3" /></button>
+                  </div>
+                  <div className="bg-card border border-border rounded-xl overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.02)" }}>
+                    {clientRevenue.length > 0 ? (
+                      clientRevenue.slice(0, 5).map((cr, i) => {
+                        const maxRev = clientRevenue[0]?.revenue || 1;
+                        const barW = Math.max((cr.revenue / maxRev) * 100, 4);
+                        const share = grossEarnings > 0 ? Math.round((cr.revenue / grossEarnings) * 100) : 0;
+                        return (
+                          <div key={cr.id} className={`px-3 py-3 hover:bg-accent/20 transition-colors cursor-pointer ${i < Math.min(clientRevenue.length, 5) - 1 ? "border-b border-border" : ""}`} onClick={() => navigate(`/clients/${cr.id}`)}>
+                            <div className="flex items-center justify-between mb-1.5">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <div className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0" style={{ backgroundColor: BLUE_BG }}><span className="text-[10px]" style={{ fontWeight: 600, color: BLUE }}>{cr.name[0]}</span></div>
+                                <div className="min-w-0">
+                                  <div className="text-[12px] truncate" style={{ fontWeight: 500 }}>{cr.name}</div>
+                                  <div className="text-[10px] text-muted-foreground">{cr.hours}h · {cr.model || "Project"}</div>
+                                </div>
+                              </div>
+                              <div className="text-right flex-shrink-0 ml-2">
+                                <div className="text-[12px] tabular-nums" style={{ fontWeight: 600 }}>${cr.revenue.toLocaleString()}</div>
+                                <div className="text-[10px] text-muted-foreground tabular-nums">{share}%</div>
+                              </div>
+                            </div>
+                            <div className="h-1 bg-accent/50 rounded-full overflow-hidden"><div className="h-full rounded-full transition-all duration-500" style={{ width: `${barW}%`, backgroundColor: BLUE, opacity: 0.45 }} /></div>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <div className="px-4 py-8 text-center text-[13px] text-muted-foreground">No revenue data yet</div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Retainer health */}
+                <div>
+                  <div className="flex items-center gap-2 mb-3"><Timer className="w-3.5 h-3.5 text-muted-foreground" /><span className="text-[13px] text-muted-foreground" style={{ fontWeight: 600, letterSpacing: "0.02em" }}>Retainer health</span></div>
+                  {retainerHealth.length > 0 ? (
+                    <div className="bg-card border border-border rounded-xl divide-y divide-border" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.02)" }}>
+                      {retainerHealth.map((r) => {
+                        const ringColor = r.pct >= 90 ? RED : r.pct >= 70 ? GOLD : BLUE;
+                        const radius = 18;
+                        const circ = 2 * Math.PI * radius;
+                        const offset = circ - (r.pct / 100) * circ;
+                        return (
+                          <div key={r.id} className="px-3 py-3 flex items-center gap-3 cursor-pointer hover:bg-accent/20 transition-colors" onClick={() => navigate(`/clients/${r.id}`)}>
+                            <div className="relative flex-shrink-0" style={{ width: 44, height: 44 }}>
+                              <svg width="44" height="44" className="-rotate-90"><circle cx="22" cy="22" r={radius} fill="none" stroke="var(--accent)" strokeWidth="3.5" /><circle cx="22" cy="22" r={radius} fill="none" stroke={ringColor} strokeWidth="3.5" strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={offset} style={{ transition: "stroke-dashoffset 0.7s ease", opacity: 0.75 }} /></svg>
+                              <div className="absolute inset-0 flex items-center justify-center"><span className="text-[10px] tabular-nums" style={{ fontWeight: 700 }}>{r.pct}%</span></div>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-[12px]" style={{ fontWeight: 500 }}>{r.name}</div>
+                              <div className="text-[11px] text-muted-foreground mt-0.5"><span style={{ fontWeight: 500, color: ringColor }}>{r.remaining}h left</span> of {r.total}h</div>
+                            </div>
+                            <ChevronRight className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="bg-card border border-border rounded-xl p-5 text-center text-[13px] text-muted-foreground">No active retainers</div>
+                  )}
+                </div>
+
+                {/* Active projects */}
+                {activeProjects.length > 0 && (
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2"><FolderKanban className="w-3.5 h-3.5 text-muted-foreground" /><span className="text-[13px] text-muted-foreground" style={{ fontWeight: 600, letterSpacing: "0.02em" }}>Active projects</span></div>
+                      <button onClick={() => navigate("/projects")} className="text-[12px] text-primary hover:text-primary/80 transition-colors flex items-center gap-1" style={{ fontWeight: 500 }}>View all <ArrowRight className="w-3 h-3" /></button>
+                    </div>
+                    <div className="bg-card border border-border rounded-xl divide-y divide-border" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.02)" }}>
+                      {activeProjects.slice(0, 4).map((proj) => (
+                        <div key={`${proj.clientId}-${proj.id}`} className="px-3 py-2.5 hover:bg-accent/20 transition-colors cursor-pointer" onClick={() => navigate(`/clients/${proj.clientId}`)}>
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="min-w-0 flex-1"><div className="text-[12px] truncate" style={{ fontWeight: 500 }}>{proj.name}</div><div className="text-[10px] text-muted-foreground">{proj.clientName}</div></div>
+                            <div className="flex items-center gap-2 ml-2 flex-shrink-0">
+                              <span className="text-[11px] tabular-nums text-muted-foreground" style={{ fontWeight: 500 }}>{proj.completion}%</span>
+                              {proj.totalValue > 0 && proj.hours > 0 && (() => { const effRate = Math.round(proj.totalValue / proj.hours); const cl = clients.find(c => c.id === proj.clientId); const rateColor = cl && effRate < (cl.rate * 0.5) ? '#c27272' : cl && effRate < cl.rate ? '#bfa044' : '#2e7d9a'; return <span className="text-[10px] tabular-nums" style={{ fontWeight: 500, color: rateColor }}>· ${effRate}/hr</span>; })()}
+                            </div>
+                          </div>
+                          <div className="h-1 bg-accent/60 rounded-full overflow-hidden"><div className="h-full rounded-full transition-all duration-500" style={{ width: `${Math.min(proj.completion, 100)}%`, backgroundColor: proj.completion >= 90 ? GOLD : BLUE, opacity: 0.55 }} /></div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
-      </motion.div>
-      ) : (
-        /* Member-only: simplified hours panel */
-        <motion.div
-          variants={item}
-          className="bg-card border border-border rounded-xl p-8 mb-8 relative overflow-hidden"
-          style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.03), 0 1px 2px rgba(0,0,0,0.02)" }}
-        >
-          <div className="relative rounded-xl overflow-hidden border border-border/60">
-            <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-border/50">
-              <div className="px-7 py-6">
-                <div className="text-[12px] text-muted-foreground mb-3" style={{ fontWeight: 500 }}>
-                  Hours this month
-                </div>
-                <div className="flex items-baseline gap-1.5 mb-1.5">
-                  <span className="text-[36px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600 }}>
-                    <AnimatedNumber value={Math.round(totalHoursThisMonth * 10) / 10} />
-                  </span>
-                  <span className="text-[14px] text-muted-foreground" style={{ fontWeight: 500 }}>hours</span>
-                </div>
-                <div className="text-[12px] text-muted-foreground">
-                  <span className="tabular-nums" style={{ fontWeight: 500 }}>{Math.round(billableHoursThisMonth * 10) / 10}h</span> billable
-                  <span className="mx-1.5 opacity-30">/</span>
-                  <span className="tabular-nums" style={{ fontWeight: 500 }}>{Math.round((totalHoursThisMonth - billableHoursThisMonth) * 10) / 10}h</span> non-billable
-                </div>
-              </div>
-              <div className="px-7 py-6">
-                <div className="text-[12px] text-muted-foreground mb-3" style={{ fontWeight: 500 }}>
-                  Weekly progress
-                </div>
-                <div className="flex items-baseline gap-1.5 mb-1.5">
-                  <span className="text-[36px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600 }}>
-                    <AnimatedNumber value={Math.round(weekHours * 10) / 10} />
-                  </span>
-                  <span className="text-[14px] text-muted-foreground" style={{ fontWeight: 500 }}>/ {weeklyTarget}h</span>
-                </div>
-                <div className="h-2 bg-accent/60 rounded-full overflow-hidden mt-3">
-                  <div className="h-full rounded-full bg-primary/50 transition-all duration-500" style={{ width: `${Math.min((weekHours / weeklyTarget) * 100, 100)}%` }} />
-                </div>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      )}
+      </div>
 
       {/* Starter plan upgrade CTA */}
       <StarterUpgradeCTA />
 
       {/* ══════════════════════════════════════════════════════════════ */}
-      {/* TABBED SECTION                                                */}
+      {/* TIME & PACE — full width below                                */}
       {/* ══════════════════════════════════════════════════════════════ */}
       <motion.div variants={item}>
-        {/* Tab bar */}
-        <div className="flex items-center gap-1 mb-6 border-b border-border overflow-x-auto -mx-6 px-6 md:mx-0 md:px-0">
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2.5 text-[13px] transition-all duration-200 border-b-2 -mb-px whitespace-nowrap ${
-                  isActive
-                    ? "border-primary text-foreground"
-                    : "border-transparent text-muted-foreground hover:text-foreground"
-                }`}
-                style={{ fontWeight: isActive ? 600 : 500 }}
-              >
-                <Icon className="w-3.5 h-3.5" />
-                {tab.label}
-              </button>
-            );
-          })}
-
-          {/* Quick counts — right-aligned */}
+        <div className="flex items-center gap-1 mb-6 border-b border-border">
+          <button onClick={() => setActiveTab("time")} className={`flex items-center gap-2 px-4 py-2.5 text-[13px] transition-all duration-200 border-b-2 -mb-px whitespace-nowrap ${activeTab === "time" ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"}`} style={{ fontWeight: activeTab === "time" ? 600 : 500 }}>
+            <Clock className="w-3.5 h-3.5" /> Time & Pace
+          </button>
           {hasData && (
             <div className="ml-auto hidden md:flex items-center gap-4 pb-2">
-              <span className="text-[12px] text-muted-foreground">
-                <span style={{ fontWeight: 600 }} className="text-foreground">
-                  {clients.filter((c) => c.status === "Active").length}
-                </span>{" "}
-                active clients
-              </span>
-              <span className="text-[12px] text-muted-foreground">
-                <span style={{ fontWeight: 600 }} className="text-foreground">
-                  {allProjects.filter((p) => p.status === "In Progress").length}
-                </span>{" "}
-                projects
-              </span>
-              <span className="text-[12px] text-muted-foreground">
-                <span style={{ fontWeight: 600 }} className="text-foreground">
-                  {thisMonthSessions.length}
-                </span>{" "}
-                sessions
-              </span>
+              <span className="text-[12px] text-muted-foreground"><span style={{ fontWeight: 600 }} className="text-foreground">{clients.filter((c) => c.status === "Active").length}</span> active clients</span>
+              <span className="text-[12px] text-muted-foreground"><span style={{ fontWeight: 600 }} className="text-foreground">{allProjects.filter((p) => p.status === "In Progress").length}</span> projects</span>
+              <span className="text-[12px] text-muted-foreground"><span style={{ fontWeight: 600 }} className="text-foreground">{thisMonthSessions.length}</span> sessions</span>
             </div>
           )}
         </div>
 
-        {/* Tab content */}
-        <AnimatePresence mode="wait">
-          {/* ── ACTIVITY TAB ── */}
-          {activeTab === "activity" && (
-            <motion.div
-              key="activity"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.25 }}
-              className="grid grid-cols-1 md:grid-cols-5 gap-8"
-            >
-              {/* Signals */}
-              <div className="md:col-span-2">
-                <div className="flex items-center gap-2 mb-4">
-                  <Zap className="w-3.5 h-3.5 text-muted-foreground" />
-                  <span
-                    className="text-[13px] text-muted-foreground"
-                    style={{ fontWeight: 600, letterSpacing: "0.02em" }}
-                  >
-                    Heads up
-                  </span>
-                  {!hasFullInsights && (
-                    <span
-                      className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] rounded-full bg-[#2e7d9a]/10 text-[#2e7d9a]"
-                      style={{ fontWeight: 600 }}
-                    >
-                      PRO
-                    </span>
-                  )}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Weekly pace */}
+          <div>
+            <div className="flex items-center gap-2 mb-4"><Clock className="w-3.5 h-3.5 text-muted-foreground" /><span className="text-[13px] text-muted-foreground" style={{ fontWeight: 600, letterSpacing: "0.02em" }}>This week's pace</span></div>
+            <div className="bg-card border border-border rounded-xl p-5" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.02)" }}>
+              <div className="flex items-end justify-between mb-1.5">
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-[28px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 700 }}>{Math.round(weekHours * 10) / 10}h</span>
+                  <span className="text-[13px] text-muted-foreground">of {weeklyTarget}h</span>
                 </div>
-                {!hasFullInsights ? (
-                  <div className="relative">
-                    <div className="absolute inset-0 z-10 backdrop-blur-[4px] bg-background/50 rounded-xl flex items-center justify-center">
-                      <button
-                        onClick={() => navigate("/settings?tab=billing")}
-                        className="flex items-center gap-1.5 px-3 py-2 text-[12px] rounded-lg bg-[#2e7d9a]/10 text-[#2e7d9a] hover:bg-[#2e7d9a]/20 transition-all"
-                        style={{ fontWeight: 500 }}
-                      >
-                        <Sparkles className="w-3 h-3" />
-                        Upgrade for signals
-                      </button>
-                    </div>
-                    <div
-                      className="bg-card border border-border rounded-xl p-6 text-center text-[13px] text-muted-foreground select-none pointer-events-none"
-                      style={{ minHeight: 120 }}
-                    >
-                      Predictive signals about your clients and revenue
-                    </div>
-                  </div>
-                ) : forwardSignals.length > 0 ? (
-                  <div className="space-y-2">
-                    {forwardSignals.map((sig) => (
-                      <div
-                        key={sig.id}
-                        className="flex items-start gap-3 bg-card border border-border rounded-lg px-4 py-3 transition-all duration-200 cursor-pointer hover:bg-accent/30 group"
-                        style={{
-                          boxShadow: "0 1px 3px rgba(0,0,0,0.02)",
-                          borderLeftWidth: "3px",
-                          borderLeftColor: sig.color,
-                        }}
-                        onClick={() => sig.clientId && navigate(`/clients/${sig.clientId}`)}
-                      >
-                        <div
-                          className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5"
-                          style={{ backgroundColor: sig.bgColor }}
-                        >
-                          <SignalIcon type={sig.type} color={sig.color} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-[13px] leading-snug" style={{ fontWeight: 500 }}>
-                            {sig.signal}
-                          </div>
-                          <div className="text-[12px] text-muted-foreground mt-0.5">{sig.detail}</div>
-                        </div>
-                        {sig.clientId && (
-                          <ChevronRight className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 mt-1" />
-                        )}
+                <span className="text-[12px] tabular-nums" style={{ fontWeight: 500, color: weekHours >= weeklyTarget ? GOLD : BLUE }}>{weekHours >= weeklyTarget ? "Target reached" : `${Math.round((weeklyTarget - weekHours) * 10) / 10}h left`}</span>
+              </div>
+              <div className="h-1.5 bg-accent/60 rounded-full overflow-hidden mb-6"><div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min((weekHours / weeklyTarget) * 100, 100)}%`, backgroundColor: weekHours >= weeklyTarget ? GOLD : BLUE, opacity: 0.6 }} /></div>
+              <div className="flex items-end gap-2">
+                {weekDays.map((d) => {
+                  const maxH = Math.max(...weekDays.map((x) => x.hours), 1);
+                  const barH = d.hours > 0 ? Math.max((d.hours / maxH) * 48, 4) : 0;
+                  return (
+                    <div key={d.label} className="flex-1 flex flex-col items-center gap-1.5">
+                      <div className="relative w-full flex justify-center" style={{ height: 52 }}>
+                        {d.hours > 0 && <span className="absolute -top-4 text-[10px] tabular-nums text-muted-foreground" style={{ fontWeight: 500 }}>{d.hours}h</span>}
+                        <div className="absolute bottom-0 w-full transition-all duration-500" style={{ height: barH, maxWidth: 28, backgroundColor: d.isFuture ? "var(--accent)" : d.isToday ? BLUE : `${BLUE}55`, opacity: d.isFuture ? 0.25 : 1, borderRadius: "4px 4px 0 0" }} />
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="bg-card border border-border rounded-xl p-6 text-center text-[13px] text-muted-foreground">
-                    No signals to report — looking good.
-                  </div>
-                )}
+                      <span className={`text-[10px] ${d.isToday ? "text-primary" : "text-muted-foreground"}`} style={{ fontWeight: d.isToday ? 600 : 400 }}>{d.label}</span>
+                    </div>
+                  );
+                })}
               </div>
+            </div>
 
-              {/* Recent activity */}
-              <div className="md:col-span-3">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-3.5 h-3.5 text-muted-foreground" />
-                    <span
-                      className="text-[13px] text-muted-foreground"
-                      style={{ fontWeight: 600, letterSpacing: "0.02em" }}
-                    >
-                      Recent work
-                    </span>
-                  </div>
-                  <button
-                    onClick={() => navigate("/time")}
-                    className="text-[12px] text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
-                    style={{ fontWeight: 500 }}
-                  >
-                    View all <ArrowRight className="w-3 h-3" />
-                  </button>
+            {/* Month totals */}
+            <div className="mt-4 bg-card border border-border rounded-xl p-4" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.02)" }}>
+              <div className="text-[12px] text-muted-foreground mb-3" style={{ fontWeight: 500 }}>{new Date().toLocaleDateString("en-US", { month: "long" })} totals</div>
+              <div className="grid grid-cols-2 gap-x-6 gap-y-2.5">
+                <div className="flex items-center justify-between"><span className="text-[12px] text-muted-foreground">Hours</span><span className="text-[12px] tabular-nums" style={{ fontWeight: 600 }}>{Math.round(totalHoursThisMonth * 10) / 10}h</span></div>
+                <div className="flex items-center justify-between"><span className="text-[12px] text-muted-foreground">Billable</span><span className="text-[12px] tabular-nums" style={{ fontWeight: 600 }}>{Math.round(billableHoursThisMonth * 10) / 10}h</span></div>
+                <div className="flex items-center justify-between"><span className="text-[12px] text-muted-foreground">Ratio</span><span className="text-[12px] tabular-nums" style={{ fontWeight: 600, color: billablePercentage >= 75 ? BLUE : GOLD }}>{billablePercentage}%</span></div>
+                <div className="flex items-center justify-between"><span className="text-[12px] text-muted-foreground">Eff. rate</span><span className="text-[12px] tabular-nums" style={{ fontWeight: 600, color: BLUE }}>${Math.round(trueHourlyRate)}/h</span></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Time allocation */}
+          <div>
+            <div className="flex items-center gap-2 mb-4"><Timer className="w-3.5 h-3.5 text-muted-foreground" /><span className="text-[13px] text-muted-foreground" style={{ fontWeight: 600, letterSpacing: "0.02em" }}>Where your time goes</span></div>
+            {timeAllocation.length > 0 ? (
+              <div className="bg-card border border-border rounded-xl p-5" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.02)" }}>
+                <div className="h-3 rounded-full overflow-hidden flex mb-5">
+                  {timeAllocation.map((cat) => (<div key={cat.category} className="h-full first:rounded-l-full last:rounded-r-full transition-all duration-500" style={{ width: `${cat.pct}%`, backgroundColor: categoryColors[cat.category] || "#999", opacity: 0.55 }} title={`${cat.category}: ${cat.hours}h`} />))}
                 </div>
-                <div
-                  className="bg-card border border-border rounded-xl overflow-hidden"
-                  style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.02)" }}
-                >
-                  {activityFeed.length > 0 ? (
-                    activityFeed.map((group) => (
-                      <div key={group.date}>
-                        <div className="px-4 py-2 bg-accent/30 border-b border-border">
-                          <span
-                            className="text-[11px] text-muted-foreground"
-                            style={{ fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}
-                          >
-                            {group.label}
-                          </span>
-                        </div>
-                        {group.sessions.map((s: any) => (
-                          <div
-                            key={s.id}
-                            className="px-4 py-3 border-b border-border last:border-0 hover:bg-accent/20 transition-colors cursor-pointer flex items-center gap-3"
-                            onClick={() => navigate(`/clients/${s.clientId}`)}
-                          >
-                            <div
-                              className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0"
-                              style={{ backgroundColor: BLUE_BG }}
-                            >
-                              <span className="text-[11px]" style={{ fontWeight: 600, color: BLUE }}>
-                                {(s.client || "?")[0]}
-                              </span>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="text-[13px] truncate" style={{ fontWeight: 500 }}>
-                                {s.task || "Untitled"}
-                              </div>
-                              <div className="text-[12px] text-muted-foreground">{s.client}</div>
-                            </div>
-                            <div className="text-right flex-shrink-0">
-                              <div className="text-[13px] tabular-nums" style={{ fontWeight: 500 }}>
-                                {s.duration}h
-                              </div>
-                              {canViewFinancials && (s.revenue ?? 0) > 0 && (
-                                <div className="text-[11px] text-muted-foreground tabular-nums">${s.revenue}</div>
-                              )}
-                            </div>
-                          </div>
-                        ))}
+                <div className="space-y-2">
+                  {timeAllocation.map((cat) => {
+                    const color = categoryColors[cat.category] || "#999";
+                    return (
+                      <div key={cat.category} className="flex items-center justify-between py-1">
+                        <div className="flex items-center gap-2.5"><div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: color, opacity: 0.6 }} /><span className="text-[13px]" style={{ fontWeight: 500 }}>{cat.category}</span></div>
+                        <div className="flex items-center gap-3"><span className="text-[13px] tabular-nums" style={{ fontWeight: 600 }}>{cat.hours}h</span><span className="text-[11px] text-muted-foreground tabular-nums w-9 text-right">{cat.pct}%</span></div>
                       </div>
-                    ))
-                  ) : (
-                    <div className="px-4 py-10 text-center text-[13px] text-muted-foreground">
-                      No sessions logged yet
-                    </div>
-                  )}
+                    );
+                  })}
                 </div>
               </div>
-            </motion.div>
-          )}
+            ) : (
+              <div className="bg-card border border-border rounded-xl p-6 text-center text-[13px] text-muted-foreground">No time data yet</div>
+            )}
 
-          {/* ── CLIENTS & REVENUE TAB ── */}
-          {activeTab === "clients" && (
-            <motion.div
-              key="clients"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.25 }}
-              className="grid grid-cols-1 md:grid-cols-2 gap-8"
-            >
-              {/* Revenue leaderboard */}
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <TrendingUp className="w-3.5 h-3.5 text-muted-foreground" />
-                    <span
-                      className="text-[13px] text-muted-foreground"
-                      style={{ fontWeight: 600, letterSpacing: "0.02em" }}
-                    >
-                      Revenue by client
-                    </span>
-                  </div>
-                  <button
-                    onClick={() => navigate("/clients")}
-                    className="text-[12px] text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
-                    style={{ fontWeight: 500 }}
-                  >
-                    All clients <ArrowRight className="w-3 h-3" />
-                  </button>
-                </div>
-                <div
-                  className="bg-card border border-border rounded-xl overflow-hidden"
-                  style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.02)" }}
-                >
-                  {clientRevenue.length > 0 ? (
-                    clientRevenue.map((cr, i) => {
-                      const maxRev = clientRevenue[0]?.revenue || 1;
-                      const barW = Math.max((cr.revenue / maxRev) * 100, 4);
-                      const share = grossEarnings > 0 ? Math.round((cr.revenue / grossEarnings) * 100) : 0;
-                      return (
-                        <div
-                          key={cr.id}
-                          className={`px-4 py-3.5 hover:bg-accent/20 transition-colors cursor-pointer ${i < clientRevenue.length - 1 ? "border-b border-border" : ""}`}
-                          onClick={() => navigate(`/clients/${cr.id}`)}
-                        >
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2.5 min-w-0">
-                              <div
-                                className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0"
-                                style={{ backgroundColor: BLUE_BG }}
-                              >
-                                <span className="text-[11px]" style={{ fontWeight: 600, color: BLUE }}>
-                                  {cr.name[0]}
-                                </span>
-                              </div>
-                              <div className="min-w-0">
-                                <div className="text-[13px] truncate" style={{ fontWeight: 500 }}>
-                                  {cr.name}
-                                </div>
-                                <div className="text-[11px] text-muted-foreground">
-                                  {cr.hours}h · {cr.model || "Project"}
-                                </div>
-                              </div>
-                            </div>
-                            <div className="text-right flex-shrink-0 ml-3">
-                              <div className="text-[13px] tabular-nums" style={{ fontWeight: 600 }}>
-                                ${cr.revenue.toLocaleString()}
-                              </div>
-                              <div className="text-[11px] text-muted-foreground tabular-nums">{share}% of total</div>
-                            </div>
-                          </div>
-                          <div className="h-1.5 bg-accent/50 rounded-full overflow-hidden">
-                            <div
-                              className="h-full rounded-full transition-all duration-500"
-                              style={{ width: `${barW}%`, backgroundColor: BLUE, opacity: 0.45 }}
-                            />
-                          </div>
-                        </div>
-                      );
-                    })
-                  ) : (
-                    <div className="px-4 py-10 text-center text-[13px] text-muted-foreground">No revenue data yet</div>
-                  )}
-                </div>
-              </div>
-
-              {/* Retainer health */}
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <Timer className="w-3.5 h-3.5 text-muted-foreground" />
-                  <span
-                    className="text-[13px] text-muted-foreground"
-                    style={{ fontWeight: 600, letterSpacing: "0.02em" }}
-                  >
-                    Retainer health
-                  </span>
-                </div>
-                {retainerHealth.length > 0 ? (
-                  <div
-                    className="bg-card border border-border rounded-xl divide-y divide-border"
-                    style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.02)" }}
-                  >
-                    {retainerHealth.map((r) => {
-                      const ringColor = r.pct >= 90 ? RED : r.pct >= 70 ? GOLD : BLUE;
-                      const radius = 22;
-                      const circ = 2 * Math.PI * radius;
-                      const offset = circ - (r.pct / 100) * circ;
-                      return (
-                        <div
-                          key={r.id}
-                          className="px-4 py-4 flex items-center gap-4 cursor-pointer hover:bg-accent/20 transition-colors"
-                          onClick={() => navigate(`/clients/${r.id}`)}
-                        >
-                          <div className="relative flex-shrink-0" style={{ width: 52, height: 52 }}>
-                            <svg width="52" height="52" className="-rotate-90">
-                              <circle cx="26" cy="26" r={radius} fill="none" stroke="var(--accent)" strokeWidth="4" />
-                              <circle
-                                cx="26"
-                                cy="26"
-                                r={radius}
-                                fill="none"
-                                stroke={ringColor}
-                                strokeWidth="4"
-                                strokeLinecap="round"
-                                strokeDasharray={circ}
-                                strokeDashoffset={offset}
-                                style={{ transition: "stroke-dashoffset 0.7s ease", opacity: 0.75 }}
-                              />
-                            </svg>
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <span className="text-[11px] tabular-nums" style={{ fontWeight: 700 }}>
-                                {r.pct}%
-                              </span>
-                            </div>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-[13px]" style={{ fontWeight: 500 }}>
-                              {r.name}
-                            </div>
-                            <div className="text-[12px] text-muted-foreground mt-0.5">
-                              <span style={{ fontWeight: 500, color: ringColor }}>{r.remaining}h remaining</span> of{" "}
-                              {r.total}h
-                            </div>
-                          </div>
-                          <ChevronRight className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="bg-card border border-border rounded-xl p-6">
-                    <div className="text-[13px] text-muted-foreground text-center">No active retainers</div>
-                    {/* Show prospect pipeline instead */}
-                    {clients.filter((c) => c.status === "Prospect").length > 0 && (
-                      <div className="mt-4 pt-4 border-t border-border">
-                        <div
-                          className="text-[12px] text-muted-foreground mb-3"
-                          style={{ fontWeight: 600, letterSpacing: "0.02em" }}
-                        >
-                          PROSPECT PIPELINE
-                        </div>
-                        {clients
-                          .filter((c) => c.status === "Prospect")
-                          .map((p) => (
-                            <div
-                              key={p.id}
-                              className="flex items-center gap-2 py-2 cursor-pointer hover:opacity-70 transition-opacity"
-                              onClick={() => navigate(`/clients/${p.id}`)}
-                            >
-                              <div
-                                className="w-6 h-6 rounded-md flex items-center justify-center"
-                                style={{ backgroundColor: GOLD_BG }}
-                              >
-                                <span className="text-[10px]" style={{ fontWeight: 600, color: GOLD }}>
-                                  {p.name[0]}
-                                </span>
-                              </div>
-                              <span className="text-[13px]" style={{ fontWeight: 500 }}>
-                                {p.name}
-                              </span>
-                            </div>
-                          ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Active projects compact list */}
-                {activeProjects.length > 0 && (
-                  <div className="mt-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-2">
-                        <FolderKanban className="w-3.5 h-3.5 text-muted-foreground" />
-                        <span
-                          className="text-[13px] text-muted-foreground"
-                          style={{ fontWeight: 600, letterSpacing: "0.02em" }}
-                        >
-                          Active projects
-                        </span>
-                      </div>
-                      <button
-                        onClick={() => navigate("/projects")}
-                        className="text-[12px] text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
-                        style={{ fontWeight: 500 }}
-                      >
-                        View all <ArrowRight className="w-3 h-3" />
-                      </button>
-                    </div>
-                    <div
-                      className="bg-card border border-border rounded-xl divide-y divide-border"
-                      style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.02)" }}
-                    >
-                      {activeProjects.map((proj) => (
-                        <div
-                          key={`${proj.clientId}-${proj.id}`}
-                          className="px-4 py-3 hover:bg-accent/20 transition-colors cursor-pointer"
-                          onClick={() => navigate(`/clients/${proj.clientId}`)}
-                        >
-                          <div className="flex items-center justify-between mb-1.5">
-                            <div className="min-w-0 flex-1">
-                              <div className="text-[13px] truncate" style={{ fontWeight: 500 }}>
-                                {proj.name}
-                              </div>
-                              <div className="text-[11px] text-muted-foreground">{proj.clientName}</div>
-                            </div>
-                            <div className="flex items-center gap-2 ml-3 flex-shrink-0">
-                              <span
-                                className="text-[12px] tabular-nums text-muted-foreground"
-                                style={{ fontWeight: 500 }}
-                              >
-                                {proj.completion}%
-                              </span>
-                              {proj.totalValue > 0 && proj.hours > 0 && (() => {
-                                const effRate = Math.round(proj.totalValue / proj.hours);
-                                const cl = clients.find(c => c.id === proj.clientId);
-                                const rateColor = cl && effRate < (cl.rate * 0.5) ? '#c27272' : cl && effRate < cl.rate ? '#bfa044' : '#2e7d9a';
-                                return (
-                                  <span className="text-[11px] tabular-nums" style={{ fontWeight: 500, color: rateColor }}>
-                                    · ${effRate}/hr
-                                  </span>
-                                );
-                              })()}
-                            </div>
-                          </div>
-                          <div className="h-1.5 bg-accent/60 rounded-full overflow-hidden">
-                            <div
-                              className="h-full rounded-full transition-all duration-500"
-                              style={{
-                                width: `${Math.min(proj.completion, 100)}%`,
-                                backgroundColor: proj.completion >= 90 ? GOLD : BLUE,
-                                opacity: 0.55,
-                              }}
-                            />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          )}
-
-          {/* ── TIME & PACE TAB ── */}
-          {activeTab === "time" && (
-            <motion.div
-              key="time"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.25 }}
-              className="grid grid-cols-1 md:grid-cols-2 gap-8"
-            >
-              {/* Weekly pace */}
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <Clock className="w-3.5 h-3.5 text-muted-foreground" />
-                  <span
-                    className="text-[13px] text-muted-foreground"
-                    style={{ fontWeight: 600, letterSpacing: "0.02em" }}
-                  >
-                    This week's pace
-                  </span>
-                </div>
-                <div
-                  className="bg-card border border-border rounded-xl p-5"
-                  style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.02)" }}
-                >
-                  {/* Header: big number + status */}
-                  <div className="flex items-end justify-between mb-1.5">
-                    <div className="flex items-baseline gap-1.5">
-                      <span
-                        className="text-[28px] leading-none tracking-tight tabular-nums"
-                        style={{ fontWeight: 700 }}
-                      >
-                        {Math.round(weekHours * 10) / 10}h
-                      </span>
-                      <span className="text-[13px] text-muted-foreground">of {weeklyTarget}h</span>
-                    </div>
-                    <span
-                      className="text-[12px] tabular-nums"
-                      style={{ fontWeight: 500, color: weekHours >= weeklyTarget ? GOLD : BLUE }}
-                    >
-                      {weekHours >= weeklyTarget
-                        ? "Target reached"
-                        : `${Math.round((weeklyTarget - weekHours) * 10) / 10}h left`}
-                    </span>
-                  </div>
-
-                  {/* Thin progress bar */}
-                  <div className="h-1.5 bg-accent/60 rounded-full overflow-hidden mb-6">
-                    <div
-                      className="h-full rounded-full transition-all duration-700"
-                      style={{
-                        width: `${Math.min((weekHours / weeklyTarget) * 100, 100)}%`,
-                        backgroundColor: weekHours >= weeklyTarget ? GOLD : BLUE,
-                        opacity: 0.6,
-                      }}
-                    />
-                  </div>
-
-                  {/* Day bars — compact */}
-                  <div className="flex items-end gap-2">
-                    {weekDays.map((d) => {
-                      const maxH = Math.max(...weekDays.map((x) => x.hours), 1);
-                      const barH = d.hours > 0 ? Math.max((d.hours / maxH) * 48, 4) : 0;
-                      return (
-                        <div key={d.label} className="flex-1 flex flex-col items-center gap-1.5">
-                          <div className="relative w-full flex justify-center" style={{ height: 52 }}>
-                            {d.hours > 0 && (
-                              <span
-                                className="absolute -top-4 text-[10px] tabular-nums text-muted-foreground"
-                                style={{ fontWeight: 500 }}
-                              >
-                                {d.hours}h
-                              </span>
-                            )}
-                            <div
-                              className="absolute bottom-0 w-full transition-all duration-500"
-                              style={{
-                                height: barH,
-                                maxWidth: 28,
-                                backgroundColor: d.isFuture ? "var(--accent)" : d.isToday ? BLUE : `${BLUE}55`,
-                                opacity: d.isFuture ? 0.25 : 1,
-                                borderRadius: "4px 4px 0 0",
-                              }}
-                            />
-                          </div>
-                          <span
-                            className={`text-[10px] ${d.isToday ? "text-primary" : "text-muted-foreground"}`}
-                            style={{ fontWeight: d.isToday ? 600 : 400 }}
-                          >
-                            {d.label}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Month totals — compact 2×2 grid */}
-                <div
-                  className="mt-4 bg-card border border-border rounded-xl p-4"
-                  style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.02)" }}
-                >
-                  <div
-                    className="text-[12px] text-muted-foreground mb-3"
-                    style={{ fontWeight: 500 }}
-                  >
-                    {new Date().toLocaleDateString("en-US", { month: "long" })} totals
-                  </div>
-                  <div className="grid grid-cols-2 gap-x-6 gap-y-2.5">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[12px] text-muted-foreground">Hours</span>
-                      <span className="text-[12px] tabular-nums" style={{ fontWeight: 600 }}>
-                        {Math.round(totalHoursThisMonth * 10) / 10}h
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-[12px] text-muted-foreground">Billable</span>
-                      <span className="text-[12px] tabular-nums" style={{ fontWeight: 600 }}>
-                        {Math.round(billableHoursThisMonth * 10) / 10}h
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-[12px] text-muted-foreground">Ratio</span>
-                      <span
-                        className="text-[12px] tabular-nums"
-                        style={{ fontWeight: 600, color: billablePercentage >= 75 ? BLUE : GOLD }}
-                      >
-                        {billablePercentage}%
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-[12px] text-muted-foreground">Eff. rate</span>
-                      <span className="text-[12px] tabular-nums" style={{ fontWeight: 600, color: BLUE }}>
-                        ${Math.round(trueHourlyRate)}/h
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Time allocation */}
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <Timer className="w-3.5 h-3.5 text-muted-foreground" />
-                  <span
-                    className="text-[13px] text-muted-foreground"
-                    style={{ fontWeight: 600, letterSpacing: "0.02em" }}
-                  >
-                    Where your time goes
-                  </span>
-                </div>
-                {timeAllocation.length > 0 ? (
-                  <div
-                    className="bg-card border border-border rounded-xl p-5"
-                    style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.02)" }}
-                  >
-                    {/* Stacked bar */}
-                    <div className="h-3 rounded-full overflow-hidden flex mb-5">
-                      {timeAllocation.map((cat) => (
-                        <div
-                          key={cat.category}
-                          className="h-full first:rounded-l-full last:rounded-r-full transition-all duration-500"
-                          style={{
-                            width: `${cat.pct}%`,
-                            backgroundColor: categoryColors[cat.category] || "#999",
-                            opacity: 0.55,
-                          }}
-                          title={`${cat.category}: ${cat.hours}h`}
-                        />
-                      ))}
-                    </div>
-                    {/* Clean breakdown rows — no individual bars */}
-                    <div className="space-y-2">
-                      {timeAllocation.map((cat) => {
-                        const color = categoryColors[cat.category] || "#999";
-                        return (
-                          <div key={cat.category} className="flex items-center justify-between py-1">
-                            <div className="flex items-center gap-2.5">
-                              <div
-                                className="w-2.5 h-2.5 rounded-sm"
-                                style={{ backgroundColor: color, opacity: 0.6 }}
-                              />
-                              <span className="text-[13px]" style={{ fontWeight: 500 }}>
-                                {cat.category}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-3">
-                              <span className="text-[13px] tabular-nums" style={{ fontWeight: 600 }}>
-                                {cat.hours}h
-                              </span>
-                              <span className="text-[11px] text-muted-foreground tabular-nums w-9 text-right">
-                                {cat.pct}%
-                              </span>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="bg-card border border-border rounded-xl p-6 text-center text-[13px] text-muted-foreground">
-                    No time data yet
-                  </div>
-                )}
-
-                {/* Insights callout */}
-                <div
-                  className="mt-6 bg-card border border-border rounded-xl p-5 cursor-pointer hover:bg-accent/20 transition-colors group"
-                  style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.02)" }}
-                  onClick={() => (hasFullInsights ? navigate("/insights") : navigate("/settings?tab=billing"))}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[13px]" style={{ fontWeight: 600 }}>
-                      {hasFullInsights ? "Deeper insights" : "Unlock deeper insights"}
-                    </span>
-                    <ArrowRight className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
-                  </div>
-                  <p className="text-[12px] text-muted-foreground leading-relaxed">
-                    {hasFullInsights
-                      ? "See full client rankings, utilization trends, revenue projections, and time analysis on the Insights page."
-                      : "Upgrade to Pro to access client rankings, dependency analysis, actionable signals, and historical trends."}
-                  </p>
-                  {!hasFullInsights && (
-                    <span
-                      className="inline-flex items-center gap-1 mt-2 px-2 py-0.5 text-[10px] rounded-full bg-[#2e7d9a]/10 text-[#2e7d9a]"
-                      style={{ fontWeight: 600 }}
-                    >
-                      <Sparkles className="w-2.5 h-2.5" />
-                      PRO
-                    </span>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            {/* Insights callout */}
+            <div className="mt-6 bg-card border border-border rounded-xl p-5 cursor-pointer hover:bg-accent/20 transition-colors group" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.02)" }} onClick={() => (hasFullInsights ? navigate("/insights") : navigate("/settings?tab=billing"))}>
+              <div className="flex items-center justify-between mb-2"><span className="text-[13px]" style={{ fontWeight: 600 }}>{hasFullInsights ? "Deeper insights" : "Unlock deeper insights"}</span><ArrowRight className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors" /></div>
+              <p className="text-[12px] text-muted-foreground leading-relaxed">{hasFullInsights ? "See full client rankings, utilization trends, revenue projections, and time analysis on the Insights page." : "Upgrade to Pro to access client rankings, dependency analysis, actionable signals, and historical trends."}</p>
+              {!hasFullInsights && <span className="inline-flex items-center gap-1 mt-2 px-2 py-0.5 text-[10px] rounded-full bg-primary/10 text-primary" style={{ fontWeight: 600 }}><Sparkles className="w-2.5 h-2.5" />PRO</span>}
+            </div>
+          </div>
+        </div>
       </motion.div>
     </motion.div>
   );

@@ -138,7 +138,7 @@ export default function Projects() {
 
   if (loading || dataLoading) {
     return (
-      <div className="max-w-7xl mx-auto px-6 lg:px-12 py-12">
+      <div className="w-full min-w-0 px-6 lg:px-12 py-12">
         <div className="flex items-center justify-center py-24">
           <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
         </div>
@@ -149,7 +149,7 @@ export default function Projects() {
   return (
     <motion.div
       data-tour="projects-view"
-      className="max-w-7xl mx-auto px-6 lg:px-12 py-8 md:py-14"
+      className="w-full min-w-0 px-6 lg:px-12 py-8 md:py-14"
       variants={container}
       initial="hidden"
       animate="show"

@@ -426,7 +426,7 @@ export default function ProjectDetail() {
 
   if (loading) {
     return (
-      <div className="w-full min-w-0 max-w-7xl mx-auto px-6 lg:px-12 py-12">
+      <div className="w-full min-w-0 px-6 lg:px-12 py-12">
         <div className="flex items-center justify-center py-24">
           <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
         </div>
@@ -436,7 +436,7 @@ export default function ProjectDetail() {
 
   if (!project) {
     return (
-      <div className="w-full min-w-0 max-w-7xl mx-auto px-6 lg:px-12 py-12">
+      <div className="w-full min-w-0 px-6 lg:px-12 py-12">
         <div className="text-center text-muted-foreground py-24">
           <div className="w-12 h-12 rounded-xl bg-accent/60 flex items-center justify-center mx-auto mb-4">
             <FolderKanban className="w-6 h-6 text-muted-foreground" />
@@ -459,7 +459,7 @@ export default function ProjectDetail() {
   // ── Render ───────────────────────────────────────────────────────
 
   return (
-    <motion.div className="w-full min-w-0 max-w-7xl mx-auto px-6 lg:px-12 py-6 md:py-10" variants={container} initial="hidden" animate="show">
+    <motion.div className="w-full min-w-0 px-6 lg:px-12 py-6 md:py-10" variants={container} initial="hidden" animate="show">
       {/* Back link */}
       <motion.div variants={item} className="mb-6">
         <Link
