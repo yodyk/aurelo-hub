@@ -64,7 +64,7 @@ function IntervalToggle({ interval, onChange }: { interval: BillingInterval; onC
       >
         Annual
       </span>
-      <span className="text-[11px] text-[#5ea1bf] px-2 py-0.5 rounded-full bg-[#5ea1bf]/10" style={{ fontWeight: 600 }}>
+      <span className="text-[11px] text-primary px-2 py-0.5 rounded-full bg-primary/10" style={{ fontWeight: 600 }}>
         Save 2 months
       </span>
     </div>
