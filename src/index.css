@@ -563,8 +563,8 @@ select {
 
 .legal-content .legal-callout {
   padding: 16px 20px;
-  border-left: 3px solid #5ea1bf;
-  background: rgba(94, 161, 191, 0.04);
+  border-left: 3px solid var(--primary);
+  background: color-mix(in srgb, var(--primary) 4%, transparent);
   border-radius: 0 6px 6px 0;
   margin: 16px 0 20px;
   font-size: 14px;
