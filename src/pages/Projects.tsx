@@ -314,8 +314,7 @@ export default function Projects() {
       <motion.div variants={item}>
         {filteredProjects.length > 0 ? (
           <div
-            className="bg-card border border-border rounded-xl overflow-hidden"
-            style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.03), 0 1px 2px rgba(0,0,0,0.02)" }}
+            className="bg-card border border-border rounded-xl overflow-hidden shadow-card"
           >
             <div className="overflow-x-auto">
             <table className="w-full">
