@@ -502,7 +502,7 @@ function RootLayout() {
       {/* Main area */}
       <div className={`flex-1 ${mainMargin} min-h-screen min-w-0 overflow-x-hidden transition-all duration-300`}>
         {/* Top Bar */}
-        <header className="h-14 border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-20 flex items-center justify-between px-4 lg:px-6">
+        <header className="h-14 border-b border-border bg-background/80 backdrop-blur-md sticky top-0 z-20 flex items-center justify-between px-4 lg:px-6">
           <div className="flex items-center gap-3">
             {/* Mobile: Aurelo icon */}
             <div className="lg:hidden w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
