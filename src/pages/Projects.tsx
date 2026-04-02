@@ -21,10 +21,10 @@ const item = {
 const statusColors: Record<string, { bg: string; text: string; dot: string }> = {
   "In Progress": { bg: "bg-primary/8", text: "text-primary", dot: "bg-primary" },
   "Active": { bg: "bg-primary/8", text: "text-primary", dot: "bg-primary" },
-  "Not Started": { bg: "bg-stone-100 dark:bg-stone-800", text: "text-stone-600 dark:text-stone-400", dot: "bg-stone-400" },
-  "On Hold": { bg: "bg-stone-100 dark:bg-stone-800", text: "text-stone-500 dark:text-stone-400", dot: "bg-stone-400" },
-  Complete: { bg: "bg-zinc-100 dark:bg-zinc-800", text: "text-zinc-500 dark:text-zinc-400", dot: "bg-zinc-400" },
-  Archived: { bg: "bg-zinc-100 dark:bg-zinc-800", text: "text-zinc-500 dark:text-zinc-400", dot: "bg-zinc-400" },
+  "Not Started": { bg: "bg-muted", text: "text-muted-foreground", dot: "bg-muted-foreground/50" },
+  "On Hold": { bg: "bg-muted", text: "text-muted-foreground", dot: "bg-muted-foreground/50" },
+  Complete: { bg: "bg-success/10", text: "text-success", dot: "bg-success" },
+  Archived: { bg: "bg-muted", text: "text-muted-foreground", dot: "bg-muted-foreground/50" },
 };
 
 function formatProjectDate(d: string | undefined): string {
@@ -176,7 +176,7 @@ export default function Projects() {
 
       {/* Summary Cards */}
       <motion.div variants={item} className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div className="bg-card border border-border rounded-xl p-6 group hover:-translate-y-0.5 transition-all duration-300 shadow-[0_1px_4px_rgba(0,0,0,0.03),0_1px_2px_rgba(0,0,0,0.02)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.05),0_1px_3px_rgba(0,0,0,0.03)]">
+        <div className="stat-card">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-8 h-8 rounded-lg bg-accent/60 flex items-center justify-center group-hover:bg-primary/8 transition-colors">
               <FolderKanban className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
@@ -194,7 +194,7 @@ export default function Projects() {
           <div className="text-[12px] text-muted-foreground mt-1.5">{enrichedProjects.length} total</div>
         </div>
 
-        <div className="bg-card border border-border rounded-xl p-6 group hover:-translate-y-0.5 transition-all duration-300 shadow-[0_1px_4px_rgba(0,0,0,0.03),0_1px_2px_rgba(0,0,0,0.02)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.05),0_1px_3px_rgba(0,0,0,0.03)]">
+        <div className="stat-card">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-8 h-8 rounded-lg bg-accent/60 flex items-center justify-center group-hover:bg-primary/8 transition-colors">
               <DollarSign className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
@@ -212,7 +212,7 @@ export default function Projects() {
           <div className="text-[12px] text-muted-foreground mt-1.5">${totalValue.toLocaleString()} total</div>
         </div>
 
-        <div className="bg-card border border-border rounded-xl p-6 group hover:-translate-y-0.5 transition-all duration-300 shadow-[0_1px_4px_rgba(0,0,0,0.03),0_1px_2px_rgba(0,0,0,0.02)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.05),0_1px_3px_rgba(0,0,0,0.03)]">
+        <div className="stat-card">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-8 h-8 rounded-lg bg-accent/60 flex items-center justify-center group-hover:bg-primary/8 transition-colors">
               <Clock className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
@@ -227,7 +227,7 @@ export default function Projects() {
           <div className="text-[12px] text-muted-foreground mt-1.5">of {totalEstimated}h estimated</div>
         </div>
 
-        <div className="bg-card border border-border rounded-xl p-6 group hover:-translate-y-0.5 transition-all duration-300 shadow-[0_1px_4px_rgba(0,0,0,0.03),0_1px_2px_rgba(0,0,0,0.02)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.05),0_1px_3px_rgba(0,0,0,0.03)]">
+        <div className="stat-card">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-8 h-8 rounded-lg bg-accent/60 flex items-center justify-center group-hover:bg-primary/8 transition-colors">
               <CheckCircle2 className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
@@ -314,8 +314,7 @@ export default function Projects() {
       <motion.div variants={item}>
         {filteredProjects.length > 0 ? (
           <div
-            className="bg-card border border-border rounded-xl overflow-hidden"
-            style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.03), 0 1px 2px rgba(0,0,0,0.02)" }}
+            className="bg-card border border-border rounded-xl overflow-hidden shadow-card"
           >
             <div className="overflow-x-auto">
             <table className="w-full">

@@ -22,8 +22,8 @@ const item = {
 
 const statusColors: Record<string, { bg: string; text: string; dot: string }> = {
   Active: { bg: "bg-primary/8", text: "text-primary", dot: "bg-primary" },
-  Prospect: { bg: "bg-stone-100", text: "text-stone-500", dot: "bg-stone-400" },
-  Archived: { bg: "bg-zinc-100", text: "text-zinc-500", dot: "bg-zinc-400" },
+  Prospect: { bg: "bg-warning/10", text: "text-warning", dot: "bg-warning" },
+  Archived: { bg: "bg-muted", text: "text-muted-foreground", dot: "bg-muted-foreground/50" },
 };
 
 export default function Clients() {
@@ -136,7 +136,7 @@ export default function Clients() {
               >
                 <Link
                   to={`/clients/${client.id}`}
-                  className="block bg-card border border-border rounded-xl p-6 hover:-translate-y-0.5 hover:border-primary/20 transition-all duration-300 group shadow-[0_1px_4px_rgba(0,0,0,0.03),0_1px_2px_rgba(0,0,0,0.02)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.05),0_1px_3px_rgba(0,0,0,0.03)]"
+                  className="block bg-card border border-border rounded-xl p-6 hover:-translate-y-0.5 hover:border-primary/20 transition-all duration-300 group shadow-card hover:shadow-card-hover"
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
@@ -156,8 +156,7 @@ export default function Clients() {
                       </div>
                     </div>
                     <div
-                      className={`flex items-center gap-1.5 px-2 py-0.5 ${statusColors[client.status]?.bg || "bg-zinc-100"} ${statusColors[client.status]?.text || "text-zinc-500"} text-[11px] rounded-full`}
-                      style={{ fontWeight: 500 }}
+                      className={`status-badge ${statusColors[client.status]?.bg || "bg-muted"} ${statusColors[client.status]?.text || "text-muted-foreground"}`}
                     >
                       <div
                         className={`w-1.5 h-1.5 rounded-full ${statusColors[client.status]?.dot || "bg-zinc-400"}`}
@@ -168,14 +167,14 @@ export default function Clients() {
 
                   <div className="flex items-center gap-2 mb-4">
                     <span
-                      className="text-[11px] text-muted-foreground bg-accent/60 px-2 py-0.5 rounded-full"
+                      className="text-[11px] text-muted-foreground bg-accent/60 px-2 py-0.5 rounded-md"
                       style={{ fontWeight: 500 }}
                     >
                       {client.model}
                     </span>
                     {canViewFinancials && client.rate > 0 && (
                       <span
-                        className="text-[11px] text-muted-foreground bg-accent/60 px-2 py-0.5 rounded-full tabular-nums"
+                        className="text-[11px] text-muted-foreground bg-accent/60 px-2 py-0.5 rounded-md tabular-nums"
                         style={{ fontWeight: 500 }}
                       >
                         ${client.rate}/hr
@@ -183,7 +182,7 @@ export default function Clients() {
                     )}
                     {!client.showPortalCosts && (
                       <span
-                        className="text-[11px] text-muted-foreground/60 bg-accent/40 px-2 py-0.5 rounded-full"
+                        className="text-[11px] text-muted-foreground/60 bg-accent/40 px-2 py-0.5 rounded-md"
                         style={{ fontWeight: 500 }}
                       >
                         Costs hidden
@@ -239,12 +238,12 @@ export default function Clients() {
               <Link
                 key={client.id}
                 to={`/clients/${client.id}`}
-                className="block bg-card border border-border rounded-xl p-6 opacity-60 hover:opacity-90 transition-all duration-300 group hover:shadow-[0_2px_8px_rgba(0,0,0,0.04)]"
+                className="block bg-card border border-border rounded-xl p-6 opacity-60 hover:opacity-90 transition-all duration-300 group hover:shadow-card"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-zinc-100 flex items-center justify-center">
-                      <span className="text-[14px] text-zinc-500" style={{ fontWeight: 600 }}>
+                    <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+                      <span className="text-[14px] text-muted-foreground" style={{ fontWeight: 600 }}>
                         {client.name.charAt(0)}
                       </span>
                     </div>
@@ -258,8 +257,7 @@ export default function Clients() {
                     </div>
                   </div>
                   <div
-                    className={`flex items-center gap-1.5 px-2 py-0.5 ${statusColors.Archived.bg} ${statusColors.Archived.text} text-[11px] rounded-full`}
-                    style={{ fontWeight: 500 }}
+                    className={`status-badge ${statusColors.Archived.bg} ${statusColors.Archived.text}`}
                   >
                     <div className={`w-1.5 h-1.5 rounded-full ${statusColors.Archived.dot}`} />
                     Archived
@@ -268,7 +266,7 @@ export default function Clients() {
 
                 <div className="flex items-center gap-2 mb-4">
                   <span
-                    className="text-[11px] text-muted-foreground bg-accent/60 px-2 py-0.5 rounded-full"
+                    className="text-[11px] text-muted-foreground bg-accent/60 px-2 py-0.5 rounded-md"
                     style={{ fontWeight: 500 }}
                   >
                     {client.model}

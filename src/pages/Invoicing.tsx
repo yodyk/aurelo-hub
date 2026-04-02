@@ -56,13 +56,13 @@ const item = {
 };
 
 const STATUS_CONFIG: Record<InvoiceStatus, { label: string; color: string; bg: string; icon: any }> = {
-  draft: { label: "Draft", color: "#78716c", bg: "bg-stone-100 dark:bg-stone-800", icon: FileText },
-  sent: { label: "Sent", color: GOLD, bg: "bg-[#bfa044]/10", icon: Send },
-  paid: { label: "Paid", color: BLUE, bg: "bg-[#5ea1bf]/10", icon: CheckCircle2 },
-  overdue: { label: "Overdue", color: RED, bg: "bg-[#c27272]/10", icon: AlertCircle },
-  voided: { label: "Voided", color: "#a8a29e", bg: "bg-stone-100 dark:bg-stone-800", icon: Ban },
-  cancelled: { label: "Cancelled", color: "#a8a29e", bg: "bg-stone-100 dark:bg-stone-800", icon: X },
-  archived: { label: "Archived", color: "#a8a29e", bg: "bg-stone-100 dark:bg-stone-800", icon: Archive },
+  draft: { label: "Draft", color: "#78716c", bg: "bg-muted", icon: FileText },
+  sent: { label: "Sent", color: GOLD, bg: "bg-warning/10", icon: Send },
+  paid: { label: "Paid", color: BLUE, bg: "bg-primary/10", icon: CheckCircle2 },
+  overdue: { label: "Overdue", color: RED, bg: "bg-destructive/10", icon: AlertCircle },
+  voided: { label: "Voided", color: "#a8a29e", bg: "bg-muted", icon: Ban },
+  cancelled: { label: "Cancelled", color: "#a8a29e", bg: "bg-muted", icon: X },
+  archived: { label: "Archived", color: "#a8a29e", bg: "bg-muted", icon: Archive },
 };
 
 // ── Helpers ────────────────────────────────────────────────────────
@@ -363,15 +363,15 @@ export default function Invoicing() {
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-6xl mx-auto">
+    <div className="page-wrapper">
       <motion.div variants={container} initial="hidden" animate="show">
         {/* Header */}
         <motion.div variants={item} className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-[22px] text-foreground" style={{ fontWeight: 600, letterSpacing: "-0.02em" }}>
+            <h1 className="page-header text-foreground">
               Invoicing
             </h1>
-            <p className="text-[14px] text-muted-foreground mt-1">Create, send, and track invoices for your clients</p>
+            <p className="page-subtitle">Create, send, and track invoices for your clients</p>
           </div>
           <div className="flex items-center gap-2">
             {hasBatchInvoicing && (
@@ -389,8 +389,7 @@ export default function Invoicing() {
                 setEditingInvoice(null);
                 setShowBuilder(true);
               }}
-              className="inline-flex items-center gap-2 px-4 py-2 text-[13px] rounded-lg bg-foreground text-background hover:opacity-90 transition-all"
-              style={{ fontWeight: 500 }}
+              className="btn-primary"
             >
               <Plus className="w-3.5 h-3.5" />
               New invoice
@@ -408,8 +407,7 @@ export default function Invoicing() {
           ].map((stat) => (
             <div
               key={stat.label}
-              className="bg-card border border-border rounded-xl p-4"
-              style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}
+              className="stat-card"
             >
               <div className="flex items-center gap-2 mb-2">
                 <stat.icon className="w-3.5 h-3.5" style={{ color: stat.color }} />

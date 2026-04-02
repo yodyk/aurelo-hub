@@ -518,8 +518,7 @@ export default function Home() {
       {canViewFinancials ? (
       <motion.div
         variants={item}
-        className="bg-card border border-border rounded-xl p-5 md:p-8 mb-8 relative overflow-hidden"
-        style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.03), 0 1px 2px rgba(0,0,0,0.02)" }}
+        className="bg-card border border-border rounded-xl p-5 md:p-8 mb-8 relative overflow-hidden shadow-card"
       >
         <div className="absolute top-0 right-0 w-72 h-72 bg-gradient-to-bl from-primary/[0.03] to-transparent rounded-bl-full pointer-events-none" />
 

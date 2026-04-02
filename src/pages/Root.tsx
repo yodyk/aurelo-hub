@@ -56,16 +56,16 @@ function AuthGate() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#fafaf9]">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="flex flex-col items-center gap-3"
         >
-          <div className="w-8 h-8 rounded-lg bg-[#5ea1bf]/10 flex items-center justify-center">
-            <AureloIcon className="w-4 h-4 text-[#5ea1bf]" />
+          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+            <AureloIcon className="w-4 h-4 text-primary" />
           </div>
-          <div className="w-5 h-5 border-2 border-[#5ea1bf]/20 border-t-[#5ea1bf] rounded-full animate-spin" />
+          <div className="w-5 h-5 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
         </motion.div>
       </div>
     );
@@ -85,30 +85,29 @@ function AuthGate() {
   // Waitlist gate — user not yet approved
   if (!isApproved) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#fafaf9] px-6">
+      <div className="min-h-screen flex items-center justify-center bg-background px-6">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
           className="text-center max-w-md"
         >
-          <div className="w-14 h-14 rounded-2xl bg-[#5ea1bf]/10 flex items-center justify-center mx-auto mb-6">
-            <AureloIcon className="w-7 h-7 text-[#5ea1bf]" />
+          <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
+            <AureloIcon className="w-7 h-7 text-primary" />
           </div>
-          <h1 className="text-[22px] text-[#1c1c1c] mb-3" style={{ fontWeight: 600, letterSpacing: '-0.01em' }}>
+          <h1 className="text-[22px] text-foreground mb-3" style={{ fontWeight: 600, letterSpacing: '-0.01em' }}>
             You're on the waitlist!
           </h1>
-          <p className="text-[14px] text-[#717182] leading-relaxed mb-2">
+          <p className="text-[14px] text-muted-foreground leading-relaxed mb-2">
             Thanks for signing up for Aurelo. Your account is pending approval.
           </p>
-          <p className="text-[13px] text-[#b0b0b8] mb-8">
+          <p className="text-[13px] text-muted-foreground/70 mb-8">
             You'll receive an email once your account has been approved. This usually happens within 24 hours.
           </p>
           <div className="flex items-center justify-center gap-3">
             <button
               onClick={() => window.location.reload()}
-              className="px-5 py-2.5 rounded-lg border border-black/10 bg-white text-[#1c1c1c] text-[13px] hover:bg-[#f5f5f5] transition-colors"
-              style={{ fontWeight: 500 }}
+              className="btn-secondary"
             >
               Check again
             </button>
@@ -117,7 +116,7 @@ function AuthGate() {
                 await signOut();
                 navigate('/login', { replace: true });
               }}
-              className="px-5 py-2.5 rounded-lg text-[13px] text-[#717182] hover:text-[#1c1c1c] transition-colors"
+              className="px-5 py-2.5 rounded-md text-[13px] text-muted-foreground hover:text-foreground transition-colors"
               style={{ fontWeight: 500 }}
             >
               Sign out
@@ -427,8 +426,7 @@ function RootLayout() {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 4, scale: 0.97 }}
                   transition={{ duration: 0.12 }}
-                  className="absolute bottom-full left-0 mb-2 w-52 bg-card border border-border rounded-xl overflow-hidden z-50"
-                  style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04)' }}
+                  className="absolute bottom-full left-0 mb-2 w-52 bg-card border border-border rounded-xl overflow-hidden z-50 shadow-elevated"
                 >
                   <div className="px-3 py-2.5 border-b border-border">
                     <div className="text-[13px] truncate" style={{ fontWeight: 500 }}>{displayName}</div>

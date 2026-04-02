@@ -94,8 +94,8 @@ const RISK_CONFIG: Record<string, { color: string; bg: string; icon: string }> =
 
 const statusColors: Record<string, { bg: string; text: string; dot: string }> = {
   Active: { bg: "bg-primary/8", text: "text-primary", dot: "bg-primary" },
-  Prospect: { bg: "bg-stone-100", text: "text-stone-500", dot: "bg-stone-400" },
-  Archived: { bg: "bg-zinc-100", text: "text-zinc-500", dot: "bg-zinc-400" },
+  Prospect: { bg: "bg-warning/10", text: "text-warning", dot: "bg-warning" },
+  Archived: { bg: "bg-muted", text: "text-muted-foreground", dot: "bg-muted-foreground/50" },
 };
 
 // ── Tab definitions ─────────────────────────────────────────────────
@@ -587,16 +587,16 @@ export default function ClientDetail() {
               </div>
               {/* Tags row */}
               <div className="flex flex-wrap items-center gap-2 mt-3">
-                <div className={`flex items-center gap-1.5 px-2.5 py-1 ${statusColors[client.status]?.bg} ${statusColors[client.status]?.text} text-[11px] rounded-lg`} style={{ fontWeight: 600 }}>
+                <div className={`status-badge ${statusColors[client.status]?.bg} ${statusColors[client.status]?.text}`}>
                   <div className={`w-1.5 h-1.5 rounded-full ${statusColors[client.status]?.dot}`} />
                   {client.status}
                 </div>
-                <div className="text-[11px] text-muted-foreground px-2.5 py-1 bg-accent/60 rounded-lg" style={{ fontWeight: 600 }}>{client.model}</div>
+                <div className="text-[11px] text-muted-foreground px-2.5 py-1 bg-accent/60 rounded-md" style={{ fontWeight: 600 }}>{client.model}</div>
                 <div className="w-px h-4 bg-border/60 mx-0.5 hidden sm:block" />
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] rounded-lg" style={{ fontWeight: 600, color: priorityCfg.color, background: priorityCfg.bg }}>
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] rounded-md" style={{ fontWeight: 600, color: priorityCfg.color, background: priorityCfg.bg }}>
                   <Flag className="w-3 h-3" /> {priorityLevel.charAt(0).toUpperCase() + priorityLevel.slice(1)}
                 </span>
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] rounded-lg" style={{ fontWeight: 600, color: riskCfg.color, background: riskCfg.bg }}>
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] rounded-md" style={{ fontWeight: 600, color: riskCfg.color, background: riskCfg.bg }}>
                   <ShieldAlert className="w-3 h-3" /> {riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1)} Risk
                 </span>
               </div>
