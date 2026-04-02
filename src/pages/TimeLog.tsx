@@ -376,7 +376,7 @@ export default function TimeLog() {
 
       {/* Summary */}
       <motion.div variants={item} className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div className="bg-card border border-border rounded-xl p-6 group hover:-translate-y-0.5 transition-all duration-300 shadow-[0_1px_4px_rgba(0,0,0,0.03),0_1px_2px_rgba(0,0,0,0.02)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.05),0_1px_3px_rgba(0,0,0,0.03)]">
+        <div className="stat-card group">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-8 h-8 rounded-lg bg-accent/60 flex items-center justify-center group-hover:bg-primary/8 transition-colors">
               <Clock className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
