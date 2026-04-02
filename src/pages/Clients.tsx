@@ -243,7 +243,7 @@ export default function Clients() {
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
-                      <span className="text-[14px] text-zinc-500" style={{ fontWeight: 600 }}>
+                      <span className="text-[14px] text-muted-foreground" style={{ fontWeight: 600 }}>
                         {client.name.charAt(0)}
                       </span>
                     </div>
