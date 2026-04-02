@@ -459,7 +459,7 @@ export default function ProjectDetail() {
   // ── Render ───────────────────────────────────────────────────────
 
   return (
-    <motion.div className="w-full min-w-0 max-w-7xl mx-auto px-6 lg:px-12 py-6 md:py-10" variants={container} initial="hidden" animate="show">
+    <motion.div className="w-full min-w-0 px-6 lg:px-12 py-6 md:py-10" variants={container} initial="hidden" animate="show">
       {/* Back link */}
       <motion.div variants={item} className="mb-6">
         <Link

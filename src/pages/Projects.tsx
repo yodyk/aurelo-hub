@@ -149,7 +149,7 @@ export default function Projects() {
   return (
     <motion.div
       data-tour="projects-view"
-      className="max-w-7xl mx-auto px-6 lg:px-12 py-8 md:py-14"
+      className="w-full min-w-0 px-6 lg:px-12 py-8 md:py-14"
       variants={container}
       initial="hidden"
       animate="show"
