@@ -667,8 +667,11 @@ export default function Home() {
                 </div>
               </div>
 
+              {/* Spacer to push chart to bottom */}
+              <div className="flex-1" />
+
               {/* Chart toggle + bar chart */}
-              <div>
+              <div className="mt-auto">
                 <div className="inline-flex gap-0 bg-accent/60 rounded p-0.5 mb-3">
                   {([{ key: "daily" as const, label: "Past 30 Days" }, { key: "monthly" as const, label: "Past 12 Months" }]).map((m) => (
                     <button key={m.key} onClick={() => setChartRange(m.key)} className={`px-3 py-1 text-[11px] rounded transition-all duration-200 ${chartRange === m.key ? "bg-card text-foreground" : "text-muted-foreground hover:text-foreground"}`} style={{ fontWeight: 500, boxShadow: chartRange === m.key ? "0 1px 3px rgba(0,0,0,0.04)" : "none" }}>
