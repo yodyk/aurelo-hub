@@ -736,10 +736,10 @@ export default function Home() {
             </div>
             <div className="px-5 md:px-7 py-5 md:py-6">
               <div
-                className="text-[11px] text-muted-foreground mb-4"
-                style={{ fontWeight: 600, letterSpacing: "0.06em" }}
+                className="text-[12px] text-muted-foreground mb-3"
+                style={{ fontWeight: 500 }}
               >
-                PAID VS. UNPAID TIME
+                Paid vs. unpaid time
               </div>
               <div className="flex items-baseline gap-1.5 mb-1.5">
                 <span className="text-[36px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600 }}>
