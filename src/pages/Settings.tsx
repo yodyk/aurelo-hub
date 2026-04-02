@@ -1239,7 +1239,7 @@ function WorkspaceTab() {
               <div className="flex items-center justify-between py-2 border-t border-border">
                 <span className="text-[13px] text-muted-foreground" style={{ fontWeight: 500 }}>Portal accent color</span>
                 <span className="text-[12px] tabular-nums" style={{ fontWeight: 500, fontFamily: "ui-monospace, monospace", color: ws.brandColor }}>
-                  {ws.brandColor || "#5ea1bf"}
+                  {ws.brandColor || "#2e7d9a"}
                 </span>
               </div>
               <div className="flex items-center justify-between py-2 border-t border-border">
