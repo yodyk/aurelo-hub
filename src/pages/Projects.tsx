@@ -149,7 +149,7 @@ export default function Projects() {
   return (
     <motion.div
       data-tour="projects-view"
-      className="max-w-7xl mx-auto px-6 lg:px-12 py-6 md:py-12"
+      className="max-w-7xl mx-auto px-6 lg:px-12 py-8 md:py-14"
       variants={container}
       initial="hidden"
       animate="show"
@@ -157,7 +157,7 @@ export default function Projects() {
       {/* Header */}
       <motion.div variants={item} className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-[20px] md:text-[24px] tracking-tight mb-1" style={{ fontWeight: 600 }}>
+          <h1 className="text-[24px] md:text-[28px] tracking-tight mb-1" style={{ fontWeight: 700, letterSpacing: "-0.03em" }}>
             Projects
           </h1>
           <p className="text-[14px] text-muted-foreground">

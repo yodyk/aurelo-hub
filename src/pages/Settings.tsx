@@ -354,9 +354,9 @@ export default function Settings() {
   }, []);
 
   return (
-    <motion.div className="w-full min-w-0 max-w-6xl mx-auto px-6 lg:px-12 py-6 md:py-12" variants={container} initial="hidden" animate="show">
+    <motion.div className="w-full min-w-0 max-w-6xl mx-auto px-6 lg:px-12 py-8 md:py-14" variants={container} initial="hidden" animate="show">
       <motion.div variants={item} className="mb-8">
-        <h1 className="text-[20px] md:text-[24px] tracking-tight mb-1" style={{ fontWeight: 600 }}>
+        <h1 className="text-[24px] md:text-[28px] tracking-tight mb-1" style={{ fontWeight: 700, letterSpacing: "-0.03em" }}>
           Settings
         </h1>
         <p className="text-[14px] text-muted-foreground">Manage your workspace, billing, team, and preferences</p>

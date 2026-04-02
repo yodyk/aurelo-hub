@@ -68,14 +68,14 @@ export default function Clients() {
   return (
     <motion.div
       data-tour="client-list"
-      className="max-w-7xl mx-auto px-6 lg:px-12 py-6 md:py-12"
+      className="max-w-7xl mx-auto px-6 lg:px-12 py-8 md:py-14"
       variants={container}
       initial="hidden"
       animate="show"
     >
-      <motion.div variants={item} className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+      <motion.div variants={item} className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
         <div>
-          <h1 className="text-[20px] md:text-[24px] tracking-tight mb-1" style={{ fontWeight: 600 }}>
+          <h1 className="text-[24px] md:text-[28px] tracking-tight mb-1" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
             Clients
           </h1>
           <p className="text-[14px] text-muted-foreground">
@@ -96,7 +96,7 @@ export default function Clients() {
           <button
             onClick={handleAddClientClick}
             className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-[14px] rounded-lg hover:bg-primary/90 transition-all duration-200"
-            style={{ fontWeight: 500, boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
+            style={{ fontWeight: 500 }}
           >
             <Plus className="w-4 h-4" />
             Add client
@@ -118,15 +118,15 @@ export default function Clients() {
 
       {/* Active & Prospecting */}
       {activeClients.length > 0 && (
-        <motion.div variants={item} className="mb-12">
+        <motion.div variants={item} className="mb-14">
           <div
-            className="text-[13px] text-muted-foreground mb-4 flex items-center gap-2"
-            style={{ fontWeight: 500, letterSpacing: "0.02em" }}
+            className="text-[12px] text-muted-foreground mb-5 flex items-center gap-2"
+            style={{ fontWeight: 500 }}
           >
             <div className="w-1.5 h-1.5 rounded-full bg-primary" />
             Active &amp; prospecting
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {activeClients.map((client: any, index: number) => (
               <motion.div
                 key={client.id}

@@ -476,10 +476,10 @@ export default function Home() {
   // ══════════════════════════════════════════════════════════════════
 
   return (
-    <motion.div className="max-w-7xl mx-auto px-6 lg:px-12 py-6 md:py-12" variants={container} initial="hidden" animate="show">
+    <motion.div className="max-w-7xl mx-auto px-6 lg:px-12 py-8 md:py-14" variants={container} initial="hidden" animate="show">
       {/* ── Greeting ── */}
-      <motion.div variants={item} className="mb-8">
-        <h1 className="text-[24px] tracking-tight mb-1" style={{ fontWeight: 600 }}>
+      <motion.div variants={item} className="mb-10">
+        <h1 className="text-[28px] md:text-[32px] tracking-tight mb-1.5" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
           {getGreeting()}, {displayFirstName}
         </h1>
         <div className="flex items-center gap-2">
@@ -495,8 +495,7 @@ export default function Home() {
       {!dataLoading && !hasData && (
         <motion.div
           variants={item}
-          className="bg-card border border-[rgba(94,161,191,0.25)] rounded-xl p-6 mb-8"
-          style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.03)" }}
+          className="bg-card border border-primary/15 rounded-xl p-6 mb-10"
         >
           <div className="flex items-center gap-3">
             <Sparkles className="w-5 h-5 text-primary flex-shrink-0" />
@@ -518,7 +517,7 @@ export default function Home() {
       {canViewFinancials ? (
       <motion.div
         variants={item}
-        className="bg-card border border-border rounded-xl p-5 md:p-8 mb-8 relative overflow-hidden shadow-card"
+        className="bg-card border border-border rounded-xl p-6 md:p-8 mb-10 relative overflow-hidden shadow-card"
       >
         <div className="absolute top-0 right-0 w-72 h-72 bg-gradient-to-bl from-primary/[0.03] to-transparent rounded-bl-full pointer-events-none" />
 
@@ -540,7 +539,7 @@ export default function Home() {
                 </span>
               )}
             </div>
-            <div className="text-[36px] md:text-[56px] leading-none tracking-tight text-foreground mb-2" style={{ fontWeight: 600 }}>
+            <div className="text-[40px] md:text-[56px] leading-none tracking-tighter text-foreground mb-2" style={{ fontWeight: 700 }}>
               $<AnimatedNumber value={currentEarnings} />
             </div>
             <div className="text-[14px] text-muted-foreground">
@@ -685,13 +684,13 @@ export default function Home() {
 
         {/* Metrics strip */}
         <div className="relative rounded-xl mb-8 overflow-hidden border border-border/60">
-          <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-border/50">
+        <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-border/50">
             <div className="px-5 md:px-7 py-5 md:py-6">
               <div
-                className="text-[11px] text-muted-foreground mb-4"
-                style={{ fontWeight: 600, letterSpacing: "0.06em" }}
+                className="text-[12px] text-muted-foreground mb-3"
+                style={{ fontWeight: 500 }}
               >
-                TIME INVESTED
+                Time invested
               </div>
               <div className="flex items-baseline gap-1.5 mb-1.5">
                 <span className="text-[36px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600 }}>
@@ -715,10 +714,10 @@ export default function Home() {
             </div>
             <div className="px-5 md:px-7 py-5 md:py-6">
               <div
-                className="text-[11px] text-muted-foreground mb-4"
-                style={{ fontWeight: 600, letterSpacing: "0.06em" }}
+                className="text-[12px] text-muted-foreground mb-3"
+                style={{ fontWeight: 500 }}
               >
-                EFFECTIVE RATE
+                Effective rate
               </div>
               <div className="flex items-baseline gap-1.5 mb-1.5">
                 <span
@@ -737,10 +736,10 @@ export default function Home() {
             </div>
             <div className="px-5 md:px-7 py-5 md:py-6">
               <div
-                className="text-[11px] text-muted-foreground mb-4"
-                style={{ fontWeight: 600, letterSpacing: "0.06em" }}
+                className="text-[12px] text-muted-foreground mb-3"
+                style={{ fontWeight: 500 }}
               >
-                PAID VS. UNPAID TIME
+                Paid vs. unpaid time
               </div>
               <div className="flex items-baseline gap-1.5 mb-1.5">
                 <span className="text-[36px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600 }}>
@@ -877,8 +876,8 @@ export default function Home() {
           <div className="relative rounded-xl overflow-hidden border border-border/60">
             <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-border/50">
               <div className="px-7 py-6">
-                <div className="text-[11px] text-muted-foreground mb-4" style={{ fontWeight: 600, letterSpacing: "0.06em" }}>
-                  HOURS THIS MONTH
+                <div className="text-[12px] text-muted-foreground mb-3" style={{ fontWeight: 500 }}>
+                  Hours this month
                 </div>
                 <div className="flex items-baseline gap-1.5 mb-1.5">
                   <span className="text-[36px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600 }}>
@@ -893,8 +892,8 @@ export default function Home() {
                 </div>
               </div>
               <div className="px-7 py-6">
-                <div className="text-[11px] text-muted-foreground mb-4" style={{ fontWeight: 600, letterSpacing: "0.06em" }}>
-                  WEEKLY PROGRESS
+                <div className="text-[12px] text-muted-foreground mb-3" style={{ fontWeight: 500 }}>
+                  Weekly progress
                 </div>
                 <div className="flex items-baseline gap-1.5 mb-1.5">
                   <span className="text-[36px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600 }}>
@@ -1496,10 +1495,10 @@ export default function Home() {
                   style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.02)" }}
                 >
                   <div
-                    className="text-[11px] text-muted-foreground mb-3"
-                    style={{ fontWeight: 600, letterSpacing: "0.04em" }}
+                    className="text-[12px] text-muted-foreground mb-3"
+                    style={{ fontWeight: 500 }}
                   >
-                    {new Date().toLocaleDateString("en-US", { month: "long" }).toUpperCase()} TOTALS
+                    {new Date().toLocaleDateString("en-US", { month: "long" })} totals
                   </div>
                   <div className="grid grid-cols-2 gap-x-6 gap-y-2.5">
                     <div className="flex items-center justify-between">

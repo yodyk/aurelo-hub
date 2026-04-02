@@ -6,7 +6,7 @@
 
 :root {
   --font-size: 16px;
-  --background: #fafaf9;
+  --background: #f5f5f4;
   --foreground: oklch(0.145 0 0);
   --card: #ffffff;
   --card-foreground: oklch(0.145 0 0);
@@ -26,7 +26,7 @@
   --success-foreground: #1a3d2a;
   --warning: #bfa044;
   --warning-foreground: #4d4018;
-  --border: rgba(0, 0, 0, 0.1);
+  --border: rgba(0, 0, 0, 0.06);
   --input: transparent;
   --input-background: #f3f3f5;
   --switch-background: #cbced4;
@@ -39,30 +39,30 @@
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
   --radius: 0.25rem;
-  --sidebar: oklch(0.985 0 0);
+  --sidebar: #fafaf9;
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: #030213;
   --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.97 0 0);
   --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-border: rgba(0, 0, 0, 0.06);
   --sidebar-ring: oklch(0.708 0 0);
 }
 
 .dark {
-  --background: #1a1a19;
+  --background: #161615;
   --foreground: #e7e5e4;
-  --card: #262625;
+  --card: #1e1e1d;
   --card-foreground: #e7e5e4;
-  --popover: #262625;
+  --popover: #1e1e1d;
   --popover-foreground: #e7e5e4;
   --primary: #5ea1bf;
   --primary-foreground: #ffffff;
-  --secondary: #333332;
+  --secondary: #2a2a29;
   --secondary-foreground: #e7e5e4;
-  --muted: #333332;
+  --muted: #2a2a29;
   --muted-foreground: #a8a29e;
-  --accent: #333332;
+  --accent: #2a2a29;
   --accent-foreground: #e7e5e4;
   --destructive: #bf7e7e;
   --destructive-foreground: #ffffff;
@@ -70,9 +70,9 @@
   --success-foreground: #c8e6d4;
   --warning: #bfa044;
   --warning-foreground: #e6d9a8;
-  --border: rgba(255, 255, 255, 0.1);
+  --border: rgba(255, 255, 255, 0.07);
   --input: transparent;
-  --input-background: #333332;
+  --input-background: #2a2a29;
   --switch-background: #57534e;
   --ring: #5ea1bf;
   --font-weight-medium: 500;
@@ -82,13 +82,13 @@
   --chart-3: #a8a29e;
   --chart-4: #78716c;
   --chart-5: #57534e;
-  --sidebar: #1f1f1e;
+  --sidebar: #1a1a19;
   --sidebar-foreground: #e7e5e4;
   --sidebar-primary: #5ea1bf;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #333332;
+  --sidebar-accent: #2a2a29;
   --sidebar-accent-foreground: #e7e5e4;
-  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-border: rgba(255, 255, 255, 0.06);
   --sidebar-ring: #5ea1bf;
 }
 
@@ -366,23 +366,22 @@
 
   /* ── Standardized card shadow ── */
   .shadow-card {
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
   }
   .shadow-card-hover {
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.03);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.02);
   }
   .shadow-elevated {
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.03);
   }
 
   /* ── Standardized stat/metric card ── */
   .stat-card {
     @apply bg-card border border-border rounded-xl p-5 transition-all duration-200;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
   }
   .stat-card:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.03);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.02);
   }
 
   /* ── Status dot + label pattern ── */
