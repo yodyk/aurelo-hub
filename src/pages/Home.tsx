@@ -554,12 +554,12 @@ export default function Home() {
       {/* ══════════════════════════════════════════════════════════════ */}
       {/* TWO-COLUMN LAYOUT                                             */}
       {/* ══════════════════════════════════════════════════════════════ */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6 items-stretch">
         {/* ── LEFT COLUMN (3/5 = 60%) ── */}
-        <div className="lg:col-span-3 space-y-5">
+        <div className="lg:col-span-3 flex flex-col gap-5">
           {/* Hero panel — financial */}
           {canViewFinancials ? (
-            <motion.div variants={item} className="bg-card border border-border rounded-lg p-5 md:p-6 relative overflow-hidden">
+            <motion.div variants={item} className="bg-card border border-border rounded-lg p-5 md:p-6 relative overflow-hidden flex-1 flex flex-col">
               {/* Headline */}
               <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 mb-5 relative">
                 <div>
@@ -667,8 +667,11 @@ export default function Home() {
                 </div>
               </div>
 
+              {/* Spacer to push chart to bottom */}
+              <div className="flex-1" />
+
               {/* Chart toggle + bar chart */}
-              <div>
+              <div className="mt-auto">
                 <div className="inline-flex gap-0 bg-accent/60 rounded p-0.5 mb-3">
                   {([{ key: "daily" as const, label: "Past 30 Days" }, { key: "monthly" as const, label: "Past 12 Months" }]).map((m) => (
                     <button key={m.key} onClick={() => setChartRange(m.key)} className={`px-3 py-1 text-[11px] rounded transition-all duration-200 ${chartRange === m.key ? "bg-card text-foreground" : "text-muted-foreground hover:text-foreground"}`} style={{ fontWeight: 500, boxShadow: chartRange === m.key ? "0 1px 3px rgba(0,0,0,0.04)" : "none" }}>
@@ -734,6 +737,29 @@ export default function Home() {
                     <div className="h-full rounded-full bg-primary/50 transition-all duration-500" style={{ width: `${Math.min((weekHours / weeklyTarget) * 100, 100)}%` }} />
                   </div>
                 </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Active projects — in left column */}
+          {activeProjects.length > 0 && (
+            <motion.div variants={item} className="bg-card border border-border rounded-lg overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+                <span className="text-[12px] text-muted-foreground" style={{ fontWeight: 600 }}>Active projects</span>
+                <button onClick={() => navigate("/projects")} className="text-[11px] text-primary hover:text-primary/80 transition-colors flex items-center gap-1" style={{ fontWeight: 500 }}>View all <ArrowRight className="w-3 h-3" /></button>
+              </div>
+              <div className="divide-y divide-border">
+                {activeProjects.slice(0, 5).map((proj) => (
+                  <div key={`${proj.clientId}-${proj.id}`} className="px-4 py-2.5 hover:bg-accent/20 transition-colors cursor-pointer" onClick={() => navigate(`/clients/${proj.clientId}`)}>
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="min-w-0 flex-1"><div className="text-[12px] truncate" style={{ fontWeight: 500 }}>{proj.name}</div><div className="text-[10px] text-muted-foreground">{proj.clientName}</div></div>
+                      <span className="text-[10px] tabular-nums text-muted-foreground ml-2" style={{ fontWeight: 500 }}>{proj.hours || 0}h{proj.estimatedHours ? ` / ${proj.estimatedHours}h` : ""}</span>
+                    </div>
+                    {proj.estimatedHours > 0 && (
+                      <div className="h-1 bg-accent/60 rounded-full overflow-hidden"><div className="h-full rounded-full transition-all duration-500" style={{ width: `${Math.min(proj.completion, 100)}%`, backgroundColor: proj.completion >= 90 ? GOLD : BLUE, opacity: 0.5 }} /></div>
+                    )}
+                  </div>
+                ))}
               </div>
             </motion.div>
           )}
@@ -888,26 +914,6 @@ export default function Home() {
                     )}
                   </div>
 
-                  {/* Active projects */}
-                  {activeProjects.length > 0 && (
-                    <div>
-                      <div className="flex items-center justify-between mb-2.5">
-                        <span className="text-[12px] text-muted-foreground" style={{ fontWeight: 600 }}>Active projects</span>
-                        <button onClick={() => navigate("/projects")} className="text-[11px] text-primary hover:text-primary/80 transition-colors flex items-center gap-1" style={{ fontWeight: 500 }}>View all <ArrowRight className="w-3 h-3" /></button>
-                      </div>
-                      <div className="bg-card border border-border rounded-lg divide-y divide-border">
-                        {activeProjects.slice(0, 4).map((proj) => (
-                          <div key={`${proj.clientId}-${proj.id}`} className="px-3 py-2 hover:bg-accent/20 transition-colors cursor-pointer" onClick={() => navigate(`/clients/${proj.clientId}`)}>
-                            <div className="flex items-center justify-between mb-1">
-                              <div className="min-w-0 flex-1"><div className="text-[12px] truncate" style={{ fontWeight: 500 }}>{proj.name}</div><div className="text-[10px] text-muted-foreground">{proj.clientName}</div></div>
-                              <span className="text-[10px] tabular-nums text-muted-foreground ml-2" style={{ fontWeight: 500 }}>{proj.completion}%</span>
-                            </div>
-                            <div className="h-1 bg-accent/60 rounded-full overflow-hidden"><div className="h-full rounded-full transition-all duration-500" style={{ width: `${Math.min(proj.completion, 100)}%`, backgroundColor: proj.completion >= 90 ? GOLD : BLUE, opacity: 0.5 }} /></div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
                 </motion.div>
               )}
             </AnimatePresence>
