@@ -587,7 +587,7 @@ export default function ClientDetail() {
               </div>
               {/* Tags row */}
               <div className="flex flex-wrap items-center gap-2 mt-3">
-                <div className={`flex items-center gap-1.5 px-2.5 py-1 ${statusColors[client.status]?.bg} ${statusColors[client.status]?.text} text-[11px] rounded-lg`} style={{ fontWeight: 600 }}>
+                <div className={`status-badge ${statusColors[client.status]?.bg} ${statusColors[client.status]?.text}`}>
                   <div className={`w-1.5 h-1.5 rounded-full ${statusColors[client.status]?.dot}`} />
                   {client.status}
                 </div>
