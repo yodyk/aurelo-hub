@@ -56,16 +56,16 @@ function AuthGate() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#fafaf9]">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="flex flex-col items-center gap-3"
         >
-          <div className="w-8 h-8 rounded-lg bg-[#5ea1bf]/10 flex items-center justify-center">
-            <AureloIcon className="w-4 h-4 text-[#5ea1bf]" />
+          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+            <AureloIcon className="w-4 h-4 text-primary" />
           </div>
-          <div className="w-5 h-5 border-2 border-[#5ea1bf]/20 border-t-[#5ea1bf] rounded-full animate-spin" />
+          <div className="w-5 h-5 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
         </motion.div>
       </div>
     );
