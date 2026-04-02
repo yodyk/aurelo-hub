@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
 <style>body{font-family:system-ui;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#fafaf9}
 .card{text-align:center;padding:40px;border-radius:16px;border:1px solid #e5e5e5;background:#fff;max-width:400px}
 h1{font-size:20px;color:#1c1c1c;margin:0 0 8px}p{font-size:14px;color:#717182;margin:0}
-.check{width:48px;height:48px;border-radius:50%;background:#5ea1bf20;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:24px}</style>
+.check{width:48px;height:48px;border-radius:50%;background:#2e7d9a20;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:24px}</style>
 </head><body><div class="card"><div class="check">✓</div><h1>User Approved</h1><p>The workspace has been approved. The user can now access Aurelo.</p></div></body></html>`,
       {
         status: 200,

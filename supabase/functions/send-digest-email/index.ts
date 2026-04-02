@@ -83,11 +83,11 @@ function buildDigestHtml(d: DigestData): string {
       </td></tr>
 
       <!-- Accent strip -->
-      <tr><td style="height:3px;background:linear-gradient(90deg,#5ea1bf 0%,#3b7a99 100%)"></td></tr>
+      <tr><td style="height:3px;background:linear-gradient(90deg,#2e7d9a 0%,#1e5f75 100%)"></td></tr>
 
       <!-- Content -->
       <tr><td style="padding:32px 32px 24px">
-        <p style="font-size:11px;font-weight:600;color:#5ea1bf;letter-spacing:0.1em;margin:0 0 8px;text-transform:uppercase">Weekly Digest</p>
+        <p style="font-size:11px;font-weight:600;color:#2e7d9a;letter-spacing:0.1em;margin:0 0 8px;text-transform:uppercase">Weekly Digest</p>
         <h1 style="font-size:22px;font-weight:700;color:#1a1a19;letter-spacing:-0.02em;margin:0 0 6px;line-height:1.2">
           Your week at a glance
         </h1>
@@ -105,7 +105,7 @@ function buildDigestHtml(d: DigestData): string {
               <p style="font-size:11px;color:#8a8a86;margin:4px 0 0;text-transform:uppercase">Hours</p>
             </td>
             <td style="width:33%;text-align:center;padding:16px 8px;background:#f9f9f8;border-radius:0 8px 8px 0">
-              <p style="font-size:24px;font-weight:700;color:#5ea1bf;margin:0">${fmtCurrency(d.totalRevenue, d.currency)}</p>
+              <p style="font-size:24px;font-weight:700;color:#2e7d9a;margin:0">${fmtCurrency(d.totalRevenue, d.currency)}</p>
               <p style="font-size:11px;color:#8a8a86;margin:4px 0 0;text-transform:uppercase">Revenue</p>
             </td>
           </tr>
@@ -162,7 +162,7 @@ function buildDigestHtml(d: DigestData): string {
           This is your weekly summary from ${d.workspaceName}.
         </p>
         <p style="font-size:11px;color:#c4c4c0;margin:0">
-          Sent with <a href="https://getaurelo.com" style="color:#5ea1bf;text-decoration:none">Aurelo</a>
+          Sent with <a href="https://getaurelo.com" style="color:#2e7d9a;text-decoration:none">Aurelo</a>
         </p>
       </td></tr>
 

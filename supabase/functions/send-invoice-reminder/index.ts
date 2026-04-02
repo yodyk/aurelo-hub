@@ -63,7 +63,7 @@ function buildReminderHtml(opts: {
     daysOverdue, paymentUrl, workspaceName, workspaceLogoUrl, reminderLevel,
   } = opts;
 
-  const urgencyColor = reminderLevel === 3 ? "#c4783e" : reminderLevel === 2 ? "#bfa044" : "#5ea1bf";
+  const urgencyColor = reminderLevel === 3 ? "#c4783e" : reminderLevel === 2 ? "#bfa044" : "#2e7d9a";
   const urgencyLabel = reminderLevel === 3 ? "Final Reminder" : reminderLevel === 2 ? "Second Reminder" : "Payment Reminder";
   const urgencyMessage = reminderLevel === 3
     ? `This is the final reminder for invoice <strong>${invoiceNumber}</strong>, which is now <strong>${daysOverdue} days overdue</strong>. Please arrange payment at your earliest convenience to avoid any disruption.`
@@ -156,7 +156,7 @@ function buildReminderHtml(opts: {
           If you've already made this payment, please disregard this reminder.
         </p>
         <p style="font-size:11px;color:#c4c4c0;margin:0">
-          Sent with <a href="https://getaurelo.com" style="color:#5ea1bf;text-decoration:none">Aurelo</a>
+          Sent with <a href="https://getaurelo.com" style="color:#2e7d9a;text-decoration:none">Aurelo</a>
         </p>
       </td></tr>
 

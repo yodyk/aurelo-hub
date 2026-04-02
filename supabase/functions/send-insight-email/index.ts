@@ -121,11 +121,11 @@ function buildInsightHtml(d: InsightData): string {
       </td></tr>
 
       <!-- Accent strip -->
-      <tr><td style="height:3px;background:linear-gradient(90deg,#5ea1bf 0%,#3b7a99 100%)"></td></tr>
+      <tr><td style="height:3px;background:linear-gradient(90deg,#2e7d9a 0%,#1e5f75 100%)"></td></tr>
 
       <!-- Content -->
       <tr><td style="padding:32px 32px 24px">
-        <p style="font-size:11px;font-weight:600;color:#5ea1bf;letter-spacing:0.1em;margin:0 0 8px;text-transform:uppercase">Monthly Insights</p>
+        <p style="font-size:11px;font-weight:600;color:#2e7d9a;letter-spacing:0.1em;margin:0 0 8px;text-transform:uppercase">Monthly Insights</p>
         <h1 style="font-size:22px;font-weight:700;color:#1a1a19;letter-spacing:-0.02em;margin:0 0 6px;line-height:1.2">
           ${d.month} Performance
         </h1>
@@ -158,7 +158,7 @@ function buildInsightHtml(d: InsightData): string {
               <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f9f8;border-radius:8px">
                 <tr><td style="padding:16px 20px">
                   <p style="font-size:11px;color:#8a8a86;text-transform:uppercase;margin:0 0 6px">Effective Rate</p>
-                  <p style="font-size:22px;font-weight:700;color:#5ea1bf;margin:0">${fmtCurrency(d.effectiveRate, d.currency)}/h</p>
+                  <p style="font-size:22px;font-weight:700;color:#2e7d9a;margin:0">${fmtCurrency(d.effectiveRate, d.currency)}/h</p>
                   <p style="font-size:12px;font-weight:600;color:${deltaColor(d.rateDelta)};margin:4px 0 0">${deltaArrow(d.rateDelta)} ${fmtPct(d.rateDelta)}</p>
                 </td></tr>
               </table>
@@ -222,7 +222,7 @@ function buildInsightHtml(d: InsightData): string {
           This is your monthly performance report from ${d.workspaceName}.
         </p>
         <p style="font-size:11px;color:#c4c4c0;margin:0">
-          Sent with <a href="https://getaurelo.com" style="color:#5ea1bf;text-decoration:none">Aurelo</a>
+          Sent with <a href="https://getaurelo.com" style="color:#2e7d9a;text-decoration:none">Aurelo</a>
         </p>
       </td></tr>
 

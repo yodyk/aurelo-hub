@@ -79,7 +79,7 @@ function buildHtml(opts: {
   const payBtnHtml = paymentUrl
     ? `<table width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0 0">
         <tr><td align="center">
-          <a href="${paymentUrl}" target="_blank" style="display:inline-block;padding:14px 40px;background:#5ea1bf;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;border-radius:8px;letter-spacing:0.02em">
+          <a href="${paymentUrl}" target="_blank" style="display:inline-block;padding:14px 40px;background:#2e7d9a;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;border-radius:8px;letter-spacing:0.02em">
             Pay Invoice
           </a>
         </td></tr>
@@ -118,11 +118,11 @@ function buildHtml(opts: {
       </td></tr>
 
       <!-- Accent strip -->
-      <tr><td style="height:3px;background:linear-gradient(90deg,#5ea1bf 0%,#3b7a99 100%)"></td></tr>
+      <tr><td style="height:3px;background:linear-gradient(90deg,#2e7d9a 0%,#1e5f75 100%)"></td></tr>
 
       <!-- Content -->
       <tr><td style="padding:32px 32px 24px">
-        <p style="font-size:11px;font-weight:600;color:#5ea1bf;letter-spacing:0.1em;margin:0 0 8px;text-transform:uppercase">Invoice</p>
+        <p style="font-size:11px;font-weight:600;color:#2e7d9a;letter-spacing:0.1em;margin:0 0 8px;text-transform:uppercase">Invoice</p>
         <h1 style="font-size:24px;font-weight:700;color:#1a1a19;letter-spacing:-0.02em;margin:0 0 4px;line-height:1.2">
           ${invoiceNumber}
         </h1>
@@ -186,7 +186,7 @@ function buildHtml(opts: {
           This invoice was sent by ${fromName || workspaceName}.
         </p>
         <p style="font-size:11px;color:#c4c4c0;margin:0">
-          Sent with <a href="https://getaurelo.com" style="color:#5ea1bf;text-decoration:none">Aurelo</a>
+          Sent with <a href="https://getaurelo.com" style="color:#2e7d9a;text-decoration:none">Aurelo</a>
         </p>
       </td></tr>
 
