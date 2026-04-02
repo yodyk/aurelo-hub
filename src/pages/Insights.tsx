@@ -48,7 +48,7 @@ const perfIconMap: Record<string, any> = {
 const impactColors: Record<string, { bg: string; text: string; dot: string }> = {
   High: { bg: "bg-primary/8", text: "text-primary", dot: "bg-primary" },
   Medium: { bg: "bg-primary/5", text: "text-primary/70", dot: "bg-primary/50" },
-  Low: { bg: "bg-zinc-100 dark:bg-zinc-800", text: "text-zinc-500", dot: "bg-zinc-400" },
+  Low: { bg: "bg-muted", text: "text-muted-foreground", dot: "bg-muted-foreground/50" },
 };
 
 const signalIcons: Record<string, any> = {
