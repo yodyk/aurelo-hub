@@ -132,6 +132,7 @@ export default function Home() {
   const [workspaceLogo, setWorkspaceLogo] = useState<string | null>(null);
   const [profileName, setProfileName] = useState<string | null>(null);
   const [rightTab, setRightTab] = useState<RightTab>("activity");
+  const [chartRange, setChartRange] = useState<"daily" | "monthly">("daily");
 
   useEffect(() => {
     if (!user) return;
