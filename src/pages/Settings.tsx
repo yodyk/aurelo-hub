@@ -934,7 +934,7 @@ function WorkspaceTab() {
   const defaultWs = {
     name: currentWs?.name || '',
     url: '',
-    brandColor: '#5ea1bf',
+    brandColor: '#2e7d9a',
     fiscalYear: 'January',
   };
 
