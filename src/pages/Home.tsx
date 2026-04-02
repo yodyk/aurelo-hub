@@ -914,26 +914,6 @@ export default function Home() {
                     )}
                   </div>
 
-                  {/* Active projects */}
-                  {activeProjects.length > 0 && (
-                    <div>
-                      <div className="flex items-center justify-between mb-2.5">
-                        <span className="text-[12px] text-muted-foreground" style={{ fontWeight: 600 }}>Active projects</span>
-                        <button onClick={() => navigate("/projects")} className="text-[11px] text-primary hover:text-primary/80 transition-colors flex items-center gap-1" style={{ fontWeight: 500 }}>View all <ArrowRight className="w-3 h-3" /></button>
-                      </div>
-                      <div className="bg-card border border-border rounded-lg divide-y divide-border">
-                        {activeProjects.slice(0, 4).map((proj) => (
-                          <div key={`${proj.clientId}-${proj.id}`} className="px-3 py-2 hover:bg-accent/20 transition-colors cursor-pointer" onClick={() => navigate(`/clients/${proj.clientId}`)}>
-                            <div className="flex items-center justify-between mb-1">
-                              <div className="min-w-0 flex-1"><div className="text-[12px] truncate" style={{ fontWeight: 500 }}>{proj.name}</div><div className="text-[10px] text-muted-foreground">{proj.clientName}</div></div>
-                              <span className="text-[10px] tabular-nums text-muted-foreground ml-2" style={{ fontWeight: 500 }}>{proj.completion}%</span>
-                            </div>
-                            <div className="h-1 bg-accent/60 rounded-full overflow-hidden"><div className="h-full rounded-full transition-all duration-500" style={{ width: `${Math.min(proj.completion, 100)}%`, backgroundColor: proj.completion >= 90 ? GOLD : BLUE, opacity: 0.5 }} /></div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
                 </motion.div>
               )}
             </AnimatePresence>
