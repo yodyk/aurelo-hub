@@ -696,13 +696,19 @@ export default function Home() {
                         }}
                       />
                       <Bar dataKey="value" radius={[2, 2, 0, 0]} maxBarSize={chartRange === "daily" ? 12 : 24}>
-                        {chartData.map((entry, index) => (
-                          <Cell
-                            key={index}
-                            fill="var(--primary)"
-                            opacity={index === chartData.length - 1 ? 0.85 : 0.35}
-                          />
-                        ))}
+                        {chartData.map((entry, index) => {
+                          const values = chartData.map(d => d.value).filter(v => v > 0);
+                          const max = Math.max(...values, 1);
+                          const ratio = max > 0 ? entry.value / max : 0;
+                          const barColor = entry.value === 0 ? "var(--muted)" : ratio >= 0.66 ? "#4caf50" : ratio >= 0.33 ? "#f5a623" : "#e05252";
+                          return (
+                            <Cell
+                              key={index}
+                              fill={barColor}
+                              opacity={index === chartData.length - 1 ? 0.9 : 0.7}
+                            />
+                          );
+                        })}
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>
