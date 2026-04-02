@@ -182,7 +182,7 @@ export default function Clients() {
                     )}
                     {!client.showPortalCosts && (
                       <span
-                        className="text-[11px] text-muted-foreground/60 bg-accent/40 px-2 py-0.5 rounded-full"
+                        className="text-[11px] text-muted-foreground/60 bg-accent/40 px-2 py-0.5 rounded-md"
                         style={{ fontWeight: 500 }}
                       >
                         Costs hidden
