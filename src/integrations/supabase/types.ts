@@ -152,7 +152,10 @@ export type Database = {
           portal_greeting: string | null
           priority_level: string | null
           rate: number
+          retainer_cycle_days: number
+          retainer_cycle_start: string | null
           retainer_remaining: number | null
+          retainer_status: string
           retainer_total: number | null
           risk_level: string | null
           show_portal_costs: boolean
@@ -182,7 +185,10 @@ export type Database = {
           portal_greeting?: string | null
           priority_level?: string | null
           rate?: number
+          retainer_cycle_days?: number
+          retainer_cycle_start?: string | null
           retainer_remaining?: number | null
+          retainer_status?: string
           retainer_total?: number | null
           risk_level?: string | null
           show_portal_costs?: boolean
@@ -212,7 +218,10 @@ export type Database = {
           portal_greeting?: string | null
           priority_level?: string | null
           rate?: number
+          retainer_cycle_days?: number
+          retainer_cycle_start?: string | null
           retainer_remaining?: number | null
+          retainer_status?: string
           retainer_total?: number | null
           risk_level?: string | null
           show_portal_costs?: boolean
@@ -850,6 +859,63 @@ export type Database = {
           },
           {
             foreignKeyName: "projects_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      retainer_history: {
+        Row: {
+          client_id: string
+          created_at: string
+          cycle_end: string
+          cycle_start: string
+          hours_remaining: number
+          hours_total: number
+          hours_used: number
+          id: string
+          rate: number
+          revenue: number
+          workspace_id: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          cycle_end: string
+          cycle_start: string
+          hours_remaining?: number
+          hours_total?: number
+          hours_used?: number
+          id?: string
+          rate?: number
+          revenue?: number
+          workspace_id: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          cycle_end?: string
+          cycle_start?: string
+          hours_remaining?: number
+          hours_total?: number
+          hours_used?: number
+          id?: string
+          rate?: number
+          revenue?: number
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "retainer_history_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "retainer_history_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
