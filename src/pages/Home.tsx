@@ -253,9 +253,10 @@ export default function Home() {
     return months;
   }, [sessions, viewMode, netMultiplier]);
 
-  const chartData = chartRange === "daily" ? dailyChartData : monthlyChartData;
-
-  const maxChartValue = Math.max(...chartData.map(d => d.value), 1);
+  const chartDataRaw = chartRange === "daily" ? dailyChartData : monthlyChartData;
+  const maxChartValue = Math.max(...chartDataRaw.map(d => d.value), 1);
+  const chartMinBar = maxChartValue * 0.02; // 2% floor so zero days still show a tiny bar
+  const chartData = chartDataRaw.map(d => ({ ...d, displayValue: d.value === 0 ? chartMinBar : d.value, isZero: d.value === 0 }));
 
   // Revenue by source
   const revenueBySource = useMemo(() => {
