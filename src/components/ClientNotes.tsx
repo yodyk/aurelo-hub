@@ -17,7 +17,7 @@ const NoteEditor = lazy(() => import('./NoteEditor'));
 
 const NOTE_TYPES: { value: NoteType; label: string; icon: any; color: string; bg: string }[] = [
   { value: 'general', label: 'General', icon: StickyNote, color: 'text-stone-500', bg: 'bg-stone-100' },
-  { value: 'meeting', label: 'Meeting', icon: MessageSquare, color: 'text-[#5ea1bf]', bg: 'bg-[#5ea1bf]/10' },
+  { value: 'meeting', label: 'Meeting', icon: MessageSquare, color: 'text-[#2e7d9a]', bg: 'bg-[#2e7d9a]/10' },
   { value: 'decision', label: 'Decision', icon: Gavel, color: 'text-[#7b68a8]', bg: 'bg-[#7b68a8]/10' },
   { value: 'action-item', label: 'Action item', icon: CircleCheckBig, color: 'text-[#c77a4e]', bg: 'bg-[#c77a4e]/10' },
   { value: 'feedback', label: 'Feedback', icon: MessageCircle, color: 'text-[#6b8f71]', bg: 'bg-[#6b8f71]/10' },

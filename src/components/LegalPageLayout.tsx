@@ -76,7 +76,7 @@ export function LegalPageLayout({ children, tocItems }: LegalPageLayoutProps) {
                     className={`
                       block w-full text-left text-[13px] py-1.5 pl-3 border-l-2 transition-all duration-200
                       ${activeId === id
-                        ? 'border-[#5ea1bf] text-[#1c1c1c] dark:text-[#e7e5e4] font-medium'
+                        ? 'border-[#2e7d9a] text-[#1c1c1c] dark:text-[#e7e5e4] font-medium'
                         : 'border-transparent text-[#78716c] dark:text-[#a8a29e] hover:text-[#44403c] dark:hover:text-[#d6d3d1] hover:border-[#d6d3d1] dark:hover:border-[#57534e]'
                       }
                     `}

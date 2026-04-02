@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
           <p style="margin:0 0 8px;font-size:14px;color:#717182"><strong style="color:#1c1c1c">Email:</strong> ${userEmail}</p>
           <p style="margin:0;font-size:14px;color:#717182"><strong style="color:#1c1c1c">Workspace ID:</strong> ${workspaceId}</p>
         </div>
-        <a href="${approveUrl}" style="display:inline-block;padding:10px 24px;background:#5ea1bf;color:#fff;text-decoration:none;border-radius:8px;font-size:14px;font-weight:500">
+        <a href="${approveUrl}" style="display:inline-block;padding:10px 24px;background:#2e7d9a;color:#fff;text-decoration:none;border-radius:8px;font-size:14px;font-weight:500">
           Approve this user
         </a>
         <p style="font-size:12px;color:#b0b0b8;margin-top:16px">If you don't recognize this signup, you can ignore this email.</p>

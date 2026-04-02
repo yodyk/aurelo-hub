@@ -104,8 +104,8 @@ export default function ResetPassword() {
                   animate={{ opacity: 1, scale: 1 }}
                   className="text-center py-8"
                 >
-                  <div className="w-12 h-12 rounded-full bg-[#5ea1bf]/10 flex items-center justify-center mx-auto mb-4">
-                    <Check className="w-6 h-6 text-[#5ea1bf]" />
+                  <div className="w-12 h-12 rounded-full bg-[#2e7d9a]/10 flex items-center justify-center mx-auto mb-4">
+                    <Check className="w-6 h-6 text-[#2e7d9a]" />
                   </div>
                   <h2 className="text-[18px] text-[#1c1c1c] mb-2" style={{ fontWeight: 600 }}>
                     Check your email
@@ -137,14 +137,14 @@ export default function ResetPassword() {
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="you@company.com"
                       autoComplete="email"
-                      className="w-full h-10 px-3 rounded-lg border border-black/10 bg-white text-[14px] text-[#1c1c1c] placeholder:text-[#b0b0b8] outline-none focus:border-[#5ea1bf]/40 focus:ring-2 focus:ring-[#5ea1bf]/10 transition-all"
+                      className="w-full h-10 px-3 rounded-lg border border-black/10 bg-white text-[14px] text-[#1c1c1c] placeholder:text-[#b0b0b8] outline-none focus:border-[#2e7d9a]/40 focus:ring-2 focus:ring-[#2e7d9a]/10 transition-all"
                     />
                   </div>
 
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full h-10 rounded-lg bg-[#5ea1bf] text-white text-[14px] flex items-center justify-center gap-2 hover:bg-[#4d8fad] active:bg-[#437d99] disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
+                    className="w-full h-10 rounded-lg bg-[#2e7d9a] text-white text-[14px] flex items-center justify-center gap-2 hover:bg-[#256a83] active:bg-[#1e5f75] disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
                     style={{ fontWeight: 500 }}
                   >
                     {loading ? (
@@ -176,8 +176,8 @@ export default function ResetPassword() {
                   animate={{ opacity: 1, scale: 1 }}
                   className="text-center py-8"
                 >
-                  <div className="w-12 h-12 rounded-full bg-[#5ea1bf]/10 flex items-center justify-center mx-auto mb-4">
-                    <Check className="w-6 h-6 text-[#5ea1bf]" />
+                  <div className="w-12 h-12 rounded-full bg-[#2e7d9a]/10 flex items-center justify-center mx-auto mb-4">
+                    <Check className="w-6 h-6 text-[#2e7d9a]" />
                   </div>
                   <h2 className="text-[18px] text-[#1c1c1c] mb-2" style={{ fontWeight: 600 }}>
                     Password updated
@@ -209,7 +209,7 @@ export default function ResetPassword() {
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="At least 8 characters"
                       autoComplete="new-password"
-                      className="w-full h-10 px-3 rounded-lg border border-black/10 bg-white text-[14px] text-[#1c1c1c] placeholder:text-[#b0b0b8] outline-none focus:border-[#5ea1bf]/40 focus:ring-2 focus:ring-[#5ea1bf]/10 transition-all"
+                      className="w-full h-10 px-3 rounded-lg border border-black/10 bg-white text-[14px] text-[#1c1c1c] placeholder:text-[#b0b0b8] outline-none focus:border-[#2e7d9a]/40 focus:ring-2 focus:ring-[#2e7d9a]/10 transition-all"
                     />
                   </div>
 
@@ -223,14 +223,14 @@ export default function ResetPassword() {
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Re-enter your password"
                       autoComplete="new-password"
-                      className="w-full h-10 px-3 rounded-lg border border-black/10 bg-white text-[14px] text-[#1c1c1c] placeholder:text-[#b0b0b8] outline-none focus:border-[#5ea1bf]/40 focus:ring-2 focus:ring-[#5ea1bf]/10 transition-all"
+                      className="w-full h-10 px-3 rounded-lg border border-black/10 bg-white text-[14px] text-[#1c1c1c] placeholder:text-[#b0b0b8] outline-none focus:border-[#2e7d9a]/40 focus:ring-2 focus:ring-[#2e7d9a]/10 transition-all"
                     />
                   </div>
 
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full h-10 rounded-lg bg-[#5ea1bf] text-white text-[14px] flex items-center justify-center gap-2 hover:bg-[#4d8fad] active:bg-[#437d99] disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
+                    className="w-full h-10 rounded-lg bg-[#2e7d9a] text-white text-[14px] flex items-center justify-center gap-2 hover:bg-[#256a83] active:bg-[#1e5f75] disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
                     style={{ fontWeight: 500 }}
                   >
                     {loading ? (
@@ -251,7 +251,7 @@ export default function ResetPassword() {
           <div className="mt-8 pt-6 border-t border-black/[0.06] text-center">
             <Link
               to="/login"
-              className="inline-flex items-center gap-1.5 text-[13px] text-[#5ea1bf] hover:text-[#4d8fad] transition-colors"
+              className="inline-flex items-center gap-1.5 text-[13px] text-[#2e7d9a] hover:text-[#256a83] transition-colors"
               style={{ fontWeight: 500 }}
             >
               <ArrowLeft className="w-3 h-3" />

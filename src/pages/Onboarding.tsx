@@ -93,7 +93,7 @@ export default function Onboarding() {
               <div
                 key={s}
                 className={`h-1 rounded-full transition-all duration-300 ${
-                  isActive ? "w-6 bg-[#5ea1bf]" : isComplete ? "w-3 bg-[#5ea1bf]/40" : "w-3 bg-black/[0.06]"
+                  isActive ? "w-6 bg-[#2e7d9a]" : isComplete ? "w-3 bg-[#2e7d9a]/40" : "w-3 bg-black/[0.06]"
                 }`}
               />
             );
@@ -120,8 +120,8 @@ export default function Onboarding() {
               >
                 {/* Heading */}
                 <div className="text-center mb-10">
-                  <div className="w-12 h-12 rounded-2xl bg-[#5ea1bf]/8 flex items-center justify-center mx-auto mb-5">
-                    <AureloIcon className="w-6 h-6 text-[#5ea1bf]" />
+                  <div className="w-12 h-12 rounded-2xl bg-[#2e7d9a]/8 flex items-center justify-center mx-auto mb-5">
+                    <AureloIcon className="w-6 h-6 text-[#2e7d9a]" />
                   </div>
                   <h1
                     className="text-[26px] text-[#1c1c1c] mb-2"
@@ -152,7 +152,7 @@ export default function Onboarding() {
                         onClick={() => setSelected(option.value)}
                         className={`relative text-left px-5 py-4 rounded-xl border-[1.5px] transition-all duration-200 group ${
                           isSelected
-                            ? "bg-white border-[#5ea1bf]/40 ring-2 ring-[#5ea1bf]/10"
+                            ? "bg-white border-[#2e7d9a]/40 ring-2 ring-[#2e7d9a]/10"
                             : "bg-white border-black/[0.06] hover:border-black/[0.12] hover:bg-[#fafaf9]"
                         }`}
                         style={{
@@ -166,7 +166,7 @@ export default function Onboarding() {
                               initial={{ scale: 0 }}
                               animate={{ scale: 1 }}
                               exit={{ scale: 0 }}
-                              className="absolute top-3 right-3 w-5 h-5 rounded-full bg-[#5ea1bf] flex items-center justify-center"
+                              className="absolute top-3 right-3 w-5 h-5 rounded-full bg-[#2e7d9a] flex items-center justify-center"
                             >
                               <Check className="w-3 h-3 text-white" strokeWidth={2.5} />
                             </motion.div>
@@ -176,10 +176,10 @@ export default function Onboarding() {
                         <div className="flex items-start gap-3.5">
                           <div
                             className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors ${
-                              isSelected ? "bg-[#5ea1bf]/10" : "bg-stone-100 group-hover:bg-stone-200/70"
+                              isSelected ? "bg-[#2e7d9a]/10" : "bg-stone-100 group-hover:bg-stone-200/70"
                             }`}
                           >
-                            <Icon className={`w-[18px] h-[18px] ${isSelected ? "text-[#5ea1bf]" : "text-stone-500"}`} />
+                            <Icon className={`w-[18px] h-[18px] ${isSelected ? "text-[#2e7d9a]" : "text-stone-500"}`} />
                           </div>
                           <div className="min-w-0">
                             <div
@@ -201,7 +201,7 @@ export default function Onboarding() {
                   <button
                     onClick={() => selected && setStep("confirm")}
                     disabled={!selected}
-                    className="flex items-center gap-2.5 px-6 py-2.5 rounded-xl bg-[#5ea1bf] text-white text-[14px] hover:bg-[#4d8fad] active:bg-[#437d99] disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200"
+                    className="flex items-center gap-2.5 px-6 py-2.5 rounded-xl bg-[#2e7d9a] text-white text-[14px] hover:bg-[#256a83] active:bg-[#1e5f75] disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200"
                     style={{ fontWeight: 500 }}
                   >
                     Continue
@@ -233,11 +233,11 @@ export default function Onboarding() {
               >
                 {/* Confirmation step — show categories */}
                 <div className="text-center mb-8">
-                  <div className="w-12 h-12 rounded-2xl bg-[#5ea1bf]/8 flex items-center justify-center mx-auto mb-5">
+                  <div className="w-12 h-12 rounded-2xl bg-[#2e7d9a]/8 flex items-center justify-center mx-auto mb-5">
                     {selected &&
                       (() => {
                         const Icon = IDENTITY_ICONS[selected];
-                        return <Icon className="w-6 h-6 text-[#5ea1bf]" />;
+                        return <Icon className="w-6 h-6 text-[#2e7d9a]" />;
                       })()}
                   </div>
                   <h2 className="text-[22px] text-[#1c1c1c] mb-2" style={{ fontWeight: 600, letterSpacing: "-0.01em" }}>
@@ -264,12 +264,12 @@ export default function Onboarding() {
                         variants={item}
                         className={`flex items-center gap-2 px-3.5 py-2 rounded-lg border text-[13px] ${
                           cat.billable
-                            ? "bg-[#5ea1bf]/[0.04] border-[#5ea1bf]/15 text-[#1c1c1c]"
+                            ? "bg-[#2e7d9a]/[0.04] border-[#2e7d9a]/15 text-[#1c1c1c]"
                             : "bg-stone-50 border-stone-200/60 text-stone-500"
                         }`}
                         style={{ fontWeight: 500 }}
                       >
-                        <div className={`w-1.5 h-1.5 rounded-full ${cat.billable ? "bg-[#5ea1bf]" : "bg-stone-400"}`} />
+                        <div className={`w-1.5 h-1.5 rounded-full ${cat.billable ? "bg-[#2e7d9a]" : "bg-stone-400"}`} />
                         {cat.name}
                         {!cat.billable && (
                           <span className="text-[10px] text-stone-400 ml-0.5" style={{ fontWeight: 400 }}>
@@ -280,7 +280,7 @@ export default function Onboarding() {
                     ))}
                   </motion.div>
                   <div className="mt-4 pt-3 border-t border-black/[0.04] flex items-center gap-2 text-[12px] text-[#a8a29e]">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#5ea1bf]" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#2e7d9a]" />
                     <span>{previewCategories.filter((c) => c.billable).length} billable</span>
                     <span className="text-stone-300 mx-1">/</span>
                     <div className="w-1.5 h-1.5 rounded-full bg-stone-400" />
@@ -300,7 +300,7 @@ export default function Onboarding() {
                   <button
                     onClick={handleContinue}
                     disabled={saving}
-                    className="flex items-center gap-2.5 px-6 py-2.5 rounded-xl bg-[#5ea1bf] text-white text-[14px] hover:bg-[#4d8fad] active:bg-[#437d99] disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
+                    className="flex items-center gap-2.5 px-6 py-2.5 rounded-xl bg-[#2e7d9a] text-white text-[14px] hover:bg-[#256a83] active:bg-[#1e5f75] disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
                     style={{ fontWeight: 500 }}
                   >
                     Set up workspace
@@ -331,8 +331,8 @@ export default function Onboarding() {
               >
                 {/* Explore step */}
                 <div className="text-center mb-10">
-                  <div className="w-12 h-12 rounded-2xl bg-[#5ea1bf]/8 flex items-center justify-center mx-auto mb-5">
-                    <Sparkles className="w-6 h-6 text-[#5ea1bf]" />
+                  <div className="w-12 h-12 rounded-2xl bg-[#2e7d9a]/8 flex items-center justify-center mx-auto mb-5">
+                    <Sparkles className="w-6 h-6 text-[#2e7d9a]" />
                   </div>
                   <h2 className="text-[22px] text-[#1c1c1c] mb-2" style={{ fontWeight: 600, letterSpacing: "-0.01em" }}>
                     Want a quick tour?
@@ -348,11 +348,11 @@ export default function Onboarding() {
                   {/* Take the tour */}
                   <button
                     onClick={handleStartTour}
-                    className="relative text-left bg-white rounded-xl border-[1.5px] border-[#5ea1bf]/30 p-5 hover:border-[#5ea1bf]/50 hover:-translate-y-0.5 transition-all duration-200 group ring-2 ring-[#5ea1bf]/8"
+                    className="relative text-left bg-white rounded-xl border-[1.5px] border-[#2e7d9a]/30 p-5 hover:border-[#2e7d9a]/50 hover:-translate-y-0.5 transition-all duration-200 group ring-2 ring-[#2e7d9a]/8"
                     style={{ boxShadow: "0 2px 8px rgba(94,161,191,0.08)" }}
                   >
-                    <div className="w-9 h-9 rounded-lg bg-[#5ea1bf]/10 flex items-center justify-center mb-3 group-hover:bg-[#5ea1bf]/15 transition-colors">
-                      <Sparkles className="w-[18px] h-[18px] text-[#5ea1bf]" />
+                    <div className="w-9 h-9 rounded-lg bg-[#2e7d9a]/10 flex items-center justify-center mb-3 group-hover:bg-[#2e7d9a]/15 transition-colors">
+                      <Sparkles className="w-[18px] h-[18px] text-[#2e7d9a]" />
                     </div>
                     <div className="text-[14px] text-[#1c1c1c] mb-1" style={{ fontWeight: 600 }}>
                       Explore with a guided tour
@@ -361,7 +361,7 @@ export default function Onboarding() {
                       Get a guided walkthrough of the workspace
                     </div>
                     <div
-                      className="mt-3 inline-flex items-center gap-1 text-[12px] text-[#5ea1bf]"
+                      className="mt-3 inline-flex items-center gap-1 text-[12px] text-[#2e7d9a]"
                       style={{ fontWeight: 500 }}
                     >
                       Recommended

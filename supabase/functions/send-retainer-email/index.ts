@@ -30,7 +30,7 @@ function buildHtml(p: RetainerEmailPayload): string {
   const pctLeft = 100 - pct;
 
   // Bar color shifts from blue → warm amber as usage increases
-  const barColor = pct >= 90 ? '#c4783e' : pct >= 75 ? '#bfa044' : '#5ea1bf';
+  const barColor = pct >= 90 ? '#c4783e' : pct >= 75 ? '#bfa044' : '#2e7d9a';
 
   const logoHtml = p.workspaceLogoUrl
     ? `<td style="vertical-align:middle"><img src="${p.workspaceLogoUrl}" alt="${wsName}" height="28" style="display:inline-block;vertical-align:middle" /></td>`
@@ -60,11 +60,11 @@ function buildHtml(p: RetainerEmailPayload): string {
       </td></tr>
 
       <!-- Accent strip -->
-      <tr><td style="height:3px;background:linear-gradient(90deg,#5ea1bf 0%,#3b7a99 100%)"></td></tr>
+      <tr><td style="height:3px;background:linear-gradient(90deg,#2e7d9a 0%,#1e5f75 100%)"></td></tr>
 
       <!-- Content -->
       <tr><td style="padding:32px 32px 24px">
-        <p style="font-size:11px;font-weight:600;color:#5ea1bf;letter-spacing:0.1em;margin:0 0 8px;text-transform:uppercase">Retainer Update</p>
+        <p style="font-size:11px;font-weight:600;color:#2e7d9a;letter-spacing:0.1em;margin:0 0 8px;text-transform:uppercase">Retainer Update</p>
         <h1 style="font-size:24px;font-weight:700;color:#1a1a19;letter-spacing:-0.02em;margin:0 0 16px;line-height:1.2">
           ${pct}% of hours used
         </h1>
@@ -126,7 +126,7 @@ function buildHtml(p: RetainerEmailPayload): string {
           This is an automated notification from ${wsName}.
         </p>
         <p style="font-size:11px;color:#c4c4c0;margin:0">
-          Sent with <a href="https://getaurelo.com" style="color:#5ea1bf;text-decoration:none">Aurelo</a>
+          Sent with <a href="https://getaurelo.com" style="color:#2e7d9a;text-decoration:none">Aurelo</a>
         </p>
       </td></tr>
 

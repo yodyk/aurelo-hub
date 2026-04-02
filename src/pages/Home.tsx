@@ -66,7 +66,7 @@ function getGreeting() {
   return "Good evening";
 }
 
-const BLUE = "#5ea1bf";
+const BLUE = "#2e7d9a";
 const GOLD = "#bfa044";
 const RED = "#c27272";
 const BLUE_BG = "rgba(94, 161, 191, 0.08)";
@@ -988,7 +988,7 @@ export default function Home() {
                   </span>
                   {!hasFullInsights && (
                     <span
-                      className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] rounded-full bg-[#5ea1bf]/10 text-[#5ea1bf]"
+                      className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] rounded-full bg-[#2e7d9a]/10 text-[#2e7d9a]"
                       style={{ fontWeight: 600 }}
                     >
                       PRO
@@ -1000,7 +1000,7 @@ export default function Home() {
                     <div className="absolute inset-0 z-10 backdrop-blur-[4px] bg-background/50 rounded-xl flex items-center justify-center">
                       <button
                         onClick={() => navigate("/settings?tab=billing")}
-                        className="flex items-center gap-1.5 px-3 py-2 text-[12px] rounded-lg bg-[#5ea1bf]/10 text-[#5ea1bf] hover:bg-[#5ea1bf]/20 transition-all"
+                        className="flex items-center gap-1.5 px-3 py-2 text-[12px] rounded-lg bg-[#2e7d9a]/10 text-[#2e7d9a] hover:bg-[#2e7d9a]/20 transition-all"
                         style={{ fontWeight: 500 }}
                       >
                         <Sparkles className="w-3 h-3" />
@@ -1364,7 +1364,7 @@ export default function Home() {
                               {proj.totalValue > 0 && proj.hours > 0 && (() => {
                                 const effRate = Math.round(proj.totalValue / proj.hours);
                                 const cl = clients.find(c => c.id === proj.clientId);
-                                const rateColor = cl && effRate < (cl.rate * 0.5) ? '#c27272' : cl && effRate < cl.rate ? '#bfa044' : '#5ea1bf';
+                                const rateColor = cl && effRate < (cl.rate * 0.5) ? '#c27272' : cl && effRate < cl.rate ? '#bfa044' : '#2e7d9a';
                                 return (
                                   <span className="text-[11px] tabular-nums" style={{ fontWeight: 500, color: rateColor }}>
                                     · ${effRate}/hr
@@ -1616,7 +1616,7 @@ export default function Home() {
                   </p>
                   {!hasFullInsights && (
                     <span
-                      className="inline-flex items-center gap-1 mt-2 px-2 py-0.5 text-[10px] rounded-full bg-[#5ea1bf]/10 text-[#5ea1bf]"
+                      className="inline-flex items-center gap-1 mt-2 px-2 py-0.5 text-[10px] rounded-full bg-[#2e7d9a]/10 text-[#2e7d9a]"
                       style={{ fontWeight: 600 }}
                     >
                       <Sparkles className="w-2.5 h-2.5" />

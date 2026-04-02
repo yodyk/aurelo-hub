@@ -50,11 +50,11 @@ function buildHtml(opts: {
       </td></tr>
 
       <!-- Accent strip -->
-      <tr><td style="height:3px;background:linear-gradient(90deg,#5ea1bf 0%,#3b7a99 100%)"></td></tr>
+      <tr><td style="height:3px;background:linear-gradient(90deg,#2e7d9a 0%,#1e5f75 100%)"></td></tr>
 
       <!-- Content -->
       <tr><td style="padding:32px 32px 24px">
-        <p style="font-size:11px;font-weight:600;color:#5ea1bf;letter-spacing:0.1em;margin:0 0 8px;text-transform:uppercase">Workspace Invitation</p>
+        <p style="font-size:11px;font-weight:600;color:#2e7d9a;letter-spacing:0.1em;margin:0 0 8px;text-transform:uppercase">Workspace Invitation</p>
         <h1 style="font-size:24px;font-weight:700;color:#1a1a19;letter-spacing:-0.02em;margin:0 0 16px;line-height:1.2">
           You've been invited
         </h1>
@@ -69,7 +69,7 @@ function buildHtml(opts: {
         <table width="100%" cellpadding="0" cellspacing="0">
           <tr><td align="center">
             <table cellpadding="0" cellspacing="0" style="margin:0 auto">
-              <tr><td style="background:#5ea1bf;border-radius:8px;padding:0">
+              <tr><td style="background:#2e7d9a;border-radius:8px;padding:0">
                 <a href="${acceptUrl}" style="color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;display:inline-block;padding:14px 32px">
                   Accept invitation →
                 </a>
@@ -81,7 +81,7 @@ function buildHtml(opts: {
         <p style="font-size:12px;color:#a8a29e;line-height:1.5;margin:28px 0 6px">
           If the button doesn't work, paste this URL into your browser:
         </p>
-        <p style="font-size:12px;color:#5ea1bf;line-height:1.5;word-break:break-all;margin:0 0 8px">${acceptUrl}</p>
+        <p style="font-size:12px;color:#2e7d9a;line-height:1.5;word-break:break-all;margin:0 0 8px">${acceptUrl}</p>
       </td></tr>
 
       <!-- Divider -->
@@ -93,7 +93,7 @@ function buildHtml(opts: {
           Wasn't expecting this? You can safely ignore it — no changes will be made.
         </p>
         <p style="font-size:11px;color:#c4c4c0;margin:0">
-          Sent with <a href="https://getaurelo.com" style="color:#5ea1bf;text-decoration:none">Aurelo</a>
+          Sent with <a href="https://getaurelo.com" style="color:#2e7d9a;text-decoration:none">Aurelo</a>
         </p>
       </td></tr>
 

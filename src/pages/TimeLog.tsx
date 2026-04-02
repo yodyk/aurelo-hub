@@ -658,7 +658,7 @@ export default function TimeLog() {
                       const proj = (allProjects || []).find((p: any) => String(p.id) === String(session.projectId));
                       if (!proj || !proj.totalValue || proj.totalValue <= 0 || !proj.hours || proj.hours <= 0) return null;
                       const effRate = Math.round(proj.totalValue / proj.hours);
-                      const rateColor = effRate < (cl.rate * 0.5) ? '#c27272' : effRate < cl.rate ? '#bfa044' : '#5ea1bf';
+                      const rateColor = effRate < (cl.rate * 0.5) ? '#c27272' : effRate < cl.rate ? '#bfa044' : '#2e7d9a';
                       return (
                         <div className="flex-shrink-0">
                           <span className="text-[10px] tabular-nums" style={{ fontWeight: 500, color: rateColor }}>
