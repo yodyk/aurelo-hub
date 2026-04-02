@@ -593,7 +593,7 @@ export default function ClientDetail() {
                 </div>
                 <div className="text-[11px] text-muted-foreground px-2.5 py-1 bg-accent/60 rounded-md" style={{ fontWeight: 600 }}>{client.model}</div>
                 <div className="w-px h-4 bg-border/60 mx-0.5 hidden sm:block" />
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] rounded-lg" style={{ fontWeight: 600, color: priorityCfg.color, background: priorityCfg.bg }}>
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] rounded-md" style={{ fontWeight: 600, color: priorityCfg.color, background: priorityCfg.bg }}>
                   <Flag className="w-3 h-3" /> {priorityLevel.charAt(0).toUpperCase() + priorityLevel.slice(1)}
                 </span>
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] rounded-lg" style={{ fontWeight: 600, color: riskCfg.color, background: riskCfg.bg }}>
