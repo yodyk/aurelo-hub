@@ -596,7 +596,7 @@ export default function ClientDetail() {
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] rounded-md" style={{ fontWeight: 600, color: priorityCfg.color, background: priorityCfg.bg }}>
                   <Flag className="w-3 h-3" /> {priorityLevel.charAt(0).toUpperCase() + priorityLevel.slice(1)}
                 </span>
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] rounded-lg" style={{ fontWeight: 600, color: riskCfg.color, background: riskCfg.bg }}>
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] rounded-md" style={{ fontWeight: 600, color: riskCfg.color, background: riskCfg.bg }}>
                   <ShieldAlert className="w-3 h-3" /> {riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1)} Risk
                 </span>
               </div>
