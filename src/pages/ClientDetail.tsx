@@ -696,7 +696,13 @@ export default function ClientDetail() {
               {activeTab === "retainer" && (
                 <RetainerTab
                   client={client}
+                  clientId={clientId}
                   workspaceId={workspaceId}
+                  clientSessions={clientSessions}
+                  onUpdateClient={async (updates: any) => {
+                    await dataApi.updateClient(workspaceId, clientId!, updates);
+                    updateClient(clientId!, updates);
+                  }}
                   sentThresholds={sentThresholds}
                   setSentThresholds={setSentThresholds}
                   resending={resending}
