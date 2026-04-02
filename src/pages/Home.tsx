@@ -539,7 +539,7 @@ export default function Home() {
                 </span>
               )}
             </div>
-            <div className="text-[36px] md:text-[56px] leading-none tracking-tight text-foreground mb-2" style={{ fontWeight: 600 }}>
+            <div className="text-[40px] md:text-[56px] leading-none tracking-tighter text-foreground mb-2" style={{ fontWeight: 700 }}>
               $<AnimatedNumber value={currentEarnings} />
             </div>
             <div className="text-[14px] text-muted-foreground">
