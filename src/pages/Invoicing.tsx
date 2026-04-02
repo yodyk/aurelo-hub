@@ -389,8 +389,7 @@ export default function Invoicing() {
                 setEditingInvoice(null);
                 setShowBuilder(true);
               }}
-              className="inline-flex items-center gap-2 px-4 py-2 text-[13px] rounded-lg bg-foreground text-background hover:opacity-90 transition-all"
-              style={{ fontWeight: 500 }}
+              className="btn-primary"
             >
               <Plus className="w-3.5 h-3.5" />
               New invoice
