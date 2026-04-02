@@ -1889,8 +1889,8 @@ function IdentitySection() {
               style={{ boxShadow: "0 16px 48px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06)" }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="w-11 h-11 rounded-xl bg-[#5ea1bf]/10 flex items-center justify-center mx-auto mb-4">
-                <Lock className="w-5 h-5 text-[#5ea1bf]" />
+              <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <Lock className="w-5 h-5 text-primary" />
               </div>
               <h3 className="text-[16px] text-foreground mb-1.5" style={{ fontWeight: 600 }}>
                 Custom categories require Pro

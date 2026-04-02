@@ -134,7 +134,7 @@ function PlanCard({ planId, isCurrent, currentPlanId, isOwner, onSelect, selecti
 
   const accentColors: Record<PlanId, string> = {
     starter: '#78716c',
-    pro: '#5ea1bf',
+    pro: 'var(--primary)',
     studio: '#bfa044',
     legacy: '#10b981',
   };
