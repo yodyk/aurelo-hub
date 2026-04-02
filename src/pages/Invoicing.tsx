@@ -363,7 +363,7 @@ export default function Invoicing() {
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-6xl mx-auto">
+    <div className="page-wrapper">
       <motion.div variants={container} initial="hidden" animate="show">
         {/* Header */}
         <motion.div variants={item} className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
