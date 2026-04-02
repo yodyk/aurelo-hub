@@ -253,9 +253,10 @@ export default function Home() {
     return months;
   }, [sessions, viewMode, netMultiplier]);
 
-  const chartData = chartRange === "daily" ? dailyChartData : monthlyChartData;
-
-  const maxChartValue = Math.max(...chartData.map(d => d.value), 1);
+  const chartDataRaw = chartRange === "daily" ? dailyChartData : monthlyChartData;
+  const maxChartValue = Math.max(...chartDataRaw.map(d => d.value), 1);
+  const chartMinBar = maxChartValue * 0.02; // 2% floor so zero days still show a tiny bar
+  const chartData = chartDataRaw.map(d => ({ ...d, displayValue: d.value === 0 ? chartMinBar : d.value, isZero: d.value === 0 }));
 
   // Revenue by source
   const revenueBySource = useMemo(() => {
@@ -679,7 +680,7 @@ export default function Home() {
                   <ResponsiveContainer width="100%" height={140}>
                     <BarChart data={chartData} margin={{ top: 4, right: 0, bottom: 0, left: 0 }} barCategoryGap={chartRange === "daily" ? "15%" : "20%"}>
                       <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: "var(--muted-foreground)", fontSize: 10, fontWeight: 500 }} dy={4} interval={chartRange === "daily" ? 4 : 0} />
-                      <YAxis hide domain={[0, maxChartValue * 1.1]} />
+                      <YAxis hide domain={[0, (maxChartValue + chartMinBar) * 1.1]} />
                       <Tooltip
                         cursor={false}
                         content={({ active, payload, label }) => {
@@ -695,17 +696,17 @@ export default function Home() {
                           );
                         }}
                       />
-                      <Bar dataKey="value" radius={[2, 2, 0, 0]} maxBarSize={chartRange === "daily" ? 12 : 24}>
+                      <Bar dataKey="displayValue" radius={[2, 2, 0, 0]} maxBarSize={chartRange === "daily" ? 12 : 24}>
                         {chartData.map((entry, index) => {
                           const values = chartData.map(d => d.value).filter(v => v > 0);
                           const max = Math.max(...values, 1);
                           const ratio = max > 0 ? entry.value / max : 0;
-                          const barColor = entry.value === 0 ? "var(--muted)" : ratio >= 0.66 ? "#4caf50" : ratio >= 0.33 ? "#f5a623" : "#e05252";
+                          const barColor = entry.isZero ? "var(--muted-foreground)" : ratio >= 0.66 ? "#4caf50" : ratio >= 0.33 ? "#f5a623" : "#e05252";
                           return (
                             <Cell
                               key={index}
                               fill={barColor}
-                              opacity={index === chartData.length - 1 ? 0.9 : 0.7}
+                              opacity={entry.isZero ? 0.25 : (index === chartData.length - 1 ? 0.9 : 0.7)}
                             />
                           );
                         })}
