@@ -429,7 +429,7 @@
 
   /* ── Page container standardized ── */
   .page-wrapper {
-    @apply w-full min-w-0 px-6 lg:px-12 py-6 md:py-10;
+    @apply w-full min-w-0 px-4 lg:px-8 py-6;
   }
 }
 
