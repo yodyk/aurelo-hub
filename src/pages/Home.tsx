@@ -676,10 +676,10 @@ export default function Home() {
                     </button>
                   ))}
                 </div>
-                <div className="w-full overflow-hidden" style={{ height: 140 }}>
+                <div className="w-full overflow-hidden mt-4" style={{ height: 140 }}>
                   <ResponsiveContainer width="100%" height={140}>
                     <BarChart data={chartData} margin={{ top: 4, right: 0, bottom: 0, left: 0 }} barCategoryGap={chartRange === "daily" ? "15%" : "20%"}>
-                      <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: "var(--muted-foreground)", fontSize: 10, fontWeight: 500 }} dy={4} interval={chartRange === "daily" ? 4 : 0} />
+                      <XAxis dataKey="label" axisLine={false} tickLine={false} tick={chartRange === "daily" ? false : { fill: "var(--muted-foreground)", fontSize: 10, fontWeight: 500 }} dy={4} interval={0} hide={chartRange === "daily"} />
                       <YAxis hide domain={[0, (maxChartValue + chartMinBar) * 1.1]} />
                       <Tooltip
                         cursor={false}
