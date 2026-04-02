@@ -22,8 +22,8 @@ const item = {
 
 const statusColors: Record<string, { bg: string; text: string; dot: string }> = {
   Active: { bg: "bg-primary/8", text: "text-primary", dot: "bg-primary" },
-  Prospect: { bg: "bg-stone-100", text: "text-stone-500", dot: "bg-stone-400" },
-  Archived: { bg: "bg-zinc-100", text: "text-zinc-500", dot: "bg-zinc-400" },
+  Prospect: { bg: "bg-warning/10", text: "text-warning", dot: "bg-warning" },
+  Archived: { bg: "bg-muted", text: "text-muted-foreground", dot: "bg-muted-foreground/50" },
 };
 
 export default function Clients() {
