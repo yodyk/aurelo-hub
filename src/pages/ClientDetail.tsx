@@ -1660,12 +1660,121 @@ function SessionsTab({ clientSessions, client, canViewFinancials, selectedIds, o
 // ═══════════════════════════════════════════════════════════════════
 // Retainer Tab
 // ═══════════════════════════════════════════════════════════════════
-function RetainerTab({ client, workspaceId, sentThresholds, setSentThresholds, resending, setResending, sendingManualUpdate, setSendingManualUpdate, confirmSendUpdate, setConfirmSendUpdate, emailStatuses, getDeliveryStatus }: any) {
+function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateClient, sentThresholds, setSentThresholds, resending, setResending, sendingManualUpdate, setSendingManualUpdate, confirmSendUpdate, setConfirmSendUpdate, emailStatuses, getDeliveryStatus }: any) {
+  const [history, setHistory] = useState<any[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(true);
+  const [confirmReset, setConfirmReset] = useState(false);
+  const [resetting, setResetting] = useState(false);
+  const [editingCycle, setEditingCycle] = useState(false);
+  const [cycleStart, setCycleStart] = useState(client.retainerCycleStart || '');
+  const [cycleDays, setCycleDays] = useState(client.retainerCycleDays || 30);
+
   const hoursUsed = (client.retainerTotal || 0) - (client.retainerRemaining || 0);
   const usagePct = client.retainerTotal ? Math.round((hoursUsed / client.retainerTotal) * 100) : 0;
+  const retainerStatus = client.retainerStatus || 'active';
+
+  // Load retainer history
+  useEffect(() => {
+    if (!clientId || !workspaceId) return;
+    setHistoryLoading(true);
+    supabase
+      .from('retainer_history')
+      .select('*')
+      .eq('client_id', clientId)
+      .eq('workspace_id', workspaceId)
+      .order('cycle_end', { ascending: false })
+      .then(({ data }) => {
+        setHistory(data || []);
+        setHistoryLoading(false);
+      });
+  }, [clientId, workspaceId]);
+
+  // Calculate cycle info
+  const cycleStartDate = client.retainerCycleStart ? new Date(client.retainerCycleStart + 'T00:00:00') : null;
+  const cycleEndDate = cycleStartDate ? new Date(cycleStartDate.getTime() + (client.retainerCycleDays || 30) * 86400000) : null;
+  const daysLeft = cycleEndDate ? Math.max(0, Math.ceil((cycleEndDate.getTime() - Date.now()) / 86400000)) : null;
+  const totalCycleDays = client.retainerCycleDays || 30;
+  const daysPassed = daysLeft !== null ? totalCycleDays - daysLeft : 0;
+  const cyclePct = totalCycleDays > 0 ? Math.round((daysPassed / totalCycleDays) * 100) : 0;
+
+  const handleManualReset = async () => {
+    setResetting(true);
+    try {
+      const todayStr = new Date().toISOString().split('T')[0];
+      // Snapshot current cycle to history
+      if (client.retainerCycleStart) {
+        await supabase.from('retainer_history').insert({
+          workspace_id: workspaceId,
+          client_id: clientId,
+          cycle_start: client.retainerCycleStart,
+          cycle_end: todayStr,
+          hours_total: client.retainerTotal || 0,
+          hours_used: hoursUsed,
+          hours_remaining: client.retainerRemaining || 0,
+          revenue: hoursUsed * (client.rate || 0),
+          rate: client.rate || 0,
+        });
+      }
+      await onUpdateClient({ retainerRemaining: client.retainerTotal, retainerCycleStart: todayStr });
+      // Reload history
+      const { data } = await supabase.from('retainer_history').select('*').eq('client_id', clientId).eq('workspace_id', workspaceId).order('cycle_end', { ascending: false });
+      setHistory(data || []);
+      toast.success('Retainer reset successfully');
+    } catch (err) {
+      toast.error('Failed to reset retainer');
+    } finally {
+      setResetting(false);
+      setConfirmReset(false);
+    }
+  };
+
+  const handleStatusChange = async (newStatus: string) => {
+    try {
+      await onUpdateClient({ retainerStatus: newStatus });
+      toast.success(`Retainer ${newStatus === 'active' ? 'activated' : newStatus === 'paused' ? 'paused' : 'canceled'}`);
+    } catch {
+      toast.error('Failed to update retainer status');
+    }
+  };
+
+  const handleSaveCycle = async () => {
+    try {
+      const updates: any = { retainerCycleDays: cycleDays };
+      if (cycleStart) updates.retainerCycleStart = cycleStart;
+      await onUpdateClient(updates);
+      setEditingCycle(false);
+      toast.success('Cycle settings updated');
+    } catch {
+      toast.error('Failed to update cycle settings');
+    }
+  };
+
+  // Utilization efficiency for history insights
+  const avgUtilization = history.length > 0
+    ? Math.round(history.reduce((sum, h) => sum + (h.hours_total > 0 ? (h.hours_used / h.hours_total) * 100 : 0), 0) / history.length)
+    : 0;
+  const avgRevenue = history.length > 0
+    ? Math.round(history.reduce((sum, h) => sum + (h.revenue || 0), 0) / history.length)
+    : 0;
 
   return (
     <>
+      {/* Status banner */}
+      {retainerStatus !== 'active' && (
+        <div className={`rounded-lg px-4 py-3 mb-1 flex items-center justify-between ${retainerStatus === 'paused' ? 'bg-warning/10 border border-warning/20' : 'bg-destructive/10 border border-destructive/20'}`}>
+          <div className="flex items-center gap-2">
+            <div className={`w-2 h-2 rounded-full ${retainerStatus === 'paused' ? 'bg-warning' : 'bg-destructive'}`} />
+            <span className="text-[13px]" style={{ fontWeight: 600 }}>
+              Retainer is {retainerStatus}
+            </span>
+          </div>
+          <button onClick={() => handleStatusChange('active')} className="text-[12px] text-primary hover:text-primary/80 transition-colors" style={{ fontWeight: 500 }}>
+            Resume
+          </button>
+        </div>
+      )}
+
+      {/* Usage */}
       <SectionCard accent>
         <SectionHeader>Retainer Usage</SectionHeader>
         <div className="flex justify-between items-baseline mb-4">
@@ -1684,17 +1793,186 @@ function RetainerTab({ client, workspaceId, sentThresholds, setSentThresholds, r
             {usagePct >= 85 ? "Running low — consider discussing renewal or overage terms" : "Over 70% used — monitor remaining hours"}
           </div>
         )}
+
+        {/* Cycle timeline */}
+        {cycleStartDate && cycleEndDate && (
+          <div className="mt-4 pt-3 border-t border-border">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] text-muted-foreground" style={{ fontWeight: 500 }}>Cycle progress</span>
+              <span className="text-[11px] text-muted-foreground tabular-nums">{daysLeft} days remaining</span>
+            </div>
+            <div className="h-1.5 bg-accent/60 rounded-full overflow-hidden mb-2">
+              <div className="h-full rounded-full bg-primary/40 transition-all duration-500" style={{ width: `${cyclePct}%` }} />
+            </div>
+            <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+              <span>{format(cycleStartDate, 'MMM d')}</span>
+              <span>{format(cycleEndDate, 'MMM d')}</span>
+            </div>
+          </div>
+        )}
       </SectionCard>
 
+      {/* Retainer Details & Controls */}
       <SectionCard>
         <SectionHeader>Retainer Details</SectionHeader>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
           <MetricCard label="Monthly price" value={`$${((client.retainerTotal || 0) * (client.rate || 0)).toLocaleString()}`} />
           <MetricCard label="Rate" value={`$${client.rate || 0}/hr`} />
-          <MetricCard label="Reset day" value="1st of month" />
+          <MetricCard label="Cycle length" value={`${client.retainerCycleDays || 30} days`} />
+        </div>
+
+        {/* Cycle settings */}
+        <div className="border-t border-border pt-4">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-[12px] text-muted-foreground" style={{ fontWeight: 600 }}>Cycle settings</span>
+            {!editingCycle ? (
+              <button onClick={() => setEditingCycle(true)} className="text-[11px] text-primary hover:text-primary/80 transition-colors" style={{ fontWeight: 500 }}>Edit</button>
+            ) : (
+              <div className="flex items-center gap-2">
+                <button onClick={() => setEditingCycle(false)} className="text-[11px] text-muted-foreground hover:text-foreground transition-colors" style={{ fontWeight: 500 }}>Cancel</button>
+                <button onClick={handleSaveCycle} className="text-[11px] text-primary hover:text-primary/80 transition-colors" style={{ fontWeight: 500 }}>Save</button>
+              </div>
+            )}
+          </div>
+          {editingCycle ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label className="text-[11px] text-muted-foreground mb-1 block" style={{ fontWeight: 500 }}>Cycle start date</label>
+                <input type="date" value={cycleStart} onChange={(e) => setCycleStart(e.target.value)} className="w-full px-3 py-2 text-[13px] bg-input-background border border-border rounded-lg" />
+              </div>
+              <div>
+                <label className="text-[11px] text-muted-foreground mb-1 block" style={{ fontWeight: 500 }}>Cycle length (days)</label>
+                <input type="number" value={cycleDays} onChange={(e) => setCycleDays(Number(e.target.value))} min={1} max={365} className="w-full px-3 py-2 text-[13px] bg-input-background border border-border rounded-lg" />
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[13px]">
+              <div className="flex items-center justify-between bg-accent/30 rounded-lg px-3 py-2">
+                <span className="text-muted-foreground">Start date</span>
+                <span style={{ fontWeight: 500 }}>{client.retainerCycleStart ? format(new Date(client.retainerCycleStart + 'T00:00:00'), 'MMM d, yyyy') : 'Not set'}</span>
+              </div>
+              <div className="flex items-center justify-between bg-accent/30 rounded-lg px-3 py-2">
+                <span className="text-muted-foreground">Cycle length</span>
+                <span style={{ fontWeight: 500 }}>{client.retainerCycleDays || 30} days</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Status controls */}
+        <div className="border-t border-border pt-4 mt-4">
+          <span className="text-[12px] text-muted-foreground mb-3 block" style={{ fontWeight: 600 }}>Retainer controls</span>
+          <div className="flex flex-wrap gap-2">
+            {/* Manual reset */}
+            {!confirmReset ? (
+              <button onClick={() => setConfirmReset(true)} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-colors" style={{ fontWeight: 500 }}>
+                <TrendingUp className="w-3 h-3" /> Reset retainer
+              </button>
+            ) : (
+              <div className="flex items-center gap-2">
+                <button onClick={() => setConfirmReset(false)} className="px-3 py-1.5 text-[12px] rounded-lg border border-border text-muted-foreground hover:bg-accent transition-colors" style={{ fontWeight: 500 }}>Cancel</button>
+                <button onClick={handleManualReset} disabled={resetting} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50" style={{ fontWeight: 500 }}>
+                  {resetting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                  {resetting ? 'Resetting…' : 'Confirm reset'}
+                </button>
+              </div>
+            )}
+
+            {/* Pause/Resume */}
+            {retainerStatus === 'active' && (
+              <button onClick={() => handleStatusChange('paused')} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] rounded-lg border border-warning/30 text-warning hover:bg-warning/10 transition-colors" style={{ fontWeight: 500 }}>
+                Pause retainer
+              </button>
+            )}
+
+            {/* Cancel */}
+            {retainerStatus !== 'canceled' && (
+              <button onClick={() => handleStatusChange('canceled')} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] rounded-lg border border-destructive/30 text-destructive hover:bg-destructive/10 transition-colors" style={{ fontWeight: 500 }}>
+                Cancel retainer
+              </button>
+            )}
+          </div>
         </div>
       </SectionCard>
 
+      {/* Retainer History & Insights */}
+      <SectionCard>
+        <SectionHeader>Cycle History & Insights</SectionHeader>
+        {history.length > 0 ? (
+          <>
+            {/* Summary insights */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+              <MetricCard label="Avg utilization" value={`${avgUtilization}%`} accent={avgUtilization < 70} />
+              <MetricCard label="Avg revenue" value={`$${avgRevenue.toLocaleString()}`} />
+              <MetricCard label="Cycles tracked" value={history.length} />
+              <MetricCard label="Total revenue" value={`$${history.reduce((s, h) => s + (h.revenue || 0), 0).toLocaleString()}`} />
+            </div>
+
+            {/* Usage bar chart */}
+            <div className="mb-5">
+              <div className="text-[11px] text-muted-foreground mb-2" style={{ fontWeight: 500 }}>Utilization by cycle</div>
+              <div className="flex items-end gap-1.5" style={{ height: 80 }}>
+                {history.slice(0, 12).reverse().map((h, i) => {
+                  const pct = h.hours_total > 0 ? (h.hours_used / h.hours_total) * 100 : 0;
+                  const barH = Math.max((pct / 100) * 72, 3);
+                  const color = pct >= 85 ? '#c27272' : pct >= 70 ? '#bfa044' : '#2e7d9a';
+                  return (
+                    <div key={h.id} className="flex-1 flex flex-col items-center gap-1" title={`${format(new Date(h.cycle_start + 'T00:00:00'), 'MMM d')} – ${format(new Date(h.cycle_end + 'T00:00:00'), 'MMM d')}: ${Math.round(pct)}% used`}>
+                      <div className="w-full rounded-t transition-all" style={{ height: barH, backgroundColor: color, opacity: 0.6, maxWidth: 28 }} />
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="flex gap-1.5 mt-1">
+                {history.slice(0, 12).reverse().map((h) => (
+                  <div key={h.id} className="flex-1 text-center text-[8px] text-muted-foreground truncate">
+                    {format(new Date(h.cycle_start + 'T00:00:00'), 'MMM')}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* History table */}
+            <div className="overflow-hidden rounded-lg border border-border/60">
+              <div className="overflow-x-auto">
+                <table className="w-full text-[12px]">
+                  <thead>
+                    <tr className="border-b border-border bg-accent/30">
+                      <th className="text-left px-3 py-2 text-muted-foreground" style={{ fontWeight: 600 }}>Period</th>
+                      <th className="text-right px-3 py-2 text-muted-foreground" style={{ fontWeight: 600 }}>Used</th>
+                      <th className="text-right px-3 py-2 text-muted-foreground" style={{ fontWeight: 600 }}>Total</th>
+                      <th className="text-right px-3 py-2 text-muted-foreground" style={{ fontWeight: 600 }}>Utilization</th>
+                      <th className="text-right px-3 py-2 text-muted-foreground" style={{ fontWeight: 600 }}>Revenue</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {history.map((h) => {
+                      const pct = h.hours_total > 0 ? Math.round((h.hours_used / h.hours_total) * 100) : 0;
+                      return (
+                        <tr key={h.id} className="border-b border-border last:border-0 hover:bg-accent/20 transition-colors">
+                          <td className="px-3 py-2.5">
+                            <span style={{ fontWeight: 500 }}>{format(new Date(h.cycle_start + 'T00:00:00'), 'MMM d')} – {format(new Date(h.cycle_end + 'T00:00:00'), 'MMM d, yyyy')}</span>
+                          </td>
+                          <td className="text-right px-3 py-2.5 tabular-nums">{h.hours_used}h</td>
+                          <td className="text-right px-3 py-2.5 tabular-nums text-muted-foreground">{h.hours_total}h</td>
+                          <td className="text-right px-3 py-2.5 tabular-nums" style={{ fontWeight: 500, color: getUsageTextColor(pct) }}>{pct}%</td>
+                          <td className="text-right px-3 py-2.5 tabular-nums" style={{ fontWeight: 500 }}>${(h.revenue || 0).toLocaleString()}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="text-center py-6 text-[12px] text-muted-foreground">
+            {historyLoading ? 'Loading history…' : 'No cycle history yet. History will be recorded when the retainer resets.'}
+          </div>
+        )}
+      </SectionCard>
+
+      {/* Send retainer update */}
       <SectionCard>
         <SectionHeader>Send retainer update</SectionHeader>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
@@ -1758,7 +2036,6 @@ function RetainerTab({ client, workspaceId, sentThresholds, setSentThresholds, r
     </>
   );
 }
-
 // ═══════════════════════════════════════════════════════════════════
 // Files Tab
 // ═══════════════════════════════════════════════════════════════════
