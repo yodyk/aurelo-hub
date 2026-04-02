@@ -303,7 +303,7 @@ function RootLayout() {
   return (
     <div className="min-h-screen flex bg-background">
       {/* Sidebar */}
-      <aside className={`${sidebarWidth} border-r border-border bg-card hidden lg:flex flex-col fixed inset-y-0 left-0 z-30 transition-all duration-300`}>
+      <aside className={`${sidebarWidth} border-r border-border bg-sidebar hidden lg:flex flex-col fixed inset-y-0 left-0 z-30 transition-all duration-300`}>
         {/* Logo */}
         <div className={`h-14 flex items-center border-b border-border ${sidebarCollapsed ? 'px-4 justify-center' : 'px-5'}`}>
           {sidebarCollapsed ? (
