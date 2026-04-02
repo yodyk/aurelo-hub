@@ -275,7 +275,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       }
       if (session.allocationType === 'retainer' && session.billable) {
         const client = clientsRef.current.find((c: any) => c.id === cid);
-        if (client && client.model === 'Retainer') {
+        if (client && client.model === 'Retainer' && (client.retainerStatus || 'active') === 'active') {
           const newRemaining = Math.max(0, (client.retainerRemaining || 0) - (session.duration || 0));
           await api.updateClient(wsId, cid, { retainerRemaining: newRemaining });
           setClients(prev => prev.map(c => c.id === cid ? { ...c, retainerRemaining: newRemaining } : c));
