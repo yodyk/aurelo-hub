@@ -407,8 +407,7 @@ export default function Invoicing() {
           ].map((stat) => (
             <div
               key={stat.label}
-              className="bg-card border border-border rounded-xl p-4"
-              style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}
+              className="stat-card"
             >
               <div className="flex items-center gap-2 mb-2">
                 <stat.icon className="w-3.5 h-3.5" style={{ color: stat.color }} />
