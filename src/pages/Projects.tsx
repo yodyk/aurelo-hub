@@ -21,10 +21,10 @@ const item = {
 const statusColors: Record<string, { bg: string; text: string; dot: string }> = {
   "In Progress": { bg: "bg-primary/8", text: "text-primary", dot: "bg-primary" },
   "Active": { bg: "bg-primary/8", text: "text-primary", dot: "bg-primary" },
-  "Not Started": { bg: "bg-stone-100 dark:bg-stone-800", text: "text-stone-600 dark:text-stone-400", dot: "bg-stone-400" },
-  "On Hold": { bg: "bg-stone-100 dark:bg-stone-800", text: "text-stone-500 dark:text-stone-400", dot: "bg-stone-400" },
-  Complete: { bg: "bg-zinc-100 dark:bg-zinc-800", text: "text-zinc-500 dark:text-zinc-400", dot: "bg-zinc-400" },
-  Archived: { bg: "bg-zinc-100 dark:bg-zinc-800", text: "text-zinc-500 dark:text-zinc-400", dot: "bg-zinc-400" },
+  "Not Started": { bg: "bg-muted", text: "text-muted-foreground", dot: "bg-muted-foreground/50" },
+  "On Hold": { bg: "bg-muted", text: "text-muted-foreground", dot: "bg-muted-foreground/50" },
+  Complete: { bg: "bg-success/10", text: "text-success", dot: "bg-success" },
+  Archived: { bg: "bg-muted", text: "text-muted-foreground", dot: "bg-muted-foreground/50" },
 };
 
 function formatProjectDate(d: string | undefined): string {
