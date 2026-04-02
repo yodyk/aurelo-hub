@@ -559,7 +559,7 @@ export default function Home() {
         <div className="lg:col-span-3 flex flex-col gap-5">
           {/* Hero panel — financial */}
           {canViewFinancials ? (
-            <motion.div variants={item} className="bg-card border border-border rounded-lg p-5 md:p-6 relative overflow-hidden">
+            <motion.div variants={item} className="bg-card border border-border rounded-lg p-5 md:p-6 relative overflow-hidden flex-1 flex flex-col">
               {/* Headline */}
               <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 mb-5 relative">
                 <div>
