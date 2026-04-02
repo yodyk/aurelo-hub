@@ -118,15 +118,15 @@ export default function Clients() {
 
       {/* Active & Prospecting */}
       {activeClients.length > 0 && (
-        <motion.div variants={item} className="mb-12">
+        <motion.div variants={item} className="mb-14">
           <div
-            className="text-[13px] text-muted-foreground mb-4 flex items-center gap-2"
-            style={{ fontWeight: 500, letterSpacing: "0.02em" }}
+            className="text-[12px] text-muted-foreground mb-5 flex items-center gap-2"
+            style={{ fontWeight: 500 }}
           >
             <div className="w-1.5 h-1.5 rounded-full bg-primary" />
             Active &amp; prospecting
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {activeClients.map((client: any, index: number) => (
               <motion.div
                 key={client.id}
