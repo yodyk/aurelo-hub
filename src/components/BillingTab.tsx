@@ -50,7 +50,7 @@ function IntervalToggle({ interval, onChange }: { interval: BillingInterval; onC
       </span>
       <button
         onClick={() => onChange(interval === 'monthly' ? 'annual' : 'monthly')}
-        className={`relative w-11 h-6 rounded-full transition-colors ${interval === 'annual' ? 'bg-[#5ea1bf]' : 'bg-muted'}`}
+        className={`relative w-11 h-6 rounded-full transition-colors ${interval === 'annual' ? 'bg-primary' : 'bg-muted'}`}
       >
         <div
           className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform"
