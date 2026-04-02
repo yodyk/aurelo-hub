@@ -426,8 +426,7 @@ function RootLayout() {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 4, scale: 0.97 }}
                   transition={{ duration: 0.12 }}
-                  className="absolute bottom-full left-0 mb-2 w-52 bg-card border border-border rounded-xl overflow-hidden z-50"
-                  style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04)' }}
+                  className="absolute bottom-full left-0 mb-2 w-52 bg-card border border-border rounded-xl overflow-hidden z-50 shadow-elevated"
                 >
                   <div className="px-3 py-2.5 border-b border-border">
                     <div className="text-[13px] truncate" style={{ fontWeight: 500 }}>{displayName}</div>
