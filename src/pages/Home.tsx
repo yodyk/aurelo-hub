@@ -554,9 +554,9 @@ export default function Home() {
       {/* ══════════════════════════════════════════════════════════════ */}
       {/* TWO-COLUMN LAYOUT                                             */}
       {/* ══════════════════════════════════════════════════════════════ */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6 items-stretch">
         {/* ── LEFT COLUMN (3/5 = 60%) ── */}
-        <div className="lg:col-span-3 space-y-5">
+        <div className="lg:col-span-3 flex flex-col gap-5">
           {/* Hero panel — financial */}
           {canViewFinancials ? (
             <motion.div variants={item} className="bg-card border border-border rounded-lg p-5 md:p-6 relative overflow-hidden">
