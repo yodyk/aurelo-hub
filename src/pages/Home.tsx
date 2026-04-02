@@ -212,22 +212,48 @@ export default function Home() {
   const activeProjectCount = allProjects.filter(p => p.status === "In Progress").length;
   const activeRetainerCount = clients.filter(c => c.model === "Retainer" && c.status === "Active" && c.retainerTotal > 0).length;
 
-  // 6-month bar chart data
-  const chartData = useMemo(() => {
-    const months: { month: string; earnings: number; net: number }[] = [];
+  // Daily bar chart data (past 30 days)
+  const dailyChartData = useMemo(() => {
+    const days: { label: string; earnings: number; net: number; gross: number; value: number }[] = [];
     const today = new Date();
-    for (let i = 5; i >= 0; i--) {
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i);
+      const dayYmd = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const daySessions = sessions.filter((s: any) => s.rawDate === dayYmd || s.date === dayYmd);
+      const gross = daySessions.reduce((sum: number, s: any) => sum + (s.revenue || 0), 0);
+      const net = Math.round(gross * netMultiplier);
+      days.push({
+        label: d.getDate().toString(),
+        earnings: gross,
+        gross,
+        net,
+        value: viewMode === "gross" ? gross : net,
+      });
+    }
+    return days;
+  }, [sessions, viewMode, netMultiplier]);
+
+  // 12-month bar chart data
+  const monthlyChartData = useMemo(() => {
+    const months: { label: string; earnings: number; net: number; gross: number; value: number }[] = [];
+    const today = new Date();
+    for (let i = 11; i >= 0; i--) {
       const ms = getMonthSessions(sessions, i);
       const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
       const gross = ms.reduce((sum, s) => sum + (s.revenue || 0), 0);
+      const net = Math.round(gross * netMultiplier);
       months.push({
-        month: d.toLocaleDateString("en-US", { month: "short" }),
+        label: d.toLocaleDateString("en-US", { month: "short" }),
         earnings: gross,
-        net: Math.round(gross * netMultiplier),
+        gross,
+        net,
+        value: viewMode === "gross" ? gross : net,
       });
     }
-    return months.map((d) => ({ ...d, gross: d.earnings, value: viewMode === "gross" ? d.earnings : d.net }));
+    return months;
   }, [sessions, viewMode, netMultiplier]);
+
+  const chartData = chartRange === "daily" ? dailyChartData : monthlyChartData;
 
   const maxChartValue = Math.max(...chartData.map(d => d.value), 1);
 
