@@ -167,7 +167,7 @@ export default function Clients() {
 
                   <div className="flex items-center gap-2 mb-4">
                     <span
-                      className="text-[11px] text-muted-foreground bg-accent/60 px-2 py-0.5 rounded-full"
+                      className="text-[11px] text-muted-foreground bg-accent/60 px-2 py-0.5 rounded-md"
                       style={{ fontWeight: 500 }}
                     >
                       {client.model}
