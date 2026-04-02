@@ -42,7 +42,7 @@ import { useRoleAccess } from "@/data/useRoleAccess";
 
 // ── Constants ──────────────────────────────────────────────────────
 
-const BLUE = "#5ea1bf";
+const BLUE = "#2e7d9a";
 const GOLD = "#bfa044";
 const RED = "#c27272";
 
@@ -958,7 +958,7 @@ export default function ProjectDetail() {
                         const diff = Math.ceil((projected.getTime() - deadline.getTime()) / (1000 * 60 * 60 * 24));
                         return (
                           <span
-                            className={`inline-flex items-center gap-1 text-[12px] px-2 py-0.5 rounded-full ${diff > 0 ? "bg-[#c27272]/10 text-[#c27272]" : "bg-[#5ea1bf]/10 text-[#5ea1bf]"}`}
+                            className={`inline-flex items-center gap-1 text-[12px] px-2 py-0.5 rounded-full ${diff > 0 ? "bg-[#c27272]/10 text-[#c27272]" : "bg-[#2e7d9a]/10 text-[#2e7d9a]"}`}
                             style={{ fontWeight: 500 }}
                           >
                             {diff > 0 ? (
@@ -998,8 +998,8 @@ export default function ProjectDetail() {
                     className="bg-card border border-border rounded-xl p-6 text-center max-w-sm"
                     style={{ boxShadow: "0 8px 32px rgba(0,0,0,0.08)" }}
                   >
-                    <div className="w-10 h-10 rounded-xl bg-[#5ea1bf]/10 flex items-center justify-center mx-auto mb-3">
-                      <Sparkles className="w-5 h-5 text-[#5ea1bf]" />
+                    <div className="w-10 h-10 rounded-xl bg-[#2e7d9a]/10 flex items-center justify-center mx-auto mb-3">
+                      <Sparkles className="w-5 h-5 text-[#2e7d9a]" />
                     </div>
                     <h3 className="text-[15px] mb-1" style={{ fontWeight: 600 }}>
                       Unlock project insights
@@ -1038,7 +1038,7 @@ export default function ProjectDetail() {
                   <div className="text-[12px] text-muted-foreground">Portfolio average</div>
                   {insights && insights.rateVsAvg !== 0 && (
                     <div
-                      className={`mt-3 inline-flex items-center gap-1 text-[12px] px-2 py-0.5 rounded-full ${insights.rateVsAvg > 0 ? "bg-[#5ea1bf]/10 text-[#5ea1bf]" : "bg-[#c27272]/10 text-[#c27272]"}`}
+                      className={`mt-3 inline-flex items-center gap-1 text-[12px] px-2 py-0.5 rounded-full ${insights.rateVsAvg > 0 ? "bg-[#2e7d9a]/10 text-[#2e7d9a]" : "bg-[#c27272]/10 text-[#c27272]"}`}
                       style={{ fontWeight: 500 }}
                     >
                       {insights.rateVsAvg > 0 ? "+" : ""}
@@ -1080,7 +1080,7 @@ export default function ProjectDetail() {
                   {(() => {
                     const risk = insights?.deadlineRisk || "low";
                     const rc = {
-                      low: { label: "On track", color: BLUE, bg: "bg-[#5ea1bf]/10" },
+                      low: { label: "On track", color: BLUE, bg: "bg-[#2e7d9a]/10" },
                       medium: { label: "Watch closely", color: GOLD, bg: "bg-[#bfa044]/10" },
                       high: { label: "At risk", color: RED, bg: "bg-[#c27272]/10" },
                     }[risk];
@@ -1228,7 +1228,7 @@ export default function ProjectDetail() {
                       >
                         <button onClick={() => handleToggleMilestone(m.id)} className="flex-shrink-0">
                           {m.completed ? (
-                            <Check className="w-4 h-4 text-[#5ea1bf]" />
+                            <Check className="w-4 h-4 text-[#2e7d9a]" />
                           ) : (
                             <Circle className="w-4 h-4 text-muted-foreground/40 hover:text-muted-foreground transition-colors" />
                           )}

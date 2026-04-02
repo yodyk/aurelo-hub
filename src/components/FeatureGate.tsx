@@ -92,8 +92,8 @@ function UpgradePrompt({ feature, requiredPlan, label }: { feature: FeatureKey; 
       className="border border-border rounded-xl p-6 bg-card text-center max-w-md mx-auto"
       style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}
     >
-      <div className="w-10 h-10 rounded-xl bg-[#5ea1bf]/10 flex items-center justify-center mx-auto mb-4">
-        <Lock className="w-4.5 h-4.5 text-[#5ea1bf]" />
+      <div className="w-10 h-10 rounded-xl bg-[#2e7d9a]/10 flex items-center justify-center mx-auto mb-4">
+        <Lock className="w-4.5 h-4.5 text-[#2e7d9a]" />
       </div>
       <h3 className="text-[15px] text-foreground mb-1.5" style={{ fontWeight: 600 }}>
         {displayLabel}
@@ -190,7 +190,7 @@ export function UpgradeNudge({ feature, label, compact }: UpgradeNudgeProps) {
     return (
       <button
         onClick={() => navigate('/settings?tab=billing')}
-        className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] rounded-md bg-[#5ea1bf]/10 text-[#5ea1bf] hover:bg-[#5ea1bf]/15 transition-colors"
+        className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] rounded-md bg-[#2e7d9a]/10 text-[#2e7d9a] hover:bg-[#2e7d9a]/15 transition-colors"
         style={{ fontWeight: 600, letterSpacing: '0.02em' }}
       >
         <Lock className="w-2.5 h-2.5" />
@@ -202,7 +202,7 @@ export function UpgradeNudge({ feature, label, compact }: UpgradeNudgeProps) {
   return (
     <button
       onClick={() => navigate('/settings?tab=billing')}
-      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] rounded-lg border border-[#5ea1bf]/20 text-[#5ea1bf] hover:bg-[#5ea1bf]/5 transition-colors"
+      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] rounded-lg border border-[#2e7d9a]/20 text-[#2e7d9a] hover:bg-[#2e7d9a]/5 transition-colors"
       style={{ fontWeight: 500 }}
     >
       <Lock className="w-3 h-3" />
@@ -219,7 +219,7 @@ export function PlanBadge({ className = '' }: { className?: string }) {
 
   const colors: Record<PlanId, string> = {
     starter: 'bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400',
-    pro: 'bg-[#5ea1bf]/10 text-[#5ea1bf]',
+    pro: 'bg-[#2e7d9a]/10 text-[#2e7d9a]',
     studio: 'bg-[#bfa044]/10 text-[#bfa044]',
     legacy: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
   };

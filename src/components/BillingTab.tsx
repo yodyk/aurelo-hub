@@ -233,7 +233,7 @@ function PlanCard({ planId, isCurrent, currentPlanId, isOwner, onSelect, selecti
               <span className="text-[13px] text-muted-foreground">/mo</span>
             </div>
             {interval === 'annual' && savings > 0 && (
-              <p className="text-[11px] text-[#5ea1bf] mt-1" style={{ fontWeight: 600 }}>
+              <p className="text-[11px] text-[#2e7d9a] mt-1" style={{ fontWeight: 600 }}>
                 Save ${savings}/yr ({monthsFree} months free)
               </p>
             )}
@@ -433,7 +433,7 @@ export default function BillingTab() {
                   fontWeight: 600,
                   letterSpacing: '0.05em',
                   backgroundColor: planId === 'starter' ? 'rgba(120,113,108,0.1)' : planId === 'pro' ? 'rgba(94,161,191,0.1)' : 'rgba(191,160,68,0.1)',
-                  color: planId === 'starter' ? '#78716c' : planId === 'pro' ? '#5ea1bf' : '#bfa044',
+                  color: planId === 'starter' ? '#78716c' : planId === 'pro' ? '#2e7d9a' : '#bfa044',
                 }}
               >
                 {planId === 'starter' ? 'FREE' : 'ACTIVE'}
@@ -473,7 +473,7 @@ export default function BillingTab() {
                 ...(!showPlanPicker ? {
                   background: planId === 'studio'
                     ? 'linear-gradient(135deg, #bfa044 0%, #d4b85a 50%, #bfa044 100%)'
-                    : 'linear-gradient(135deg, #5ea1bf 0%, #7ab8d1 50%, #5ea1bf 100%)',
+                    : 'linear-gradient(135deg, #2e7d9a 0%, #7ab8d1 50%, #2e7d9a 100%)',
                 } : {}),
               }}
             >
@@ -528,8 +528,8 @@ export default function BillingTab() {
         <SectionCard>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-[#5ea1bf]/10 flex items-center justify-center">
-                <Zap className="w-4 h-4 text-[#5ea1bf]" />
+              <div className="w-9 h-9 rounded-lg bg-[#2e7d9a]/10 flex items-center justify-center">
+                <Zap className="w-4 h-4 text-[#2e7d9a]" />
               </div>
               <div>
                 <h3 className="text-[14px] text-foreground" style={{ fontWeight: 600 }}>
@@ -545,7 +545,7 @@ export default function BillingTab() {
             {!trialExpired && (
               <button
                 onClick={startTrial}
-                className="flex-shrink-0 inline-flex items-center gap-2 px-4 py-2 text-[13px] rounded-lg bg-[#5ea1bf]/10 text-[#5ea1bf] hover:bg-[#5ea1bf]/20 transition-all"
+                className="flex-shrink-0 inline-flex items-center gap-2 px-4 py-2 text-[13px] rounded-lg bg-[#2e7d9a]/10 text-[#2e7d9a] hover:bg-[#2e7d9a]/20 transition-all"
                 style={{ fontWeight: 500 }}
               >
                 <Sparkles className="w-3.5 h-3.5" />
@@ -561,8 +561,8 @@ export default function BillingTab() {
         <SectionCard>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-[#5ea1bf]/10 flex items-center justify-center">
-                <Zap className="w-4 h-4 text-[#5ea1bf]" />
+              <div className="w-9 h-9 rounded-lg bg-[#2e7d9a]/10 flex items-center justify-center">
+                <Zap className="w-4 h-4 text-[#2e7d9a]" />
               </div>
               <div>
                 <h3 className="text-[14px] text-foreground" style={{ fontWeight: 600 }}>
@@ -637,14 +637,14 @@ export default function BillingTab() {
             icon={Users}
             current={activeClients}
             max={maxClients}
-            color="#5ea1bf"
+            color="#2e7d9a"
           />
           <UsageMeter
             label="Workspace seats"
             icon={Users}
             current={teamMembers}
             max={maxSeats}
-            color="#5ea1bf"
+            color="#2e7d9a"
           />
           {planId === 'starter' && (
             <div className="py-3 flex items-center gap-2 text-[12px] text-muted-foreground">
@@ -653,7 +653,7 @@ export default function BillingTab() {
               {isOwner && (
                 <button
                   onClick={() => setShowPlanPicker(true)}
-                  className="ml-auto text-[11px] text-[#5ea1bf] hover:text-[#4d8fad] transition-colors"
+                  className="ml-auto text-[11px] text-[#2e7d9a] hover:text-[#256a83] transition-colors"
                   style={{ fontWeight: 500 }}
                 >
                   Upgrade for unlimited
@@ -682,7 +682,7 @@ export default function BillingTab() {
                 return (
                   <div key={key} className="flex items-center gap-2 py-1">
                     {available ? (
-                      <Check className="w-3.5 h-3.5 text-[#5ea1bf] flex-shrink-0" />
+                      <Check className="w-3.5 h-3.5 text-[#2e7d9a] flex-shrink-0" />
                     ) : (
                       <Lock className="w-3 h-3 text-muted-foreground/40 flex-shrink-0" />
                     )}
@@ -814,13 +814,13 @@ export default function BillingTab() {
                         onClick={() => toggleDowngradeReason(reason)}
                         className={`w-full flex items-center gap-3 text-left px-3.5 py-2.5 rounded-lg border transition-all text-[13px] ${
                           checked
-                            ? 'border-[#5ea1bf]/30 bg-[#5ea1bf]/[0.04]'
+                            ? 'border-[#2e7d9a]/30 bg-[#2e7d9a]/[0.04]'
                             : 'border-border hover:bg-accent/30'
                         }`}
                       >
                         <div className={`w-4 h-4 rounded flex-shrink-0 border flex items-center justify-center transition-all ${
                           checked
-                            ? 'bg-[#5ea1bf] border-[#5ea1bf]'
+                            ? 'bg-[#2e7d9a] border-[#2e7d9a]'
                             : 'border-stone-300'
                         }`}>
                           {checked && <Check className="w-2.5 h-2.5 text-white" />}

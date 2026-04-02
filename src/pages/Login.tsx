@@ -117,7 +117,7 @@ export default function Login() {
               <motion.div
                 initial={{ opacity: 0, y: -4 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="px-3.5 py-2.5 rounded-lg bg-[#5ea1bf]/6 border border-[#5ea1bf]/15 text-[13px] text-[#5ea1bf]"
+                className="px-3.5 py-2.5 rounded-lg bg-[#2e7d9a]/6 border border-[#2e7d9a]/15 text-[13px] text-[#2e7d9a]"
                 style={{ fontWeight: 500 }}
               >
                 {error}
@@ -134,7 +134,7 @@ export default function Login() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@company.com"
                 autoComplete="email"
-                className="w-full h-10 px-3 rounded-lg border border-black/10 bg-white text-[14px] text-[#1c1c1c] placeholder:text-[#b0b0b8] outline-none focus:border-[#5ea1bf]/40 focus:ring-2 focus:ring-[#5ea1bf]/10 transition-all"
+                className="w-full h-10 px-3 rounded-lg border border-black/10 bg-white text-[14px] text-[#1c1c1c] placeholder:text-[#b0b0b8] outline-none focus:border-[#2e7d9a]/40 focus:ring-2 focus:ring-[#2e7d9a]/10 transition-all"
               />
             </div>
 
@@ -149,7 +149,7 @@ export default function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
                   autoComplete="current-password"
-                  className="w-full h-10 px-3 pr-10 rounded-lg border border-black/10 bg-white text-[14px] text-[#1c1c1c] placeholder:text-[#b0b0b8] outline-none focus:border-[#5ea1bf]/40 focus:ring-2 focus:ring-[#5ea1bf]/10 transition-all"
+                  className="w-full h-10 px-3 pr-10 rounded-lg border border-black/10 bg-white text-[14px] text-[#1c1c1c] placeholder:text-[#b0b0b8] outline-none focus:border-[#2e7d9a]/40 focus:ring-2 focus:ring-[#2e7d9a]/10 transition-all"
                 />
                 <button
                   type="button"
@@ -162,7 +162,7 @@ export default function Login() {
               <div className="flex justify-end mt-1.5">
                 <Link
                   to="/reset-password"
-                  className="text-[12px] text-[#5ea1bf] hover:text-[#4d8fad] transition-colors"
+                  className="text-[12px] text-[#2e7d9a] hover:text-[#256a83] transition-colors"
                   style={{ fontWeight: 500 }}
                 >
                   Forgot password?
@@ -173,7 +173,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-10 rounded-lg bg-[#5ea1bf] text-white text-[14px] flex items-center justify-center gap-2 hover:bg-[#4d8fad] active:bg-[#437d99] disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
+              className="w-full h-10 rounded-lg bg-[#2e7d9a] text-white text-[14px] flex items-center justify-center gap-2 hover:bg-[#256a83] active:bg-[#1e5f75] disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
               style={{ fontWeight: 500 }}
             >
               {loading ? (
@@ -193,7 +193,7 @@ export default function Login() {
               Don't have an account?{" "}
               <Link
                 to="/signup"
-                className="text-[#5ea1bf] hover:text-[#4d8fad] transition-colors"
+                className="text-[#2e7d9a] hover:text-[#256a83] transition-colors"
                 style={{ fontWeight: 500 }}
               >
                 Create one

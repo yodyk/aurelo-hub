@@ -71,13 +71,13 @@ const item = {
 function getUsageBarColor(usagePct: number): string {
   if (usagePct >= 85) return "#c27272";
   if (usagePct >= 70) return "#bfa044";
-  return "linear-gradient(90deg, #5ea1bf, #7fb8d1)";
+  return "linear-gradient(90deg, #2e7d9a, #5bb8d4)";
 }
 
 function getUsageTextColor(usagePct: number): string {
   if (usagePct >= 85) return "#c27272";
   if (usagePct >= 70) return "#bfa044";
-  return "#5ea1bf";
+  return "#2e7d9a";
 }
 
 const PRIORITY_CONFIG: Record<string, { color: string; bg: string; icon: string }> = {
@@ -1540,7 +1540,7 @@ function ProjectsTab({ projects, client, canViewFinancials, onAddProject, onNavi
                         {(() => {
                           if (!project.totalValue || project.totalValue <= 0 || !project.hours || project.hours <= 0) return null;
                           const effRate = Math.round(project.totalValue / project.hours);
-                          const rateColor = effRate < (client.rate * 0.5) ? '#c27272' : effRate < client.rate ? '#bfa044' : '#5ea1bf';
+                          const rateColor = effRate < (client.rate * 0.5) ? '#c27272' : effRate < client.rate ? '#bfa044' : '#2e7d9a';
                           return <div className="text-[10px] mt-0.5 tabular-nums" style={{ fontWeight: 600, color: rateColor }}>${effRate}/hr effective</div>;
                         })()}
                       </td>
@@ -1846,7 +1846,7 @@ function PortalTab({ client, clientId, portalConfig, portalLoading, copied, onCo
           <>
             <div className="flex items-center justify-between p-3 bg-accent/20 rounded-lg">
               <div className="flex items-center gap-2">
-                <div className={`w-2 h-2 rounded-full ${portalConfig.active ? "bg-[#5ea1bf]" : "bg-zinc-300"}`} />
+                <div className={`w-2 h-2 rounded-full ${portalConfig.active ? "bg-[#2e7d9a]" : "bg-zinc-300"}`} />
                 <span className="text-[13px]" style={{ fontWeight: 500 }}>{portalConfig.active ? "Portal is live" : "Portal is deactivated"}</span>
               </div>
               <button

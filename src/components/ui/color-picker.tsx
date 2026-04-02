@@ -4,7 +4,7 @@ import { Pipette } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const PRESET_COLORS = [
-  '#5ea1bf', '#3b82f6', '#6366f1', '#8b5cf6', '#a855f7',
+  '#2e7d9a', '#3b82f6', '#6366f1', '#8b5cf6', '#a855f7',
   '#ec4899', '#ef4444', '#f97316', '#eab308', '#22c55e',
   '#14b8a6', '#06b6d4', '#64748b', '#1e293b', '#ffffff',
 ];
