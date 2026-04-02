@@ -1495,10 +1495,10 @@ export default function Home() {
                   style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.02)" }}
                 >
                   <div
-                    className="text-[11px] text-muted-foreground mb-3"
-                    style={{ fontWeight: 600, letterSpacing: "0.04em" }}
+                    className="text-[12px] text-muted-foreground mb-3"
+                    style={{ fontWeight: 500 }}
                   >
-                    {new Date().toLocaleDateString("en-US", { month: "long" }).toUpperCase()} TOTALS
+                    {new Date().toLocaleDateString("en-US", { month: "long" })} totals
                   </div>
                   <div className="grid grid-cols-2 gap-x-6 gap-y-2.5">
                     <div className="flex items-center justify-between">
