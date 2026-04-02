@@ -371,7 +371,7 @@ export default function Invoicing() {
             <h1 className="page-header text-foreground">
               Invoicing
             </h1>
-            <p className="text-[14px] text-muted-foreground mt-1">Create, send, and track invoices for your clients</p>
+            <p className="page-subtitle">Create, send, and track invoices for your clients</p>
           </div>
           <div className="flex items-center gap-2">
             {hasBatchInvoicing && (
