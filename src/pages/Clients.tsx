@@ -174,7 +174,7 @@ export default function Clients() {
                     </span>
                     {canViewFinancials && client.rate > 0 && (
                       <span
-                        className="text-[11px] text-muted-foreground bg-accent/60 px-2 py-0.5 rounded-full tabular-nums"
+                        className="text-[11px] text-muted-foreground bg-accent/60 px-2 py-0.5 rounded-md tabular-nums"
                         style={{ fontWeight: 500 }}
                       >
                         ${client.rate}/hr
