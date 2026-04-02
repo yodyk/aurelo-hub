@@ -136,7 +136,7 @@ export default function Clients() {
               >
                 <Link
                   to={`/clients/${client.id}`}
-                  className="block bg-card border border-border rounded-xl p-6 hover:-translate-y-0.5 hover:border-primary/20 transition-all duration-300 group shadow-[0_1px_4px_rgba(0,0,0,0.03),0_1px_2px_rgba(0,0,0,0.02)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.05),0_1px_3px_rgba(0,0,0,0.03)]"
+                  className="block bg-card border border-border rounded-xl p-6 hover:-translate-y-0.5 hover:border-primary/20 transition-all duration-300 group shadow-card hover:shadow-card-hover"
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
