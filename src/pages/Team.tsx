@@ -34,7 +34,7 @@ export default function Team() {
       animate="show"
     >
       <motion.div variants={item} className="mb-8">
-        <h1 className="text-[20px] md:text-[24px] tracking-tight mb-1" style={{ fontWeight: 600 }}>
+        <h1 className="text-[24px] md:text-[28px] tracking-tight mb-1" style={{ fontWeight: 700, letterSpacing: "-0.03em" }}>
           Team
         </h1>
         <p className="text-[14px] text-muted-foreground">
