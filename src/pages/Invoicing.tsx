@@ -368,7 +368,7 @@ export default function Invoicing() {
         {/* Header */}
         <motion.div variants={item} className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-[22px] text-foreground" style={{ fontWeight: 600, letterSpacing: "-0.02em" }}>
+            <h1 className="page-header text-foreground">
               Invoicing
             </h1>
             <p className="text-[14px] text-muted-foreground mt-1">Create, send, and track invoices for your clients</p>
