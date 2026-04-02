@@ -257,8 +257,7 @@ export default function Clients() {
                     </div>
                   </div>
                   <div
-                    className={`flex items-center gap-1.5 px-2 py-0.5 ${statusColors.Archived.bg} ${statusColors.Archived.text} text-[11px] rounded-full`}
-                    style={{ fontWeight: 500 }}
+                    className={`status-badge ${statusColors.Archived.bg} ${statusColors.Archived.text}`}
                   >
                     <div className={`w-1.5 h-1.5 rounded-full ${statusColors.Archived.dot}`} />
                     Archived
