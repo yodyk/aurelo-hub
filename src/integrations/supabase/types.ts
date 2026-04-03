@@ -41,6 +41,13 @@ export type Database = {
             referencedRelation: "workspaces"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "api_keys_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces_safe"
+            referencedColumns: ["id"]
+          },
         ]
       }
       checklist_items: {
@@ -129,6 +136,13 @@ export type Database = {
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklists_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -241,6 +255,13 @@ export type Database = {
             referencedRelation: "workspaces"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "clients_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces_safe"
+            referencedColumns: ["id"]
+          },
         ]
       }
       email_events: {
@@ -292,6 +313,13 @@ export type Database = {
             referencedRelation: "workspaces"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "email_events_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces_safe"
+            referencedColumns: ["id"]
+          },
         ]
       }
       email_quotas: {
@@ -321,6 +349,13 @@ export type Database = {
             referencedRelation: "workspaces"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "email_quotas_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: true
+            referencedRelation: "workspaces_safe"
+            referencedColumns: ["id"]
+          },
         ]
       }
       invoice_sequences: {
@@ -342,6 +377,13 @@ export type Database = {
             columns: ["workspace_id"]
             isOneToOne: true
             referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_sequences_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: true
+            referencedRelation: "workspaces_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -389,6 +431,13 @@ export type Database = {
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_templates_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -512,6 +561,13 @@ export type Database = {
             referencedRelation: "workspaces"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "invoices_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces_safe"
+            referencedColumns: ["id"]
+          },
         ]
       }
       notes: {
@@ -579,6 +635,13 @@ export type Database = {
             referencedRelation: "workspaces"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "notes_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces_safe"
+            referencedColumns: ["id"]
+          },
         ]
       }
       notification_preferences: {
@@ -623,6 +686,13 @@ export type Database = {
             referencedRelation: "workspaces"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "notification_preferences_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces_safe"
+            referencedColumns: ["id"]
+          },
         ]
       }
       notification_recipients: {
@@ -660,6 +730,13 @@ export type Database = {
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_recipients_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -712,6 +789,13 @@ export type Database = {
             referencedRelation: "workspaces"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "notifications_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces_safe"
+            referencedColumns: ["id"]
+          },
         ]
       }
       pending_invites: {
@@ -745,6 +829,13 @@ export type Database = {
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pending_invites_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -787,6 +878,13 @@ export type Database = {
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portal_tokens_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -864,6 +962,13 @@ export type Database = {
             referencedRelation: "workspaces"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "projects_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces_safe"
+            referencedColumns: ["id"]
+          },
         ]
       }
       retainer_history: {
@@ -919,6 +1024,13 @@ export type Database = {
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "retainer_history_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -1000,6 +1112,13 @@ export type Database = {
             referencedRelation: "workspaces"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "sessions_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces_safe"
+            referencedColumns: ["id"]
+          },
         ]
       }
       user_consents: {
@@ -1036,6 +1155,13 @@ export type Database = {
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_consents_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -1095,6 +1221,13 @@ export type Database = {
             referencedRelation: "workspaces"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "webhook_deliveries_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces_safe"
+            referencedColumns: ["id"]
+          },
         ]
       }
       webhooks: {
@@ -1137,6 +1270,13 @@ export type Database = {
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "webhooks_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -1186,6 +1326,13 @@ export type Database = {
             referencedRelation: "workspaces"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "workspace_members_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces_safe"
+            referencedColumns: ["id"]
+          },
         ]
       }
       workspace_settings: {
@@ -1216,6 +1363,13 @@ export type Database = {
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workspace_settings_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -1300,7 +1454,65 @@ export type Database = {
             referencedRelation: "workspaces"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "api_keys_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces_safe"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      workspaces_safe: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          is_approved: boolean | null
+          is_trial: boolean | null
+          name: string | null
+          owner_email: string | null
+          owner_id: string | null
+          plan_activated_at: string | null
+          plan_id: string | null
+          plan_period_end: string | null
+          stripe_connect_account_id: string | null
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          trial_end: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string | null
+          is_approved?: boolean | null
+          is_trial?: boolean | null
+          name?: string | null
+          owner_email?: never
+          owner_id?: string | null
+          plan_activated_at?: string | null
+          plan_id?: string | null
+          plan_period_end?: string | null
+          stripe_connect_account_id?: never
+          stripe_customer_id?: never
+          stripe_subscription_id?: never
+          trial_end?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string | null
+          is_approved?: boolean | null
+          is_trial?: boolean | null
+          name?: string | null
+          owner_email?: never
+          owner_id?: string | null
+          plan_activated_at?: string | null
+          plan_id?: string | null
+          plan_period_end?: string | null
+          stripe_connect_account_id?: never
+          stripe_customer_id?: never
+          stripe_subscription_id?: never
+          trial_end?: string | null
+        }
+        Relationships: []
       }
     }
     Functions: {
