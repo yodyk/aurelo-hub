@@ -898,9 +898,9 @@ export default function ProjectDetail() {
                         {budgetData.hoursPct}%
                       </span>
                     </div>
-                    <div className="h-2 bg-accent/60 rounded-full overflow-hidden">
+                    <div className="h-2 bg-accent/60 rounded-circle overflow-hidden">
                       <motion.div
-                        className="h-full rounded-full"
+                        className="h-full rounded-circle"
                         style={{
                           backgroundColor: budgetData.hoursPct > 100 ? RED : budgetData.hoursPct > 85 ? GOLD : BLUE,
                           opacity: 0.6,
@@ -924,9 +924,9 @@ export default function ProjectDetail() {
                         {budgetData.budgetPct}%
                       </span>
                     </div>
-                    <div className="h-2 bg-accent/60 rounded-full overflow-hidden">
+                    <div className="h-2 bg-accent/60 rounded-circle overflow-hidden">
                       <motion.div
-                        className="h-full rounded-full"
+                        className="h-full rounded-circle"
                         style={{ backgroundColor: BLUE, opacity: 0.6 }}
                         initial={{ width: 0 }}
                         animate={{ width: `${Math.min(budgetData.budgetPct, 100)}%` }}
@@ -1195,9 +1195,9 @@ export default function ProjectDetail() {
                           {milestonePct}%
                         </span>
                       </div>
-                      <div className="h-1.5 bg-accent/50 rounded-full overflow-hidden">
+                      <div className="h-1.5 bg-accent/50 rounded-circle overflow-hidden">
                         <motion.div
-                          className="h-full rounded-full"
+                          className="h-full rounded-circle"
                           style={{ backgroundColor: milestonePct === 100 ? GOLD : BLUE, opacity: 0.6 }}
                           initial={{ width: 0 }}
                           animate={{ width: `${milestonePct}%` }}

@@ -906,8 +906,8 @@ function OverviewTab({
                       <div className="text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Retainer: {hoursUsed}h / {client.retainerTotal || 0}h</div>
                       <div className="text-[14px] tabular-nums" style={{ fontWeight: 700, color: getUsageTextColor(usagePct) }}>{usagePct}%</div>
                     </div>
-                    <div className="h-2 bg-accent/60 rounded-full overflow-hidden">
-                      <motion.div className="h-full rounded-full" style={{ background: getUsageBarColor(usagePct) }} initial={{ width: 0 }} animate={{ width: `${usagePct}%` }} transition={{ delay: 0.3, duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }} />
+                    <div className="h-2 bg-accent/60 rounded-circle overflow-hidden">
+                      <motion.div className="h-full rounded-circle" style={{ background: getUsageBarColor(usagePct) }} initial={{ width: 0 }} animate={{ width: `${usagePct}%` }} transition={{ delay: 0.3, duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }} />
                     </div>
                   </div>
                 );
@@ -1157,7 +1157,7 @@ function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (
 
     if (type === 'toggle' || type === 'checkbox') {
       return (
-        <button onClick={onToggle} className={`relative w-9 h-5 rounded-full transition-colors duration-200 ${value ? 'bg-primary' : 'bg-switch-background'}`}>
+        <button onClick={onToggle} className={`relative w-9 h-5 rounded-circle transition-colors duration-200 ${value ? 'bg-primary' : 'bg-switch-background'}`}>
           <motion.div className="absolute top-0.5 w-4 h-4 rounded-circle bg-white shadow-sm" animate={{ left: value ? 18 : 2 }} transition={{ type: "spring", stiffness: 400, damping: 30 }} />
         </button>
       );
@@ -1784,8 +1784,8 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
           </div>
           <div className="text-[24px] tabular-nums" style={{ fontWeight: 600, color: getUsageTextColor(usagePct) }}>{usagePct}%</div>
         </div>
-        <div className="h-3 bg-accent/60 rounded-full overflow-hidden">
-          <motion.div className="h-full rounded-full" style={{ background: getUsageBarColor(usagePct) }} initial={{ width: 0 }} animate={{ width: `${usagePct}%` }} transition={{ delay: 0.3, duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }} />
+        <div className="h-3 bg-accent/60 rounded-circle overflow-hidden">
+          <motion.div className="h-full rounded-circle" style={{ background: getUsageBarColor(usagePct) }} initial={{ width: 0 }} animate={{ width: `${usagePct}%` }} transition={{ delay: 0.3, duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }} />
         </div>
         {usagePct >= 70 && (
           <div className="mt-3 text-[13px] flex items-center gap-1.5" style={{ color: getUsageTextColor(usagePct) }}>
@@ -1801,8 +1801,8 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
               <span className="text-[11px] text-muted-foreground" style={{ fontWeight: 500 }}>Cycle progress</span>
               <span className="text-[11px] text-muted-foreground tabular-nums">{daysLeft} days remaining</span>
             </div>
-            <div className="h-1.5 bg-accent/60 rounded-full overflow-hidden mb-2">
-              <div className="h-full rounded-full bg-primary/40 transition-all duration-500" style={{ width: `${cyclePct}%` }} />
+            <div className="h-1.5 bg-accent/60 rounded-circle overflow-hidden mb-2">
+              <div className="h-full rounded-circle bg-primary/40 transition-all duration-500" style={{ width: `${cyclePct}%` }} />
             </div>
             <div className="flex items-center justify-between text-[10px] text-muted-foreground">
               <span>{format(cycleStartDate, 'MMM d')}</span>

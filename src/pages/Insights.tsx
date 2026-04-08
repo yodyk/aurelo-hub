@@ -603,9 +603,9 @@ export default function Insights() {
                       <td className="px-6 py-4 text-[14px] text-right tabular-nums text-muted-foreground">{ranking.utilization}%</td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="flex-1 h-2 bg-accent/60 rounded-full overflow-hidden">
+                          <div className="flex-1 h-2 bg-accent/60 rounded-circle overflow-hidden">
                             <motion.div
-                              className="h-full rounded-full bg-primary"
+                              className="h-full rounded-circle bg-primary"
                               initial={{ width: 0 }}
                               animate={{ width: `${ranking.share}%` }}
                               transition={{ delay: 0.5 + index * 0.1, duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
@@ -652,9 +652,9 @@ export default function Insights() {
                         <div className="text-[15px] tabular-nums" style={{ fontWeight: 600 }}>{alloc.percentage}%</div>
                       </div>
                     </div>
-                    <div className="h-2.5 bg-accent/60 rounded-full overflow-hidden">
+                    <div className="h-2.5 bg-accent/60 rounded-circle overflow-hidden">
                       <motion.div
-                        className="h-full rounded-full bg-primary"
+                        className="h-full rounded-circle bg-primary"
                         style={{ opacity: 1 - index * 0.2 }}
                         initial={{ width: 0 }}
                         animate={{ width: `${alloc.percentage}%` }}

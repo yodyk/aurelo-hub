@@ -88,7 +88,7 @@ function ToggleSwitch({ checked, onChange, label, description }: { checked: bool
       </div>
       <button
         onClick={() => onChange(!checked)}
-        className={`relative w-9 h-5 rounded-full transition-colors duration-200 flex-shrink-0 ${checked ? 'bg-primary' : 'bg-[var(--switch-background)]'}`}
+        className={`relative w-9 h-5 rounded-circle transition-colors duration-200 flex-shrink-0 ${checked ? 'bg-primary' : 'bg-[var(--switch-background)]'}`}
       >
         <div
           className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-circle bg-white transition-transform duration-200 ${checked ? 'translate-x-4' : 'translate-x-0'}`}
@@ -737,9 +737,9 @@ export default function ClientEdit() {
                       {retainerRemainingNum}h remaining · {retainerUsedPct}% used
                     </span>
                   </div>
-                  <div className="h-1.5 bg-accent/60 rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-accent/60 rounded-circle overflow-hidden">
                     <div
-                      className="h-full rounded-full transition-all duration-300"
+                      className="h-full rounded-circle transition-all duration-300"
                       style={{
                         width: `${Math.max(0, Math.min(100, ((retainerTotalNum - retainerRemainingNum) / retainerTotalNum) * 100))}%`,
                         background: retainerUsedPct > 85 ? '#c27272' : retainerUsedPct > 70 ? '#bfa044' : 'linear-gradient(90deg, #2e7d9a, #5bb8d4)',

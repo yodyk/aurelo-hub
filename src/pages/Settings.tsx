@@ -197,7 +197,7 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
   return (
     <button
       onClick={() => onChange(!checked)}
-      className={`relative w-9 h-5 rounded-full transition-colors duration-200 ${checked ? "bg-primary" : "bg-zinc-300"}`}
+      className={`relative w-9 h-5 rounded-circle transition-colors duration-200 ${checked ? "bg-primary" : "bg-zinc-300"}`}
     >
       <div
         className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-circle bg-white transition-transform duration-200 ${checked ? "translate-x-4" : "translate-x-0"}`}
@@ -814,9 +814,9 @@ function AccountSecurityTab() {
             </div>
             {passwordStrength && (
               <div className="flex items-center gap-2 mt-2">
-                <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                <div className="flex-1 h-1.5 bg-muted rounded-circle overflow-hidden">
                   <div
-                    className={`h-full rounded-full transition-all duration-300 ${passwordStrength.color}`}
+                    className={`h-full rounded-circle transition-all duration-300 ${passwordStrength.color}`}
                     style={{ width: passwordStrength.label === "Weak" ? "33%" : passwordStrength.label === "Fair" ? "66%" : "100%" }}
                   />
                 </div>
@@ -3001,7 +3001,7 @@ function NotificationsTab() {
               </div>
             </div>
             {emailLimit > 0 && (
-              <div className="w-24 h-1.5 bg-accent/60 rounded-full overflow-hidden">
+              <div className="w-24 h-1.5 bg-accent/60 rounded-circle overflow-hidden">
                 <div
                   className="h-full bg-primary rounded-full transition-all"
                   style={{ width: `${Math.min(100, ((emailQuota?.emails_sent ?? 0) / emailLimit) * 100)}%` }}

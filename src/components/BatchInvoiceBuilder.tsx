@@ -639,7 +639,7 @@ export default function BatchInvoiceBuilder({
                     </div>
                     <button
                       onClick={() => setTaxInclusive((v) => !v)}
-                      className={`relative w-9 h-5 rounded-full transition-colors ${
+                      className={`relative w-9 h-5 rounded-circle transition-colors ${
                         taxInclusive ? "bg-primary" : "bg-muted-foreground/25"
                       }`}
                     >
