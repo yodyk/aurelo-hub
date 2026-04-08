@@ -225,7 +225,7 @@ export default function ClientPortal() {
                   <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-[#1a1a2e]">{client.name}</h1>
                   <div className="flex items-center gap-3 mt-1.5">
                     <div className="flex items-center gap-1.5">
-                      <div className={`w-2 h-2 rounded-full ${statusDot(client.status)}`} />
+                      <div className={`w-2 h-2 rounded-circle ${statusDot(client.status)}`} />
                       <span className="text-sm text-[#6b7280]">{client.status}</span>
                     </div>
                     <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-[#f3f4f6] text-[#6b7280]">{client.model}</span>

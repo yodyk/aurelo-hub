@@ -382,7 +382,7 @@ export default function Projects() {
                           className={`inline-flex items-center gap-1.5 px-2 py-0.5 text-[11px] rounded-full ${sc.bg} ${sc.text}`}
                           style={{ fontWeight: 500 }}
                         >
-                          <div className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />
+                          <div className={`w-1.5 h-1.5 rounded-circle ${sc.dot}`} />
                           {project.status}
                         </div>
                       </td>

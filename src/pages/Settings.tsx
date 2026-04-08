@@ -391,7 +391,7 @@ export default function Settings() {
                   />
                   {tab.label}
                   {isActive && isDirty && (
-                    <div className="w-1.5 h-1.5 rounded-full bg-primary ml-auto flex-shrink-0" />
+                    <div className="w-1.5 h-1.5 rounded-circle bg-primary ml-auto flex-shrink-0" />
                   )}
                 </button>
               );
@@ -1762,7 +1762,7 @@ function IdentitySection() {
                 title={cat.billable ? "Billable — click to make non-billable" : "Non-billable — click to make billable"}
               >
                 <div
-                  className={`w-2 h-2 rounded-full transition-colors ${cat.billable ? "bg-primary" : "bg-stone-400"}`}
+                  className={`w-2 h-2 rounded-circle transition-colors ${cat.billable ? "bg-primary" : "bg-stone-400"}`}
                 />
               </button>
 

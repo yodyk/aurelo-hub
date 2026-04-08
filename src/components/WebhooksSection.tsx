@@ -375,7 +375,7 @@ function WebhookCard({ webhook, expanded, onToggle, onRefresh }: {
     <div className={`border rounded-xl transition-colors ${webhook.active ? 'border-border bg-card' : 'border-border/50 bg-accent/20'}`}>
       {/* Header row */}
       <button onClick={onToggle} className="w-full flex items-center gap-3 px-4 py-3.5 text-left">
-        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${webhook.active ? 'bg-emerald-500' : 'bg-muted-foreground/40'}`} />
+        <div className={`w-2 h-2 rounded-circle flex-shrink-0 ${webhook.active ? 'bg-emerald-500' : 'bg-muted-foreground/40'}`} />
         <div className="flex-1 min-w-0">
           <div className="text-[13px] text-foreground truncate" style={{ fontWeight: 500, fontFamily: 'ui-monospace, monospace' }}>
             {webhook.url}

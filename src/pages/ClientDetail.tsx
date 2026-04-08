@@ -588,7 +588,7 @@ export default function ClientDetail() {
               {/* Tags row */}
               <div className="flex flex-wrap items-center gap-2 mt-3">
                 <div className={`status-badge ${statusColors[client.status]?.bg} ${statusColors[client.status]?.text}`}>
-                  <div className={`w-1.5 h-1.5 rounded-full ${statusColors[client.status]?.dot}`} />
+                  <div className={`w-1.5 h-1.5 rounded-circle ${statusColors[client.status]?.dot}`} />
                   {client.status}
                 </div>
                 <div className="text-[11px] text-muted-foreground px-2.5 py-1 bg-accent/60 rounded-md" style={{ fontWeight: 600 }}>{client.model}</div>
@@ -1536,7 +1536,7 @@ function ProjectsTab({ projects, client, canViewFinancials, onAddProject, onNavi
                     <td className="px-4 py-3.5 text-[13px]" style={{ fontWeight: 600 }}>{project.name}</td>
                     <td className="px-4 py-3.5">
                       <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 text-[11px] rounded-lg ${project.status === "In Progress" ? "bg-primary/[0.07] text-primary" : "bg-accent/60 text-muted-foreground"}`} style={{ fontWeight: 600 }}>
-                        <div className={`w-1.5 h-1.5 rounded-full ${project.status === "In Progress" ? "bg-primary" : "bg-muted-foreground/40"}`} />
+                        <div className={`w-1.5 h-1.5 rounded-circle ${project.status === "In Progress" ? "bg-primary" : "bg-muted-foreground/40"}`} />
                         {project.status}
                       </div>
                     </td>
@@ -1763,7 +1763,7 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
       {retainerStatus !== 'active' && (
         <div className={`rounded-lg px-4 py-3 mb-1 flex items-center justify-between ${retainerStatus === 'paused' ? 'bg-warning/10 border border-warning/20' : 'bg-destructive/10 border border-destructive/20'}`}>
           <div className="flex items-center gap-2">
-            <div className={`w-2 h-2 rounded-full ${retainerStatus === 'paused' ? 'bg-warning' : 'bg-destructive'}`} />
+            <div className={`w-2 h-2 rounded-circle ${retainerStatus === 'paused' ? 'bg-warning' : 'bg-destructive'}`} />
             <span className="text-[13px]" style={{ fontWeight: 600 }}>
               Retainer is {retainerStatus}
             </span>
@@ -1789,7 +1789,7 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
         </div>
         {usagePct >= 70 && (
           <div className="mt-3 text-[13px] flex items-center gap-1.5" style={{ color: getUsageTextColor(usagePct) }}>
-            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: getUsageTextColor(usagePct) }} />
+            <div className="w-1.5 h-1.5 rounded-circle" style={{ backgroundColor: getUsageTextColor(usagePct) }} />
             {usagePct >= 85 ? "Running low — consider discussing renewal or overage terms" : "Over 70% used — monitor remaining hours"}
           </div>
         )}
@@ -2129,7 +2129,7 @@ function PortalTab({ client, clientId, portalConfig, portalLoading, copied, onCo
           <>
             <div className="flex items-center justify-between p-3 bg-accent/20 rounded-lg">
               <div className="flex items-center gap-2">
-                <div className={`w-2 h-2 rounded-full ${portalConfig.active ? "bg-[#2e7d9a]" : "bg-zinc-300"}`} />
+                <div className={`w-2 h-2 rounded-circle ${portalConfig.active ? "bg-[#2e7d9a]" : "bg-zinc-300"}`} />
                 <span className="text-[13px]" style={{ fontWeight: 500 }}>{portalConfig.active ? "Portal is live" : "Portal is deactivated"}</span>
               </div>
               <button
@@ -2155,7 +2155,7 @@ function PortalTab({ client, clientId, portalConfig, portalLoading, copied, onCo
               </div>
             </div>
             <div className="text-[12px] text-muted-foreground flex items-center gap-1.5">
-              <div className="w-1 h-1 rounded-full bg-muted-foreground/40" />
+              <div className="w-1 h-1 rounded-circle bg-muted-foreground/40" />
               {client.showPortalCosts !== false ? "Billing totals are visible to the client on this portal" : "Financial data is hidden — client sees hours and activity only"}
             </div>
             <button onClick={onGeneratePortal} disabled={portalLoading} className="text-[12px] text-muted-foreground hover:text-foreground transition-colors" style={{ fontWeight: 500 }}>

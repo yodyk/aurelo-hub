@@ -543,7 +543,7 @@ function RootLayout() {
               </button>
             ) : (
               <div className="inline-flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-primary/8">
-                <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                <div className="w-1.5 h-1.5 rounded-circle bg-primary animate-pulse" />
                 <span className="text-[13px] text-primary tabular-nums" style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace' }}>
                   {formatTime(timerSeconds)}
                 </span>
@@ -735,7 +735,7 @@ function RootLayout() {
             className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-card border border-border rounded-full px-5 py-3"
             style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06)' }}
           >
-            <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+            <div className="w-2 h-2 rounded-circle bg-primary animate-pulse" />
             <span
               className="text-[15px] text-foreground tabular-nums"
               style={{ fontWeight: 600, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace' }}

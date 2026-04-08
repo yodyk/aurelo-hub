@@ -134,7 +134,7 @@ export default function TeamUtilization() {
           <div>
             <div className="flex justify-between items-baseline mb-2">
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-primary" />
+                <div className="w-2 h-2 rounded-circle bg-primary" />
                 <span className="text-[13px]" style={{ fontWeight: 500 }}>Billable hours</span>
               </div>
               <div className="flex items-baseline gap-2">
@@ -155,7 +155,7 @@ export default function TeamUtilization() {
           <div>
             <div className="flex justify-between items-baseline mb-2">
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-muted-foreground/30" />
+                <div className="w-2 h-2 rounded-circle bg-muted-foreground/30" />
                 <span className="text-[13px]" style={{ fontWeight: 500 }}>Non-billable hours</span>
               </div>
               <div className="flex items-baseline gap-2">

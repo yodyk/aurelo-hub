@@ -541,7 +541,7 @@ export default function ProjectDetail() {
                   className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] ${sc.bg} ${sc.text} cursor-pointer hover:opacity-80 transition-opacity`}
                   style={{ fontWeight: 500 }}
                 >
-                  <div className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />
+                  <div className={`w-1.5 h-1.5 rounded-circle ${sc.dot}`} />
                   {project.status}
                   <ChevronDown className="w-3 h-3" />
                 </button>
@@ -564,7 +564,7 @@ export default function ProjectDetail() {
                             className={`w-full flex items-center gap-2 px-3 py-2 text-[13px] hover:bg-accent/40 transition-colors ${project.status === status ? "bg-accent/30" : ""}`}
                             style={{ fontWeight: 500 }}
                           >
-                            <div className={`w-1.5 h-1.5 rounded-full ${ssc.dot}`} />
+                            <div className={`w-1.5 h-1.5 rounded-circle ${ssc.dot}`} />
                             {status}
                           </button>
                         );
@@ -1090,7 +1090,7 @@ export default function ProjectDetail() {
                           className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[13px] ${rc.bg}`}
                           style={{ fontWeight: 600, color: rc.color }}
                         >
-                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: rc.color }} />
+                          <div className="w-2 h-2 rounded-circle" style={{ backgroundColor: rc.color }} />
                           {rc.label}
                         </div>
                         {insights?.daysLeft !== null && insights?.daysLeft !== undefined && (
