@@ -553,83 +553,89 @@ export default function ClientDetail() {
   // RENDER
   // ═════════════════════════════════════════════════════════════════
   return (
-    <motion.div className="w-full min-w-0 px-4 sm:px-6 lg:px-10 py-6 md:py-10" variants={container} initial="hidden" animate="show">
-      {/* Back link */}
-      <motion.div variants={item}>
-        <Link to="/clients" className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground mb-5 transition-colors group">
-          <ChevronLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
+    <motion.div className="w-full min-w-0 page-wrapper" variants={container} initial="hidden" animate="show">
+      {/* Compact header */}
+      <motion.div variants={item} className="mb-6">
+        <Link to="/clients" className="inline-flex items-center gap-1 text-[12px] text-muted-foreground hover:text-foreground mb-3 transition-colors group">
+          <ChevronLeft className="w-3 h-3 group-hover:-translate-x-0.5 transition-transform" />
           Clients
         </Link>
-      </motion.div>
 
-      {/* Client identity bar — premium header */}
-      <motion.div variants={item} className="mb-8 bg-card border border-border/60 rounded-2xl overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02)" }}>
-        <div className="h-[3px] bg-gradient-to-r from-primary/60 via-primary/30 to-transparent" />
-        <div className="p-5 md:p-6">
-          <div className="flex items-start gap-4">
-            <div className="w-14 h-14 bg-primary/[0.07] rounded-2xl flex items-center justify-center overflow-hidden flex-shrink-0 ring-1 ring-primary/10">
-              {clientFaviconUrl ? (
-                <img src={clientFaviconUrl} alt={client.name} className="w-full h-full object-cover" />
-              ) : (
-                <div className="text-[20px] text-primary" style={{ fontWeight: 600 }}>{client.name.charAt(0)}</div>
-              )}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between gap-3">
-                <h1 className="text-[22px] md:text-[26px] tracking-tight" style={{ fontWeight: 600, letterSpacing: '-0.02em' }}>{client.name}</h1>
-                <button
-                  onClick={() => navigate(`/clients/${clientId}/edit`)}
-                  className="px-3.5 py-1.5 text-[13px] border border-border/80 rounded-xl hover:bg-accent/50 transition-all flex-shrink-0 flex items-center gap-1.5"
-                  style={{ fontWeight: 500 }}
-                >
-                  <Pencil className="w-3 h-3" />
-                  Edit
-                </button>
-              </div>
-              {/* Tags row */}
-              <div className="flex flex-wrap items-center gap-2 mt-3">
-                <div className={`status-badge ${statusColors[client.status]?.bg} ${statusColors[client.status]?.text}`}>
-                  <div className={`w-1.5 h-1.5 rounded-circle ${statusColors[client.status]?.dot}`} />
-                  {client.status}
-                </div>
-                <div className="text-[11px] text-muted-foreground px-2.5 py-1 bg-accent/60 rounded-md" style={{ fontWeight: 600 }}>{client.model}</div>
-                <div className="w-px h-4 bg-border/60 mx-0.5 hidden sm:block" />
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] rounded-md" style={{ fontWeight: 600, color: priorityCfg.color, background: priorityCfg.bg }}>
-                  <Flag className="w-3 h-3" /> {priorityLevel.charAt(0).toUpperCase() + priorityLevel.slice(1)}
-                </span>
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] rounded-md" style={{ fontWeight: 600, color: riskCfg.color, background: riskCfg.bg }}>
-                  <ShieldAlert className="w-3 h-3" /> {riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1)} Risk
-                </span>
+        {/* Identity row */}
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 bg-primary/[0.07] rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
+            {clientFaviconUrl ? (
+              <img src={clientFaviconUrl} alt={client.name} className="w-full h-full object-cover" />
+            ) : (
+              <div className="text-[14px] text-primary" style={{ fontWeight: 700 }}>{client.name.charAt(0)}</div>
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-[20px] md:text-[22px] tracking-tight truncate" style={{ fontWeight: 700, letterSpacing: '-0.02em' }}>{client.name}</h1>
+              <div className={`status-badge ${statusColors[client.status]?.bg} ${statusColors[client.status]?.text}`}>
+                <div className={`w-1.5 h-1.5 rounded-circle ${statusColors[client.status]?.dot}`} />
+                {client.status}
               </div>
             </div>
           </div>
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            <div className="hidden sm:flex items-center gap-1.5">
+              <span className="text-[11px] text-muted-foreground px-2 py-0.5 bg-accent/60 rounded-md" style={{ fontWeight: 600 }}>{client.model}</span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] rounded-md" style={{ fontWeight: 600, color: priorityCfg.color, background: priorityCfg.bg }}>
+                <Flag className="w-2.5 h-2.5" /> {priorityLevel.charAt(0).toUpperCase() + priorityLevel.slice(1)}
+              </span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] rounded-md" style={{ fontWeight: 600, color: riskCfg.color, background: riskCfg.bg }}>
+                <ShieldAlert className="w-2.5 h-2.5" /> {riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1)}
+              </span>
+            </div>
+            <button
+              onClick={() => navigate(`/clients/${clientId}/edit`)}
+              className="px-2.5 py-1 text-[12px] border border-border/80 rounded-lg hover:bg-accent/50 transition-all flex items-center gap-1.5"
+              style={{ fontWeight: 500 }}
+            >
+              <Pencil className="w-3 h-3" />
+              <span className="hidden sm:inline">Edit</span>
+            </button>
+          </div>
         </div>
+
+        {/* Contact details — compact inline */}
+        {(client.contactName || client.contactEmail || client.phone || client.website) && (
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 ml-12 text-[12px] text-muted-foreground">
+            {client.contactName && <span className="flex items-center gap-1.5"><User className="w-3 h-3 text-muted-foreground/40" />{client.contactName}</span>}
+            {client.contactEmail && <a href={`mailto:${client.contactEmail}`} className="flex items-center gap-1.5 hover:text-foreground transition-colors"><Mail className="w-3 h-3 text-muted-foreground/40" />{client.contactEmail}</a>}
+            {client.phone && <a href={`tel:${client.phone}`} className="flex items-center gap-1.5 hover:text-foreground transition-colors"><Phone className="w-3 h-3 text-muted-foreground/40" />{client.phone}</a>}
+            {client.website && <a href={`https://${client.website}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-primary hover:text-primary/80 transition-colors"><Globe className="w-3 h-3" />{client.website}</a>}
+            {client.address && <span className="flex items-center gap-1.5"><MapPin className="w-3 h-3 text-muted-foreground/40" />{client.address}</span>}
+          </div>
+        )}
       </motion.div>
 
       {/* Tab layout */}
-      <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+      <div className="flex flex-col lg:flex-row gap-5 lg:gap-6">
         {/* Vertical tab nav */}
-        <motion.nav variants={item} className="w-full lg:w-52 flex-shrink-0">
-          <div className="lg:sticky lg:top-[80px] flex lg:flex-col gap-0.5 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0 border-b lg:border-b-0 border-border -mx-4 sm:-mx-6 px-4 sm:px-6 lg:mx-0 lg:px-0">
+        <motion.nav variants={item} className="w-full lg:w-44 flex-shrink-0">
+          <div className="lg:sticky lg:top-[72px] flex lg:flex-col gap-0.5 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0 border-b lg:border-b-0 border-border -mx-4 px-4 lg:mx-0 lg:px-0">
             {visibleTabs.map((tab) => {
               const isActive = activeTab === tab.id;
               return (
                 <button
                   key={tab.id}
                   onClick={() => handleTabChange(tab.id)}
-                  className={`w-auto lg:w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] text-left transition-all duration-200 relative whitespace-nowrap ${
+                  className={`w-auto lg:w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] text-left transition-all duration-150 relative whitespace-nowrap ${
                     isActive ? "bg-primary/[0.07] text-primary" : "text-muted-foreground hover:text-foreground hover:bg-accent/40"
                   }`}
-                  style={{ fontWeight: isActive ? 600 : 500 }}
+                  style={{ fontWeight: isActive ? 600 : 450 }}
                 >
                   {isActive && (
                     <motion.div
                       layoutId="client-tab-indicator"
-                      className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full hidden lg:block"
+                      className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-4 bg-primary rounded-r-full hidden lg:block"
                       transition={{ type: "spring", stiffness: 350, damping: 30 }}
                     />
                   )}
-                  <tab.icon className={`w-4 h-4 flex-shrink-0 ${isActive ? "text-primary" : "text-muted-foreground/60"}`} />
+                  <tab.icon className={`w-3.5 h-3.5 flex-shrink-0 ${isActive ? "text-primary" : "text-muted-foreground/50"}`} />
                   {tab.label}
                 </button>
               );
@@ -813,55 +819,20 @@ function OverviewTab({
 
   return (
     <>
-      {/* Contact strip */}
-      <div className="bg-card border border-border/60 rounded-2xl p-4 md:p-5 flex flex-wrap gap-x-5 gap-y-2.5 items-center" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-        {client.contactName && (
-          <div className="flex items-center gap-2 text-[13px]">
-            <User className="w-3.5 h-3.5 text-muted-foreground/50" />
-            <span className="text-foreground" style={{ fontWeight: 500 }}>{client.contactName}</span>
-          </div>
-        )}
-        {client.contactEmail && (
-          <a href={`mailto:${client.contactEmail}`} className="flex items-center gap-2 text-[13px] text-muted-foreground hover:text-foreground transition-colors">
-            <Mail className="w-3.5 h-3.5 text-muted-foreground/50" />
-            {client.contactEmail}
-          </a>
-        )}
-        {client.phone && (
-          <a href={`tel:${client.phone}`} className="flex items-center gap-2 text-[13px] text-muted-foreground hover:text-foreground transition-colors">
-            <Phone className="w-3.5 h-3.5 text-muted-foreground/50" />
-            {client.phone}
-          </a>
-        )}
-        {client.website && (
-          <a href={`https://${client.website}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[13px] text-primary hover:text-primary/80 transition-colors">
-            <Globe className="w-3.5 h-3.5" />
-            {client.website}
-          </a>
-        )}
-        {client.address && (
-          <div className="flex items-center gap-2 text-[13px] text-muted-foreground">
-            <MapPin className="w-3.5 h-3.5 text-muted-foreground/50" />
-            {client.address}
-          </div>
-        )}
-      </div>
-
-      {/* Financial metrics — hero section */}
+      {/* Financial metrics */}
       {canViewFinancials && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Revenue card */}
-          <div className="lg:col-span-2 bg-card border border-border/60 rounded-2xl overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02)" }}>
-            <div className="h-[2px] bg-gradient-to-r from-primary/60 via-primary/30 to-transparent" />
-            <div className="p-5 md:p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div className="text-[13px] text-muted-foreground" style={{ fontWeight: 600 }}>Financial Overview</div>
-                <div className="inline-flex gap-0 bg-accent/60 rounded-lg p-0.5">
+          <div className="lg:col-span-2 bg-card border border-border/60 rounded-xl overflow-hidden" style={{ boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
+            <div className="p-4 md:p-5">
+              <div className="flex items-center justify-between mb-4">
+                <div className="text-[12px] text-muted-foreground" style={{ fontWeight: 600 }}>Financial Overview</div>
+                <div className="inline-flex gap-0 bg-accent/60 rounded-md p-0.5">
                   {(["gross", "net"] as const).map(mode => (
                     <button
                       key={mode}
                       onClick={() => setViewMode(mode)}
-                      className={`px-3 py-1 text-[11px] rounded-md transition-all duration-200 capitalize ${
+                      className={`px-2.5 py-0.5 text-[11px] rounded-sm transition-all duration-200 capitalize ${
                         viewMode === mode ? "bg-card text-foreground" : "text-muted-foreground hover:text-foreground"
                       }`}
                       style={{ fontWeight: 600, boxShadow: viewMode === mode ? "0 1px 3px rgba(0,0,0,0.06)" : "none" }}
@@ -871,36 +842,34 @@ function OverviewTab({
                   ))}
                 </div>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
-                  <div className="text-[11px] text-muted-foreground mb-2 uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>This month</div>
-                  <div className="text-[26px] md:text-[30px] leading-none tracking-tighter tabular-nums" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
-                    ${viewMode === "gross" ? (client.monthlyEarnings || 0).toLocaleString() : Math.round((client.monthlyEarnings || 0) * netMultiplier).toLocaleString()}
+                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>This month</div>
+                  <div className="text-[22px] leading-none tracking-tighter tabular-nums" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
+                    ${viewMode === "net" ? Math.round((client.monthlyEarnings || 0) * netMultiplier).toLocaleString() : (client.monthlyEarnings || 0).toLocaleString()}
                   </div>
-                  <div className="flex items-center gap-1 mt-2">
-                    {revenueTrend === "up" && <TrendingUp className="w-3 h-3 text-primary" />}
-                    {revenueTrend === "down" && <TrendingDown className="w-3 h-3 text-destructive" />}
-                    {revenueTrend === "flat" && <Minus className="w-3 h-3 text-muted-foreground" />}
-                    <span className={`text-[11px] ${revenueTrend === 'up' ? 'text-primary' : revenueTrend === 'down' ? 'text-destructive' : 'text-muted-foreground'}`} style={{ fontWeight: 600 }}>
-                      {revenueTrend === "up" ? "+" : ""}{lastMonthEarnings > 0 ? Math.round(((client.monthlyEarnings || 0) - lastMonthEarnings) / lastMonthEarnings * 100) : 0}% vs last
-                    </span>
+                  {revenueTrend !== 'flat' && (
+                    <div className={`flex items-center gap-0.5 mt-1 text-[11px] ${revenueTrend === 'up' ? 'text-success' : 'text-destructive'}`} style={{ fontWeight: 600 }}>
+                      {revenueTrend === 'up' ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                      {revenueTrend === 'up' ? '+' : ''}{Math.abs(Math.round(((client.monthlyEarnings || 0) - lastMonthEarnings) / Math.max(lastMonthEarnings, 1) * 100))}% vs last
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>Eff. rate</div>
+                  <div className="text-[22px] leading-none tracking-tighter tabular-nums" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
+                    ${client.trueHourlyRate ? (viewMode === "net" ? Math.round(client.trueHourlyRate * netMultiplier) : client.trueHourlyRate.toFixed(2)) : '—'}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[11px] text-muted-foreground mb-2 uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>Effective rate</div>
-                  <div className="text-[26px] md:text-[30px] leading-none tracking-tighter tabular-nums" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
-                    ${viewMode === "gross" ? client.trueHourlyRate || client.rate || 0 : Math.round((client.trueHourlyRate || client.rate || 0) * netMultiplier)}
+                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>Lifetime</div>
+                  <div className="text-[22px] leading-none tracking-tighter tabular-nums" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
+                    ${viewMode === "net" ? Math.round((client.lifetimeRevenue || 0) * netMultiplier).toLocaleString() : (client.lifetimeRevenue || 0).toLocaleString()}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[11px] text-muted-foreground mb-2 uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>Lifetime</div>
-                  <div className="text-[26px] md:text-[30px] leading-none tracking-tighter tabular-nums" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
-                    ${(client.lifetimeRevenue || 0).toLocaleString()}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-[11px] text-muted-foreground mb-2 uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>Hours</div>
-                  <div className="text-[26px] md:text-[30px] leading-none tracking-tighter tabular-nums" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
+                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>Hours</div>
+                  <div className="text-[22px] leading-none tracking-tighter tabular-nums" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
                     {client.hoursLogged || 0}
                   </div>
                 </div>
@@ -911,13 +880,13 @@ function OverviewTab({
                 const hoursUsed = (client.retainerTotal || 0) - (client.retainerRemaining || 0);
                 const usagePct = client.retainerTotal ? Math.round((hoursUsed / client.retainerTotal) * 100) : 0;
                 return (
-                  <div className="mt-6 pt-5 border-t border-border/60">
-                    <div className="flex items-center justify-between mb-2.5">
-                      <div className="text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Retainer: {hoursUsed}h / {client.retainerTotal || 0}h</div>
-                      <div className="text-[14px] tabular-nums" style={{ fontWeight: 700, color: getUsageTextColor(usagePct) }}>{usagePct}%</div>
+                  <div className="mt-4 pt-4 border-t border-border/60">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="text-[11px] text-muted-foreground" style={{ fontWeight: 500 }}>Retainer: {hoursUsed}h / {client.retainerTotal || 0}h</div>
+                      <div className="text-[13px] tabular-nums" style={{ fontWeight: 700, color: getUsageTextColor(usagePct) }}>{usagePct}%</div>
                     </div>
-                    <div className="h-2 bg-accent/60 rounded-circle overflow-hidden">
-                      <motion.div className="h-full rounded-circle" style={{ background: getUsageBarColor(usagePct) }} initial={{ width: 0 }} animate={{ width: `${usagePct}%` }} transition={{ delay: 0.3, duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }} />
+                    <div className="h-1.5 bg-accent/60 rounded-sm overflow-hidden">
+                      <motion.div className="h-full rounded-sm" style={{ background: getUsageBarColor(usagePct) }} initial={{ width: 0 }} animate={{ width: `${usagePct}%` }} transition={{ delay: 0.3, duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }} />
                     </div>
                   </div>
                 );
@@ -926,18 +895,17 @@ function OverviewTab({
           </div>
 
           {/* 7-day activity sparkline card */}
-          <div className="bg-card border border-border/60 rounded-2xl overflow-hidden flex flex-col" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02)" }}>
-            <div className="h-[2px] bg-gradient-to-r from-primary/40 to-transparent" />
-            <div className="p-5 md:p-6 flex flex-col flex-1 justify-between">
+          <div className="bg-card border border-border/60 rounded-xl overflow-hidden flex flex-col" style={{ boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
+            <div className="p-4 md:p-5 flex flex-col flex-1 justify-between">
               <div>
-                <div className="text-[11px] text-muted-foreground mb-2 uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>7-Day Activity</div>
-                <div className="text-[30px] leading-none tracking-tighter tabular-nums" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
+                <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>7-Day Activity</div>
+                <div className="text-[26px] leading-none tracking-tighter tabular-nums" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
                   {last7Days.reduce((a, b) => a + b, 0).toFixed(1)}h
                 </div>
-                <div className="text-[11px] text-muted-foreground mt-1.5" style={{ fontWeight: 500 }}>total this week</div>
+                <div className="text-[10px] text-muted-foreground mt-1" style={{ fontWeight: 500 }}>total this week</div>
               </div>
-              <div className="mt-4">
-                <svg viewBox="0 0 200 44" className="w-full" style={{ height: 56 }}>
+              <div className="mt-3">
+                <svg viewBox="0 0 200 44" className="w-full" style={{ height: 48 }}>
                   <defs>
                     <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.15" />
@@ -945,14 +913,14 @@ function OverviewTab({
                     </linearGradient>
                   </defs>
                   <polygon points={sparkFillPoints} fill="url(#sparkGrad)" />
-                  <polyline points={sparkPoints} fill="none" stroke="var(--primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <polyline points={sparkPoints} fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   {last7Days.map((h, i) => {
                     const x = (i / 6) * 200;
                     const y = 40 - (h / maxHours) * 36;
-                    return h > 0 ? <circle key={i} cx={x} cy={y} r="3" fill="var(--primary)" /> : null;
+                    return h > 0 ? <circle key={i} cx={x} cy={y} r="2.5" fill="var(--primary)" /> : null;
                   })}
                 </svg>
-                <div className="flex justify-between text-[10px] text-muted-foreground/50 mt-1.5 px-0.5" style={{ fontWeight: 600 }}>
+                <div className="flex justify-between text-[9px] text-muted-foreground/50 mt-1 px-0.5" style={{ fontWeight: 600 }}>
                   {last7Days.map((_, i) => {
                     const d = new Date();
                     d.setDate(d.getDate() - (6 - i));
