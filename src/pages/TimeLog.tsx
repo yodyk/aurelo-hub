@@ -721,7 +721,7 @@ export default function TimeLog() {
         <RecurringSessionsManager clients={clients} projects={allProjects} />
       </div>
 
-
+      <LogSessionModal
         open={showLogModal}
         onClose={() => setShowLogModal(false)}
         onSave={handleLogSession}
