@@ -212,7 +212,7 @@ function Breadcrumbs() {
   );
 }
 
-
+function RootLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { clients, addSession, initAvatar, initLogos, initSettings } = useData();
