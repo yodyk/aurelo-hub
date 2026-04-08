@@ -1,7 +1,7 @@
 import { clearDemoData } from '../data/settingsApi';
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { Outlet, NavLink, useLocation, useNavigate, Navigate } from 'react-router';
-import { LayoutDashboard, Users, Clock, TrendingUp, Settings, Timer, Square, Menu, X, FolderKanban, LogOut, FileText, Sun, Moon, Lock, PanelLeftClose, PanelLeftOpen, Monitor } from 'lucide-react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { Outlet, NavLink, useLocation, useNavigate, Navigate, Link, useParams } from 'react-router';
+import { LayoutDashboard, Users, Clock, TrendingUp, Settings, Timer, Square, Menu, X, FolderKanban, LogOut, FileText, Sun, Moon, Lock, PanelLeftClose, PanelLeftOpen, Monitor, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 import { useData, DataProvider } from '../data/DataContext';
@@ -146,6 +146,69 @@ function PlanBridge() {
   );
 }
 
+function Breadcrumbs() {
+  const location = useLocation();
+  const { clients, allProjects } = useData();
+  
+  const crumbs = useMemo(() => {
+    const segments = location.pathname.split('/').filter(Boolean);
+    if (segments.length === 0) return null;
+
+    const topLabels: Record<string, string> = {
+      clients: 'Clients', projects: 'Projects', time: 'Time Log',
+      insights: 'Insights', invoicing: 'Invoicing', settings: 'Settings', team: 'Team',
+    };
+
+    const first = segments[0];
+    if (!topLabels[first]) return null;
+
+    const result: { label: string; to?: string }[] = [];
+
+    if (first === 'clients' && segments.length >= 2) {
+      result.push({ label: 'Clients', to: '/clients' });
+      const clientId = segments[1];
+      const client = clients.find(c => c.id === clientId);
+      const clientName = client?.name || 'Client';
+      if (segments[2] === 'edit') {
+        result.push({ label: clientName, to: `/clients/${clientId}` });
+        result.push({ label: 'Edit' });
+      } else {
+        result.push({ label: clientName });
+      }
+      return result;
+    }
+
+    if (first === 'projects' && segments.length >= 3) {
+      result.push({ label: 'Projects', to: '/projects' });
+      const projectId = segments[2];
+      const project = allProjects.find((p: any) => p.id === projectId);
+      result.push({ label: project?.name || 'Project' });
+      return result;
+    }
+
+    return null;
+  }, [location.pathname, clients, allProjects]);
+
+  if (!crumbs) return null;
+
+  return (
+    <div className="border-b border-border bg-background px-4 lg:px-6 py-2 flex items-center gap-1.5">
+      {crumbs.map((crumb, i) => (
+        <span key={i} className="flex items-center gap-1.5">
+          {i > 0 && <ChevronRight className="w-3 h-3 text-muted-foreground/50" />}
+          {crumb.to ? (
+            <Link to={crumb.to} className="text-[12px] text-muted-foreground hover:text-foreground transition-colors" style={{ fontWeight: 500 }}>
+              {crumb.label}
+            </Link>
+          ) : (
+            <span className="text-[12px] text-foreground" style={{ fontWeight: 500 }}>{crumb.label}</span>
+          )}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 function RootLayout() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -202,8 +265,6 @@ function RootLayout() {
     setShowTour(false);
     window.location.href = '/';
   }, []);
-
-  
 
   const displayName = user?.name || '';
   const displayEmail = user?.email || '';
@@ -557,6 +618,9 @@ function RootLayout() {
             )}
           </div>
         </header>
+
+        {/* Breadcrumb bar */}
+        <Breadcrumbs />
 
         {/* Page content */}
         <main>
