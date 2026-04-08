@@ -716,7 +716,12 @@ export default function TimeLog() {
         ))}
       </motion.div>
 
-      <LogSessionModal
+      {/* Recurring Sessions Section */}
+      <div className="mt-8 bg-card border border-border/50 rounded-xl p-5">
+        <RecurringSessionsManager clients={clients} projects={allProjects} />
+      </div>
+
+
         open={showLogModal}
         onClose={() => setShowLogModal(false)}
         onSave={handleLogSession}
