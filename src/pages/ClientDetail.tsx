@@ -682,16 +682,25 @@ export default function ClientDetail() {
                 />
               )}
               {activeTab === "sessions" && (
-                <SessionsTab
-                  clientSessions={clientSessions}
-                  client={client}
-                  canViewFinancials={canViewFinancials}
-                  selectedIds={selectedIds}
-                  onToggleSelect={toggleSelect}
-                  onToggleSelectAll={toggleSelectAll}
-                  onLogSession={() => setShowLogModal(true)}
-                  onEditSession={setEditingSession}
-                />
+                <>
+                  <SessionsTab
+                    clientSessions={clientSessions}
+                    client={client}
+                    canViewFinancials={canViewFinancials}
+                    selectedIds={selectedIds}
+                    onToggleSelect={toggleSelect}
+                    onToggleSelectAll={toggleSelectAll}
+                    onLogSession={() => setShowLogModal(true)}
+                    onEditSession={setEditingSession}
+                  />
+                  <div className="mt-6 bg-card border border-border/50 rounded-xl p-5">
+                    <RecurringSessionsManager
+                      clients={clients}
+                      projects={projects}
+                      fixedClientId={clientId}
+                    />
+                  </div>
+                </>
               )}
               {activeTab === "retainer" && (
                 <RetainerTab
