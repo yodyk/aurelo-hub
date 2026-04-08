@@ -269,8 +269,7 @@ function RootLayout() {
     window.location.href = '/';
   }, []);
 
-function RootLayout() {
-  const displayName = user?.name || '';
+
   const displayEmail = user?.email || '';
   const displayInitials = user?.initials || '';
 
