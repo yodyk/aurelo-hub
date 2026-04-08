@@ -166,7 +166,7 @@ export default function Onboarding() {
                               initial={{ scale: 0 }}
                               animate={{ scale: 1 }}
                               exit={{ scale: 0 }}
-                              className="absolute top-3 right-3 w-5 h-5 rounded-full bg-[#2e7d9a] flex items-center justify-center"
+                              className="absolute top-3 right-3 w-5 h-5 rounded-circle bg-[#2e7d9a] flex items-center justify-center"
                             >
                               <Check className="w-3 h-3 text-white" strokeWidth={2.5} />
                             </motion.div>

@@ -184,10 +184,10 @@ function Toggle({ checked, onChange, label, description }: { checked: boolean; o
       </div>
       <button
         onClick={() => onChange(!checked)}
-        className={`relative w-9 h-5 rounded-full transition-colors duration-200 flex-shrink-0 ${checked ? 'bg-primary' : 'bg-zinc-300'}`}
+        className={`relative w-9 h-5 rounded-circle transition-colors duration-200 flex-shrink-0 ${checked ? 'bg-primary' : 'bg-zinc-300'}`}
       >
         <div
-          className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform duration-200 ${checked ? 'translate-x-4' : 'translate-x-0'}`}
+          className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-circle bg-white transition-transform duration-200 ${checked ? 'translate-x-4' : 'translate-x-0'}`}
           style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.12)' }}
         />
       </button>
@@ -1172,10 +1172,10 @@ export function LogSessionModal({ open, onClose, onSave, clients, preSelectedCli
           </div>
           <button
             onClick={() => setBillable(b => !b)}
-            className={`relative w-9 h-5 rounded-full transition-colors duration-200 flex-shrink-0 ${billable ? 'bg-primary' : 'bg-zinc-300'}`}
+            className={`relative w-9 h-5 rounded-circle transition-colors duration-200 flex-shrink-0 ${billable ? 'bg-primary' : 'bg-zinc-300'}`}
           >
             <div
-              className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform duration-200 ${billable ? 'translate-x-4' : 'translate-x-0'}`}
+              className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-circle bg-white transition-transform duration-200 ${billable ? 'translate-x-4' : 'translate-x-0'}`}
               style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.12)' }}
             />
           </button>
@@ -1804,10 +1804,10 @@ export function EditSessionModal({ open, onClose, session, onSave, onDelete, cli
           </div>
           <button
             onClick={() => setBillable(b => !b)}
-            className={`relative w-9 h-5 rounded-full transition-colors duration-200 flex-shrink-0 ${billable ? 'bg-primary' : 'bg-zinc-300'}`}
+            className={`relative w-9 h-5 rounded-circle transition-colors duration-200 flex-shrink-0 ${billable ? 'bg-primary' : 'bg-zinc-300'}`}
           >
             <div
-              className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform duration-200 ${billable ? 'translate-x-4' : 'translate-x-0'}`}
+              className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-circle bg-white transition-transform duration-200 ${billable ? 'translate-x-4' : 'translate-x-0'}`}
               style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.12)' }}
             />
           </button>

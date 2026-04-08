@@ -541,7 +541,7 @@ export default function ProjectDetail() {
                   className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] ${sc.bg} ${sc.text} cursor-pointer hover:opacity-80 transition-opacity`}
                   style={{ fontWeight: 500 }}
                 >
-                  <div className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />
+                  <div className={`w-1.5 h-1.5 rounded-circle ${sc.dot}`} />
                   {project.status}
                   <ChevronDown className="w-3 h-3" />
                 </button>
@@ -564,7 +564,7 @@ export default function ProjectDetail() {
                             className={`w-full flex items-center gap-2 px-3 py-2 text-[13px] hover:bg-accent/40 transition-colors ${project.status === status ? "bg-accent/30" : ""}`}
                             style={{ fontWeight: 500 }}
                           >
-                            <div className={`w-1.5 h-1.5 rounded-full ${ssc.dot}`} />
+                            <div className={`w-1.5 h-1.5 rounded-circle ${ssc.dot}`} />
                             {status}
                           </button>
                         );
@@ -898,9 +898,9 @@ export default function ProjectDetail() {
                         {budgetData.hoursPct}%
                       </span>
                     </div>
-                    <div className="h-2 bg-accent/60 rounded-full overflow-hidden">
+                    <div className="h-2 bg-accent/60 rounded-circle overflow-hidden">
                       <motion.div
-                        className="h-full rounded-full"
+                        className="h-full rounded-circle"
                         style={{
                           backgroundColor: budgetData.hoursPct > 100 ? RED : budgetData.hoursPct > 85 ? GOLD : BLUE,
                           opacity: 0.6,
@@ -924,9 +924,9 @@ export default function ProjectDetail() {
                         {budgetData.budgetPct}%
                       </span>
                     </div>
-                    <div className="h-2 bg-accent/60 rounded-full overflow-hidden">
+                    <div className="h-2 bg-accent/60 rounded-circle overflow-hidden">
                       <motion.div
-                        className="h-full rounded-full"
+                        className="h-full rounded-circle"
                         style={{ backgroundColor: BLUE, opacity: 0.6 }}
                         initial={{ width: 0 }}
                         animate={{ width: `${Math.min(budgetData.budgetPct, 100)}%` }}
@@ -1090,7 +1090,7 @@ export default function ProjectDetail() {
                           className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[13px] ${rc.bg}`}
                           style={{ fontWeight: 600, color: rc.color }}
                         >
-                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: rc.color }} />
+                          <div className="w-2 h-2 rounded-circle" style={{ backgroundColor: rc.color }} />
                           {rc.label}
                         </div>
                         {insights?.daysLeft !== null && insights?.daysLeft !== undefined && (
@@ -1195,9 +1195,9 @@ export default function ProjectDetail() {
                           {milestonePct}%
                         </span>
                       </div>
-                      <div className="h-1.5 bg-accent/50 rounded-full overflow-hidden">
+                      <div className="h-1.5 bg-accent/50 rounded-circle overflow-hidden">
                         <motion.div
-                          className="h-full rounded-full"
+                          className="h-full rounded-circle"
                           style={{ backgroundColor: milestonePct === 100 ? GOLD : BLUE, opacity: 0.6 }}
                           initial={{ width: 0 }}
                           animate={{ width: `${milestonePct}%` }}

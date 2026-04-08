@@ -74,7 +74,7 @@ function ChartTooltip({ active, payload, label }: any) {
       <div className="text-muted-foreground mb-1" style={{ fontWeight: 500 }}>{label}</div>
       {payload.map((p: any) => (
         <div key={p.dataKey} className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full" style={{ background: p.color }} />
+          <div className="w-2 h-2 rounded-circle" style={{ background: p.color }} />
           <span className="text-muted-foreground capitalize">{p.dataKey}:</span>
           <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>
             {p.dataKey.includes('hours') || p.dataKey === 'hours'
@@ -268,7 +268,7 @@ export default function Insights() {
                     <div className="text-[14px] text-muted-foreground">{card.sub}</div>
                   </div>
                   <div className="text-[13px] text-muted-foreground flex items-center gap-1.5">
-                    {card.warn && <div className="w-1.5 h-1.5 rounded-full bg-primary/50" />}
+                    {card.warn && <div className="w-1.5 h-1.5 rounded-circle bg-primary/50" />}
                     {card.detail}
                   </div>
                 </div>
@@ -316,18 +316,18 @@ export default function Insights() {
                       <div className="bg-card border border-border rounded-lg px-3 py-2 shadow-lg text-[12px]">
                         <div className="text-muted-foreground mb-1" style={{ fontWeight: 500 }}>{label}</div>
                         <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full" style={{ background: "#38bdf8" }} />
+                          <div className="w-2 h-2 rounded-circle" style={{ background: "#38bdf8" }} />
                           <span className="text-muted-foreground">Gross:</span>
                           <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>${d.revenue?.toLocaleString()}</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full" style={{ background: "#0ea5e9" }} />
+                          <div className="w-2 h-2 rounded-circle" style={{ background: "#0ea5e9" }} />
                           <span className="text-muted-foreground">Net:</span>
                           <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>${d.net?.toLocaleString()}</span>
                         </div>
                         {d.collected > 0 && (
                           <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full" style={{ background: "hsl(var(--primary) / 0.5)" }} />
+                            <div className="w-2 h-2 rounded-circle" style={{ background: "hsl(var(--primary) / 0.5)" }} />
                             <span className="text-muted-foreground">Collected:</span>
                             <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>${d.collected?.toLocaleString()}</span>
                           </div>
@@ -603,9 +603,9 @@ export default function Insights() {
                       <td className="px-6 py-4 text-[14px] text-right tabular-nums text-muted-foreground">{ranking.utilization}%</td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="flex-1 h-2 bg-accent/60 rounded-full overflow-hidden">
+                          <div className="flex-1 h-2 bg-accent/60 rounded-circle overflow-hidden">
                             <motion.div
-                              className="h-full rounded-full bg-primary"
+                              className="h-full rounded-circle bg-primary"
                               initial={{ width: 0 }}
                               animate={{ width: `${ranking.share}%` }}
                               transition={{ delay: 0.5 + index * 0.1, duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
@@ -652,9 +652,9 @@ export default function Insights() {
                         <div className="text-[15px] tabular-nums" style={{ fontWeight: 600 }}>{alloc.percentage}%</div>
                       </div>
                     </div>
-                    <div className="h-2.5 bg-accent/60 rounded-full overflow-hidden">
+                    <div className="h-2.5 bg-accent/60 rounded-circle overflow-hidden">
                       <motion.div
-                        className="h-full rounded-full bg-primary"
+                        className="h-full rounded-circle bg-primary"
                         style={{ opacity: 1 - index * 0.2 }}
                         initial={{ width: 0 }}
                         animate={{ width: `${alloc.percentage}%` }}
@@ -705,7 +705,7 @@ export default function Insights() {
                       </div>
                     </div>
                     <div className={`flex items-center gap-1.5 px-2 py-0.5 ${colors.bg} ${colors.text} text-[11px] rounded-full flex-shrink-0`} style={{ fontWeight: 500 }}>
-                      <div className={`w-1.5 h-1.5 rounded-full ${colors.dot}`} />
+                      <div className={`w-1.5 h-1.5 rounded-circle ${colors.dot}`} />
                       {signal.impact}
                     </div>
                   </motion.div>

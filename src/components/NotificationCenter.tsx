@@ -142,7 +142,7 @@ export function NotificationCenter({ workspaceId }: NotificationCenterProps) {
       >
         <Bell className="w-4 h-4" />
         {unreadCount > 0 && (
-          <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-primary text-[9px] text-primary-foreground flex items-center justify-center" style={{ fontWeight: 600 }}>
+          <span className="absolute top-1 right-1 w-4 h-4 rounded-circle bg-primary text-[9px] text-primary-foreground flex items-center justify-center" style={{ fontWeight: 600 }}>
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
@@ -196,7 +196,7 @@ export function NotificationCenter({ workspaceId }: NotificationCenterProps) {
             <div className="max-h-[400px] overflow-y-auto">
               {loading ? (
                 <div className="px-4 py-8 text-center">
-                  <div className="w-5 h-5 border-2 border-primary/20 border-t-primary rounded-full animate-spin mx-auto" />
+                  <div className="w-5 h-5 border-2 border-primary/20 border-t-primary rounded-circle animate-spin mx-auto" />
                 </div>
               ) : visibleNotifs.length === 0 ? (
                 <div className="px-4 py-12 text-center">

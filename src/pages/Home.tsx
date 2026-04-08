@@ -631,7 +631,7 @@ export default function Home() {
                               <span className="text-muted-foreground">{source.label}</span>
                               <div className="flex items-center gap-2"><span className="text-[11px] text-muted-foreground tabular-nums">{pct}%</span><span className="tabular-nums" style={{ fontWeight: 500 }}>${source.value.toLocaleString()}</span></div>
                             </div>
-                            <div className="h-1 bg-accent/60 rounded-full overflow-hidden"><div className="h-full rounded-full bg-primary/40" style={{ width: `${pct}%` }} /></div>
+                            <div className="h-1 bg-accent/60 rounded-circle overflow-hidden"><div className="h-full rounded-circle bg-primary/40" style={{ width: `${pct}%` }} /></div>
                           </div>
                         );
                       })}
@@ -733,8 +733,8 @@ export default function Home() {
                     <span className="text-[24px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600 }}><AnimatedNumber value={Math.round(weekHours * 10) / 10} /></span>
                     <span className="text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>/ {weeklyTarget}h</span>
                   </div>
-                  <div className="h-1.5 bg-accent/60 rounded-full overflow-hidden mt-2">
-                    <div className="h-full rounded-full bg-primary/50 transition-all duration-500" style={{ width: `${Math.min((weekHours / weeklyTarget) * 100, 100)}%` }} />
+                  <div className="h-1.5 bg-accent/60 rounded-circle overflow-hidden mt-2">
+                    <div className="h-full rounded-circle bg-primary/50 transition-all duration-500" style={{ width: `${Math.min((weekHours / weeklyTarget) * 100, 100)}%` }} />
                   </div>
                 </div>
               </div>
@@ -756,7 +756,7 @@ export default function Home() {
                       <span className="text-[10px] tabular-nums text-muted-foreground ml-2" style={{ fontWeight: 500 }}>{proj.hours || 0}h{proj.estimatedHours ? ` / ${proj.estimatedHours}h` : ""}</span>
                     </div>
                     {proj.estimatedHours > 0 && (
-                      <div className="h-1 bg-accent/60 rounded-full overflow-hidden"><div className="h-full rounded-full transition-all duration-500" style={{ width: `${Math.min(proj.completion, 100)}%`, backgroundColor: proj.completion >= 90 ? GOLD : BLUE, opacity: 0.5 }} /></div>
+                      <div className="h-1 bg-accent/60 rounded-circle overflow-hidden"><div className="h-full rounded-circle transition-all duration-500" style={{ width: `${Math.min(proj.completion, 100)}%`, backgroundColor: proj.completion >= 90 ? GOLD : BLUE, opacity: 0.5 }} /></div>
                     )}
                   </div>
                 ))}
@@ -875,7 +875,7 @@ export default function Home() {
                                   <div className="text-[10px] text-muted-foreground tabular-nums">{share}%</div>
                                 </div>
                               </div>
-                              <div className="h-1 bg-accent/50 rounded-full overflow-hidden"><div className="h-full rounded-full transition-all duration-500" style={{ width: `${barW}%`, backgroundColor: BLUE, opacity: 0.4 }} /></div>
+                              <div className="h-1 bg-accent/50 rounded-circle overflow-hidden"><div className="h-full rounded-circle transition-all duration-500" style={{ width: `${barW}%`, backgroundColor: BLUE, opacity: 0.4 }} /></div>
                             </div>
                           );
                         })
@@ -948,7 +948,7 @@ export default function Home() {
               </div>
               <span className="text-[11px] tabular-nums" style={{ fontWeight: 500, color: weekHours >= weeklyTarget ? GOLD : BLUE }}>{weekHours >= weeklyTarget ? "Target reached" : `${Math.round((weeklyTarget - weekHours) * 10) / 10}h left`}</span>
             </div>
-            <div className="h-1 bg-accent/60 rounded-full overflow-hidden mb-5"><div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min((weekHours / weeklyTarget) * 100, 100)}%`, backgroundColor: weekHours >= weeklyTarget ? GOLD : BLUE, opacity: 0.6 }} /></div>
+            <div className="h-1 bg-accent/60 rounded-circle overflow-hidden mb-5"><div className="h-full rounded-circle transition-all duration-700" style={{ width: `${Math.min((weekHours / weeklyTarget) * 100, 100)}%`, backgroundColor: weekHours >= weeklyTarget ? GOLD : BLUE, opacity: 0.6 }} /></div>
             <div className="flex items-end gap-2">
               {weekDays.map((d) => {
                 const maxH = Math.max(...weekDays.map((x) => x.hours), 1);
@@ -983,7 +983,7 @@ export default function Home() {
               <div className="text-[11px] text-muted-foreground mb-3" style={{ fontWeight: 600 }}>Where your time goes</div>
               {timeAllocation.length > 0 ? (
                 <>
-                  <div className="h-2 rounded-full overflow-hidden flex mb-4">
+                  <div className="h-2 rounded-circle overflow-hidden flex mb-4">
                     {timeAllocation.map((cat) => (<div key={cat.category} className="h-full first:rounded-l-full last:rounded-r-full transition-all duration-500" style={{ width: `${cat.pct}%`, backgroundColor: categoryColors[cat.category] || "#999", opacity: 0.55 }} title={`${cat.category}: ${cat.hours}h`} />))}
                   </div>
                   <div className="space-y-1.5">

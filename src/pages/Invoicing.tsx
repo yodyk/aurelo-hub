@@ -539,7 +539,7 @@ export default function Invoicing() {
             <div className="overflow-x-auto">
             {loading ? (
               <div className="flex items-center justify-center py-16">
-                <div className="w-5 h-5 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-primary/20 border-t-primary rounded-circle animate-spin" />
               </div>
             ) : filtered.length === 0 ? (
               <div className="py-16 text-center">
@@ -1293,7 +1293,7 @@ function InvoiceBuilder({
                 }`}
               >
                 <span
-                  className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${
+                  className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-circle bg-white shadow transition-transform ${
                     taxInclusive ? "translate-x-4" : "translate-x-0"
                   }`}
                 />

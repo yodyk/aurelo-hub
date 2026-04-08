@@ -79,7 +79,7 @@ export default function Team() {
                 <ul className="space-y-1.5">
                   {role.permissions.map((perm, i) => (
                     <li key={i} className="flex items-start gap-2 text-[12px] text-muted-foreground">
-                      <div className="w-1 h-1 rounded-full bg-primary/50 mt-1.5 flex-shrink-0" />
+                      <div className="w-1 h-1 rounded-circle bg-primary/50 mt-1.5 flex-shrink-0" />
                       <span>{perm}</span>
                     </li>
                   ))}

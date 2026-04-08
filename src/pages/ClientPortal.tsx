@@ -225,7 +225,7 @@ export default function ClientPortal() {
                   <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-[#1a1a2e]">{client.name}</h1>
                   <div className="flex items-center gap-3 mt-1.5">
                     <div className="flex items-center gap-1.5">
-                      <div className={`w-2 h-2 rounded-full ${statusDot(client.status)}`} />
+                      <div className={`w-2 h-2 rounded-circle ${statusDot(client.status)}`} />
                       <span className="text-sm text-[#6b7280]">{client.status}</span>
                     </div>
                     <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-[#f3f4f6] text-[#6b7280]">{client.model}</span>
@@ -380,8 +380,8 @@ function RetainerBar({ total, remaining }: { total: number; remaining: number })
         <span className="text-sm font-semibold text-[#1a1a2e]">Retainer Usage</span>
         <span className="text-sm font-bold tabular-nums" style={{ color: barColor }}>{pct}%</span>
       </div>
-      <div className="h-3 rounded-full overflow-hidden bg-[#f3f4f6]">
-        <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: barColor }} />
+      <div className="h-3 rounded-circle overflow-hidden bg-[#f3f4f6]">
+        <div className="h-full rounded-circle transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: barColor }} />
       </div>
       <div className="flex justify-between mt-2.5">
         <span className="text-[12px] text-[#9ca3af]">{fmtHours(used)} used</span>
@@ -431,8 +431,8 @@ function ProjectCard({ project: p, showCosts, accent }: { project: PortalProject
             <span className="text-[11px] text-[#9ca3af]">Progress</span>
             <span className="text-[11px] font-medium tabular-nums" style={{ color: accent }}>{progress}%</span>
           </div>
-          <div className="h-1.5 rounded-full overflow-hidden bg-[#f3f4f6]">
-            <div className="h-full rounded-full transition-all" style={{ width: `${progress}%`, backgroundColor: accent }} />
+          <div className="h-1.5 rounded-circle overflow-hidden bg-[#f3f4f6]">
+            <div className="h-full rounded-circle transition-all" style={{ width: `${progress}%`, backgroundColor: accent }} />
           </div>
         </div>
       )}

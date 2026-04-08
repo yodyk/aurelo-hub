@@ -82,7 +82,7 @@ export default function TeamUtilization() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-circle animate-spin" />
       </div>
     );
   }
@@ -134,7 +134,7 @@ export default function TeamUtilization() {
           <div>
             <div className="flex justify-between items-baseline mb-2">
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-primary" />
+                <div className="w-2 h-2 rounded-circle bg-primary" />
                 <span className="text-[13px]" style={{ fontWeight: 500 }}>Billable hours</span>
               </div>
               <div className="flex items-baseline gap-2">
@@ -142,9 +142,9 @@ export default function TeamUtilization() {
                 <span className="text-[14px] tabular-nums" style={{ fontWeight: 600 }}>{utilizationRate}%</span>
               </div>
             </div>
-            <div className="h-2.5 bg-accent/60 rounded-full overflow-hidden">
+            <div className="h-2.5 bg-accent/60 rounded-circle overflow-hidden">
               <motion.div
-                className="h-full rounded-full"
+                className="h-full rounded-circle"
                 style={{ background: "linear-gradient(90deg, var(--primary), color-mix(in srgb, var(--primary) 70%, transparent))" }}
                 initial={{ width: 0 }}
                 animate={{ width: `${utilizationRate}%` }}
@@ -155,7 +155,7 @@ export default function TeamUtilization() {
           <div>
             <div className="flex justify-between items-baseline mb-2">
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-muted-foreground/30" />
+                <div className="w-2 h-2 rounded-circle bg-muted-foreground/30" />
                 <span className="text-[13px]" style={{ fontWeight: 500 }}>Non-billable hours</span>
               </div>
               <div className="flex items-baseline gap-2">
@@ -163,9 +163,9 @@ export default function TeamUtilization() {
                 <span className="text-[14px] tabular-nums" style={{ fontWeight: 600 }}>{totalHours > 0 ? 100 - utilizationRate : 0}%</span>
               </div>
             </div>
-            <div className="h-2.5 bg-accent/60 rounded-full overflow-hidden">
+            <div className="h-2.5 bg-accent/60 rounded-circle overflow-hidden">
               <motion.div
-                className="h-full rounded-full bg-muted-foreground/20"
+                className="h-full rounded-circle bg-muted-foreground/20"
                 initial={{ width: 0 }}
                 animate={{ width: `${totalHours > 0 ? 100 - utilizationRate : 0}%` }}
                 transition={{ delay: 0.6, duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
@@ -179,9 +179,9 @@ export default function TeamUtilization() {
               </span>
               <span className="text-[13px] tabular-nums" style={{ fontWeight: 600 }}>{capacityUsed}% used</span>
             </div>
-            <div className="h-2 bg-accent/60 rounded-full overflow-hidden">
+            <div className="h-2 bg-accent/60 rounded-circle overflow-hidden">
               <motion.div
-                className="h-full rounded-full"
+                className="h-full rounded-circle"
                 style={{
                   background: capacityUsed > 90 ? "linear-gradient(90deg, var(--destructive), color-mix(in srgb, var(--destructive) 70%, transparent))" :
                     capacityUsed > 70 ? "linear-gradient(90deg, hsl(40 70% 50%), hsl(40 70% 60%))" :
@@ -280,9 +280,9 @@ export default function TeamUtilization() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="flex-1 h-2 bg-accent/60 rounded-full overflow-hidden">
+                          <div className="flex-1 h-2 bg-accent/60 rounded-circle overflow-hidden">
                             <motion.div
-                              className="h-full rounded-full"
+                              className="h-full rounded-circle"
                               style={{ background: "linear-gradient(90deg, var(--primary), color-mix(in srgb, var(--primary) 70%, transparent))" }}
                               initial={{ width: 0 }}
                               animate={{ width: `${memberUtil}%` }}

@@ -123,7 +123,7 @@ export default function Clients() {
             className="text-[12px] text-muted-foreground mb-5 flex items-center gap-2"
             style={{ fontWeight: 500 }}
           >
-            <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+            <div className="w-1.5 h-1.5 rounded-circle bg-primary" />
             Active &amp; prospecting
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -159,7 +159,7 @@ export default function Clients() {
                       className={`status-badge ${statusColors[client.status]?.bg || "bg-muted"} ${statusColors[client.status]?.text || "text-muted-foreground"}`}
                     >
                       <div
-                        className={`w-1.5 h-1.5 rounded-full ${statusColors[client.status]?.dot || "bg-zinc-400"}`}
+                        className={`w-1.5 h-1.5 rounded-circle ${statusColors[client.status]?.dot || "bg-zinc-400"}`}
                       />
                       {client.status}
                     </div>
@@ -230,7 +230,7 @@ export default function Clients() {
             className="text-[13px] text-muted-foreground mb-4 flex items-center gap-2"
             style={{ fontWeight: 500, letterSpacing: "0.02em" }}
           >
-            <div className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
+            <div className="w-1.5 h-1.5 rounded-circle bg-zinc-400" />
             Archived
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -259,7 +259,7 @@ export default function Clients() {
                   <div
                     className={`status-badge ${statusColors.Archived.bg} ${statusColors.Archived.text}`}
                   >
-                    <div className={`w-1.5 h-1.5 rounded-full ${statusColors.Archived.dot}`} />
+                    <div className={`w-1.5 h-1.5 rounded-circle ${statusColors.Archived.dot}`} />
                     Archived
                   </div>
                 </div>

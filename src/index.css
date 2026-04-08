@@ -127,6 +127,9 @@
   --radius-md: 2px;
   --radius-lg: 3px;
   --radius-xl: 3px;
+  --radius-2xl: 4px;
+  --radius-3xl: 4px;
+  --radius-full: 4px;
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -430,6 +433,11 @@
   /* ── Page container standardized ── */
   .page-wrapper {
     @apply w-full min-w-0 px-4 lg:px-8 py-6;
+  }
+
+  /* True circle — only for spinners, tiny dots, and circular avatars */
+  .rounded-circle {
+    border-radius: 9999px !important;
   }
 }
 
