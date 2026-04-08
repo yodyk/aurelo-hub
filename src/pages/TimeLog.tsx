@@ -13,6 +13,7 @@ import { startOfDay, subDays, startOfMonth, startOfQuarter, startOfYear, isBefor
 import * as invoiceApi from "../data/invoiceApi";
 import type { Invoice } from "../data/invoiceApi";
 import { usePlan } from "../data/PlanContext";
+import RecurringSessionsManager from "../components/RecurringSessionsManager";
 
 const container = {
   hidden: {},
@@ -715,6 +716,11 @@ export default function TimeLog() {
           </div>
         ))}
       </motion.div>
+
+      {/* Recurring Sessions Section */}
+      <div className="mt-8 bg-card border border-border/50 rounded-xl p-5">
+        <RecurringSessionsManager clients={clients} projects={allProjects} />
+      </div>
 
       <LogSessionModal
         open={showLogModal}

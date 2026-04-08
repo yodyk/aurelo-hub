@@ -971,6 +971,86 @@ export type Database = {
           },
         ]
       }
+      recurring_sessions: {
+        Row: {
+          active: boolean
+          billable: boolean
+          client_id: string
+          created_at: string
+          duration: number
+          frequency: string
+          id: string
+          last_run_date: string | null
+          notes: string | null
+          project_id: string | null
+          skip_weekends: boolean
+          task: string | null
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          active?: boolean
+          billable?: boolean
+          client_id: string
+          created_at?: string
+          duration?: number
+          frequency?: string
+          id?: string
+          last_run_date?: string | null
+          notes?: string | null
+          project_id?: string | null
+          skip_weekends?: boolean
+          task?: string | null
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          active?: boolean
+          billable?: boolean
+          client_id?: string
+          created_at?: string
+          duration?: number
+          frequency?: string
+          id?: string
+          last_run_date?: string | null
+          notes?: string | null
+          project_id?: string | null
+          skip_weekends?: boolean
+          task?: string | null
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recurring_sessions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recurring_sessions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recurring_sessions_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recurring_sessions_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       retainer_history: {
         Row: {
           client_id: string
