@@ -196,7 +196,7 @@ export function NotificationCenter({ workspaceId }: NotificationCenterProps) {
             <div className="max-h-[400px] overflow-y-auto">
               {loading ? (
                 <div className="px-4 py-8 text-center">
-                  <div className="w-5 h-5 border-2 border-primary/20 border-t-primary rounded-full animate-spin mx-auto" />
+                  <div className="w-5 h-5 border-2 border-primary/20 border-t-primary rounded-circle animate-spin mx-auto" />
                 </div>
               ) : visibleNotifs.length === 0 ? (
                 <div className="px-4 py-12 text-center">

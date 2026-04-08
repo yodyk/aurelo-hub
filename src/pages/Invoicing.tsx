@@ -539,7 +539,7 @@ export default function Invoicing() {
             <div className="overflow-x-auto">
             {loading ? (
               <div className="flex items-center justify-center py-16">
-                <div className="w-5 h-5 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-primary/20 border-t-primary rounded-circle animate-spin" />
               </div>
             ) : filtered.length === 0 ? (
               <div className="py-16 text-center">

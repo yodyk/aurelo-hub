@@ -65,7 +65,7 @@ function AuthGate() {
           <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
             <AureloIcon className="w-4 h-4 text-primary" />
           </div>
-          <div className="w-5 h-5 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+          <div className="w-5 h-5 border-2 border-primary/20 border-t-primary rounded-circle animate-spin" />
         </motion.div>
       </div>
     );
