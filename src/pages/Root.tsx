@@ -148,16 +148,12 @@ function PlanBridge() {
 
 function Breadcrumbs() {
   const location = useLocation();
-  const { clients } = useData();
+  const { clients, allProjects } = useData();
   
   const crumbs = useMemo(() => {
-    const path = location.pathname;
-    const segments = path.split('/').filter(Boolean);
+    const segments = location.pathname.split('/').filter(Boolean);
     if (segments.length === 0) return null;
 
-    const result: { label: string; to?: string }[] = [];
-
-    // Map top-level routes
     const topLabels: Record<string, string> = {
       clients: 'Clients', projects: 'Projects', time: 'Time Log',
       insights: 'Insights', invoicing: 'Invoicing', settings: 'Settings', team: 'Team',
@@ -166,7 +162,8 @@ function Breadcrumbs() {
     const first = segments[0];
     if (!topLabels[first]) return null;
 
-    // /clients/:id or /clients/:id/edit
+    const result: { label: string; to?: string }[] = [];
+
     if (first === 'clients' && segments.length >= 2) {
       result.push({ label: 'Clients', to: '/clients' });
       const clientId = segments[1];
@@ -181,16 +178,16 @@ function Breadcrumbs() {
       return result;
     }
 
-    // /projects/:clientId/:projectId
     if (first === 'projects' && segments.length >= 3) {
       result.push({ label: 'Projects', to: '/projects' });
-      result.push({ label: 'Project' }); // we don't have project name in this context easily
+      const projectId = segments[2];
+      const project = allProjects.find((p: any) => p.id === projectId);
+      result.push({ label: project?.name || 'Project' });
       return result;
     }
 
-    // Top-level only — no breadcrumb needed
     return null;
-  }, [location.pathname, clients]);
+  }, [location.pathname, clients, allProjects]);
 
   if (!crumbs) return null;
 
