@@ -132,10 +132,11 @@ function daysUntil(dateStr: string | undefined): number | null {
 
 // ── Tab type ───────────────────────────────────────────────────────
 
-type TabId = "overview" | "work" | "notes";
+type TabId = "overview" | "details" | "work" | "notes";
 
 const TABS: { id: TabId; label: string; icon: any }[] = [
   { id: "overview", label: "Overview", icon: BarChart3 },
+  { id: "details", label: "Details", icon: Pencil },
   { id: "work", label: "Work", icon: Clock },
   { id: "notes", label: "Notes & Docs", icon: StickyNote },
 ];
@@ -1144,6 +1145,13 @@ export default function ProjectDetail() {
         )}
 
         {/* ════════════════════════════════════════════════════════════ */}
+        {/* TAB: DETAILS                                                  */}
+        {/* ════════════════════════════════════════════════════════════ */}
+        {activeTab === "details" && (
+          <ProjectDetailsTab project={project} onUpdate={handleUpdateProject} canViewFinancials={canViewFinancials} />
+        )}
+
+        {/* ════════════════════════════════════════════════════════════ */}
         {/* TAB: WORK                                                   */}
         {/* ════════════════════════════════════════════════════════════ */}
         {activeTab === "work" && (
@@ -1462,6 +1470,130 @@ export default function ProjectDetail() {
           </motion.div>
         )}
       </AnimatePresence>
+    </motion.div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Project Details Tab — editable fields
+// ═══════════════════════════════════════════════════════════════════
+function ProjectDetailsTab({ project, onUpdate, canViewFinancials }: { project: any; onUpdate: (updates: any) => Promise<void>; canViewFinancials: boolean }) {
+  const [startDate, setStartDate] = useState(project.startDate || "");
+  const [endDate, setEndDate] = useState(project.endDate || "");
+  const [estimatedHours, setEstimatedHours] = useState(String(project.estimatedHours || ""));
+  const [totalValue, setTotalValue] = useState(String(project.totalValue || ""));
+  const [budgetType, setBudgetType] = useState(project.budgetType || "");
+  const [budgetAmount, setBudgetAmount] = useState(String(project.budgetAmount || ""));
+  const [description, setDescription] = useState(project.description || "");
+  const [saving, setSaving] = useState(false);
+  const [dirty, setDirty] = useState(false);
+
+  const handleChange = (setter: (v: string) => void) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    setter(e.target.value);
+    setDirty(true);
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    await onUpdate({
+      startDate: startDate || null,
+      endDate: endDate || null,
+      estimatedHours: parseFloat(estimatedHours) || 0,
+      totalValue: parseFloat(totalValue) || 0,
+      budgetType: budgetType || null,
+      budgetAmount: parseFloat(budgetAmount) || 0,
+      description: description.trim(),
+    });
+    setSaving(false);
+    setDirty(false);
+    toast.success("Project details saved");
+  };
+
+  const fieldClass = "w-full h-9 px-3 rounded-md border border-border bg-input-background text-[13px] focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all";
+  const labelClass = "text-[11px] text-muted-foreground mb-1 block";
+
+  return (
+    <motion.div
+      key="details"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
+      transition={{ duration: 0.2 }}
+    >
+      <div className="bg-card border border-border/50 rounded-xl p-6" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.02)" }}>
+        <div className="flex items-center justify-between mb-5">
+          <span className="text-[14px]" style={{ fontWeight: 600 }}>Project Details</span>
+          {dirty && (
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="px-4 py-1.5 text-[12px] bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-all disabled:opacity-50"
+              style={{ fontWeight: 600 }}
+            >
+              {saving ? "Saving…" : "Save changes"}
+            </button>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+          {/* Description */}
+          <div className="md:col-span-2">
+            <label className={labelClass} style={{ fontWeight: 600 }}>Description</label>
+            <textarea
+              value={description}
+              onChange={handleChange(setDescription)}
+              placeholder="Project description…"
+              rows={3}
+              className="w-full px-3 py-2 rounded-md border border-border bg-input-background text-[13px] resize-none focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+            />
+          </div>
+
+          {/* Start date */}
+          <div>
+            <label className={labelClass} style={{ fontWeight: 600 }}>Start date</label>
+            <input type="date" value={startDate} onChange={handleChange(setStartDate)} className={fieldClass} />
+          </div>
+
+          {/* End date */}
+          <div>
+            <label className={labelClass} style={{ fontWeight: 600 }}>End date</label>
+            <input type="date" value={endDate} onChange={handleChange(setEndDate)} className={fieldClass} />
+          </div>
+
+          {/* Estimated hours */}
+          <div>
+            <label className={labelClass} style={{ fontWeight: 600 }}>Estimated hours</label>
+            <input type="number" value={estimatedHours} onChange={handleChange(setEstimatedHours)} min="0" step="0.5" placeholder="0" className={fieldClass} />
+          </div>
+
+          {canViewFinancials && (
+            <>
+              {/* Total value */}
+              <div>
+                <label className={labelClass} style={{ fontWeight: 600 }}>Total project value ($)</label>
+                <input type="number" value={totalValue} onChange={handleChange(setTotalValue)} min="0" step="1" placeholder="0" className={fieldClass} />
+              </div>
+
+              {/* Budget type */}
+              <div>
+                <label className={labelClass} style={{ fontWeight: 600 }}>Budget type</label>
+                <select value={budgetType} onChange={handleChange(setBudgetType)} className={fieldClass}>
+                  <option value="">None</option>
+                  <option value="fixed">Fixed price</option>
+                  <option value="hourly">Hourly</option>
+                  <option value="retainer">Retainer</option>
+                </select>
+              </div>
+
+              {/* Budget amount */}
+              <div>
+                <label className={labelClass} style={{ fontWeight: 600 }}>Budget cap ($)</label>
+                <input type="number" value={budgetAmount} onChange={handleChange(setBudgetAmount)} min="0" step="1" placeholder="0" className={fieldClass} />
+              </div>
+            </>
+          )}
+        </div>
+      </div>
     </motion.div>
   );
 }
