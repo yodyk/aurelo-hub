@@ -431,6 +431,11 @@
   .page-wrapper {
     @apply w-full min-w-0 px-4 lg:px-8 py-6;
   }
+
+  /* True circle — only for spinners, tiny dots, and circular avatars */
+  .rounded-circle {
+    border-radius: 9999px !important;
+  }
 }
 
 /* ── Clean native selects ──────────────────────────────────────── */

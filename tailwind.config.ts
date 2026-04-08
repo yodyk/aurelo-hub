@@ -83,6 +83,7 @@ export default {
         lg: "3px",
         md: "2px",
         sm: "2px",
+        full: "4px",
       },
       boxShadow: {
         'whisper': '0 1px 2px rgba(0,0,0,0.03)',
