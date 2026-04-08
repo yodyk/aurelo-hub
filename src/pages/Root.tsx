@@ -1,7 +1,7 @@
 import { clearDemoData } from '../data/settingsApi';
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { Outlet, NavLink, useLocation, useNavigate, Navigate } from 'react-router';
-import { LayoutDashboard, Users, Clock, TrendingUp, Settings, Timer, Square, Menu, X, FolderKanban, LogOut, FileText, Sun, Moon, Lock, PanelLeftClose, PanelLeftOpen, Monitor } from 'lucide-react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { Outlet, NavLink, useLocation, useNavigate, Navigate, Link, useParams } from 'react-router';
+import { LayoutDashboard, Users, Clock, TrendingUp, Settings, Timer, Square, Menu, X, FolderKanban, LogOut, FileText, Sun, Moon, Lock, PanelLeftClose, PanelLeftOpen, Monitor, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 import { useData, DataProvider } from '../data/DataContext';
