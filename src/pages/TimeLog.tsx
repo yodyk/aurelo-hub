@@ -13,6 +13,7 @@ import { startOfDay, subDays, startOfMonth, startOfQuarter, startOfYear, isBefor
 import * as invoiceApi from "../data/invoiceApi";
 import type { Invoice } from "../data/invoiceApi";
 import { usePlan } from "../data/PlanContext";
+import RecurringSessionsManager from "../components/RecurringSessionsManager";
 
 const container = {
   hidden: {},
