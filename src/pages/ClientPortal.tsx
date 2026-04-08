@@ -380,8 +380,8 @@ function RetainerBar({ total, remaining }: { total: number; remaining: number })
         <span className="text-sm font-semibold text-[#1a1a2e]">Retainer Usage</span>
         <span className="text-sm font-bold tabular-nums" style={{ color: barColor }}>{pct}%</span>
       </div>
-      <div className="h-3 rounded-full overflow-hidden bg-[#f3f4f6]">
-        <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: barColor }} />
+      <div className="h-3 rounded-circle overflow-hidden bg-[#f3f4f6]">
+        <div className="h-full rounded-circle transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: barColor }} />
       </div>
       <div className="flex justify-between mt-2.5">
         <span className="text-[12px] text-[#9ca3af]">{fmtHours(used)} used</span>
@@ -431,8 +431,8 @@ function ProjectCard({ project: p, showCosts, accent }: { project: PortalProject
             <span className="text-[11px] text-[#9ca3af]">Progress</span>
             <span className="text-[11px] font-medium tabular-nums" style={{ color: accent }}>{progress}%</span>
           </div>
-          <div className="h-1.5 rounded-full overflow-hidden bg-[#f3f4f6]">
-            <div className="h-full rounded-full transition-all" style={{ width: `${progress}%`, backgroundColor: accent }} />
+          <div className="h-1.5 rounded-circle overflow-hidden bg-[#f3f4f6]">
+            <div className="h-full rounded-circle transition-all" style={{ width: `${progress}%`, backgroundColor: accent }} />
           </div>
         </div>
       )}
