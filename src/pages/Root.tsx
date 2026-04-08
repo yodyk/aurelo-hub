@@ -558,6 +558,9 @@ function RootLayout() {
           </div>
         </header>
 
+        {/* Breadcrumb bar */}
+        <Breadcrumbs />
+
         {/* Page content */}
         <main>
           <TrialBanner />

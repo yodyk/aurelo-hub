@@ -140,11 +140,10 @@ function getTabsForClient(client: any, canViewFinancials: boolean): { id: TabId;
 }
 
 // ── SectionCard (reused in tabs) ────────────────────────────────────
-function SectionCard({ children, className = "", accent = false }: { children: React.ReactNode; className?: string; accent?: boolean }) {
+function SectionCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`bg-card border border-border/60 rounded-2xl overflow-hidden ${className}`}
+    <div className={`bg-card border border-border/60 rounded-xl overflow-hidden ${className}`}
       style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02)" }}>
-      {accent && <div className="h-[2px] bg-gradient-to-r from-primary/50 via-primary/20 to-transparent" />}
       <div className="p-5 md:p-6">{children}</div>
     </div>
   );
@@ -556,11 +555,6 @@ export default function ClientDetail() {
     <motion.div className="w-full min-w-0 page-wrapper" variants={container} initial="hidden" animate="show">
       {/* Compact header */}
       <motion.div variants={item} className="mb-6">
-        <Link to="/clients" className="inline-flex items-center gap-1 text-[12px] text-muted-foreground hover:text-foreground mb-3 transition-colors group">
-          <ChevronLeft className="w-3 h-3 group-hover:-translate-x-0.5 transition-transform" />
-          Clients
-        </Link>
-
         {/* Identity row */}
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 bg-primary/[0.07] rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">

@@ -461,18 +461,6 @@ export default function ProjectDetail() {
 
   return (
     <motion.div className="w-full min-w-0 px-6 lg:px-12 py-6 md:py-10" variants={container} initial="hidden" animate="show">
-      {/* Back link */}
-      <motion.div variants={item} className="mb-6">
-        <Link
-          to="/projects"
-          className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground transition-colors"
-          style={{ fontWeight: 500 }}
-        >
-          <ChevronLeft className="w-3.5 h-3.5" />
-          Back to projects
-        </Link>
-      </motion.div>
-
       {/* ════════════════════════════════════════════════════════════ */}
       {/* HEADER                                                      */}
       {/* ════════════════════════════════════════════════════════════ */}
