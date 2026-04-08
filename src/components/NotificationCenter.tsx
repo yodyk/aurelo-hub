@@ -142,7 +142,7 @@ export function NotificationCenter({ workspaceId }: NotificationCenterProps) {
       >
         <Bell className="w-4 h-4" />
         {unreadCount > 0 && (
-          <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-primary text-[9px] text-primary-foreground flex items-center justify-center" style={{ fontWeight: 600 }}>
+          <span className="absolute top-1 right-1 w-4 h-4 rounded-circle bg-primary text-[9px] text-primary-foreground flex items-center justify-center" style={{ fontWeight: 600 }}>
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}

@@ -53,7 +53,7 @@ function IntervalToggle({ interval, onChange }: { interval: BillingInterval; onC
         className={`relative w-11 h-6 rounded-full transition-colors ${interval === 'annual' ? 'bg-primary' : 'bg-muted'}`}
       >
         <div
-          className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform"
+          className="absolute top-0.5 w-5 h-5 rounded-circle bg-white shadow transition-transform"
           style={{ transform: interval === 'annual' ? 'translateX(22px)' : 'translateX(2px)' }}
         />
       </button>
