@@ -1145,6 +1145,13 @@ export default function ProjectDetail() {
         )}
 
         {/* ════════════════════════════════════════════════════════════ */}
+        {/* TAB: DETAILS                                                  */}
+        {/* ════════════════════════════════════════════════════════════ */}
+        {activeTab === "details" && (
+          <ProjectDetailsTab project={project} onUpdate={handleUpdateProject} canViewFinancials={canViewFinancials} />
+        )}
+
+        {/* ════════════════════════════════════════════════════════════ */}
         {/* TAB: WORK                                                   */}
         {/* ════════════════════════════════════════════════════════════ */}
         {activeTab === "work" && (
