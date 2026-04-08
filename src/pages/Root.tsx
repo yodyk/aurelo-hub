@@ -269,7 +269,7 @@ function RootLayout() {
     window.location.href = '/';
   }, []);
 
-
+  const displayName = user?.name || '';
   const displayEmail = user?.email || '';
   const displayInitials = user?.initials || '';
 
