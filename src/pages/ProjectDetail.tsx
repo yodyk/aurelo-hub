@@ -132,10 +132,11 @@ function daysUntil(dateStr: string | undefined): number | null {
 
 // ── Tab type ───────────────────────────────────────────────────────
 
-type TabId = "overview" | "work" | "notes";
+type TabId = "overview" | "details" | "work" | "notes";
 
 const TABS: { id: TabId; label: string; icon: any }[] = [
   { id: "overview", label: "Overview", icon: BarChart3 },
+  { id: "details", label: "Details", icon: Pencil },
   { id: "work", label: "Work", icon: Clock },
   { id: "notes", label: "Notes & Docs", icon: StickyNote },
 ];
