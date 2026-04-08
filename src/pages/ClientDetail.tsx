@@ -929,7 +929,7 @@ function OverviewTab({
 
       {/* Activity + Insights */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <SectionCard accent>
+        <SectionCard>
           <SectionHeader>Activity</SectionHeader>
           <div className="grid grid-cols-2 gap-3">
             <MetricCard label="Projects" value={projects.length} />
@@ -940,7 +940,7 @@ function OverviewTab({
         </SectionCard>
 
         {canViewFinancials && (
-          <SectionCard accent>
+          <SectionCard>
             <SectionHeader>
               <span className="flex items-center gap-2">
                 <Lightbulb className="w-3.5 h-3.5 text-primary/60" />
@@ -1223,7 +1223,7 @@ function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (
   return (
     <>
       {/* Standard Client Details */}
-      <SectionCard accent>
+      <SectionCard>
         <SectionHeader>Client Details</SectionHeader>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {visibleStandardFields.map((field) => {
@@ -1342,7 +1342,7 @@ function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (
 
       {/* Workspace custom fields — inline editable */}
       {wsSchemas.length > 0 && (
-        <SectionCard accent>
+        <SectionCard>
           <SectionHeader>
             <span className="flex items-center gap-2">
               <Globe className="w-3.5 h-3.5 text-muted-foreground/40" />
@@ -1368,7 +1368,7 @@ function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (
       )}
 
       {/* Client-specific custom fields */}
-      <SectionCard accent>
+      <SectionCard>
         <SectionHeader action={
           <button
             onClick={() => setShowAddField(!showAddField)}
@@ -1481,7 +1481,7 @@ function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (
 // ═══════════════════════════════════════════════════════════════════
 function ProjectsTab({ projects, client, canViewFinancials, onAddProject, onNavigate }: any) {
   return (
-    <SectionCard accent>
+    <SectionCard>
       <SectionHeader action={
         <button onClick={onAddProject} className="px-3.5 py-1.5 text-[12px] bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all" style={{ fontWeight: 600 }}>
           Add project
@@ -1549,7 +1549,7 @@ function ProjectsTab({ projects, client, canViewFinancials, onAddProject, onNavi
 // ═══════════════════════════════════════════════════════════════════
 function SessionsTab({ clientSessions, client, canViewFinancials, selectedIds, onToggleSelect, onToggleSelectAll, onLogSession, onEditSession }: any) {
   return (
-    <SectionCard accent>
+    <SectionCard>
       <SectionHeader action={
         <button onClick={onLogSession} className="px-3.5 py-1.5 text-[12px] bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all" style={{ fontWeight: 600 }}>
           Log session
@@ -1747,7 +1747,7 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
       )}
 
       {/* Usage */}
-      <SectionCard accent>
+      <SectionCard>
         <SectionHeader>Retainer Usage</SectionHeader>
         <div className="flex justify-between items-baseline mb-4">
           <div className="text-[14px] text-muted-foreground">
@@ -2013,7 +2013,7 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
 // ═══════════════════════════════════════════════════════════════════
 function FilesTab({ files, uploading, fileInputRef, onUpload, onDelete, onDrop, formatFileSize }: any) {
   return (
-    <SectionCard accent>
+    <SectionCard>
       <SectionHeader>Files <span className="text-muted-foreground/60 ml-1">({files.length})</span></SectionHeader>
       {files.length > 0 && (
         <div className="space-y-1 mb-4">
@@ -2061,7 +2061,7 @@ function FilesTab({ files, uploading, fileInputRef, onUpload, onDelete, onDrop, 
 // ═══════════════════════════════════════════════════════════════════
 function NotesTab({ clientId, projects }: { clientId?: string; projects: any[] }) {
   return (
-    <SectionCard accent>
+    <SectionCard>
       <SectionHeader>Notes</SectionHeader>
       {clientId && <ClientNotes clientId={clientId} projects={projects} />}
     </SectionCard>
@@ -2073,7 +2073,7 @@ function NotesTab({ clientId, projects }: { clientId?: string; projects: any[] }
 // ═══════════════════════════════════════════════════════════════════
 function ChecklistsTab({ clientId, workspaceId }: { clientId: string; workspaceId: string }) {
   return (
-    <SectionCard accent>
+    <SectionCard>
       <SectionHeader>Checklists</SectionHeader>
       <ChecklistPanel clientId={clientId} workspaceId={workspaceId} />
     </SectionCard>
@@ -2085,7 +2085,7 @@ function ChecklistsTab({ clientId, workspaceId }: { clientId: string; workspaceI
 // ═══════════════════════════════════════════════════════════════════
 function PortalTab({ client, clientId, portalConfig, portalLoading, copied, onCopyPortalLink, onGeneratePortal, onTogglePortal }: any) {
   return (
-    <SectionCard accent>
+    <SectionCard>
       <SectionHeader>Client Portal</SectionHeader>
       <div className="space-y-4">
         <div className="text-[13px] text-muted-foreground">
@@ -2149,7 +2149,7 @@ function SettingsTab({ client, clientId, confirmArchive, setConfirmArchive, onAr
 
   return (
     <>
-      <SectionCard accent>
+      <SectionCard>
         <div className="flex items-center justify-between">
           <div>
             <div className="text-[14px] mb-1" style={{ fontWeight: 600 }}>Edit client</div>
