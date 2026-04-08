@@ -146,7 +146,73 @@ function PlanBridge() {
   );
 }
 
-function RootLayout() {
+function Breadcrumbs() {
+  const location = useLocation();
+  const { clients } = useData();
+  
+  const crumbs = useMemo(() => {
+    const path = location.pathname;
+    const segments = path.split('/').filter(Boolean);
+    if (segments.length === 0) return null;
+
+    const result: { label: string; to?: string }[] = [];
+
+    // Map top-level routes
+    const topLabels: Record<string, string> = {
+      clients: 'Clients', projects: 'Projects', time: 'Time Log',
+      insights: 'Insights', invoicing: 'Invoicing', settings: 'Settings', team: 'Team',
+    };
+
+    const first = segments[0];
+    if (!topLabels[first]) return null;
+
+    // /clients/:id or /clients/:id/edit
+    if (first === 'clients' && segments.length >= 2) {
+      result.push({ label: 'Clients', to: '/clients' });
+      const clientId = segments[1];
+      const client = clients.find(c => c.id === clientId);
+      const clientName = client?.name || 'Client';
+      if (segments[2] === 'edit') {
+        result.push({ label: clientName, to: `/clients/${clientId}` });
+        result.push({ label: 'Edit' });
+      } else {
+        result.push({ label: clientName });
+      }
+      return result;
+    }
+
+    // /projects/:clientId/:projectId
+    if (first === 'projects' && segments.length >= 3) {
+      result.push({ label: 'Projects', to: '/projects' });
+      result.push({ label: 'Project' }); // we don't have project name in this context easily
+      return result;
+    }
+
+    // Top-level only — no breadcrumb needed
+    return null;
+  }, [location.pathname, clients]);
+
+  if (!crumbs) return null;
+
+  return (
+    <div className="border-b border-border bg-background px-4 lg:px-6 py-2 flex items-center gap-1.5">
+      {crumbs.map((crumb, i) => (
+        <span key={i} className="flex items-center gap-1.5">
+          {i > 0 && <ChevronRight className="w-3 h-3 text-muted-foreground/50" />}
+          {crumb.to ? (
+            <Link to={crumb.to} className="text-[12px] text-muted-foreground hover:text-foreground transition-colors" style={{ fontWeight: 500 }}>
+              {crumb.label}
+            </Link>
+          ) : (
+            <span className="text-[12px] text-foreground" style={{ fontWeight: 500 }}>{crumb.label}</span>
+          )}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+
   const location = useLocation();
   const navigate = useNavigate();
   const { clients, addSession, initAvatar, initLogos, initSettings } = useData();
