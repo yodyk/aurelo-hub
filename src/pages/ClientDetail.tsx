@@ -819,61 +819,119 @@ function OverviewTab({
 
   return (
     <>
-      {/* Contact strip */}
-      <div className="bg-card border border-border/60 rounded-2xl p-4 md:p-5 flex flex-wrap gap-x-5 gap-y-2.5 items-center" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-        {client.contactName && (
-          <div className="flex items-center gap-2 text-[13px]">
-            <User className="w-3.5 h-3.5 text-muted-foreground/50" />
-            <span className="text-foreground" style={{ fontWeight: 500 }}>{client.contactName}</span>
-          </div>
-        )}
-        {client.contactEmail && (
-          <a href={`mailto:${client.contactEmail}`} className="flex items-center gap-2 text-[13px] text-muted-foreground hover:text-foreground transition-colors">
-            <Mail className="w-3.5 h-3.5 text-muted-foreground/50" />
-            {client.contactEmail}
-          </a>
-        )}
-        {client.phone && (
-          <a href={`tel:${client.phone}`} className="flex items-center gap-2 text-[13px] text-muted-foreground hover:text-foreground transition-colors">
-            <Phone className="w-3.5 h-3.5 text-muted-foreground/50" />
-            {client.phone}
-          </a>
-        )}
-        {client.website && (
-          <a href={`https://${client.website}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[13px] text-primary hover:text-primary/80 transition-colors">
-            <Globe className="w-3.5 h-3.5" />
-            {client.website}
-          </a>
-        )}
-        {client.address && (
-          <div className="flex items-center gap-2 text-[13px] text-muted-foreground">
-            <MapPin className="w-3.5 h-3.5 text-muted-foreground/50" />
-            {client.address}
-          </div>
-        )}
-      </div>
-
-      {/* Financial metrics — hero section */}
+      {/* Financial metrics */}
       {canViewFinancials && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Revenue card */}
-          <div className="lg:col-span-2 bg-card border border-border/60 rounded-2xl overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02)" }}>
-            <div className="h-[2px] bg-gradient-to-r from-primary/60 via-primary/30 to-transparent" />
-            <div className="p-5 md:p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div className="text-[13px] text-muted-foreground" style={{ fontWeight: 600 }}>Financial Overview</div>
-                <div className="inline-flex gap-0 bg-accent/60 rounded-lg p-0.5">
+          <div className="lg:col-span-2 bg-card border border-border/60 rounded-xl overflow-hidden" style={{ boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
+            <div className="p-4 md:p-5">
+              <div className="flex items-center justify-between mb-4">
+                <div className="text-[12px] text-muted-foreground" style={{ fontWeight: 600 }}>Financial Overview</div>
+                <div className="inline-flex gap-0 bg-accent/60 rounded-md p-0.5">
                   {(["gross", "net"] as const).map(mode => (
                     <button
                       key={mode}
                       onClick={() => setViewMode(mode)}
-                      className={`px-3 py-1 text-[11px] rounded-md transition-all duration-200 capitalize ${
+                      className={`px-2.5 py-0.5 text-[11px] rounded-sm transition-all duration-200 capitalize ${
                         viewMode === mode ? "bg-card text-foreground" : "text-muted-foreground hover:text-foreground"
                       }`}
                       style={{ fontWeight: 600, boxShadow: viewMode === mode ? "0 1px 3px rgba(0,0,0,0.06)" : "none" }}
                     >
                       {mode}
                     </button>
+                  ))}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>This month</div>
+                  <div className="text-[22px] leading-none tracking-tighter tabular-nums" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
+                    ${viewMode === "net" ? Math.round((client.monthlyEarnings || 0) * netMultiplier).toLocaleString() : (client.monthlyEarnings || 0).toLocaleString()}
+                  </div>
+                  {revenueTrend !== 'flat' && (
+                    <div className={`flex items-center gap-0.5 mt-1 text-[11px] ${revenueTrend === 'up' ? 'text-success' : 'text-destructive'}`} style={{ fontWeight: 600 }}>
+                      {revenueTrend === 'up' ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                      {revenueTrend === 'up' ? '+' : ''}{Math.abs(Math.round(((client.monthlyEarnings || 0) - lastMonthEarnings) / Math.max(lastMonthEarnings, 1) * 100))}% vs last
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>Eff. rate</div>
+                  <div className="text-[22px] leading-none tracking-tighter tabular-nums" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
+                    ${client.trueHourlyRate ? (viewMode === "net" ? Math.round(client.trueHourlyRate * netMultiplier) : client.trueHourlyRate.toFixed(2)) : '—'}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>Lifetime</div>
+                  <div className="text-[22px] leading-none tracking-tighter tabular-nums" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
+                    ${viewMode === "net" ? Math.round((client.lifetimeRevenue || 0) * netMultiplier).toLocaleString() : (client.lifetimeRevenue || 0).toLocaleString()}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>Hours</div>
+                  <div className="text-[22px] leading-none tracking-tighter tabular-nums" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
+                    {client.hoursLogged || 0}
+                  </div>
+                </div>
+              </div>
+
+              {/* Retainer mini bar */}
+              {client.model === "Retainer" && (() => {
+                const hoursUsed = (client.retainerTotal || 0) - (client.retainerRemaining || 0);
+                const usagePct = client.retainerTotal ? Math.round((hoursUsed / client.retainerTotal) * 100) : 0;
+                return (
+                  <div className="mt-4 pt-4 border-t border-border/60">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="text-[11px] text-muted-foreground" style={{ fontWeight: 500 }}>Retainer: {hoursUsed}h / {client.retainerTotal || 0}h</div>
+                      <div className="text-[13px] tabular-nums" style={{ fontWeight: 700, color: getUsageTextColor(usagePct) }}>{usagePct}%</div>
+                    </div>
+                    <div className="h-1.5 bg-accent/60 rounded-sm overflow-hidden">
+                      <motion.div className="h-full rounded-sm" style={{ background: getUsageBarColor(usagePct) }} initial={{ width: 0 }} animate={{ width: `${usagePct}%` }} transition={{ delay: 0.3, duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }} />
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+
+          {/* 7-day activity sparkline card */}
+          <div className="bg-card border border-border/60 rounded-xl overflow-hidden flex flex-col" style={{ boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
+            <div className="p-4 md:p-5 flex flex-col flex-1 justify-between">
+              <div>
+                <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>7-Day Activity</div>
+                <div className="text-[26px] leading-none tracking-tighter tabular-nums" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
+                  {last7Days.reduce((a, b) => a + b, 0).toFixed(1)}h
+                </div>
+                <div className="text-[10px] text-muted-foreground mt-1" style={{ fontWeight: 500 }}>total this week</div>
+              </div>
+              <div className="mt-3">
+                <svg viewBox="0 0 200 44" className="w-full" style={{ height: 48 }}>
+                  <defs>
+                    <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.15" />
+                      <stop offset="100%" stopColor="var(--primary)" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                  <polygon points={sparkFillPoints} fill="url(#sparkGrad)" />
+                  <polyline points={sparkPoints} fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  {last7Days.map((h, i) => {
+                    const x = (i / 6) * 200;
+                    const y = 40 - (h / maxHours) * 36;
+                    return h > 0 ? <circle key={i} cx={x} cy={y} r="2.5" fill="var(--primary)" /> : null;
+                  })}
+                </svg>
+                <div className="flex justify-between text-[9px] text-muted-foreground/50 mt-1 px-0.5" style={{ fontWeight: 600 }}>
+                  {last7Days.map((_, i) => {
+                    const d = new Date();
+                    d.setDate(d.getDate() - (6 - i));
+                    return <span key={i}>{format(d, 'EEE')}</span>;
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
                   ))}
                 </div>
               </div>
