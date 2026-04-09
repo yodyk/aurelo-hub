@@ -46,6 +46,7 @@ import {
   Lock,
   ArrowRight,
   Search,
+  Timer,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
@@ -93,8 +94,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  loadReminderConfig,
+  saveReminderConfig,
+  getNotificationPermission,
+  requestNotificationPermission,
+} from '../data/timerNotifications';
 
-// ── Animation variants ──────────────────────────────────────────────
 const container = {
   hidden: {},
   show: { transition: { staggerChildren: 0.04 } },
@@ -3363,6 +3369,9 @@ function NotificationsTab() {
         </div>
       </SectionCard>
 
+      {/* Timer Desktop Reminders */}
+      <TimerReminderSettings />
+
       {/* Email Activity Log — all clients */}
       <SectionCard>
         <SectionHeader title="Email activity log" description="All retainer warning emails sent across your workspace with delivery tracking" />
@@ -3395,6 +3404,182 @@ function NotificationsTab() {
         </AlertDialogContent>
       </AlertDialog>
     </>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Timer Reminder Settings (desktop push notifications)
+// ═══════════════════════════════════════════════════════════════════
+
+const PRESET_INTERVALS = [15, 30, 45, 60, 90, 120, 180, 240];
+
+function TimerReminderSettings() {
+  const [cfg, setCfg] = useState(() => loadReminderConfig());
+  const [permission, setPermission] = useState<string>(() => getNotificationPermission());
+  const [customMinutes, setCustomMinutes] = useState('');
+
+  const update = (patch: Partial<typeof cfg>) => {
+    const next = { ...cfg, ...patch };
+    setCfg(next);
+    saveReminderConfig(next);
+  };
+
+  const handleRequestPermission = async () => {
+    const perm = await requestNotificationPermission();
+    setPermission(perm);
+    setPermission(perm);
+  };
+
+  const toggleInterval = (mins: number) => {
+    const intervals = cfg.intervals.includes(mins)
+      ? cfg.intervals.filter((m: number) => m !== mins)
+      : [...cfg.intervals, mins].sort((a: number, b: number) => a - b);
+    update({ intervals });
+  };
+
+  const addCustom = () => {
+    const mins = parseInt(customMinutes, 10);
+    if (!mins || mins < 1 || mins > 480 || cfg.intervals.includes(mins)) return;
+    update({ intervals: [...cfg.intervals, mins].sort((a: number, b: number) => a - b) });
+    setCustomMinutes('');
+  };
+
+  const formatLabel = (mins: number) => {
+    if (mins < 60) return `${mins}m`;
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return m === 0 ? `${h}h` : `${h}h ${m}m`;
+  };
+
+  return (
+    <SectionCard>
+      <SectionHeader
+        title="Timer reminders"
+        description="Get a desktop notification when your timer has been running for a while"
+      />
+
+      {/* Permission status */}
+      {permission === 'unsupported' && (
+        <div className="px-3 py-3 mb-4 rounded-lg bg-amber-500/10 border border-amber-500/30">
+          <p className="text-[12px] text-amber-700 dark:text-amber-400">
+            Your browser doesn't support desktop notifications. Try using Chrome, Firefox, or Edge.
+          </p>
+        </div>
+      )}
+
+      {permission === 'denied' && (
+        <div className="px-3 py-3 mb-4 rounded-lg bg-destructive/10 border border-destructive/30">
+          <p className="text-[12px] text-destructive">
+            Notifications are blocked. Please allow notifications for this site in your browser settings.
+          </p>
+        </div>
+      )}
+
+      {permission === 'default' && (
+        <div className="flex items-center justify-between px-3 py-3 mb-4 rounded-lg bg-accent/40 border border-border/60">
+          <div>
+            <p className="text-[13px]" style={{ fontWeight: 500 }}>Enable desktop notifications</p>
+            <p className="text-[12px] text-muted-foreground">Allow Aurelo to send you timer reminders</p>
+          </div>
+          <button
+            onClick={handleRequestPermission}
+            className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-[12px] hover:bg-primary/90 transition-colors"
+            style={{ fontWeight: 500 }}
+          >
+            Allow notifications
+          </button>
+        </div>
+      )}
+
+      {/* Enable/disable toggle */}
+      <div className="flex items-center justify-between py-3 px-3 rounded-lg hover:bg-accent/30 transition-colors">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <div className="w-8 h-8 rounded-lg bg-primary/8 flex items-center justify-center flex-shrink-0">
+            <Timer className="w-4 h-4 text-primary" />
+          </div>
+          <div>
+            <span className="text-[14px]" style={{ fontWeight: 500 }}>Timer reminders</span>
+            <div className="text-[12px] text-muted-foreground">
+              Notify me when my timer has been running for too long
+            </div>
+          </div>
+        </div>
+        <Toggle checked={cfg.enabled} onChange={(v) => update({ enabled: v })} />
+      </div>
+
+      {/* Interval selection */}
+      <AnimatePresence>
+        {cfg.enabled && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="mx-3 mt-2 mb-1 p-4 rounded-lg bg-accent/30 border border-border/60 space-y-4">
+              <div>
+                <div className="text-[12px] text-muted-foreground mb-2" style={{ fontWeight: 600 }}>
+                  Remind me at
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {PRESET_INTERVALS.map(mins => {
+                    const active = cfg.intervals.includes(mins);
+                    return (
+                      <button
+                        key={mins}
+                        onClick={() => toggleInterval(mins)}
+                        className={`px-3 py-1.5 rounded-lg text-[12px] transition-colors border ${
+                          active
+                            ? 'bg-primary/10 border-primary/30 text-primary'
+                            : 'bg-card border-border/60 text-muted-foreground hover:bg-accent/40'
+                        }`}
+                        style={{ fontWeight: active ? 600 : 400 }}
+                      >
+                        {formatLabel(mins)}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Custom interval */}
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min={1}
+                  max={480}
+                  placeholder="Custom (min)"
+                  value={customMinutes}
+                  onChange={e => setCustomMinutes(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && addCustom()}
+                  className="w-32 px-3 py-1.5 rounded-lg border border-border/60 bg-card text-[12px] text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/30"
+                />
+                <button
+                  onClick={addCustom}
+                  disabled={!customMinutes || parseInt(customMinutes) < 1}
+                  className="px-3 py-1.5 rounded-lg text-[12px] bg-primary/10 text-primary hover:bg-primary/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  style={{ fontWeight: 500 }}
+                >
+                  Add
+                </button>
+              </div>
+
+              {/* Active reminders summary */}
+              {cfg.intervals.length > 0 && (
+                <div className="text-[11px] text-muted-foreground/70">
+                  You'll be notified at: {cfg.intervals.map((m: number) => formatLabel(m)).join(', ')}
+                </div>
+              )}
+              {cfg.intervals.length === 0 && (
+                <div className="text-[11px] text-muted-foreground/70">
+                  Select at least one interval to receive timer reminders
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </SectionCard>
   );
 }
 

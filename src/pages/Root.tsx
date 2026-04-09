@@ -22,6 +22,7 @@ import { toast } from 'sonner';
 import { useTheme } from '../data/ThemeContext';
 import type { FeatureKey } from '../data/plans';
 import { useRoleAccess } from '../data/useRoleAccess';
+import { checkTimerReminders, resetFired } from '../data/timerNotifications';
 
 const navItems: { to: string; icon: any; label: string; end?: boolean; feature?: FeatureKey; hideUnlessFeature?: boolean; requiresFinancials?: boolean }[] = [
   { to: '/', icon: LayoutDashboard, label: 'Home', end: true },
@@ -283,7 +284,9 @@ function RootLayout() {
       const tick = () => {
         const stored = localStorage.getItem('aurelo_timer_start');
         if (stored) {
-          setTimerSeconds(Math.max(0, Math.floor((Date.now() - Number(stored)) / 1000)));
+          const elapsed = Math.max(0, Math.floor((Date.now() - Number(stored)) / 1000));
+          setTimerSeconds(elapsed);
+          checkTimerReminders(elapsed);
         }
       };
       tick(); // immediate sync
@@ -296,6 +299,7 @@ function RootLayout() {
 
   const handleStartTimer = () => {
     localStorage.setItem('aurelo_timer_start', String(Date.now()));
+    resetFired();
     setTimerSeconds(0);
     setTimerRunning(true);
   };
