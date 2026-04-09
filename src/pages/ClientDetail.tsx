@@ -553,28 +553,62 @@ export default function ClientDetail() {
   // ═════════════════════════════════════════════════════════════════
   return (
     <motion.div className="w-full min-w-0 page-wrapper" variants={container} initial="hidden" animate="show">
-      {/* Compact header */}
+      {/* ── Client Header ─────────────────────────────────────────── */}
       <motion.div variants={item} className="mb-6">
-        {/* Identity row */}
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-primary/[0.07] rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
-            {clientFaviconUrl ? (
-              <img src={clientFaviconUrl} alt={client.name} className="w-full h-full object-cover" />
-            ) : (
-              <div className="text-[14px] text-primary" style={{ fontWeight: 700 }}>{client.name.charAt(0)}</div>
-            )}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2.5">
-              <h1 className="text-[20px] md:text-[22px] tracking-tight truncate" style={{ fontWeight: 700, letterSpacing: '-0.02em' }}>{client.name}</h1>
-              <div className={`status-badge ${statusColors[client.status]?.bg} ${statusColors[client.status]?.text}`}>
-                <div className={`w-1.5 h-1.5 rounded-circle ${statusColors[client.status]?.dot}`} />
-                {client.status}
+        <div className="bg-card border border-border/60 rounded-xl overflow-hidden" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+          {/* Status accent bar */}
+          <div className="h-[3px]" style={{
+            background: client.status === 'Active' ? 'var(--primary)' : client.status === 'Prospect' ? 'var(--warning)' : 'var(--muted-foreground)',
+            opacity: client.status === 'Archived' ? 0.3 : 0.7,
+          }} />
+
+          <div className="p-4 md:p-5">
+            {/* Top row: avatar + name + actions */}
+            <div className="flex items-start gap-4">
+              {/* Avatar */}
+              <div className="w-12 h-12 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0 border border-border/50"
+                style={{ background: 'color-mix(in srgb, var(--primary) 6%, transparent)' }}>
+                {clientFaviconUrl ? (
+                  <img src={clientFaviconUrl} alt={client.name} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="text-[18px] text-primary" style={{ fontWeight: 700 }}>{client.name.charAt(0)}</div>
+                )}
+              </div>
+
+              {/* Name + status */}
+              <div className="flex-1 min-w-0 pt-0.5">
+                <div className="flex items-center gap-2.5">
+                  <h1 className="text-[22px] md:text-[24px] truncate" style={{ fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.15 }}>{client.name}</h1>
+                  <div className={`status-badge ${statusColors[client.status]?.bg} ${statusColors[client.status]?.text}`}>
+                    <div className={`w-1.5 h-1.5 rounded-circle ${statusColors[client.status]?.dot}`} />
+                    {client.status}
+                  </div>
+                </div>
+                {/* Contact strip */}
+                {(client.contactName || client.contactEmail || client.phone) && (
+                  <div className="flex flex-wrap items-center gap-x-3.5 gap-y-0.5 mt-1 text-[12px] text-muted-foreground">
+                    {client.contactName && <span className="flex items-center gap-1"><User className="w-3 h-3 opacity-40" />{client.contactName}</span>}
+                    {client.contactEmail && <a href={`mailto:${client.contactEmail}`} className="flex items-center gap-1 hover:text-foreground transition-colors"><Mail className="w-3 h-3 opacity-40" />{client.contactEmail}</a>}
+                    {client.phone && <a href={`tel:${client.phone}`} className="flex items-center gap-1 hover:text-foreground transition-colors"><Phone className="w-3 h-3 opacity-40" />{client.phone}</a>}
+                  </div>
+                )}
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center gap-1.5 flex-shrink-0 pt-0.5">
+                <button
+                  onClick={() => navigate(`/clients/${clientId}/edit`)}
+                  className="px-3 py-1.5 text-[12px] border border-border/80 rounded-lg hover:bg-accent/50 transition-all flex items-center gap-1.5"
+                  style={{ fontWeight: 500 }}
+                >
+                  <Pencil className="w-3 h-3" />
+                  <span className="hidden sm:inline">Edit</span>
+                </button>
               </div>
             </div>
-          </div>
-          <div className="flex items-center gap-1.5 flex-shrink-0">
-            <div className="hidden sm:flex items-center gap-1.5">
+
+            {/* Metadata strip */}
+            <div className="flex flex-wrap items-center gap-2 mt-3.5 pt-3.5 border-t border-border/40">
               <span className="text-[11px] text-muted-foreground px-2 py-0.5 bg-accent/60 rounded-md" style={{ fontWeight: 600 }}>{client.model}</span>
               <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] rounded-md" style={{ fontWeight: 600, color: priorityCfg.color, background: priorityCfg.bg }}>
                 <Flag className="w-2.5 h-2.5" /> {priorityLevel.charAt(0).toUpperCase() + priorityLevel.slice(1)}
@@ -582,28 +616,29 @@ export default function ClientDetail() {
               <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] rounded-md" style={{ fontWeight: 600, color: riskCfg.color, background: riskCfg.bg }}>
                 <ShieldAlert className="w-2.5 h-2.5" /> {riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1)}
               </span>
+              {client.website && (
+                <>
+                  <div className="w-px h-3.5 bg-border/60 hidden sm:block" />
+                  <a href={`https://${client.website}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[11px] text-primary hover:text-primary/80 transition-colors" style={{ fontWeight: 500 }}>
+                    <Globe className="w-3 h-3" />{client.website}<ExternalLink className="w-2.5 h-2.5 opacity-50" />
+                  </a>
+                </>
+              )}
+              {client.address && (
+                <>
+                  <div className="w-px h-3.5 bg-border/60 hidden sm:block" />
+                  <span className="text-[11px] text-muted-foreground flex items-center gap-1"><MapPin className="w-3 h-3 opacity-40" />{client.address}</span>
+                </>
+              )}
+              {client.startDate && (
+                <>
+                  <div className="w-px h-3.5 bg-border/60 hidden sm:block" />
+                  <span className="text-[11px] text-muted-foreground" style={{ fontWeight: 500 }}>Since {format(parseISO(client.startDate), 'MMM yyyy')}</span>
+                </>
+              )}
             </div>
-            <button
-              onClick={() => navigate(`/clients/${clientId}/edit`)}
-              className="px-2.5 py-1 text-[12px] border border-border/80 rounded-lg hover:bg-accent/50 transition-all flex items-center gap-1.5"
-              style={{ fontWeight: 500 }}
-            >
-              <Pencil className="w-3 h-3" />
-              <span className="hidden sm:inline">Edit</span>
-            </button>
           </div>
         </div>
-
-        {/* Contact details — compact inline */}
-        {(client.contactName || client.contactEmail || client.phone || client.website) && (
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 ml-12 text-[12px] text-muted-foreground">
-            {client.contactName && <span className="flex items-center gap-1.5"><User className="w-3 h-3 text-muted-foreground/40" />{client.contactName}</span>}
-            {client.contactEmail && <a href={`mailto:${client.contactEmail}`} className="flex items-center gap-1.5 hover:text-foreground transition-colors"><Mail className="w-3 h-3 text-muted-foreground/40" />{client.contactEmail}</a>}
-            {client.phone && <a href={`tel:${client.phone}`} className="flex items-center gap-1.5 hover:text-foreground transition-colors"><Phone className="w-3 h-3 text-muted-foreground/40" />{client.phone}</a>}
-            {client.website && <a href={`https://${client.website}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-primary hover:text-primary/80 transition-colors"><Globe className="w-3 h-3" />{client.website}</a>}
-            {client.address && <span className="flex items-center gap-1.5"><MapPin className="w-3 h-3 text-muted-foreground/40" />{client.address}</span>}
-          </div>
-        )}
       </motion.div>
 
       {/* Tab layout */}
