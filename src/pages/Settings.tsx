@@ -3414,20 +3414,13 @@ function NotificationsTab() {
 const PRESET_INTERVALS = [15, 30, 45, 60, 90, 120, 180, 240];
 
 function TimerReminderSettings() {
-  const [cfg, setCfg] = useState(() => {
-    const { loadReminderConfig } = require('../data/timerNotifications');
-    return loadReminderConfig();
-  });
-  const [permission, setPermission] = useState<string>(() => {
-    const { getNotificationPermission } = require('../data/timerNotifications');
-    return getNotificationPermission();
-  });
+  const [cfg, setCfg] = useState(() => loadReminderConfig());
+  const [permission, setPermission] = useState<string>(() => getNotificationPermission());
   const [customMinutes, setCustomMinutes] = useState('');
 
   const update = (patch: Partial<typeof cfg>) => {
     const next = { ...cfg, ...patch };
     setCfg(next);
-    const { saveReminderConfig } = require('../data/timerNotifications');
     saveReminderConfig(next);
   };
 
