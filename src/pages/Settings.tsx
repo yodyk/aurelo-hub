@@ -46,6 +46,7 @@ import {
   Lock,
   ArrowRight,
   Search,
+  Timer,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
