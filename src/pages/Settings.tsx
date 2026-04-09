@@ -94,8 +94,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  loadReminderConfig,
+  saveReminderConfig,
+  getNotificationPermission,
+  requestNotificationPermission,
+} from '../data/timerNotifications';
 
-// ── Animation variants ──────────────────────────────────────────────
 const container = {
   hidden: {},
   show: { transition: { staggerChildren: 0.04 } },
