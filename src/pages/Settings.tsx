@@ -3363,6 +3363,9 @@ function NotificationsTab() {
         </div>
       </SectionCard>
 
+      {/* Timer Desktop Reminders */}
+      <TimerReminderSettings />
+
       {/* Email Activity Log — all clients */}
       <SectionCard>
         <SectionHeader title="Email activity log" description="All retainer warning emails sent across your workspace with delivery tracking" />
