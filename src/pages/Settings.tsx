@@ -3425,8 +3425,8 @@ function TimerReminderSettings() {
   };
 
   const handleRequestPermission = async () => {
-    const { requestNotificationPermission } = await import('../data/timerNotifications');
     const perm = await requestNotificationPermission();
+    setPermission(perm);
     setPermission(perm);
   };
 
