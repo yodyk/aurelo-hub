@@ -122,11 +122,7 @@ function getTabsForClient(client: any, canViewFinancials: boolean): { id: TabId;
     tabs.push({
       id: "retainer",
       label: "Retainer",
-      icon: ({ className }: { className?: string }) => (
-        <div className={`w-4 h-4 rounded bg-primary/20 flex items-center justify-center ${className || ""}`}>
-          <div className="w-2 h-2 rounded-sm bg-primary" />
-        </div>
-      ),
+      icon: RefreshCw,
     });
   }
   tabs.push(
