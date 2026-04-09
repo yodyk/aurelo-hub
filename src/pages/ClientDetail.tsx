@@ -83,14 +83,14 @@ function getUsageTextColor(usagePct: number): string {
 
 const PRIORITY_CONFIG: Record<string, { color: string; bg: string; icon: string }> = {
   low: { color: 'var(--muted-foreground)', bg: 'var(--accent)', icon: '○' },
-  medium: { color: 'hsl(45 60% 50%)', bg: 'hsl(45 60% 50% / 0.1)', icon: '◑' },
-  high: { color: 'var(--destructive)', bg: 'color-mix(in srgb, var(--destructive) 12%, transparent)', icon: '●' },
+  medium: { color: 'hsl(35 45% 38%)', bg: 'hsl(45 30% 50% / 0.08)', icon: '◑' },
+  high: { color: 'hsl(0 45% 40%)', bg: 'hsl(0 30% 50% / 0.08)', icon: '●' },
 };
 
 const RISK_CONFIG: Record<string, { color: string; bg: string; icon: string }> = {
-  low: { color: 'hsl(142 71% 45%)', bg: 'hsl(142 71% 45% / 0.1)', icon: '✓' },
-  medium: { color: 'hsl(45 60% 50%)', bg: 'hsl(45 60% 50% / 0.1)', icon: '⚠' },
-  high: { color: 'var(--destructive)', bg: 'color-mix(in srgb, var(--destructive) 12%, transparent)', icon: '✕' },
+  low: { color: 'hsl(142 40% 35%)', bg: 'hsl(142 30% 50% / 0.08)', icon: '✓' },
+  medium: { color: 'hsl(35 45% 38%)', bg: 'hsl(45 30% 50% / 0.08)', icon: '⚠' },
+  high: { color: 'hsl(0 45% 40%)', bg: 'hsl(0 30% 50% / 0.08)', icon: '✕' },
 };
 
 const statusColors: Record<string, { bg: string; text: string; dot: string }> = {
