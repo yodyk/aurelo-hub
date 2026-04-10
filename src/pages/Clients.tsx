@@ -27,10 +27,10 @@ const item = {
   show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.25, 0.1, 0.25, 1] as const } },
 };
 
-const statusConfig: Record<string, { dot: string; label: string }> = {
-  Active: { dot: "bg-primary", label: "Active" },
-  Prospect: { dot: "bg-warning", label: "Prospect" },
-  Archived: { dot: "bg-muted-foreground/40", label: "Archived" },
+const statusConfig: Record<string, { dot: string; bg: string; text: string; label: string }> = {
+  Active: { dot: "bg-emerald-500", bg: "bg-emerald-500/10", text: "text-emerald-700 dark:text-emerald-400", label: "Active" },
+  Prospect: { dot: "bg-amber-500", bg: "bg-amber-500/10", text: "text-amber-700 dark:text-amber-400", label: "Prospect" },
+  Archived: { dot: "bg-red-400", bg: "bg-red-400/10", text: "text-red-700 dark:text-red-400", label: "Archived" },
 };
 
 export default function Clients() {
