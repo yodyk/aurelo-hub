@@ -269,11 +269,11 @@ export default function ClientDetail() {
       supabase.storage.from('logos').list(workspaceId, { limit: 30 }).then(({ data: files }) => {
         const faviconMatch = files?.find((f: any) => f.name.startsWith(`client-${clientId}-favicon.`));
         if (faviconMatch) {
-          setClientFaviconUrl(`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/${workspaceId}/${faviconMatch.name}`);
+          setClientFaviconUrl(`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/${workspaceId}/${faviconMatch.name}?t=${Date.now()}`);
         }
         const logoMatch = files?.find((f: any) => f.name.startsWith(`client-${clientId}.`) && !f.name.includes('-favicon'));
         if (logoMatch) {
-          setClientLogoUrl(`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/${workspaceId}/${logoMatch.name}`);
+          setClientLogoUrl(`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/${workspaceId}/${logoMatch.name}?t=${Date.now()}`);
         }
       });
     }
