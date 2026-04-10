@@ -1,5 +1,4 @@
-import * as dataApi from "../data/dataApi";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router";
 import { motion } from "motion/react";
 import { ArrowUpRight, Search, Plus } from "lucide-react";
@@ -9,32 +8,42 @@ import { toast } from "sonner";
 import { usePlan } from "../data/PlanContext";
 import { OverLimitBanner, LimitEnforcementModal } from "../components/PlanEnforcement";
 import { useRoleAccess } from "../data/useRoleAccess";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "../components/ui/table";
 
 const container = {
   hidden: {},
-  show: { transition: { staggerChildren: 0.06 } },
+  show: { transition: { staggerChildren: 0.04 } },
 };
 
 const item = {
-  hidden: { opacity: 0, y: 12 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.25, 0.1, 0.25, 1] as const } },
+  hidden: { opacity: 0, y: 8 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.25, 0.1, 0.25, 1] as const } },
 };
 
-const statusColors: Record<string, { bg: string; text: string; dot: string }> = {
-  Active: { bg: "bg-primary/8", text: "text-primary", dot: "bg-primary" },
-  Prospect: { bg: "bg-warning/10", text: "text-warning", dot: "bg-warning" },
-  Archived: { bg: "bg-muted", text: "text-muted-foreground", dot: "bg-muted-foreground/50" },
+const statusConfig: Record<string, { dot: string; label: string }> = {
+  Active: { dot: "bg-primary", label: "Active" },
+  Prospect: { dot: "bg-warning", label: "Prospect" },
+  Archived: { dot: "bg-muted-foreground/40", label: "Archived" },
 };
 
 export default function Clients() {
-  const { clients, addClient } = useData();
+  const { clients, sessions, addClient } = useData();
   const { wouldExceed, limit, atLimit } = usePlan();
   const { canViewFinancials, canEditClients } = useRoleAccess();
   const [searchQuery, setSearchQuery] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
   const [showLimitModal, setShowLimitModal] = useState(false);
 
-  const filtered = clients.filter((c) => c.name.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filtered = clients.filter((c) =>
+    c.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const activeClients = filtered.filter((c) => c.status === "Active" || c.status === "Prospect");
   const archivedClients = filtered.filter((c) => c.status === "Archived");
@@ -47,6 +56,19 @@ export default function Clients() {
   const maxClients = limit("activeClients");
   const isOverLimit = maxClients !== null && nonArchivedCount > maxClients;
   const isAtClientLimit = maxClients !== null && nonArchivedCount >= maxClients;
+
+  // Count sessions logged this month per client
+  const sessionsThisMonth = useMemo(() => {
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+    const counts: Record<string, number> = {};
+    for (const s of sessions) {
+      if (s.date >= monthStart) {
+        counts[s.clientId] = (counts[s.clientId] || 0) + 1;
+      }
+    }
+    return counts;
+  }, [sessions]);
 
   const handleAddClient = async (client: any) => {
     const { notes, ...clientData } = client;
@@ -65,15 +87,127 @@ export default function Clients() {
     }
   };
 
+  const renderTable = (clientList: any[], isArchived = false) => (
+    <div className="bg-card border border-border/60 rounded-xl overflow-hidden">
+      <Table>
+        <TableHeader>
+          <TableRow className="hover:bg-transparent border-border/60">
+            <TableHead className="pl-5 w-[280px]">Client</TableHead>
+            <TableHead className="w-[120px]">Status</TableHead>
+            <TableHead className="w-[130px]">Type</TableHead>
+            {canViewFinancials && <TableHead className="w-[100px] text-right">Rate</TableHead>}
+            <TableHead className="w-[120px] text-right">Sessions</TableHead>
+            {canViewFinancials && !isArchived && (
+              <TableHead className="w-[130px] text-right pr-5">This month</TableHead>
+            )}
+            {canViewFinancials && isArchived && (
+              <TableHead className="w-[130px] text-right pr-5">Lifetime</TableHead>
+            )}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {clientList.map((client: any, index: number) => {
+            const sc = statusConfig[client.status] || statusConfig.Archived;
+            const sessionCount = sessionsThisMonth[client.id] || 0;
+            return (
+              <motion.tr
+                key={client.id}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.05 + index * 0.03, duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+                className={`border-b border-border/40 last:border-0 transition-colors hover:bg-muted/30 ${isArchived ? "opacity-60 hover:opacity-90" : ""}`}
+              >
+                <TableCell className="pl-5 py-3.5">
+                  <Link
+                    to={`/clients/${client.id}`}
+                    className="flex items-center gap-3 group"
+                  >
+                    <div className="w-9 h-9 rounded-lg bg-primary/8 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/12 transition-colors">
+                      <span className="text-[13px] text-primary" style={{ fontWeight: 600 }}>
+                        {client.name.charAt(0)}
+                      </span>
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-[14px] flex items-center gap-1.5 truncate" style={{ fontWeight: 600 }}>
+                        {client.name}
+                        <ArrowUpRight className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                      </div>
+                      {client.contactName && (
+                        <div className="text-[12px] text-muted-foreground truncate" style={{ fontWeight: 400 }}>
+                          {client.contactName}
+                        </div>
+                      )}
+                    </div>
+                  </Link>
+                </TableCell>
+
+                <TableCell className="py-3.5">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />
+                    <span className="text-[13px] text-muted-foreground" style={{ fontWeight: 500 }}>
+                      {sc.label}
+                    </span>
+                  </div>
+                </TableCell>
+
+                <TableCell className="py-3.5">
+                  <span
+                    className="inline-flex items-center text-[12px] bg-accent/60 text-foreground px-2.5 py-1 rounded-md"
+                    style={{ fontWeight: 600, letterSpacing: '-0.01em' }}
+                  >
+                    {client.model}
+                  </span>
+                </TableCell>
+
+                {canViewFinancials && (
+                  <TableCell className="py-3.5 text-right">
+                    {client.rate > 0 ? (
+                      <span className="text-[14px] text-foreground tabular-nums" style={{ fontWeight: 600 }}>
+                        ${client.rate}<span className="text-muted-foreground text-[12px]" style={{ fontWeight: 400 }}>/hr</span>
+                      </span>
+                    ) : (
+                      <span className="text-[13px] text-muted-foreground/50">—</span>
+                    )}
+                  </TableCell>
+                )}
+
+                <TableCell className="py-3.5 text-right">
+                  <span className="text-[14px] tabular-nums text-muted-foreground" style={{ fontWeight: 500 }}>
+                    {sessionCount}
+                  </span>
+                </TableCell>
+
+                {canViewFinancials && !isArchived && (
+                  <TableCell className="py-3.5 text-right pr-5">
+                    <span className="text-[14px] text-primary tabular-nums" style={{ fontWeight: 600 }}>
+                      ${(client.monthlyEarnings || 0).toLocaleString()}
+                    </span>
+                  </TableCell>
+                )}
+                {canViewFinancials && isArchived && (
+                  <TableCell className="py-3.5 text-right pr-5">
+                    <span className="text-[14px] tabular-nums" style={{ fontWeight: 600 }}>
+                      ${(client.lifetimeRevenue || 0).toLocaleString()}
+                    </span>
+                  </TableCell>
+                )}
+              </motion.tr>
+            );
+          })}
+        </TableBody>
+      </Table>
+    </div>
+  );
+
   return (
     <motion.div
       data-tour="client-list"
-      className="w-full min-w-0 px-6 lg:px-12 py-8 md:py-14"
+      className="w-full min-w-0 px-4 lg:px-8 py-8 md:py-14"
       variants={container}
       initial="hidden"
       animate="show"
     >
-      <motion.div variants={item} className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
+      <motion.div variants={item} className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
         <div>
           <h1 className="text-[24px] md:text-[28px] tracking-tight mb-1" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
             Clients
@@ -104,9 +238,8 @@ export default function Clients() {
         </div>
       </motion.div>
 
-      {/* Over-limit warning banner */}
       {isOverLimit && (
-        <motion.div variants={item}>
+        <motion.div variants={item} className="mb-6">
           <OverLimitBanner
             limitKey="activeClients"
             currentCount={nonArchivedCount}
@@ -116,176 +249,23 @@ export default function Clients() {
         </motion.div>
       )}
 
-      {/* Active & Prospecting */}
       {activeClients.length > 0 && (
-        <motion.div variants={item} className="mb-14">
-          <div
-            className="text-[12px] text-muted-foreground mb-5 flex items-center gap-2"
-            style={{ fontWeight: 500 }}
-          >
-            <div className="w-1.5 h-1.5 rounded-circle bg-primary" />
+        <motion.div variants={item} className="mb-8">
+          <div className="text-[12px] text-muted-foreground mb-3 flex items-center gap-2" style={{ fontWeight: 500 }}>
+            <div className="w-1.5 h-1.5 rounded-full bg-primary" />
             Active &amp; prospecting
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {activeClients.map((client: any, index: number) => (
-              <motion.div
-                key={client.id}
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.15 + index * 0.08, duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
-              >
-                <Link
-                  to={`/clients/${client.id}`}
-                  className="block bg-card border border-border rounded-xl p-6 hover:-translate-y-0.5 hover:border-primary/20 transition-all duration-300 group shadow-card hover:shadow-card-hover"
-                >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-primary/8 flex items-center justify-center group-hover:bg-primary/12 transition-colors">
-                        <span className="text-[14px] text-primary" style={{ fontWeight: 600 }}>
-                          {client.name.charAt(0)}
-                        </span>
-                      </div>
-                      <div>
-                        <div className="text-[16px] mb-0.5 flex items-center gap-1.5" style={{ fontWeight: 600 }}>
-                          {client.name}
-                          <ArrowUpRight className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </div>
-                        <div className="text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>
-                          {client.contactName}
-                        </div>
-                      </div>
-                    </div>
-                    <div
-                      className={`status-badge ${statusColors[client.status]?.bg || "bg-muted"} ${statusColors[client.status]?.text || "text-muted-foreground"}`}
-                    >
-                      <div
-                        className={`w-1.5 h-1.5 rounded-circle ${statusColors[client.status]?.dot || "bg-zinc-400"}`}
-                      />
-                      {client.status}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 mb-4">
-                    <span
-                      className="text-[11px] text-muted-foreground bg-accent/60 px-2 py-0.5 rounded-md"
-                      style={{ fontWeight: 500 }}
-                    >
-                      {client.model}
-                    </span>
-                    {canViewFinancials && client.rate > 0 && (
-                      <span
-                        className="text-[11px] text-muted-foreground bg-accent/60 px-2 py-0.5 rounded-md tabular-nums"
-                        style={{ fontWeight: 500 }}
-                      >
-                        ${client.rate}/hr
-                      </span>
-                    )}
-                    {!client.showPortalCosts && (
-                      <span
-                        className="text-[11px] text-muted-foreground/60 bg-accent/40 px-2 py-0.5 rounded-md"
-                        style={{ fontWeight: 500 }}
-                      >
-                        Costs hidden
-                      </span>
-                    )}
-                  </div>
-
-                  {canViewFinancials && client.status === "Active" && (
-                    <div className="space-y-3 pt-4 border-t border-border/60">
-                      <div className="flex justify-between items-baseline">
-                        <div className="text-[12px] text-muted-foreground">This month</div>
-                        <div className="text-[15px] text-primary tabular-nums" style={{ fontWeight: 600 }}>
-                          ${(client.monthlyEarnings || 0).toLocaleString()}
-                        </div>
-                      </div>
-                      {totalMonthly > 0 && (
-                        <div className="h-1 bg-accent/60 rounded-full overflow-hidden">
-                          <motion.div
-                            className="h-full bg-primary/30 rounded-full"
-                            initial={{ width: 0 }}
-                            animate={{ width: `${((client.monthlyEarnings || 0) / totalMonthly) * 100}%` }}
-                            transition={{ delay: 0.4 + index * 0.08, duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
-                          />
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {client.status === "Prospect" && (
-                    <div className="pt-4 border-t border-border/60">
-                      <div className="text-[12px] text-muted-foreground">{client.contactEmail}</div>
-                    </div>
-                  )}
-                </Link>
-              </motion.div>
-            ))}
-          </div>
+          {renderTable(activeClients)}
         </motion.div>
       )}
 
-      {/* Archived */}
       {archivedClients.length > 0 && (
         <motion.div variants={item}>
-          <div
-            className="text-[13px] text-muted-foreground mb-4 flex items-center gap-2"
-            style={{ fontWeight: 500, letterSpacing: "0.02em" }}
-          >
-            <div className="w-1.5 h-1.5 rounded-circle bg-zinc-400" />
+          <div className="text-[12px] text-muted-foreground mb-3 flex items-center gap-2" style={{ fontWeight: 500 }}>
+            <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40" />
             Archived
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {archivedClients.map((client: any) => (
-              <Link
-                key={client.id}
-                to={`/clients/${client.id}`}
-                className="block bg-card border border-border rounded-xl p-6 opacity-60 hover:opacity-90 transition-all duration-300 group hover:shadow-card"
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
-                      <span className="text-[14px] text-muted-foreground" style={{ fontWeight: 600 }}>
-                        {client.name.charAt(0)}
-                      </span>
-                    </div>
-                    <div>
-                      <div className="text-[16px] mb-0.5" style={{ fontWeight: 600 }}>
-                        {client.name}
-                      </div>
-                      <div className="text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>
-                        {client.contactName}
-                      </div>
-                    </div>
-                  </div>
-                  <div
-                    className={`status-badge ${statusColors.Archived.bg} ${statusColors.Archived.text}`}
-                  >
-                    <div className={`w-1.5 h-1.5 rounded-circle ${statusColors.Archived.dot}`} />
-                    Archived
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 mb-4">
-                  <span
-                    className="text-[11px] text-muted-foreground bg-accent/60 px-2 py-0.5 rounded-md"
-                    style={{ fontWeight: 500 }}
-                  >
-                    {client.model}
-                  </span>
-                </div>
-
-                {canViewFinancials && (
-                <div className="space-y-3 pt-4 border-t border-border">
-                  <div className="flex justify-between items-baseline">
-                    <div className="text-[12px] text-muted-foreground">Lifetime</div>
-                    <div className="text-[15px] tabular-nums" style={{ fontWeight: 600 }}>
-                      ${(client.lifetimeRevenue || 0).toLocaleString()}
-                    </div>
-                  </div>
-                </div>
-                )}
-              </Link>
-            ))}
-          </div>
+          {renderTable(archivedClients, true)}
         </motion.div>
       )}
 
