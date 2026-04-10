@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router";
 import { motion } from "motion/react";
 import { ArrowUpRight, Search, Plus } from "lucide-react";
@@ -9,6 +9,7 @@ import { usePlan } from "../data/PlanContext";
 import { OverLimitBanner, LimitEnforcementModal } from "../components/PlanEnforcement";
 import { useRoleAccess } from "../data/useRoleAccess";
 import ClientAssignmentManager from "../components/ClientAssignmentManager";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Table,
   TableHeader,
@@ -41,6 +42,23 @@ export default function Clients() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
   const [showLimitModal, setShowLimitModal] = useState(false);
+  const [faviconUrls, setFaviconUrls] = useState<Record<string, string>>({});
+
+  // Load client favicons from storage
+  useEffect(() => {
+    if (!workspaceId) return;
+    supabase.storage.from("logos").list(workspaceId, { limit: 500 }).then(({ data }) => {
+      if (!data) return;
+      const urls: Record<string, string> = {};
+      for (const f of data) {
+        const match = f.name.match(/^client-(.+)-favicon\./);
+        if (match) {
+          urls[match[1]] = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/${workspaceId}/${f.name}?t=${Date.now()}`;
+        }
+      }
+      setFaviconUrls(urls);
+    });
+  }, [workspaceId]);
 
   const filtered = clients.filter((c) =>
     c.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -158,10 +176,10 @@ export default function Clients() {
                   <TableHead className="w-[100px]">Status</TableHead>
                   <TableHead className="w-[120px]">Type</TableHead>
                   <TableHead className="w-[100px]">Team</TableHead>
-                  {canViewFinancials && <TableHead className="w-[90px] text-right">Rate</TableHead>}
-                  <TableHead className="w-[90px] text-right">Sessions</TableHead>
+                  {canViewFinancials && <TableHead className="w-[90px]">Rate</TableHead>}
+                  <TableHead className="w-[90px]">Sessions</TableHead>
                   {canViewFinancials && (
-                    <TableHead className="w-[160px] text-right pr-5">Revenue</TableHead>
+                    <TableHead className="w-[160px] pr-5">Revenue</TableHead>
                   )}
                 </TableRow>
               </TableHeader>
@@ -172,6 +190,7 @@ export default function Clients() {
                   const isArchived = client.status === "Archived";
                   const earnings = isArchived ? (client.lifetimeRevenue || 0) : (client.monthlyEarnings || 0);
                   const progressPct = isArchived ? 0 : Math.min(100, (earnings / maxMonthlyEarnings) * 100);
+                  const faviconUrl = faviconUrls[client.id];
 
                   return (
                     <motion.tr
@@ -183,11 +202,19 @@ export default function Clients() {
                     >
                       <TableCell className="pl-5 py-3.5">
                         <Link to={`/clients/${client.id}`} className="flex items-center gap-3 group">
-                          <div className="w-9 h-9 rounded-lg bg-primary/8 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/12 transition-colors">
-                            <span className="text-[13px] text-primary" style={{ fontWeight: 600 }}>
-                              {client.name.charAt(0)}
-                            </span>
-                          </div>
+                          {faviconUrl ? (
+                            <img
+                              src={faviconUrl}
+                              alt={client.name}
+                              className="w-9 h-9 rounded-full object-cover flex-shrink-0 ring-1 ring-border/30"
+                            />
+                          ) : (
+                            <div className="w-9 h-9 rounded-full bg-primary/8 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/12 transition-colors">
+                              <span className="text-[13px] text-primary" style={{ fontWeight: 600 }}>
+                                {client.name.charAt(0)}
+                              </span>
+                            </div>
+                          )}
                           <div className="min-w-0">
                             <div className="text-[14px] flex items-center gap-1.5 truncate" style={{ fontWeight: 600 }}>
                               {client.name}
@@ -220,10 +247,10 @@ export default function Clients() {
                       </TableCell>
 
                       {canViewFinancials && (
-                        <TableCell className="py-3.5 text-right">
+                        <TableCell className="py-3.5">
                           {client.rate > 0 ? (
-                            <span className="text-[14px] text-foreground tabular-nums" style={{ fontWeight: 600 }}>
-                              ${client.rate}<span className="text-muted-foreground text-[12px]" style={{ fontWeight: 400 }}>/hr</span>
+                            <span className="text-[13px] text-foreground tabular-nums" style={{ fontWeight: 600 }}>
+                              ${client.rate}<span className="text-muted-foreground text-[11px]" style={{ fontWeight: 400 }}>/hr</span>
                             </span>
                           ) : (
                             <span className="text-[13px] text-muted-foreground/50">—</span>
@@ -231,21 +258,21 @@ export default function Clients() {
                         </TableCell>
                       )}
 
-                      <TableCell className="py-3.5 text-right">
-                        <span className="text-[14px] tabular-nums text-muted-foreground" style={{ fontWeight: 500 }}>
+                      <TableCell className="py-3.5">
+                        <span className="text-[13px] tabular-nums text-muted-foreground" style={{ fontWeight: 500 }}>
                           {sessionCount}
                         </span>
                       </TableCell>
 
                       {canViewFinancials && (
                         <TableCell className="py-3.5 pr-5">
-                          <div className="flex flex-col items-end gap-1.5">
-                            <span className={`text-[13px] tabular-nums ${isArchived ? "text-muted-foreground" : "text-foreground"}`} style={{ fontWeight: 600 }}>
+                          <div className="flex flex-col gap-1.5">
+                            <span className={`text-[12px] tabular-nums ${isArchived ? "text-muted-foreground" : "text-foreground"}`} style={{ fontWeight: 600 }}>
                               ${earnings.toLocaleString()}
-                              {isArchived && <span className="text-[11px] text-muted-foreground/60 ml-1" style={{ fontWeight: 400 }}>lifetime</span>}
+                              {isArchived && <span className="text-[10px] text-muted-foreground/60 ml-1" style={{ fontWeight: 400 }}>lifetime</span>}
                             </span>
                             {!isArchived && (
-                              <div className="w-full h-1.5 rounded-full bg-muted/60 overflow-hidden">
+                              <div className="w-full max-w-[100px] h-1 rounded-full bg-muted/60 overflow-hidden">
                                 <div
                                   className="h-full rounded-full bg-primary/60 transition-all duration-500"
                                   style={{ width: `${progressPct}%` }}
