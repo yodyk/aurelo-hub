@@ -3,6 +3,7 @@ import { motion } from "motion/react";
 import { Users, Clock, DollarSign, TrendingUp, BarChart3 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useData } from "@/data/DataContext";
+import { MemberClientAssignments } from "./ClientAssignmentManager";
 
 interface TeamMember {
   id: string;
@@ -215,6 +216,7 @@ export default function TeamUtilization() {
                 <tr className="border-b border-border bg-accent/30">
                   <th className="text-left px-6 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Member</th>
                   <th className="text-left px-6 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Role</th>
+                  <th className="text-left px-6 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Clients</th>
                   <th className="text-right px-6 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Capacity</th>
                   <th className="text-right px-6 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Hours</th>
                   <th className="text-right px-6 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Billable</th>
@@ -260,6 +262,11 @@ export default function TeamUtilization() {
                         >
                           {member.role}
                         </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        {workspaceId && (
+                          <MemberClientAssignments memberId={member.id} workspaceId={workspaceId} />
+                        )}
                       </td>
                       <td className="px-6 py-4 text-right">
                         <span className="text-[13px] tabular-nums" style={{ fontWeight: 500 }}>

@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { usePlan } from "../data/PlanContext";
 import { OverLimitBanner, LimitEnforcementModal } from "../components/PlanEnforcement";
 import { useRoleAccess } from "../data/useRoleAccess";
-import ClientAssignmentAvatars from "../components/ClientAssignmentAvatars";
+import ClientAssignmentManager from "../components/ClientAssignmentManager";
 import {
   Table,
   TableHeader,
@@ -216,12 +216,7 @@ export default function Clients() {
                       </TableCell>
 
                       <TableCell className="py-3.5">
-                        {workspaceId && (
-                          <ClientAssignmentAvatars
-                            clientId={client.id}
-                            workspaceId={workspaceId}
-                          />
-                        )}
+                        <ClientAssignmentManager clientId={client.id} compact />
                       </TableCell>
 
                       {canViewFinancials && (
