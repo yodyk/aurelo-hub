@@ -459,9 +459,9 @@ export default function ClientEdit() {
     if (!clientId || !workspaceId || !isStudio) return;
     supabase.storage.from('logos').list(workspaceId, { limit: 30 }).then(({ data: files }) => {
       const fav = files?.find((f: any) => f.name.startsWith(`client-${clientId}-favicon.`));
-      if (fav) setClientFaviconUrl(`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/${workspaceId}/${fav.name}`);
+      if (fav) setClientFaviconUrl(`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/${workspaceId}/${fav.name}?t=${Date.now()}`);
       const logo = files?.find((f: any) => f.name.startsWith(`client-${clientId}.`) && !f.name.includes('-favicon'));
-      if (logo) setClientLogoUrl(`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/${workspaceId}/${logo.name}`);
+      if (logo) setClientLogoUrl(`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/${workspaceId}/${logo.name}?t=${Date.now()}`);
     });
   }, [clientId, workspaceId, isStudio]);
 
@@ -590,7 +590,7 @@ export default function ClientEdit() {
       if (old) await supabase.storage.from('logos').remove([`${workspaceId}/${old.name}`]);
       const { error } = await supabase.storage.from('logos').upload(path, file, { upsert: true });
       if (error) throw new Error(error.message);
-      setClientFaviconUrl(`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/${path}`);
+      setClientFaviconUrl(`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/${path}?t=${Date.now()}`);
       toast.success('Favicon uploaded');
     } catch (err: any) { toast.error(err.message || 'Upload failed'); }
     finally { setUploadingFavicon(false); }
@@ -607,7 +607,7 @@ export default function ClientEdit() {
       if (old) await supabase.storage.from('logos').remove([`${workspaceId}/${old.name}`]);
       const { error } = await supabase.storage.from('logos').upload(path, file, { upsert: true });
       if (error) throw new Error(error.message);
-      setClientLogoUrl(`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/${path}`);
+      setClientLogoUrl(`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/${path}?t=${Date.now()}`);
       toast.success('Logo uploaded');
     } catch (err: any) { toast.error(err.message || 'Upload failed'); }
     finally { setUploadingLogo(false); }
