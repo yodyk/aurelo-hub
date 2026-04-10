@@ -57,6 +57,7 @@ import * as settingsApi from "@/data/settingsApi";
 import { usePlan } from "@/data/PlanContext";
 import { useRoleAccess } from "@/data/useRoleAccess";
 import RecurringSessionsManager from "../components/RecurringSessionsManager";
+import ClientAssignmentManager from "../components/ClientAssignmentManager";
 
 // ── Animation variants ──────────────────────────────────────────────
 const container = {
