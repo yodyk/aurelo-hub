@@ -263,6 +263,11 @@ export default function TeamUtilization() {
                           {member.role}
                         </span>
                       </td>
+                      <td className="px-6 py-4">
+                        {workspaceId && (
+                          <MemberClientAssignments memberId={member.id} workspaceId={workspaceId} />
+                        )}
+                      </td>
                       <td className="px-6 py-4 text-right">
                         <span className="text-[13px] tabular-nums" style={{ fontWeight: 500 }}>
                           {member.weeklyCapacity}h/w
