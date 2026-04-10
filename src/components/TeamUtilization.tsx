@@ -3,6 +3,7 @@ import { motion } from "motion/react";
 import { Users, Clock, DollarSign, TrendingUp, BarChart3 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useData } from "@/data/DataContext";
+import { MemberClientAssignments } from "./ClientAssignmentManager";
 
 interface TeamMember {
   id: string;
