@@ -14,6 +14,7 @@ interface Member {
   name: string | null;
   email: string;
   role: string;
+  avatarUrl: string | null;
 }
 
 interface Assignment {
@@ -21,6 +22,7 @@ interface Assignment {
   memberId: string;
   memberName: string | null;
   memberEmail: string;
+  memberAvatarUrl: string | null;
 }
 
 const COLORS = [
@@ -47,9 +49,39 @@ function getInitials(name: string | null, email: string): string {
   return email.slice(0, 2).toUpperCase();
 }
 
+function MemberAvatar({ name, email, avatarUrl, id, size = "sm" }: {
+  name: string | null;
+  email: string;
+  avatarUrl: string | null;
+  id: string;
+  size?: "sm" | "md";
+}) {
+  const sizeClass = size === "md" ? "w-8 h-8 text-[11px]" : "w-7 h-7 text-[10px]";
+
+  if (avatarUrl) {
+    return (
+      <img
+        src={avatarUrl}
+        alt={name || email}
+        title={name || email}
+        className={`${sizeClass} rounded-full ring-2 ring-card object-cover`}
+      />
+    );
+  }
+
+  return (
+    <div
+      title={name || email}
+      className={`${sizeClass} rounded-full flex items-center justify-center ring-2 ring-card ${colorForId(id)}`}
+      style={{ fontWeight: 600 }}
+    >
+      {getInitials(name, email)}
+    </div>
+  );
+}
+
 interface Props {
   clientId: string;
-  /** Compact mode for tables (just avatars + add button) */
   compact?: boolean;
 }
 
@@ -66,12 +98,12 @@ export default function ClientAssignmentManager({ clientId, compact = false }: P
     const [assignRes, memberRes] = await Promise.all([
       supabase
         .from("client_assignments")
-        .select("id, member_id, workspace_members(id, name, email)")
+        .select("id, member_id, workspace_members(id, name, email, avatar_url)")
         .eq("client_id", clientId)
         .eq("workspace_id", workspaceId) as any,
       supabase
         .from("workspace_members")
-        .select("id, name, email, role")
+        .select("id, name, email, role, avatar_url")
         .eq("workspace_id", workspaceId)
         .eq("status", "active"),
     ]);
@@ -83,6 +115,7 @@ export default function ClientAssignmentManager({ clientId, compact = false }: P
         memberId: r.workspace_members.id,
         memberName: r.workspace_members.name,
         memberEmail: r.workspace_members.email,
+        memberAvatarUrl: r.workspace_members.avatar_url,
       }));
 
     setAssignments(mapped);
@@ -92,6 +125,7 @@ export default function ClientAssignmentManager({ clientId, compact = false }: P
         name: m.name,
         email: m.email,
         role: m.role,
+        avatarUrl: m.avatar_url,
       }))
     );
     setLoading(false);
@@ -137,14 +171,13 @@ export default function ClientAssignmentManager({ clientId, compact = false }: P
     return (
       <div className="flex items-center -space-x-2">
         {assignments.slice(0, 4).map((a) => (
-          <div
+          <MemberAvatar
             key={a.id}
-            title={a.memberName || a.memberEmail}
-            className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] ring-2 ring-card ${colorForId(a.memberId)}`}
-            style={{ fontWeight: 600 }}
-          >
-            {getInitials(a.memberName, a.memberEmail)}
-          </div>
+            name={a.memberName}
+            email={a.memberEmail}
+            avatarUrl={a.memberAvatarUrl}
+            id={a.memberId}
+          />
         ))}
         {assignments.length > 4 && (
           <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] ring-2 ring-card bg-muted text-muted-foreground" style={{ fontWeight: 600 }}>
@@ -184,9 +217,7 @@ export default function ClientAssignmentManager({ clientId, compact = false }: P
                     onClick={() => handleAssign(m.id)}
                     className="w-full flex items-center gap-2.5 px-2 py-2 rounded-md hover:bg-accent/60 transition-colors text-left"
                   >
-                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] ${colorForId(m.id)}`} style={{ fontWeight: 600 }}>
-                      {getInitials(m.name, m.email)}
-                    </div>
+                    <MemberAvatar name={m.name} email={m.email} avatarUrl={m.avatarUrl} id={m.id} />
                     <div className="min-w-0 flex-1">
                       <div className="text-[13px] truncate" style={{ fontWeight: 500 }}>{m.name || m.email}</div>
                       {m.name && <div className="text-[11px] text-muted-foreground truncate">{m.email}</div>}
@@ -206,9 +237,7 @@ export default function ClientAssignmentManager({ clientId, compact = false }: P
         <div className="space-y-1.5">
           {assignments.map((a) => (
             <div key={a.id} className="flex items-center gap-2.5 group py-1">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[11px] ${colorForId(a.memberId)}`} style={{ fontWeight: 600 }}>
-                {getInitials(a.memberName, a.memberEmail)}
-              </div>
+              <MemberAvatar name={a.memberName} email={a.memberEmail} avatarUrl={a.memberAvatarUrl} id={a.memberId} size="md" />
               <div className="min-w-0 flex-1">
                 <div className="text-[13px] truncate" style={{ fontWeight: 500 }}>{a.memberName || a.memberEmail}</div>
                 {a.memberName && <div className="text-[11px] text-muted-foreground truncate">{a.memberEmail}</div>}
@@ -290,14 +319,14 @@ export function MemberClientAssignments({ memberId, workspaceId }: { memberId: s
           <div
             key={c.id}
             title={c.name}
-            className="w-6 h-6 rounded-md bg-primary/8 flex items-center justify-center text-[9px] text-primary ring-2 ring-card"
+            className="w-6 h-6 rounded-full bg-primary/8 flex items-center justify-center text-[9px] text-primary ring-2 ring-card"
             style={{ fontWeight: 600 }}
           >
             {c.name.charAt(0)}
           </div>
         ))}
         {assignedClients.length > 3 && (
-          <div className="w-6 h-6 rounded-md bg-muted flex items-center justify-center text-[9px] text-muted-foreground ring-2 ring-card" style={{ fontWeight: 600 }}>
+          <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-[9px] text-muted-foreground ring-2 ring-card" style={{ fontWeight: 600 }}>
             +{assignedClients.length - 3}
           </div>
         )}
@@ -309,7 +338,7 @@ export function MemberClientAssignments({ memberId, workspaceId }: { memberId: s
       )}
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <button className="w-6 h-6 rounded-md border border-dashed border-border hover:border-primary/40 flex items-center justify-center text-muted-foreground hover:text-primary transition-colors">
+          <button className="w-6 h-6 rounded-full border border-dashed border-border hover:border-primary/40 flex items-center justify-center text-muted-foreground hover:text-primary transition-colors">
             <Plus className="w-3 h-3" />
           </button>
         </PopoverTrigger>
@@ -343,7 +372,7 @@ export function MemberClientAssignments({ memberId, workspaceId }: { memberId: s
                   onClick={() => handleAssign(c.id)}
                   className="w-full flex items-center gap-2.5 px-2 py-2 rounded-md hover:bg-accent/60 transition-colors text-left"
                 >
-                  <div className="w-6 h-6 rounded-md bg-primary/8 flex items-center justify-center text-[9px] text-primary" style={{ fontWeight: 600 }}>
+                  <div className="w-6 h-6 rounded-full bg-primary/8 flex items-center justify-center text-[9px] text-primary" style={{ fontWeight: 600 }}>
                     {c.name.charAt(0)}
                   </div>
                   <span className="text-[13px] truncate" style={{ fontWeight: 500 }}>{c.name}</span>
