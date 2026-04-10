@@ -13,6 +13,7 @@ interface TeamMember {
   role: string;
   status: string;
   weeklyCapacity: number;
+  avatarUrl: string | null;
 }
 
 const CAPACITY_LABELS: Record<number, string> = {
