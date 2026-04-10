@@ -142,19 +142,14 @@ export default function Clients() {
                 </TableCell>
 
                 <TableCell className="py-3.5">
-                  <div className="flex items-center gap-2">
-                    <div className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />
-                    <span className="text-[13px] text-muted-foreground" style={{ fontWeight: 500 }}>
-                      {sc.label}
-                    </span>
-                  </div>
+                  <span className={`inline-flex items-center gap-1.5 text-[12px] px-2.5 py-1 rounded-md ${sc.bg} ${sc.text}`} style={{ fontWeight: 600 }}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />
+                    {sc.label}
+                  </span>
                 </TableCell>
 
                 <TableCell className="py-3.5">
-                  <span
-                    className="inline-flex items-center text-[12px] bg-accent/60 text-foreground px-2.5 py-1 rounded-md"
-                    style={{ fontWeight: 600, letterSpacing: '-0.01em' }}
-                  >
+                  <span className="text-[13px] text-muted-foreground" style={{ fontWeight: 500 }}>
                     {client.model}
                   </span>
                 </TableCell>
