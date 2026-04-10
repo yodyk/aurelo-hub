@@ -327,7 +327,7 @@ export default function TeamUtilization() {
                     key={member.id}
                     className="flex items-center gap-3 px-6 py-3 border-b border-border last:border-0 opacity-60"
                   >
-                    <div className="w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center flex-shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-muted/50 flex items-center justify-center flex-shrink-0">
                       <span className="text-[11px] text-muted-foreground" style={{ fontWeight: 600 }}>
                         {member.email.charAt(0).toUpperCase()}
                       </span>
