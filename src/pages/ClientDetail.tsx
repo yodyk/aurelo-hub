@@ -1007,6 +1007,11 @@ function OverviewTab({
           </SectionCard>
         )}
       </div>
+
+      {/* Team assignments */}
+      <SectionCard>
+        <ClientAssignmentManager clientId={client.id} />
+      </SectionCard>
     </>
   );
 }
