@@ -1,0 +1,1 @@
+ALTER TABLE public.workspace_members ADD COLUMN avatar_url text DEFAULT NULL;

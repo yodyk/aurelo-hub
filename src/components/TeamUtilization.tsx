@@ -13,6 +13,7 @@ interface TeamMember {
   role: string;
   status: string;
   weeklyCapacity: number;
+  avatarUrl: string | null;
 }
 
 const CAPACITY_LABELS: Record<number, string> = {
@@ -30,7 +31,7 @@ export default function TeamUtilization() {
     if (!workspaceId) return;
     supabase
       .from("workspace_members")
-      .select("id, user_id, name, email, role, status, weekly_capacity")
+      .select("id, user_id, name, email, role, status, weekly_capacity, avatar_url")
       .eq("workspace_id", workspaceId)
       .then(({ data }) => {
         setMembers(
@@ -38,6 +39,7 @@ export default function TeamUtilization() {
             ...m,
             userId: m.user_id,
             weeklyCapacity: m.weekly_capacity ?? 40,
+            avatarUrl: m.avatar_url || null,
           }))
         );
         setLoading(false);
@@ -240,11 +242,15 @@ export default function TeamUtilization() {
                     >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-primary/8 flex items-center justify-center flex-shrink-0">
-                            <span className="text-[11px] text-primary" style={{ fontWeight: 600 }}>
-                              {(member.name || member.email).charAt(0).toUpperCase()}
-                            </span>
-                          </div>
+                          {member.avatarUrl ? (
+                            <img src={member.avatarUrl} alt={member.name || member.email} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-primary/8 flex items-center justify-center flex-shrink-0">
+                              <span className="text-[11px] text-primary" style={{ fontWeight: 600 }}>
+                                {(member.name || member.email).charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                          )}
                           <div>
                             <div className="text-[14px]" style={{ fontWeight: 500 }}>{member.name || "—"}</div>
                             <div className="text-[12px] text-muted-foreground">{member.email}</div>
@@ -321,7 +327,7 @@ export default function TeamUtilization() {
                     key={member.id}
                     className="flex items-center gap-3 px-6 py-3 border-b border-border last:border-0 opacity-60"
                   >
-                    <div className="w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center flex-shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-muted/50 flex items-center justify-center flex-shrink-0">
                       <span className="text-[11px] text-muted-foreground" style={{ fontWeight: 600 }}>
                         {member.email.charAt(0).toUpperCase()}
                       </span>

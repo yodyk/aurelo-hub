@@ -1416,6 +1416,7 @@ export type Database = {
       }
       workspace_members: {
         Row: {
+          avatar_url: string | null
           email: string
           id: string
           invited_at: string | null
@@ -1428,6 +1429,7 @@ export type Database = {
           workspace_id: string
         }
         Insert: {
+          avatar_url?: string | null
           email: string
           id?: string
           invited_at?: string | null
@@ -1440,6 +1442,7 @@ export type Database = {
           workspace_id: string
         }
         Update: {
+          avatar_url?: string | null
           email?: string
           id?: string
           invited_at?: string | null
