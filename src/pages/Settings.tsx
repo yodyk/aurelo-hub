@@ -2632,7 +2632,7 @@ function TeamTab({ readOnly = false }: { readOnly?: boolean }) {
                 className="flex flex-wrap items-center gap-x-3 gap-y-2 py-3 px-3 rounded-lg hover:bg-accent/30 transition-colors group"
               >
                 {/* Avatar */}
-                <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <div className="w-9 h-9 rounded-circle bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <span className="text-[12px] text-primary" style={{ fontWeight: 600 }}>
                     {getInitials(member)}
                   </span>
@@ -2757,7 +2757,7 @@ function TeamTab({ readOnly = false }: { readOnly?: boolean }) {
                     key={invite.id}
                     className="flex items-center gap-3 py-3 px-3 rounded-lg hover:bg-accent/20 transition-colors group"
                   >
-                    <div className="w-9 h-9 rounded-full bg-muted/50 flex items-center justify-center flex-shrink-0">
+                    <div className="w-9 h-9 rounded-circle bg-muted/50 flex items-center justify-center flex-shrink-0">
                       <Mail className="w-4 h-4 text-muted-foreground" />
                     </div>
                     <div className="flex-1 min-w-0">
