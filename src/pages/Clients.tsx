@@ -27,10 +27,10 @@ const item = {
   show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.25, 0.1, 0.25, 1] as const } },
 };
 
-const statusConfig: Record<string, { dot: string; label: string }> = {
-  Active: { dot: "bg-primary", label: "Active" },
-  Prospect: { dot: "bg-warning", label: "Prospect" },
-  Archived: { dot: "bg-muted-foreground/40", label: "Archived" },
+const statusConfig: Record<string, { dot: string; bg: string; text: string; label: string }> = {
+  Active: { dot: "bg-emerald-500", bg: "bg-emerald-500/10", text: "text-emerald-700 dark:text-emerald-400", label: "Active" },
+  Prospect: { dot: "bg-amber-500", bg: "bg-amber-500/10", text: "text-amber-700 dark:text-amber-400", label: "Prospect" },
+  Archived: { dot: "bg-red-400", bg: "bg-red-400/10", text: "text-red-700 dark:text-red-400", label: "Archived" },
 };
 
 export default function Clients() {
@@ -142,19 +142,14 @@ export default function Clients() {
                 </TableCell>
 
                 <TableCell className="py-3.5">
-                  <div className="flex items-center gap-2">
-                    <div className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />
-                    <span className="text-[13px] text-muted-foreground" style={{ fontWeight: 500 }}>
-                      {sc.label}
-                    </span>
-                  </div>
+                  <span className={`inline-flex items-center gap-1.5 text-[12px] px-2.5 py-1 rounded-md ${sc.bg} ${sc.text}`} style={{ fontWeight: 600 }}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />
+                    {sc.label}
+                  </span>
                 </TableCell>
 
                 <TableCell className="py-3.5">
-                  <span
-                    className="inline-flex items-center text-[12px] bg-accent/60 text-foreground px-2.5 py-1 rounded-md"
-                    style={{ fontWeight: 600, letterSpacing: '-0.01em' }}
-                  >
+                  <span className="text-[13px] text-muted-foreground" style={{ fontWeight: 500 }}>
                     {client.model}
                   </span>
                 </TableCell>
