@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { usePlan } from "../data/PlanContext";
 import { OverLimitBanner, LimitEnforcementModal } from "../components/PlanEnforcement";
 import { useRoleAccess } from "../data/useRoleAccess";
+import ClientAssignmentAvatars from "../components/ClientAssignmentAvatars";
 import {
   Table,
   TableHeader,
@@ -34,7 +35,7 @@ const statusConfig: Record<string, { dot: string; bg: string; text: string; labe
 };
 
 export default function Clients() {
-  const { clients, sessions, addClient } = useData();
+  const { clients, sessions, addClient, workspaceId } = useData();
   const { wouldExceed, limit, atLimit } = usePlan();
   const { canViewFinancials, canEditClients } = useRoleAccess();
   const [searchQuery, setSearchQuery] = useState("");
@@ -45,7 +46,6 @@ export default function Clients() {
     c.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Sort: active/prospect first, then archived (latest updated first)
   const sorted = [...filtered].sort((a, b) => {
     const aArchived = a.status === "Archived" ? 1 : 0;
     const bArchived = b.status === "Archived" ? 1 : 0;
@@ -53,6 +53,7 @@ export default function Clients() {
     if (aArchived) return new Date(b.updatedAt || b.createdAt || 0).getTime() - new Date(a.updatedAt || a.createdAt || 0).getTime();
     return 0;
   });
+
   const activeCount = clients.filter((c) => c.status === "Active").length;
   const nonArchivedCount = clients.filter((c) => c.status !== "Archived").length;
   const totalMonthly = clients
@@ -63,7 +64,11 @@ export default function Clients() {
   const isOverLimit = maxClients !== null && nonArchivedCount > maxClients;
   const isAtClientLimit = maxClients !== null && nonArchivedCount >= maxClients;
 
-  // Count sessions logged this month per client
+  // Max monthly earnings for progress bar scaling
+  const maxMonthlyEarnings = useMemo(() => {
+    return Math.max(1, ...clients.filter((c) => c.status !== "Archived").map((c: any) => c.monthlyEarnings || 0));
+  }, [clients]);
+
   const sessionsThisMonth = useMemo(() => {
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
@@ -92,101 +97,6 @@ export default function Clients() {
       setShowAddModal(true);
     }
   };
-
-  const renderTable = (clientList: any[]) => (
-    <div className="bg-card border border-border/60 rounded-xl overflow-hidden">
-      <Table>
-        <TableHeader>
-          <TableRow className="hover:bg-transparent border-border/60">
-            <TableHead className="pl-5 w-[280px]">Client</TableHead>
-            <TableHead className="w-[120px]">Status</TableHead>
-            <TableHead className="w-[130px]">Type</TableHead>
-            {canViewFinancials && <TableHead className="w-[100px] text-right">Rate</TableHead>}
-            <TableHead className="w-[120px] text-right">Sessions</TableHead>
-            {canViewFinancials && (
-              <TableHead className="w-[130px] text-right pr-5">Revenue</TableHead>
-            )}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {clientList.map((client: any, index: number) => {
-            const sc = statusConfig[client.status] || statusConfig.Archived;
-            const sessionCount = sessionsThisMonth[client.id] || 0;
-            const isArchived = client.status === "Archived";
-            return (
-              <motion.tr
-                key={client.id}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.05 + index * 0.03, duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-                className={`border-b border-border/40 last:border-0 transition-colors hover:bg-muted/30 ${isArchived ? "opacity-60 hover:opacity-90" : ""}`}
-              >
-                <TableCell className="pl-5 py-3.5">
-                  <Link to={`/clients/${client.id}`} className="flex items-center gap-3 group">
-                    <div className="w-9 h-9 rounded-lg bg-primary/8 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/12 transition-colors">
-                      <span className="text-[13px] text-primary" style={{ fontWeight: 600 }}>
-                        {client.name.charAt(0)}
-                      </span>
-                    </div>
-                    <div className="min-w-0">
-                      <div className="text-[14px] flex items-center gap-1.5 truncate" style={{ fontWeight: 600 }}>
-                        {client.name}
-                        <ArrowUpRight className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
-                      </div>
-                      {client.contactName && (
-                        <div className="text-[12px] text-muted-foreground truncate" style={{ fontWeight: 400 }}>
-                          {client.contactName}
-                        </div>
-                      )}
-                    </div>
-                  </Link>
-                </TableCell>
-
-                <TableCell className="py-3.5">
-                  <span className={`inline-flex items-center gap-1.5 text-[12px] px-2.5 py-1 rounded-md ${sc.bg} ${sc.text}`} style={{ fontWeight: 600 }}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />
-                    {sc.label}
-                  </span>
-                </TableCell>
-
-                <TableCell className="py-3.5">
-                  <span className="text-[13px] text-muted-foreground" style={{ fontWeight: 500 }}>
-                    {client.model}
-                  </span>
-                </TableCell>
-
-                {canViewFinancials && (
-                  <TableCell className="py-3.5 text-right">
-                    {client.rate > 0 ? (
-                      <span className="text-[14px] text-foreground tabular-nums" style={{ fontWeight: 600 }}>
-                        ${client.rate}<span className="text-muted-foreground text-[12px]" style={{ fontWeight: 400 }}>/hr</span>
-                      </span>
-                    ) : (
-                      <span className="text-[13px] text-muted-foreground/50">—</span>
-                    )}
-                  </TableCell>
-                )}
-
-                <TableCell className="py-3.5 text-right">
-                  <span className="text-[14px] tabular-nums text-muted-foreground" style={{ fontWeight: 500 }}>
-                    {sessionCount}
-                  </span>
-                </TableCell>
-
-                {canViewFinancials && (
-                  <TableCell className="py-3.5 text-right pr-5">
-                    <span className={`text-[14px] tabular-nums ${isArchived ? "text-foreground" : "text-primary"}`} style={{ fontWeight: 600 }}>
-                      ${(isArchived ? (client.lifetimeRevenue || 0) : (client.monthlyEarnings || 0)).toLocaleString()}
-                    </span>
-                  </TableCell>
-                )}
-              </motion.tr>
-            );
-          })}
-        </TableBody>
-      </Table>
-    </div>
-  );
 
   return (
     <motion.div
@@ -240,7 +150,122 @@ export default function Clients() {
 
       {sorted.length > 0 && (
         <motion.div variants={item}>
-          {renderTable(sorted)}
+          <div className="bg-card border border-border/60 rounded-xl overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent border-border/60">
+                  <TableHead className="pl-5 w-[260px]">Client</TableHead>
+                  <TableHead className="w-[100px]">Status</TableHead>
+                  <TableHead className="w-[120px]">Type</TableHead>
+                  <TableHead className="w-[100px]">Team</TableHead>
+                  {canViewFinancials && <TableHead className="w-[90px] text-right">Rate</TableHead>}
+                  <TableHead className="w-[90px] text-right">Sessions</TableHead>
+                  {canViewFinancials && (
+                    <TableHead className="w-[160px] text-right pr-5">Revenue</TableHead>
+                  )}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sorted.map((client: any, index: number) => {
+                  const sc = statusConfig[client.status] || statusConfig.Archived;
+                  const sessionCount = sessionsThisMonth[client.id] || 0;
+                  const isArchived = client.status === "Archived";
+                  const earnings = isArchived ? (client.lifetimeRevenue || 0) : (client.monthlyEarnings || 0);
+                  const progressPct = isArchived ? 0 : Math.min(100, (earnings / maxMonthlyEarnings) * 100);
+
+                  return (
+                    <motion.tr
+                      key={client.id}
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.05 + index * 0.03, duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+                      className={`border-b border-border/40 last:border-0 transition-colors hover:bg-muted/30 ${isArchived ? "opacity-60 hover:opacity-90" : ""}`}
+                    >
+                      <TableCell className="pl-5 py-3.5">
+                        <Link to={`/clients/${client.id}`} className="flex items-center gap-3 group">
+                          <div className="w-9 h-9 rounded-lg bg-primary/8 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/12 transition-colors">
+                            <span className="text-[13px] text-primary" style={{ fontWeight: 600 }}>
+                              {client.name.charAt(0)}
+                            </span>
+                          </div>
+                          <div className="min-w-0">
+                            <div className="text-[14px] flex items-center gap-1.5 truncate" style={{ fontWeight: 600 }}>
+                              {client.name}
+                              <ArrowUpRight className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                            </div>
+                            {client.contactName && (
+                              <div className="text-[12px] text-muted-foreground truncate" style={{ fontWeight: 400 }}>
+                                {client.contactName}
+                              </div>
+                            )}
+                          </div>
+                        </Link>
+                      </TableCell>
+
+                      <TableCell className="py-3.5">
+                        <span className={`inline-flex items-center gap-1.5 text-[12px] px-2.5 py-1 rounded-md ${sc.bg} ${sc.text}`} style={{ fontWeight: 600 }}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />
+                          {sc.label}
+                        </span>
+                      </TableCell>
+
+                      <TableCell className="py-3.5">
+                        <span className="text-[13px] text-muted-foreground" style={{ fontWeight: 500 }}>
+                          {client.model}
+                        </span>
+                      </TableCell>
+
+                      <TableCell className="py-3.5">
+                        {workspaceId && (
+                          <ClientAssignmentAvatars
+                            clientId={client.id}
+                            workspaceId={workspaceId}
+                          />
+                        )}
+                      </TableCell>
+
+                      {canViewFinancials && (
+                        <TableCell className="py-3.5 text-right">
+                          {client.rate > 0 ? (
+                            <span className="text-[14px] text-foreground tabular-nums" style={{ fontWeight: 600 }}>
+                              ${client.rate}<span className="text-muted-foreground text-[12px]" style={{ fontWeight: 400 }}>/hr</span>
+                            </span>
+                          ) : (
+                            <span className="text-[13px] text-muted-foreground/50">—</span>
+                          )}
+                        </TableCell>
+                      )}
+
+                      <TableCell className="py-3.5 text-right">
+                        <span className="text-[14px] tabular-nums text-muted-foreground" style={{ fontWeight: 500 }}>
+                          {sessionCount}
+                        </span>
+                      </TableCell>
+
+                      {canViewFinancials && (
+                        <TableCell className="py-3.5 pr-5">
+                          <div className="flex flex-col items-end gap-1.5">
+                            <span className={`text-[13px] tabular-nums ${isArchived ? "text-muted-foreground" : "text-foreground"}`} style={{ fontWeight: 600 }}>
+                              ${earnings.toLocaleString()}
+                              {isArchived && <span className="text-[11px] text-muted-foreground/60 ml-1" style={{ fontWeight: 400 }}>lifetime</span>}
+                            </span>
+                            {!isArchived && (
+                              <div className="w-full h-1.5 rounded-full bg-muted/60 overflow-hidden">
+                                <div
+                                  className="h-full rounded-full bg-primary/60 transition-all duration-500"
+                                  style={{ width: `${progressPct}%` }}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
+                      )}
+                    </motion.tr>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
         </motion.div>
       )}
 
