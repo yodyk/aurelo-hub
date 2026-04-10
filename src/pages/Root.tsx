@@ -469,7 +469,7 @@ function RootLayout() {
               onClick={() => setUserMenuOpen(o => !o)}
               className={`mt-3 ${sidebarCollapsed ? 'mx-1' : 'mx-3'} flex items-center gap-3 w-full text-left rounded-lg hover:bg-accent/40 p-1.5 -ml-1.5 transition-colors`}
             >
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
+              <div className="w-8 h-8 rounded-circle bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
                 {avatarUrl ? (
                   <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
                 ) : (
@@ -742,7 +742,7 @@ function RootLayout() {
 
               {/* User row + sign out */}
               <div className="flex items-center gap-3 py-2">
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                <div className="w-8 h-8 rounded-circle bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
                   {avatarUrl ? (
                     <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
                   ) : (

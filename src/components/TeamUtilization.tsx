@@ -243,9 +243,9 @@ export default function TeamUtilization() {
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           {member.avatarUrl ? (
-                            <img src={member.avatarUrl} alt={member.name || member.email} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+                            <img src={member.avatarUrl} alt={member.name || member.email} className="w-8 h-8 rounded-circle object-cover flex-shrink-0" />
                           ) : (
-                            <div className="w-8 h-8 rounded-full bg-primary/8 flex items-center justify-center flex-shrink-0">
+                            <div className="w-8 h-8 rounded-circle bg-primary/8 flex items-center justify-center flex-shrink-0">
                               <span className="text-[11px] text-primary" style={{ fontWeight: 600 }}>
                                 {(member.name || member.email).charAt(0).toUpperCase()}
                               </span>
