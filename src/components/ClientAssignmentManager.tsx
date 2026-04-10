@@ -64,7 +64,7 @@ function MemberAvatar({ name, email, avatarUrl, id, size = "sm" }: {
         src={avatarUrl}
         alt={name || email}
         title={name || email}
-        className={`${sizeClass} rounded-full ring-2 ring-card object-cover`}
+        className={`${sizeClass} rounded-circle ring-2 ring-card object-cover`}
       />
     );
   }
@@ -72,7 +72,7 @@ function MemberAvatar({ name, email, avatarUrl, id, size = "sm" }: {
   return (
     <div
       title={name || email}
-      className={`${sizeClass} rounded-full flex items-center justify-center ring-2 ring-card ${colorForId(id)}`}
+      className={`${sizeClass} rounded-circle flex items-center justify-center ring-2 ring-card ${colorForId(id)}`}
       style={{ fontWeight: 600 }}
     >
       {getInitials(name, email)}
@@ -180,7 +180,7 @@ export default function ClientAssignmentManager({ clientId, compact = false }: P
           />
         ))}
         {assignments.length > 4 && (
-          <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] ring-2 ring-card bg-muted text-muted-foreground" style={{ fontWeight: 600 }}>
+            <div className="w-7 h-7 rounded-circle flex items-center justify-center text-[10px] ring-2 ring-card bg-muted text-muted-foreground" style={{ fontWeight: 600 }}>
             +{assignments.length - 4}
           </div>
         )}
@@ -319,14 +319,14 @@ export function MemberClientAssignments({ memberId, workspaceId }: { memberId: s
           <div
             key={c.id}
             title={c.name}
-            className="w-6 h-6 rounded-full bg-primary/8 flex items-center justify-center text-[9px] text-primary ring-2 ring-card"
+            className="w-6 h-6 rounded-circle bg-primary/8 flex items-center justify-center text-[9px] text-primary ring-2 ring-card"
             style={{ fontWeight: 600 }}
           >
             {c.name.charAt(0)}
           </div>
         ))}
         {assignedClients.length > 3 && (
-          <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-[9px] text-muted-foreground ring-2 ring-card" style={{ fontWeight: 600 }}>
+          <div className="w-6 h-6 rounded-circle bg-muted flex items-center justify-center text-[9px] text-muted-foreground ring-2 ring-card" style={{ fontWeight: 600 }}>
             +{assignedClients.length - 3}
           </div>
         )}
@@ -338,7 +338,7 @@ export function MemberClientAssignments({ memberId, workspaceId }: { memberId: s
       )}
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <button className="w-6 h-6 rounded-full border border-dashed border-border hover:border-primary/40 flex items-center justify-center text-muted-foreground hover:text-primary transition-colors">
+          <button className="w-6 h-6 rounded-circle border border-dashed border-border hover:border-primary/40 flex items-center justify-center text-muted-foreground hover:text-primary transition-colors">
             <Plus className="w-3 h-3" />
           </button>
         </PopoverTrigger>
@@ -372,7 +372,7 @@ export function MemberClientAssignments({ memberId, workspaceId }: { memberId: s
                   onClick={() => handleAssign(c.id)}
                   className="w-full flex items-center gap-2.5 px-2 py-2 rounded-md hover:bg-accent/60 transition-colors text-left"
                 >
-                  <div className="w-6 h-6 rounded-full bg-primary/8 flex items-center justify-center text-[9px] text-primary" style={{ fontWeight: 600 }}>
+                  <div className="w-6 h-6 rounded-circle bg-primary/8 flex items-center justify-center text-[9px] text-primary" style={{ fontWeight: 600 }}>
                     {c.name.charAt(0)}
                   </div>
                   <span className="text-[13px] truncate" style={{ fontWeight: 500 }}>{c.name}</span>

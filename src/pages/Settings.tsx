@@ -517,7 +517,7 @@ function ProfileTab() {
         <SectionHeader title="Personal info" description="Your identity across Aurelo" />
         <div className="flex items-start gap-6 mb-6">
           <div className="relative group flex-shrink-0">
-            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
+            <div className="w-16 h-16 rounded-circle bg-primary/10 flex items-center justify-center overflow-hidden">
               {avatarUrl ? (
                 <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
               ) : (
@@ -533,7 +533,7 @@ function ProfileTab() {
             <button
               onClick={() => avatarInputRef.current?.click()}
               disabled={avatarUploading}
-              className="absolute inset-0 rounded-full bg-black/0 group-hover:bg-black/40 flex items-center justify-center transition-all cursor-pointer"
+                className="absolute inset-0 rounded-circle bg-black/0 group-hover:bg-black/40 flex items-center justify-center transition-all cursor-pointer"
             >
               <span className="opacity-0 group-hover:opacity-100 transition-opacity">
                 {avatarUploading ? (
@@ -581,7 +581,7 @@ function ProfileTab() {
                     toast.error(err.message || "Failed to remove");
                   }
                 }}
-                className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent/60 transition-colors opacity-0 group-hover:opacity-100"
+                className="absolute -bottom-1 -right-1 w-5 h-5 rounded-circle bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent/60 transition-colors opacity-0 group-hover:opacity-100"
                 title="Remove photo"
               >
                 <X className="w-3 h-3" />
@@ -2632,7 +2632,7 @@ function TeamTab({ readOnly = false }: { readOnly?: boolean }) {
                 className="flex flex-wrap items-center gap-x-3 gap-y-2 py-3 px-3 rounded-lg hover:bg-accent/30 transition-colors group"
               >
                 {/* Avatar */}
-                <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <div className="w-9 h-9 rounded-circle bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <span className="text-[12px] text-primary" style={{ fontWeight: 600 }}>
                     {getInitials(member)}
                   </span>
@@ -2757,7 +2757,7 @@ function TeamTab({ readOnly = false }: { readOnly?: boolean }) {
                     key={invite.id}
                     className="flex items-center gap-3 py-3 px-3 rounded-lg hover:bg-accent/20 transition-colors group"
                   >
-                    <div className="w-9 h-9 rounded-full bg-muted/50 flex items-center justify-center flex-shrink-0">
+                    <div className="w-9 h-9 rounded-circle bg-muted/50 flex items-center justify-center flex-shrink-0">
                       <Mail className="w-4 h-4 text-muted-foreground" />
                     </div>
                     <div className="flex-1 min-w-0">

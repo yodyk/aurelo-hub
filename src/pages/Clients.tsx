@@ -206,10 +206,10 @@ export default function Clients() {
                             <img
                               src={faviconUrl}
                               alt={client.name}
-                              className="w-9 h-9 rounded-full object-cover flex-shrink-0 ring-1 ring-border/30"
+                              className="w-9 h-9 rounded-circle object-cover flex-shrink-0 ring-1 ring-border/30"
                             />
                           ) : (
-                            <div className="w-9 h-9 rounded-full bg-primary/8 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/12 transition-colors">
+                            <div className="w-9 h-9 rounded-circle bg-primary/8 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/12 transition-colors">
                               <span className="text-[13px] text-primary" style={{ fontWeight: 600 }}>
                                 {client.name.charAt(0)}
                               </span>
