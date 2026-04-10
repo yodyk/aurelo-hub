@@ -31,7 +31,7 @@ export default function TeamUtilization() {
     if (!workspaceId) return;
     supabase
       .from("workspace_members")
-      .select("id, user_id, name, email, role, status, weekly_capacity")
+      .select("id, user_id, name, email, role, status, weekly_capacity, avatar_url")
       .eq("workspace_id", workspaceId)
       .then(({ data }) => {
         setMembers(
@@ -39,6 +39,7 @@ export default function TeamUtilization() {
             ...m,
             userId: m.user_id,
             weeklyCapacity: m.weekly_capacity ?? 40,
+            avatarUrl: m.avatar_url || null,
           }))
         );
         setLoading(false);
