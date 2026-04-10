@@ -41,12 +41,14 @@ export default function Clients() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showLimitModal, setShowLimitModal] = useState(false);
 
-  const filtered = clients.filter((c) =>
-    c.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const activeClients = filtered.filter((c) => c.status === "Active" || c.status === "Prospect");
-  const archivedClients = filtered.filter((c) => c.status === "Archived");
+  // Sort: active/prospect first, then archived (latest updated first)
+  const sorted = [...filtered].sort((a, b) => {
+    const aArchived = a.status === "Archived" ? 1 : 0;
+    const bArchived = b.status === "Archived" ? 1 : 0;
+    if (aArchived !== bArchived) return aArchived - bArchived;
+    if (aArchived) return new Date(b.updatedAt || b.createdAt || 0).getTime() - new Date(a.updatedAt || a.createdAt || 0).getTime();
+    return 0;
+  });
   const activeCount = clients.filter((c) => c.status === "Active").length;
   const nonArchivedCount = clients.filter((c) => c.status !== "Archived").length;
   const totalMonthly = clients
