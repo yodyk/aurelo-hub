@@ -41,6 +41,10 @@ export default function Clients() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showLimitModal, setShowLimitModal] = useState(false);
 
+  const filtered = clients.filter((c) =>
+    c.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   // Sort: active/prospect first, then archived (latest updated first)
   const sorted = [...filtered].sort((a, b) => {
     const aArchived = a.status === "Archived" ? 1 : 0;
@@ -246,23 +250,9 @@ export default function Clients() {
         </motion.div>
       )}
 
-      {activeClients.length > 0 && (
-        <motion.div variants={item} className="mb-8">
-          <div className="text-[12px] text-muted-foreground mb-3 flex items-center gap-2" style={{ fontWeight: 500 }}>
-            <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-            Active &amp; prospecting
-          </div>
-          {renderTable(activeClients)}
-        </motion.div>
-      )}
-
-      {archivedClients.length > 0 && (
+      {sorted.length > 0 && (
         <motion.div variants={item}>
-          <div className="text-[12px] text-muted-foreground mb-3 flex items-center gap-2" style={{ fontWeight: 500 }}>
-            <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40" />
-            Archived
-          </div>
-          {renderTable(archivedClients, true)}
+          {renderTable(sorted)}
         </motion.div>
       )}
 
