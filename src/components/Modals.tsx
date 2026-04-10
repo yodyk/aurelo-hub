@@ -698,7 +698,7 @@ export function EditClientModal({ open, onClose, client, onSave, workspaceId, is
                 if (old) await sb.storage.from('logos').remove([`${workspaceId}/${old.name}`]);
                 const { error } = await sb.storage.from('logos').upload(path, file, { upsert: true });
                 if (error) throw new Error(error.message);
-                const url = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/${path}`;
+                const url = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/${path}?t=${Date.now()}`;
                 onLogoChange?.('favicon', url);
               } catch (err: any) { console.error(err); }
               finally { setUploadingFavicon(false); }
@@ -751,7 +751,7 @@ export function EditClientModal({ open, onClose, client, onSave, workspaceId, is
                 if (old) await sb.storage.from('logos').remove([`${workspaceId}/${old.name}`]);
                 const { error } = await sb.storage.from('logos').upload(path, file, { upsert: true });
                 if (error) throw new Error(error.message);
-                const url = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/${path}`;
+                const url = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/${path}?t=${Date.now()}`;
                 onLogoChange?.('logo', url);
               } catch (err: any) { console.error(err); }
               finally { setUploadingLogo(false); }
