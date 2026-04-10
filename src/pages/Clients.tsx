@@ -93,7 +93,7 @@ export default function Clients() {
     }
   };
 
-  const renderTable = (clientList: any[], isArchived = false) => (
+  const renderTable = (clientList: any[]) => (
     <div className="bg-card border border-border/60 rounded-xl overflow-hidden">
       <Table>
         <TableHeader>
@@ -103,11 +103,8 @@ export default function Clients() {
             <TableHead className="w-[130px]">Type</TableHead>
             {canViewFinancials && <TableHead className="w-[100px] text-right">Rate</TableHead>}
             <TableHead className="w-[120px] text-right">Sessions</TableHead>
-            {canViewFinancials && !isArchived && (
-              <TableHead className="w-[130px] text-right pr-5">This month</TableHead>
-            )}
-            {canViewFinancials && isArchived && (
-              <TableHead className="w-[130px] text-right pr-5">Lifetime</TableHead>
+            {canViewFinancials && (
+              <TableHead className="w-[130px] text-right pr-5">Revenue</TableHead>
             )}
           </TableRow>
         </TableHeader>
@@ -115,6 +112,7 @@ export default function Clients() {
           {clientList.map((client: any, index: number) => {
             const sc = statusConfig[client.status] || statusConfig.Archived;
             const sessionCount = sessionsThisMonth[client.id] || 0;
+            const isArchived = client.status === "Archived";
             return (
               <motion.tr
                 key={client.id}
@@ -124,10 +122,7 @@ export default function Clients() {
                 className={`border-b border-border/40 last:border-0 transition-colors hover:bg-muted/30 ${isArchived ? "opacity-60 hover:opacity-90" : ""}`}
               >
                 <TableCell className="pl-5 py-3.5">
-                  <Link
-                    to={`/clients/${client.id}`}
-                    className="flex items-center gap-3 group"
-                  >
+                  <Link to={`/clients/${client.id}`} className="flex items-center gap-3 group">
                     <div className="w-9 h-9 rounded-lg bg-primary/8 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/12 transition-colors">
                       <span className="text-[13px] text-primary" style={{ fontWeight: 600 }}>
                         {client.name.charAt(0)}
@@ -178,17 +173,10 @@ export default function Clients() {
                   </span>
                 </TableCell>
 
-                {canViewFinancials && !isArchived && (
+                {canViewFinancials && (
                   <TableCell className="py-3.5 text-right pr-5">
-                    <span className="text-[14px] text-primary tabular-nums" style={{ fontWeight: 600 }}>
-                      ${(client.monthlyEarnings || 0).toLocaleString()}
-                    </span>
-                  </TableCell>
-                )}
-                {canViewFinancials && isArchived && (
-                  <TableCell className="py-3.5 text-right pr-5">
-                    <span className="text-[14px] tabular-nums" style={{ fontWeight: 600 }}>
-                      ${(client.lifetimeRevenue || 0).toLocaleString()}
+                    <span className={`text-[14px] tabular-nums ${isArchived ? "text-foreground" : "text-primary"}`} style={{ fontWeight: 600 }}>
+                      ${(isArchived ? (client.lifetimeRevenue || 0) : (client.monthlyEarnings || 0)).toLocaleString()}
                     </span>
                   </TableCell>
                 )}
