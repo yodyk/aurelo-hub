@@ -101,6 +101,37 @@ const statusColors: Record<string, { bg: string; text: string; dot: string }> = 
   Archived: { bg: "bg-muted", text: "text-muted-foreground", dot: "bg-muted-foreground/50" },
 };
 
+function getRetainerPlanning(customFields: any): { pendingCarryoverHours?: number; nextCycleBaseHours?: number } {
+  if (!customFields || typeof customFields !== 'object' || Array.isArray(customFields)) return {};
+  const system = customFields._system;
+  if (!system || typeof system !== 'object' || Array.isArray(system)) return {};
+  const retainer = system.retainer;
+  if (!retainer || typeof retainer !== 'object' || Array.isArray(retainer)) return {};
+  return retainer;
+}
+
+function updateRetainerPlanning(customFields: any, updates: { pendingCarryoverHours?: number | null; nextCycleBaseHours?: number | null }) {
+  const base = customFields && typeof customFields === 'object' && !Array.isArray(customFields) ? customFields : {};
+  const system = base._system && typeof base._system === 'object' && !Array.isArray(base._system) ? base._system : {};
+  const currentRetainer = system.retainer && typeof system.retainer === 'object' && !Array.isArray(system.retainer) ? system.retainer : {};
+  const nextRetainer: Record<string, any> = { ...currentRetainer, ...updates };
+
+  if (nextRetainer.pendingCarryoverHours == null || Number.isNaN(Number(nextRetainer.pendingCarryoverHours))) {
+    delete nextRetainer.pendingCarryoverHours;
+  }
+  if (nextRetainer.nextCycleBaseHours == null || Number.isNaN(Number(nextRetainer.nextCycleBaseHours))) {
+    delete nextRetainer.nextCycleBaseHours;
+  }
+
+  return {
+    ...base,
+    _system: {
+      ...system,
+      retainer: nextRetainer,
+    },
+  };
+}
+
 // ── Tab definitions ─────────────────────────────────────────────────
 type TabId = "overview" | "details" | "projects" | "sessions" | "retainer" | "files" | "notes" | "checklists" | "portal" | "settings";
 
@@ -1680,10 +1711,22 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
   const [editingCycle, setEditingCycle] = useState(false);
   const [cycleStart, setCycleStart] = useState(client.retainerCycleStart || '');
   const [cycleDays, setCycleDays] = useState(client.retainerCycleDays || 30);
+  const retainerPlanning = getRetainerPlanning(client.customFields);
+  const scheduledCarryoverHours = Math.max(0, Number(retainerPlanning.pendingCarryoverHours || 0));
+  const scheduledBaseHours = Math.max(0, Number(retainerPlanning.nextCycleBaseHours ?? client.retainerTotal ?? 0));
+  const [editingResetPlan, setEditingResetPlan] = useState(false);
+  const [plannedBaseHours, setPlannedBaseHours] = useState(String(scheduledBaseHours));
+  const [plannedCarryoverHours, setPlannedCarryoverHours] = useState(String(scheduledCarryoverHours));
 
   const hoursUsed = (client.retainerTotal || 0) - (client.retainerRemaining || 0);
   const usagePct = client.retainerTotal ? Math.round((hoursUsed / client.retainerTotal) * 100) : 0;
   const retainerStatus = client.retainerStatus || 'active';
+  const nextCycleHours = Math.max(0, (Number(plannedBaseHours) || 0) + (Number(plannedCarryoverHours) || 0));
+
+  useEffect(() => {
+    setPlannedBaseHours(String(scheduledBaseHours));
+    setPlannedCarryoverHours(String(scheduledCarryoverHours));
+  }, [scheduledBaseHours, scheduledCarryoverHours, client.id]);
 
   // Load retainer history
   useEffect(() => {
@@ -1713,6 +1756,10 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
     setResetting(true);
     try {
       const todayStr = new Date().toISOString().split('T')[0];
+      const nextBaseHours = Math.max(0, Number(retainerPlanning.nextCycleBaseHours ?? client.retainerTotal ?? 0));
+      const carryoverHours = Math.max(0, Number(retainerPlanning.pendingCarryoverHours ?? 0));
+      const nextCycleTotal = nextBaseHours + carryoverHours;
+
       // Snapshot current cycle to history
       if (client.retainerCycleStart) {
         await supabase.from('retainer_history').insert({
@@ -1727,11 +1774,20 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
           rate: client.rate || 0,
         });
       }
-      await onUpdateClient({ retainerRemaining: client.retainerTotal, retainerCycleStart: todayStr });
+      await onUpdateClient({
+        retainerTotal: nextCycleTotal,
+        retainerRemaining: nextCycleTotal,
+        retainerCycleStart: todayStr,
+        customFields: updateRetainerPlanning(client.customFields, {
+          nextCycleBaseHours: null,
+          pendingCarryoverHours: null,
+        }),
+      });
       // Reload history
       const { data } = await supabase.from('retainer_history').select('*').eq('client_id', clientId).eq('workspace_id', workspaceId).order('cycle_end', { ascending: false });
       setHistory(data || []);
-      toast.success('Retainer reset successfully');
+      setEditingResetPlan(false);
+      toast.success(carryoverHours > 0 ? `Retainer reset with ${carryoverHours}h carried over` : 'Retainer reset successfully');
     } catch (err) {
       toast.error('Failed to reset retainer');
     } finally {
@@ -1904,6 +1960,88 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
               </button>
             )}
           </div>
+        </div>
+
+        <div className="border-t border-border pt-4 mt-4">
+          <div className="flex items-center justify-between mb-3 gap-3">
+            <div>
+              <span className="text-[12px] text-muted-foreground block" style={{ fontWeight: 600 }}>Next reset adjustment</span>
+              <span className="text-[11px] text-muted-foreground">Plan next cycle hours and any one-time carry-over.</span>
+            </div>
+            {!editingResetPlan ? (
+              <button onClick={() => setEditingResetPlan(true)} className="text-[11px] text-primary hover:text-primary/80 transition-colors" style={{ fontWeight: 500 }}>Edit</button>
+            ) : (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    setPlannedBaseHours(String(scheduledBaseHours));
+                    setPlannedCarryoverHours(String(scheduledCarryoverHours));
+                    setEditingResetPlan(false);
+                  }}
+                  className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+                  style={{ fontWeight: 500 }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      await onUpdateClient({
+                        customFields: updateRetainerPlanning(client.customFields, {
+                          nextCycleBaseHours: Math.max(0, Number(plannedBaseHours) || 0),
+                          pendingCarryoverHours: Math.max(0, Number(plannedCarryoverHours) || 0),
+                        }),
+                      });
+                      setEditingResetPlan(false);
+                      toast.success('Next reset updated');
+                    } catch {
+                      toast.error('Failed to save next reset');
+                    }
+                  }}
+                  className="text-[11px] text-primary hover:text-primary/80 transition-colors"
+                  style={{ fontWeight: 500 }}
+                >
+                  Save
+                </button>
+              </div>
+            )}
+          </div>
+
+          {editingResetPlan ? (
+            <div className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[11px] text-muted-foreground mb-1 block" style={{ fontWeight: 500 }}>Next cycle base hours</label>
+                  <input type="number" value={plannedBaseHours} onChange={(e) => setPlannedBaseHours(e.target.value)} min={0} step="0.25" className="w-full px-3 py-2 text-[13px] bg-input-background border border-border rounded-lg tabular-nums" />
+                </div>
+                <div>
+                  <label className="text-[11px] text-muted-foreground mb-1 block" style={{ fontWeight: 500 }}>Carry-over hours</label>
+                  <input type="number" value={plannedCarryoverHours} onChange={(e) => setPlannedCarryoverHours(e.target.value)} min={0} step="0.25" className="w-full px-3 py-2 text-[13px] bg-input-background border border-border rounded-lg tabular-nums" />
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <button onClick={() => setPlannedCarryoverHours(String(client.retainerRemaining || 0))} className="px-2.5 py-1.5 text-[11px] rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-colors" style={{ fontWeight: 500 }}>
+                  Use current leftover ({client.retainerRemaining || 0}h)
+                </button>
+                <span className="text-[11px] text-muted-foreground">Next cycle will start at <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>{nextCycleHours}h</span>.</span>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-[13px]">
+              <div className="flex items-center justify-between bg-accent/30 rounded-lg px-3 py-2">
+                <span className="text-muted-foreground">Base hours</span>
+                <span className="tabular-nums" style={{ fontWeight: 500 }}>{scheduledBaseHours}h</span>
+              </div>
+              <div className="flex items-center justify-between bg-accent/30 rounded-lg px-3 py-2">
+                <span className="text-muted-foreground">Carry-over</span>
+                <span className="tabular-nums" style={{ fontWeight: 500 }}>{scheduledCarryoverHours}h</span>
+              </div>
+              <div className="flex items-center justify-between bg-accent/30 rounded-lg px-3 py-2">
+                <span className="text-muted-foreground">Next reset starts at</span>
+                <span className="tabular-nums" style={{ fontWeight: 600 }}>{scheduledBaseHours + scheduledCarryoverHours}h</span>
+              </div>
+            </div>
+          )}
         </div>
       </SectionCard>
 
@@ -2176,6 +2314,7 @@ function PortalTab({ client, clientId, portalConfig, portalLoading, copied, onCo
           </>
         )}
       </div>
+
     </SectionCard>
   );
 }

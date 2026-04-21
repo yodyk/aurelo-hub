@@ -907,6 +907,7 @@ export function LogSessionModal({ open, onClose, onSave, clients, preSelectedCli
     setSaving(true);
     try {
       const session: any = {
+        rawDate: sessionDate,
         date: dateStr,
         dateGroup: dateGroupLabel,
         client: selectedClient?.name || '',
