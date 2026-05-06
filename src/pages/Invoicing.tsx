@@ -718,7 +718,7 @@ export default function Invoicing() {
             stripeConnected={stripeConnected}
             onClose={() => setViewingInvoice(null)}
             onSend={() => {
-              handleSend(viewingInvoice.id);
+              handleOpenSend(viewingInvoice);
               setViewingInvoice(null);
             }}
             onMarkPaid={() => {
