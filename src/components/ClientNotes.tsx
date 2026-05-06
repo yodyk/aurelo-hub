@@ -734,7 +734,7 @@ function NoteCard({
         {/* Content — render as HTML from WYSIWYG */}
         <div
           className={`note-rendered-content text-[13px] leading-relaxed ${note.isResolved ? 'line-through text-muted-foreground' : 'text-foreground'}`}
-          dangerouslySetInnerHTML={{ __html: note.content }}
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(note.content, { ALLOWED_TAGS: ['p','br','ul','ol','li','strong','em','s','u','h1','h2','h3','h4','blockquote','code','pre','a','input'], ALLOWED_ATTR: ['href','target','rel','type','checked','disabled'] }) }}
         />
 
         {/* Tags + timestamp */}
