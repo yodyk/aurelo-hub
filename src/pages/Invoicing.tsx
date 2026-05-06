@@ -112,6 +112,7 @@ export default function Invoicing() {
   const [showBatchBuilder, setShowBatchBuilder] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
   const [viewingInvoice, setViewingInvoice] = useState<Invoice | null>(null);
+  const [sendingInvoice, setSendingInvoice] = useState<Invoice | null>(null);
   const [stripeConnected, setStripeConnected] = useState(false);
   const [hideVoided, setHideVoided] = useState(false);
   const [hideArchived, setHideArchived] = useState(true);
@@ -198,14 +199,18 @@ export default function Invoicing() {
     }
   }, []);
 
-  const handleSend = useCallback(async (id: string) => {
+  const handleSend = useCallback(async (id: string, recipientEmail?: string) => {
     try {
-      const saved = await invoiceApi.sendInvoice(id);
+      const saved = await invoiceApi.sendInvoice(id, recipientEmail);
       setInvoices((prev) => prev.map((i) => (i.id === id ? saved : i)));
-      toast.success("Invoice sent");
+      toast.success(`Invoice sent to ${recipientEmail || saved.clientEmail || "client"}`);
     } catch (err: any) {
       toast.error(err.message || "Failed to send invoice");
     }
+  }, []);
+
+  const handleOpenSend = useCallback((inv: Invoice) => {
+    setSendingInvoice(inv);
   }, []);
 
   const handleMarkPaid = useCallback(async (id: string) => {
@@ -612,7 +617,7 @@ export default function Invoicing() {
                         setEditingInvoice(inv);
                         setShowBuilder(true);
                       }}
-                      onSend={() => handleSend(inv.id)}
+                      onSend={() => handleOpenSend(inv)}
                       onMarkPaid={() => handleMarkPaid(inv.id)}
                       onVoid={() => handleVoid(inv.id)}
                       onArchive={() => handleArchive(inv.id)}
@@ -713,7 +718,7 @@ export default function Invoicing() {
             stripeConnected={stripeConnected}
             onClose={() => setViewingInvoice(null)}
             onSend={() => {
-              handleSend(viewingInvoice.id);
+              handleOpenSend(viewingInvoice);
               setViewingInvoice(null);
             }}
             onMarkPaid={() => {
@@ -741,6 +746,21 @@ export default function Invoicing() {
               setShowBatchBuilder(false);
             }}
             onClose={() => setShowBatchBuilder(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Send Invoice Modal — choose recipient email */}
+      <AnimatePresence>
+        {sendingInvoice && (
+          <SendInvoiceModal
+            invoice={sendingInvoice}
+            onClose={() => setSendingInvoice(null)}
+            onConfirm={async (email) => {
+              const inv = sendingInvoice;
+              setSendingInvoice(null);
+              await handleSend(inv.id, email);
+            }}
           />
         )}
       </AnimatePresence>
@@ -2043,5 +2063,116 @@ function LockedInvoicingPreview() {
         </motion.div>
       </motion.div>
     </div>
+  );
+}
+
+// ── Send Invoice Modal ─────────────────────────────────────────────
+function SendInvoiceModal({
+  invoice,
+  onClose,
+  onConfirm,
+}: {
+  invoice: Invoice;
+  onClose: () => void;
+  onConfirm: (email: string) => void | Promise<void>;
+}) {
+  const defaultEmail = invoice.clientEmail || "";
+  const [email, setEmail] = useState(defaultEmail);
+  const [sending, setSending] = useState(false);
+  const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  const overriding = email.trim() && email.trim() !== defaultEmail;
+
+  const submit = async () => {
+    if (!validEmail || sending) return;
+    setSending(true);
+    try {
+      await onConfirm(email.trim());
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.15 }}
+      className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96, y: 8 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.96, y: 8 }}
+        transition={{ duration: 0.18 }}
+        className="bg-card border border-border rounded-2xl w-full max-w-md overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+        style={{ boxShadow: "0 20px 60px rgba(0,0,0,0.18)" }}
+      >
+        <div className="px-5 py-4 border-b border-border flex items-center justify-between">
+          <div>
+            <div className="text-[14px] text-foreground" style={{ fontWeight: 600 }}>
+              Send invoice {invoice.number}
+            </div>
+            <div className="text-[12px] text-muted-foreground">
+              To {invoice.clientName} · {formatCurrency(invoice.total, invoice.currency)}
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-7 h-7 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-all"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        <div className="px-5 py-4 space-y-3">
+          <div className="space-y-1.5">
+            <label className="text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>
+              Send to (billing email)
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="billing@example.com"
+              className="w-full px-3 py-2 text-[13px] bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
+              autoFocus
+            />
+            <div className="text-[11px] text-muted-foreground">
+              {defaultEmail ? (
+                overriding ? (
+                  <span>Overriding the client's contact email ({defaultEmail}). The invoice will only be sent to the address above.</span>
+                ) : (
+                  <span>Defaulting to the client's contact email. Change it if billing goes to a different address.</span>
+                )
+              ) : (
+                <span>This client has no contact email — enter the billing email to send to.</span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="px-5 py-3 border-t border-border flex items-center justify-end gap-2 bg-accent/10">
+          <button
+            onClick={onClose}
+            className="px-3 py-2 text-[13px] text-muted-foreground hover:text-foreground transition-colors"
+            style={{ fontWeight: 500 }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={submit}
+            disabled={!validEmail || sending}
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all"
+            style={{ fontWeight: 600, opacity: !validEmail || sending ? 0.4 : 1, cursor: !validEmail || sending ? "not-allowed" : "pointer" }}
+          >
+            <Send className="w-3.5 h-3.5" />
+            {sending ? "Sending…" : "Send invoice"}
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
   );
 }

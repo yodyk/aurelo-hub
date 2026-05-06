@@ -24,6 +24,7 @@ interface InvoiceLineItem {
 
 interface InvoicePayload {
   invoiceId: string;
+  recipientEmail?: string;
 }
 
 function formatCurrency(amount: number, currency: string): string {
@@ -225,8 +226,18 @@ Deno.serve(async (req) => {
     if (userErr || !userData.user) throw new Error("Unauthorized");
     log("User authenticated", { userId: userData.user.id });
 
-    const { invoiceId } = (await req.json()) as InvoicePayload;
+    const { invoiceId, recipientEmail: rawRecipient } = (await req.json()) as InvoicePayload;
     if (!invoiceId) throw new Error("invoiceId is required");
+
+    // Validate optional recipient override
+    let recipientOverride: string | undefined;
+    if (rawRecipient && rawRecipient.trim()) {
+      const trimmed = rawRecipient.trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+        throw new Error("Invalid recipient email address");
+      }
+      recipientOverride = trimmed;
+    }
 
     // Get workspace
     const { data: member } = await supabase
@@ -247,10 +258,12 @@ Deno.serve(async (req) => {
       .eq("workspace_id", workspaceId)
       .maybeSingle();
     if (invErr || !invoice) throw new Error("Invoice not found");
-    log("Invoice loaded", { number: invoice.number, clientEmail: invoice.client_email });
 
-    if (!invoice.client_email) {
-      throw new Error("No client email on this invoice. Add a client email to send.");
+    const recipient = recipientOverride || invoice.client_email;
+    log("Invoice loaded", { number: invoice.number, recipient });
+
+    if (!recipient) {
+      throw new Error("No recipient email. Add a billing email or pass recipientEmail.");
     }
 
     // Get workspace settings for branding
@@ -306,7 +319,7 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         from: `${senderName} <noreply@getaurelo.com>`,
-        to: [invoice.client_email],
+        to: [recipient],
         subject: `Invoice ${invoice.number} from ${senderName} — ${formatCurrency(Number(invoice.total) || 0, invoice.currency || "USD")}`,
         html,
       }),
@@ -319,7 +332,7 @@ Deno.serve(async (req) => {
       throw new Error(`Failed to send email: ${result?.message || res.statusText}`);
     }
 
-    log("Email sent successfully", { resendId: result.id, to: invoice.client_email });
+    log("Email sent successfully", { resendId: result.id, to: recipient });
 
     return new Response(
       JSON.stringify({ success: true, resendEmailId: result.id }),
