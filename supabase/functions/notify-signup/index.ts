@@ -10,7 +10,36 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Authenticate caller: must be a signed-in user
+    const authHeader = req.headers.get('Authorization') || '';
+    const token = authHeader.replace('Bearer ', '');
+    if (!token) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const { createClient } = await import('npm:@supabase/supabase-js@2.57.2');
+    const sb = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: `Bearer ${token}` } } },
+    );
+    const { data: userData, error: userErr } = await sb.auth.getUser(token);
+    if (userErr || !userData?.user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const { userName, userEmail, workspaceId } = await req.json();
+
+    const escapeHtml = (s: string) =>
+      String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    const safeName = escapeHtml(userName);
+    const safeEmail = escapeHtml(userEmail);
+    const safeWorkspaceId = encodeURIComponent(String(workspaceId ?? ''));
+    const safeWorkspaceIdHtml = escapeHtml(workspaceId);
 
     const approveSecret = Deno.env.get('APPROVE_SECRET');
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -24,15 +53,15 @@ Deno.serve(async (req) => {
       });
     }
 
-    const approveUrl = `${supabaseUrl}/functions/v1/approve-user?workspace_id=${workspaceId}&token=${approveSecret}`;
+    const approveUrl = `${supabaseUrl}/functions/v1/approve-user?workspace_id=${safeWorkspaceId}&token=${approveSecret}`;
 
     const html = `
       <div style="font-family:system-ui,-apple-system,sans-serif;max-width:500px;margin:0 auto;padding:24px">
         <h2 style="font-size:18px;color:#1c1c1c;margin:0 0 16px">New Aurelo Signup — Approval Needed</h2>
         <div style="background:#f9f9f8;border:1px solid #e5e5e5;border-radius:12px;padding:20px;margin-bottom:20px">
-          <p style="margin:0 0 8px;font-size:14px;color:#717182"><strong style="color:#1c1c1c">Name:</strong> ${userName}</p>
-          <p style="margin:0 0 8px;font-size:14px;color:#717182"><strong style="color:#1c1c1c">Email:</strong> ${userEmail}</p>
-          <p style="margin:0;font-size:14px;color:#717182"><strong style="color:#1c1c1c">Workspace ID:</strong> ${workspaceId}</p>
+          <p style="margin:0 0 8px;font-size:14px;color:#717182"><strong style="color:#1c1c1c">Name:</strong> ${safeName}</p>
+          <p style="margin:0 0 8px;font-size:14px;color:#717182"><strong style="color:#1c1c1c">Email:</strong> ${safeEmail}</p>
+          <p style="margin:0;font-size:14px;color:#717182"><strong style="color:#1c1c1c">Workspace ID:</strong> ${safeWorkspaceIdHtml}</p>
         </div>
         <a href="${approveUrl}" style="display:inline-block;padding:10px 24px;background:#2e7d9a;color:#fff;text-decoration:none;border-radius:8px;font-size:14px;font-weight:500">
           Approve this user
