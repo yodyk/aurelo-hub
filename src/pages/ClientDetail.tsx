@@ -2271,60 +2271,149 @@ function ChecklistsTab({ clientId, workspaceId }: { clientId: string; workspaceI
 // ═══════════════════════════════════════════════════════════════════
 // Portal Tab
 // ═══════════════════════════════════════════════════════════════════
-function PortalTab({ client, clientId, portalConfig, portalLoading, copied, onCopyPortalLink, onGeneratePortal, onTogglePortal }: any) {
+function PortalTab({ client, clientId, portalConfig, portalLoading, copied, onCopyPortalLink, onGeneratePortal, onTogglePortal, onEmailPortalLink }: any) {
+  const [recipientEmail, setRecipientEmail] = useState<string>(client.contactEmail || "");
+  const [message, setMessage] = useState("");
+  const [sending, setSending] = useState(false);
+  const [showCopyFallback, setShowCopyFallback] = useState(false);
+
+  const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipientEmail.trim());
+
+  const handleSend = async () => {
+    if (!validEmail || sending) return;
+    setSending(true);
+    try {
+      await onEmailPortalLink(recipientEmail.trim(), message.trim() || undefined);
+      toast.success(`Portal link emailed to ${recipientEmail.trim()}`);
+      setMessage("");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to send portal link");
+    } finally {
+      setSending(false);
+    }
+  };
+
   return (
     <SectionCard>
       <SectionHeader>Client Portal</SectionHeader>
-      <div className="space-y-4">
+      <div className="space-y-5">
         <div className="text-[13px] text-muted-foreground">
-          Generate a read-only portal link to share with this client. They'll see project progress, time logged, and{" "}
+          Share a private read-only portal with this client. They'll see project progress, time logged, and{" "}
           {client.showPortalCosts !== false ? "billing totals" : "activity only (costs hidden)"}.
+          <span className="block mt-1.5 text-[12px]">
+            <strong className="text-foreground">Sending by email is recommended</strong> — the link goes only to the inbox you specify, instead of being copied where it could be forwarded by mistake.
+          </span>
         </div>
-        {!portalConfig ? (
-          <button onClick={onGeneratePortal} disabled={portalLoading} className="inline-flex items-center gap-2 px-4 py-2 text-[12px] bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all disabled:opacity-60" style={{ fontWeight: 600 }}>
-            {portalLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Link2 className="w-3.5 h-3.5" />}
-            Generate portal link
-          </button>
-        ) : (
-          <>
-            <div className="flex items-center justify-between p-3 bg-accent/20 rounded-lg">
-              <div className="flex items-center gap-2">
-                <div className={`w-2 h-2 rounded-circle ${portalConfig.active ? "bg-[#2e7d9a]" : "bg-zinc-300"}`} />
-                <span className="text-[13px]" style={{ fontWeight: 500 }}>{portalConfig.active ? "Portal is live" : "Portal is deactivated"}</span>
-              </div>
-              <button
-                onClick={() => onTogglePortal(!portalConfig.active)}
-                className={`px-3 py-1 text-[12px] rounded-md transition-all ${portalConfig.active ? "text-zinc-500 hover:bg-zinc-100" : "text-primary bg-primary/8 hover:bg-primary/12"}`}
-                style={{ fontWeight: 500 }}
-              >
-                {portalConfig.active ? "Deactivate" : "Activate"}
-              </button>
-            </div>
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-              <div className="flex-1 min-w-0 px-3 py-2 text-[13px] bg-accent/30 border border-border rounded-lg text-muted-foreground truncate tabular-nums" style={{ fontFamily: "ui-monospace, monospace" }}>
-                {window.location.origin}/portal/{portalConfig.token}
-              </div>
-              <div className="flex gap-2">
-                <button onClick={onCopyPortalLink} className="inline-flex items-center gap-1.5 px-3 py-2 text-[13px] bg-primary/8 text-primary rounded-lg hover:bg-primary/12 transition-all flex-1 sm:flex-none justify-center" style={{ fontWeight: 500 }}>
-                  {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                  {copied ? "Copied" : "Copy"}
-                </button>
-                <a href={`/portal/${portalConfig.token}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-3 py-2 text-[13px] border border-border rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-all flex-1 sm:flex-none justify-center" style={{ fontWeight: 500 }}>
-                  <ExternalLink className="w-3.5 h-3.5" /> Preview
-                </a>
-              </div>
-            </div>
-            <div className="text-[12px] text-muted-foreground flex items-center gap-1.5">
-              <div className="w-1 h-1 rounded-circle bg-muted-foreground/40" />
-              {client.showPortalCosts !== false ? "Billing totals are visible to the client on this portal" : "Financial data is hidden — client sees hours and activity only"}
-            </div>
-            <button onClick={onGeneratePortal} disabled={portalLoading} className="text-[12px] text-muted-foreground hover:text-foreground transition-colors" style={{ fontWeight: 500 }}>
-              {portalLoading ? "Generating..." : "Regenerate link (invalidates old link)"}
-            </button>
-          </>
-        )}
-      </div>
 
+        {portalConfig && (
+          <div className="flex items-center justify-between p-3 bg-accent/20 rounded-lg">
+            <div className="flex items-center gap-2">
+              <div className={`w-2 h-2 rounded-circle ${portalConfig.active ? "bg-[#2e7d9a]" : "bg-zinc-300"}`} />
+              <span className="text-[13px]" style={{ fontWeight: 500 }}>{portalConfig.active ? "Portal is live" : "Portal is deactivated"}</span>
+            </div>
+            <button
+              onClick={() => onTogglePortal(!portalConfig.active)}
+              className={`px-3 py-1 text-[12px] rounded-md transition-all ${portalConfig.active ? "text-zinc-500 hover:bg-zinc-100" : "text-primary bg-primary/8 hover:bg-primary/12"}`}
+              style={{ fontWeight: 500 }}
+            >
+              {portalConfig.active ? "Deactivate" : "Activate"}
+            </button>
+          </div>
+        )}
+
+        {/* Email send — primary path */}
+        <div className="space-y-3 p-4 rounded-xl border border-primary/20 bg-primary/[0.03]">
+          <div className="flex items-center gap-2">
+            <Mail className="w-3.5 h-3.5 text-primary" />
+            <span className="text-[12px] uppercase tracking-wider text-primary" style={{ fontWeight: 600, letterSpacing: '0.08em' }}>Send portal link by email</span>
+            <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary/10 text-primary" style={{ fontWeight: 600 }}>Recommended</span>
+          </div>
+          <div className="space-y-2">
+            <label className="text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Recipient email</label>
+            <input
+              type="email"
+              value={recipientEmail}
+              onChange={(e) => setRecipientEmail(e.target.value)}
+              placeholder="client@example.com"
+              className="w-full px-3 py-2 text-[13px] bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Optional note <span className="text-muted-foreground/60">({message.length}/1000)</span></label>
+            <textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value.slice(0, 1000))}
+              rows={3}
+              placeholder="Hi! Here's the link to track progress on your project…"
+              className="w-full px-3 py-2 text-[13px] bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all resize-none"
+            />
+          </div>
+          <div className="flex items-center justify-between gap-3 pt-1">
+            <div className="text-[11px] text-muted-foreground">
+              {portalConfig ? "Existing link will be reused." : "A portal link will be generated and emailed automatically."}
+            </div>
+            <button
+              onClick={handleSend}
+              disabled={!validEmail || sending}
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all"
+              style={{ fontWeight: 600, opacity: !validEmail || sending ? 0.4 : 1, cursor: !validEmail || sending ? 'not-allowed' : 'pointer' }}
+            >
+              {sending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+              {sending ? "Sending…" : "Send portal link"}
+            </button>
+          </div>
+        </div>
+
+        {/* Copy link — fallback */}
+        <div>
+          {!showCopyFallback ? (
+            <button
+              onClick={() => setShowCopyFallback(true)}
+              className="text-[12px] text-muted-foreground hover:text-foreground transition-colors underline-offset-2 hover:underline"
+              style={{ fontWeight: 500 }}
+            >
+              Or get a shareable link instead
+            </button>
+          ) : (
+            <div className="space-y-2">
+              <div className="text-[11px] text-muted-foreground" style={{ fontWeight: 500 }}>
+                Anyone with this link can view the portal — only share with the right people.
+              </div>
+              {!portalConfig ? (
+                <button onClick={onGeneratePortal} disabled={portalLoading} className="inline-flex items-center gap-2 px-3 py-2 text-[12px] bg-card border border-border rounded-lg hover:bg-accent/40 transition-all" style={{ fontWeight: 500 }}>
+                  {portalLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Link2 className="w-3.5 h-3.5" />}
+                  Generate portal link
+                </button>
+              ) : (
+                <>
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                    <div className="flex-1 min-w-0 px-3 py-2 text-[13px] bg-accent/30 border border-border rounded-lg text-muted-foreground truncate tabular-nums" style={{ fontFamily: "ui-monospace, monospace" }}>
+                      {window.location.origin}/portal/{portalConfig.token}
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={onCopyPortalLink} className="inline-flex items-center gap-1.5 px-3 py-2 text-[13px] bg-primary/8 text-primary rounded-lg hover:bg-primary/12 transition-all flex-1 sm:flex-none justify-center" style={{ fontWeight: 500 }}>
+                        {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                        {copied ? "Copied" : "Copy"}
+                      </button>
+                      <a href={`/portal/${portalConfig.token}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-3 py-2 text-[13px] border border-border rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-all flex-1 sm:flex-none justify-center" style={{ fontWeight: 500 }}>
+                        <ExternalLink className="w-3.5 h-3.5" /> Preview
+                      </a>
+                    </div>
+                  </div>
+                  <button onClick={onGeneratePortal} disabled={portalLoading} className="text-[12px] text-muted-foreground hover:text-foreground transition-colors" style={{ fontWeight: 500 }}>
+                    {portalLoading ? "Generating..." : "Regenerate link (invalidates old link)"}
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="text-[12px] text-muted-foreground flex items-center gap-1.5">
+          <div className="w-1 h-1 rounded-circle bg-muted-foreground/40" />
+          {client.showPortalCosts !== false ? "Billing totals are visible to the client on this portal" : "Financial data is hidden — client sees hours and activity only"}
+        </div>
+      </div>
     </SectionCard>
   );
 }
