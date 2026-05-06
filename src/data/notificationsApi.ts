@@ -332,11 +332,16 @@ export const NotificationEvents = {
         const shouldEmail = prefs?.email !== false;
 
         if (shouldEmail) {
+          const { data: sessionData } = await supabase.auth.getSession();
+          const accessToken = sessionData?.session?.access_token;
           const res = await fetch(
             `https://${SUPABASE_PROJECT_ID}.supabase.co/functions/v1/send-retainer-email`,
             {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: {
+                'Content-Type': 'application/json',
+                ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+              },
               body: JSON.stringify({
                 clientName,
                 clientEmail: meta.clientEmail,
