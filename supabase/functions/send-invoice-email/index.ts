@@ -24,6 +24,7 @@ interface InvoiceLineItem {
 
 interface InvoicePayload {
   invoiceId: string;
+  recipientEmail?: string;
 }
 
 function formatCurrency(amount: number, currency: string): string {
