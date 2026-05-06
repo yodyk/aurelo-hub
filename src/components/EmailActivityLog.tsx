@@ -92,13 +92,22 @@ export default function EmailActivityLog({ clientId }: { clientId?: string }) {
     setLoading(true);
 
     (async () => {
+      // Include all events that send emails to clients: retainer warnings,
+      // invoices sent, invoice reminders, and portal link emails.
+      const EMAIL_EVENT_TYPES = [
+        'retainer_warning',
+        'invoice_sent',
+        'invoice_reminder_sent',
+        'portal_link_sent',
+      ];
       let query = supabase
         .from("notifications")
-        .select("id, title, body, created_at, email_sent, metadata")
+        .select("id, title, body, created_at, email_sent, metadata, event_type, category")
         .eq("workspace_id", workspaceId)
-        .eq("event_type", "retainer_warning")
+        .in("event_type", EMAIL_EVENT_TYPES)
+        .eq("email_sent", true)
         .order("created_at", { ascending: false })
-        .limit(100);
+        .limit(200);
 
       if (clientId) {
         query = query.contains("metadata", { clientId });
