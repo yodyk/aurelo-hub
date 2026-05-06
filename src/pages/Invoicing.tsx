@@ -1837,14 +1837,14 @@ function InvoiceDetail({
               {invoice.stripePaymentUrl ? "Refresh link" : "Get payment link"}
             </button>
           )}
-          {invoice.status === "draft" && (
+          {(invoice.status === "draft" || invoice.status === "sent" || invoice.status === "overdue") && (
             <button
               onClick={onSend}
               className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] bg-[#2e7d9a] text-white rounded-lg hover:opacity-90 transition-all"
               style={{ fontWeight: 500 }}
             >
               <Send className="w-3.5 h-3.5" />
-              Send invoice
+              {invoice.status === "draft" ? "Send invoice" : "Resend email"}
             </button>
           )}
           {invoice.status === "sent" && (
