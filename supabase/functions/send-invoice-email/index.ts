@@ -319,7 +319,7 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         from: `${senderName} <noreply@getaurelo.com>`,
-        to: [invoice.client_email],
+        to: [recipient],
         subject: `Invoice ${invoice.number} from ${senderName} — ${formatCurrency(Number(invoice.total) || 0, invoice.currency || "USD")}`,
         html,
       }),
