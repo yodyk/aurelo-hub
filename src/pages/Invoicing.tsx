@@ -902,14 +902,14 @@ function InvoiceRow({
                     Edit
                   </button>
                 )}
-                {invoice.status === "draft" && (
+                {(invoice.status === "draft" || invoice.status === "sent" || invoice.status === "overdue") && (
                   <button
                     onClick={() => { onSend(); setMenuOpen(false); }}
                     className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-primary hover:bg-primary/8 transition-colors"
                     style={{ fontWeight: 500 }}
                   >
                     <Send className="w-3 h-3" />
-                    Send invoice
+                    {invoice.status === "draft" ? "Send invoice" : "Resend email"}
                   </button>
                 )}
                 {invoice.status === "sent" && (
