@@ -332,7 +332,7 @@ Deno.serve(async (req) => {
       throw new Error(`Failed to send email: ${result?.message || res.statusText}`);
     }
 
-    log("Email sent successfully", { resendId: result.id, to: invoice.client_email });
+    log("Email sent successfully", { resendId: result.id, to: recipient });
 
     return new Response(
       JSON.stringify({ success: true, resendEmailId: result.id }),
