@@ -2413,6 +2413,19 @@ function PortalTab({ client, clientId, portalConfig, portalLoading, copied, onCo
           <div className="w-1 h-1 rounded-circle bg-muted-foreground/40" />
           {client.showPortalCosts !== false ? "Billing totals are visible to the client on this portal" : "Financial data is hidden — client sees hours and activity only"}
         </div>
+
+        {/* Email activity for this client */}
+        {clientId && (
+          <div className="pt-5 border-t border-border space-y-3">
+            <div>
+              <div className="text-[13px] text-foreground" style={{ fontWeight: 600 }}>Email activity for this client</div>
+              <div className="text-[11px] text-muted-foreground mt-0.5">
+                Per-email delivery status (queued, sent, delivered, bounced) with timestamps.
+              </div>
+            </div>
+            <EmailActivityLog clientId={clientId} />
+          </div>
+        )}
       </div>
     </SectionCard>
   );
