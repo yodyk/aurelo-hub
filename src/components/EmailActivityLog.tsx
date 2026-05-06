@@ -76,7 +76,7 @@ function getDateBoundary(preset: DatePreset): Date | null {
   }
 }
 
-export default function EmailActivityLog({ clientId }: { clientId?: string }) {
+export default function EmailActivityLog({ clientId, invoiceId }: { clientId?: string; invoiceId?: string }) {
   const { workspaceId } = useAuth();
   const [notifications, setNotifications] = useState<NotificationWithEvents[]>([]);
   const [loading, setLoading] = useState(true);
@@ -112,6 +112,9 @@ export default function EmailActivityLog({ clientId }: { clientId?: string }) {
       if (clientId) {
         query = query.contains("metadata", { clientId });
       }
+      if (invoiceId) {
+        query = query.contains("metadata", { invoiceId });
+      }
 
       const { data: notifs } = await query;
       if (!notifs || notifs.length === 0) {
@@ -143,7 +146,7 @@ export default function EmailActivityLog({ clientId }: { clientId?: string }) {
       );
       setLoading(false);
     })();
-  }, [workspaceId, clientId]);
+  }, [workspaceId, clientId, invoiceId]);
 
   // Client-side filtering
   const filtered = useMemo(() => {

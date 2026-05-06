@@ -38,6 +38,7 @@ import { supabase } from "@/integrations/supabase/client";
 import * as invoiceApi from "../data/invoiceApi";
 import type { Invoice, LineItem, InvoiceStatus } from "../data/invoiceApi";
 import BatchInvoiceBuilder from "../components/BatchInvoiceBuilder";
+import EmailActivityLog from "../components/EmailActivityLog";
 import { friendlyPaymentTerms, PAYMENT_TERMS_OPTIONS } from "../data/paymentTermsMap";
 
 // ── Constants ──────────────────────────────────────────────────────
@@ -902,14 +903,14 @@ function InvoiceRow({
                     Edit
                   </button>
                 )}
-                {invoice.status === "draft" && (
+                {(invoice.status === "draft" || invoice.status === "sent" || invoice.status === "overdue") && (
                   <button
                     onClick={() => { onSend(); setMenuOpen(false); }}
                     className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-primary hover:bg-primary/8 transition-colors"
                     style={{ fontWeight: 500 }}
                   >
                     <Send className="w-3 h-3" />
-                    Send invoice
+                    {invoice.status === "draft" ? "Send invoice" : "Resend email"}
                   </button>
                 )}
                 {invoice.status === "sent" && (
@@ -1803,6 +1804,14 @@ function InvoiceDetail({
             {invoice.issuedDate && <span>Issued {formatDate(invoice.issuedDate)}</span>}
             {invoice.paidDate && <span>Paid {formatDate(invoice.paidDate)}</span>}
           </div>
+
+          {/* Email delivery activity for this invoice */}
+          {(invoice.status === "sent" || invoice.status === "overdue" || invoice.status === "paid") && (
+            <div className="pt-4 border-t border-border">
+              <div className="text-[12px] mb-2" style={{ fontWeight: 600 }}>Email activity</div>
+              <EmailActivityLog invoiceId={invoice.id} />
+            </div>
+          )}
         </div>
 
         {/* Payment link */}
@@ -1837,14 +1846,14 @@ function InvoiceDetail({
               {invoice.stripePaymentUrl ? "Refresh link" : "Get payment link"}
             </button>
           )}
-          {invoice.status === "draft" && (
+          {(invoice.status === "draft" || invoice.status === "sent" || invoice.status === "overdue") && (
             <button
               onClick={onSend}
               className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] bg-[#2e7d9a] text-white rounded-lg hover:opacity-90 transition-all"
               style={{ fontWeight: 500 }}
             >
               <Send className="w-3.5 h-3.5" />
-              Send invoice
+              {invoice.status === "draft" ? "Send invoice" : "Resend email"}
             </button>
           )}
           {invoice.status === "sent" && (
