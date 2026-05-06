@@ -192,7 +192,7 @@ export default function EmailActivityLog({ clientId }: { clientId?: string }) {
     return (
       <div className="text-center py-8">
         <Mail className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
-        <div className="text-[13px] text-muted-foreground">No retainer emails sent yet</div>
+        <div className="text-[13px] text-muted-foreground">No client emails sent yet</div>
       </div>
     );
   }
