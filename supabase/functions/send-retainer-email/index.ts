@@ -141,6 +141,29 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Require authenticated caller — prevents open email-relay abuse
+  const authHeader = req.headers.get('Authorization') || '';
+  const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+  if (!token) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+  const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+  const authClient = createClient(supabaseUrl, anonKey, {
+    global: { headers: { Authorization: `Bearer ${token}` } },
+  });
+  const { data: userData, error: userErr } = await authClient.auth.getUser(token);
+  if (userErr || !userData?.user) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
   const resendKey = Deno.env.get('RESEND_API_KEY');
   if (!resendKey) {
     console.error('RESEND_API_KEY is not configured');
@@ -156,6 +179,20 @@ Deno.serve(async (req) => {
     if (!payload.clientEmail || !payload.clientName) {
       return new Response(JSON.stringify({ error: 'clientEmail and clientName are required' }), {
         status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Verify the clientEmail matches a real client in a workspace the caller belongs to
+    const { data: matchingClient } = await authClient
+      .from('clients')
+      .select('id')
+      .eq('contact_email', payload.clientEmail)
+      .limit(1)
+      .maybeSingle();
+    if (!matchingClient) {
+      return new Response(JSON.stringify({ error: 'Recipient not found in your workspace' }), {
+        status: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
