@@ -112,6 +112,7 @@ export default function Invoicing() {
   const [showBatchBuilder, setShowBatchBuilder] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
   const [viewingInvoice, setViewingInvoice] = useState<Invoice | null>(null);
+  const [sendingInvoice, setSendingInvoice] = useState<Invoice | null>(null);
   const [stripeConnected, setStripeConnected] = useState(false);
   const [hideVoided, setHideVoided] = useState(false);
   const [hideArchived, setHideArchived] = useState(true);
