@@ -505,6 +505,15 @@ export default function ClientDetail() {
     } catch (err: any) { toast.error(err.message || "Failed to toggle portal"); }
   };
 
+  const handleEmailPortalLink = async (recipientEmail: string, message?: string) => {
+    if (!clientId) throw new Error("No client");
+    const result = await portalApi.emailPortalLink(clientId, recipientEmail, message);
+    // Refresh portal config in case it was just generated
+    const config = await portalApi.getPortalConfig(clientId);
+    if (config) setPortalConfig(config);
+    return result;
+  };
+
   // Bulk actions
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; });
