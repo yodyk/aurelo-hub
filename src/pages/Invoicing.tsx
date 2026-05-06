@@ -38,6 +38,7 @@ import { supabase } from "@/integrations/supabase/client";
 import * as invoiceApi from "../data/invoiceApi";
 import type { Invoice, LineItem, InvoiceStatus } from "../data/invoiceApi";
 import BatchInvoiceBuilder from "../components/BatchInvoiceBuilder";
+import EmailActivityLog from "../components/EmailActivityLog";
 import { friendlyPaymentTerms, PAYMENT_TERMS_OPTIONS } from "../data/paymentTermsMap";
 
 // ── Constants ──────────────────────────────────────────────────────
