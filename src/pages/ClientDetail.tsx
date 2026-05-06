@@ -827,6 +827,7 @@ export default function ClientDetail() {
                   onCopyPortalLink={handleCopyPortalLink}
                   onGeneratePortal={handleGeneratePortal}
                   onTogglePortal={handleTogglePortal}
+                  onEmailPortalLink={handleEmailPortalLink}
                 />
               )}
               {activeTab === "settings" && (
