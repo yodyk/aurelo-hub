@@ -193,15 +193,17 @@ export async function deleteInvoice(invoiceId: string): Promise<void> {
   if (error) throw new Error(error.message);
 }
 
-export async function sendInvoice(invoiceId: string): Promise<Invoice> {
+export async function sendInvoice(invoiceId: string, recipientEmail?: string): Promise<Invoice> {
   const saved = await updateInvoice(invoiceId, {
     status: 'sent',
     issuedDate: new Date().toISOString(),
   });
 
+  const recipient = (recipientEmail || saved.clientEmail || '').trim();
+
   // Send email to client in background — don't block the UI on failure
   supabase.functions.invoke('send-invoice-email', {
-    body: { invoiceId },
+    body: { invoiceId, recipientEmail: recipient || undefined },
   }).then(async ({ error, data }) => {
     if (error || data?.error) {
       console.warn('[invoiceApi] Invoice email failed:', error?.message || data?.error);
@@ -216,12 +218,13 @@ export async function sendInvoice(invoiceId: string): Promise<Invoice> {
         category: 'invoice',
         event_type: 'invoice_sent',
         title: `Invoice ${saved.number} sent`,
-        body: `Sent to ${saved.clientName}${saved.clientEmail ? ` (${saved.clientEmail})` : ''}`,
+        body: `Sent to ${saved.clientName}${recipient ? ` (${recipient})` : ''}`,
         email_sent: true,
         metadata: {
           invoiceId: saved.id,
           clientId: saved.clientId,
-          clientEmail: saved.clientEmail,
+          clientEmail: recipient || saved.clientEmail,
+          recipientOverride: recipient && recipient !== saved.clientEmail ? recipient : undefined,
           resend_email_id: data?.resendEmailId,
         },
       });
