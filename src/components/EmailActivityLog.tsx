@@ -146,7 +146,7 @@ export default function EmailActivityLog({ clientId, invoiceId }: { clientId?: s
       );
       setLoading(false);
     })();
-  }, [workspaceId, clientId]);
+  }, [workspaceId, clientId, invoiceId]);
 
   // Client-side filtering
   const filtered = useMemo(() => {
