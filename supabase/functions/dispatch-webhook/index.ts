@@ -27,7 +27,9 @@ Deno.serve(async (req) => {
     const authHeader = req.headers.get('Authorization') || '';
     const cronSecret = req.headers.get('x-cron-secret');
     const internalSecret = Deno.env.get('CRON_SECRET');
-    const isInternal = internalSecret && cronSecret === internalSecret;
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const bearerToken = authHeader.replace('Bearer ', '');
+    const isInternal = (internalSecret && cronSecret === internalSecret) || bearerToken === serviceRoleKey;
 
     if (!isInternal) {
       const token = authHeader.replace('Bearer ', '');
