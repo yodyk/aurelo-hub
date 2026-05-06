@@ -202,11 +202,29 @@ export async function sendInvoice(invoiceId: string): Promise<Invoice> {
   // Send email to client in background — don't block the UI on failure
   supabase.functions.invoke('send-invoice-email', {
     body: { invoiceId },
-  }).then(({ error, data }) => {
+  }).then(async ({ error, data }) => {
     if (error || data?.error) {
       console.warn('[invoiceApi] Invoice email failed:', error?.message || data?.error);
-    } else {
-      console.log('[invoiceApi] Invoice email sent:', data?.resendEmailId);
+      return;
+    }
+    console.log('[invoiceApi] Invoice email sent:', data?.resendEmailId);
+    // Log to activity feed so it shows up in the email log with delivery tracking
+    const wsId = await getWorkspaceId();
+    if (wsId) {
+      await supabase.from('notifications').insert({
+        workspace_id: wsId,
+        category: 'invoice',
+        event_type: 'invoice_sent',
+        title: `Invoice ${saved.number} sent`,
+        body: `Sent to ${saved.clientName}${saved.clientEmail ? ` (${saved.clientEmail})` : ''}`,
+        email_sent: true,
+        metadata: {
+          invoiceId: saved.id,
+          clientId: saved.clientId,
+          clientEmail: saved.clientEmail,
+          resend_email_id: data?.resendEmailId,
+        },
+      });
     }
   });
 

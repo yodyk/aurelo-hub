@@ -3374,7 +3374,7 @@ function NotificationsTab() {
 
       {/* Email Activity Log — all clients */}
       <SectionCard>
-        <SectionHeader title="Email activity log" description="All retainer warning emails sent across your workspace with delivery tracking" />
+        <SectionHeader title="Email activity log" description="All client-facing emails sent across your workspace — retainer warnings, invoices, reminders, and portal links — with delivery tracking" />
         <EmailActivityLog />
       </SectionCard>
     </motion.div>
