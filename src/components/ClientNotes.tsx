@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
+import DOMPurify from 'dompurify';
 import * as notesApi from '../data/notesApi';
 import type { ClientNote, NoteType } from '../data/notesApi';
 
