@@ -199,14 +199,18 @@ export default function Invoicing() {
     }
   }, []);
 
-  const handleSend = useCallback(async (id: string) => {
+  const handleSend = useCallback(async (id: string, recipientEmail?: string) => {
     try {
-      const saved = await invoiceApi.sendInvoice(id);
+      const saved = await invoiceApi.sendInvoice(id, recipientEmail);
       setInvoices((prev) => prev.map((i) => (i.id === id ? saved : i)));
-      toast.success("Invoice sent");
+      toast.success(`Invoice sent to ${recipientEmail || saved.clientEmail || "client"}`);
     } catch (err: any) {
       toast.error(err.message || "Failed to send invoice");
     }
+  }, []);
+
+  const handleOpenSend = useCallback((inv: Invoice) => {
+    setSendingInvoice(inv);
   }, []);
 
   const handleMarkPaid = useCallback(async (id: string) => {
