@@ -749,6 +749,21 @@ export default function Invoicing() {
           />
         )}
       </AnimatePresence>
+
+      {/* Send Invoice Modal — choose recipient email */}
+      <AnimatePresence>
+        {sendingInvoice && (
+          <SendInvoiceModal
+            invoice={sendingInvoice}
+            onClose={() => setSendingInvoice(null)}
+            onConfirm={async (email) => {
+              const inv = sendingInvoice;
+              setSendingInvoice(null);
+              await handleSend(inv.id, email);
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
