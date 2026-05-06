@@ -73,6 +73,15 @@ export async function getPortalConfig(clientId: string): Promise<any | null> {
   return data;
 }
 
+export async function emailPortalLink(clientId: string, recipientEmail: string, message?: string): Promise<{ portalUrl: string }> {
+  const { data, error } = await supabase.functions.invoke('send-portal-link-email', {
+    body: { clientId, recipientEmail, message },
+  });
+  if (error) throw new Error(error.message || 'Failed to send portal link');
+  if (data?.error) throw new Error(data.error);
+  return { portalUrl: data.portalUrl };
+}
+
 // ── Helper ─────────────────────────────────────────────────────────
 
 async function resolveWorkspaceId(): Promise<string | null> {
