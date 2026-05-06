@@ -1804,6 +1804,14 @@ function InvoiceDetail({
             {invoice.issuedDate && <span>Issued {formatDate(invoice.issuedDate)}</span>}
             {invoice.paidDate && <span>Paid {formatDate(invoice.paidDate)}</span>}
           </div>
+
+          {/* Email delivery activity for this invoice */}
+          {(invoice.status === "sent" || invoice.status === "overdue" || invoice.status === "paid") && (
+            <div className="pt-4 border-t border-border">
+              <div className="text-[12px] mb-2" style={{ fontWeight: 600 }}>Email activity</div>
+              <EmailActivityLog invoiceId={invoice.id} />
+            </div>
+          )}
         </div>
 
         {/* Payment link */}
