@@ -221,11 +221,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setIsNewUser(true);
           // Notify admin of new signup
           try {
-            const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-            fetch(`https://${projectId}.supabase.co/functions/v1/notify-signup`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ userName: u.name, userEmail: u.email, workspaceId: wsId }),
+            supabase.functions.invoke('notify-signup', {
+              body: { userName: u.name, userEmail: u.email, workspaceId: wsId },
             }).catch(() => {});
           } catch {}
 
@@ -325,11 +322,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       moduleResolvedUserId = u.id;
       // Notify admin
       try {
-        const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-        fetch(`https://${projectId}.supabase.co/functions/v1/notify-signup`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userName: name, userEmail: email, workspaceId: wsId }),
+        supabase.functions.invoke('notify-signup', {
+          body: { userName: name, userEmail: email, workspaceId: wsId },
         }).catch(() => {});
       } catch {}
     } finally {

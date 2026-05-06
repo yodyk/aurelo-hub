@@ -23,6 +23,52 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
 
+    // Authorize: either internal call (service-role/cron secret) or authenticated workspace member
+    const authHeader = req.headers.get('Authorization') || '';
+    const cronSecret = req.headers.get('x-cron-secret');
+    const internalSecret = Deno.env.get('CRON_SECRET');
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const bearerToken = authHeader.replace('Bearer ', '');
+    const isInternal = (internalSecret && cronSecret === internalSecret) || bearerToken === serviceRoleKey;
+
+    if (!isInternal) {
+      const token = authHeader.replace('Bearer ', '');
+      if (!token) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      const userClient = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_ANON_KEY')!,
+        { global: { headers: { Authorization: `Bearer ${token}` } } },
+      );
+      const { data: userData, error: userErr } = await userClient.auth.getUser(token);
+      if (userErr || !userData?.user) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      const { data: member } = await supabase
+        .from('workspace_members')
+        .select('role')
+        .eq('workspace_id', workspace_id)
+        .eq('user_id', userData.user.id)
+        .eq('status', 'active')
+        .maybeSingle();
+      if (!member) {
+        return new Response(JSON.stringify({ error: 'Forbidden' }), {
+          status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      // For test pings, require admin/owner
+      if (_test_webhook_id && member.role !== 'Owner' && member.role !== 'Admin') {
+        return new Response(JSON.stringify({ error: 'Forbidden' }), {
+          status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    }
+
     // If _test_webhook_id is set, send a ping to that specific webhook only
     if (_test_webhook_id) {
       const { data: wh, error: whErr } = await supabase
