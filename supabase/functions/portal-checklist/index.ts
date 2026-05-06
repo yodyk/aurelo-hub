@@ -61,11 +61,13 @@ Deno.serve(async (req) => {
     let result: any = null;
 
     if (action === 'toggle' && item_id) {
-      // Toggle completion of an item
+      // Verify the item belongs to a checklist owned by this portal's client/workspace
       const { data: item } = await sb
         .from('checklist_items')
-        .select('completed')
+        .select('id, completed, checklist_id, checklists!inner(client_id, workspace_id)')
         .eq('id', item_id)
+        .eq('checklists.client_id', portalToken.client_id)
+        .eq('checklists.workspace_id', portalToken.workspace_id)
         .maybeSingle();
 
       if (!item) {
