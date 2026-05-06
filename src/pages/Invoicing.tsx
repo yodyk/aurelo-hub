@@ -617,7 +617,7 @@ export default function Invoicing() {
                         setEditingInvoice(inv);
                         setShowBuilder(true);
                       }}
-                      onSend={() => handleSend(inv.id)}
+                      onSend={() => handleOpenSend(inv)}
                       onMarkPaid={() => handleMarkPaid(inv.id)}
                       onVoid={() => handleVoid(inv.id)}
                       onArchive={() => handleArchive(inv.id)}
