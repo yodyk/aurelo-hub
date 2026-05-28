@@ -218,14 +218,21 @@ function FilterChip({ active, onClick, label, count }: { active: boolean; onClic
 // ── Individual checklist card ──────────────────────────────────────
 
 function ChecklistCard({
-  checklist, onDelete, onRefresh, statusFilter, tagFilter, workCategoryNames,
+  checklist, clientId, workspaceId, onDelete, onRefresh, statusFilter, tagFilter, workCategoryNames,
+  linksByItem, clientNotes, clientFiles, onLinksChanged,
 }: {
   checklist: Checklist;
+  clientId: string;
+  workspaceId: string;
   onDelete: () => void;
   onRefresh: () => void;
   statusFilter: TaskStatus | 'all' | 'open';
   tagFilter: string | 'all';
   workCategoryNames: string[];
+  linksByItem: Record<string, TaskLink[]>;
+  clientNotes: ClientNote[];
+  clientFiles: StoredFile[];
+  onLinksChanged: () => void;
 }) {
   const [items, setItems] = useState<ChecklistItem[]>(checklist.items);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
