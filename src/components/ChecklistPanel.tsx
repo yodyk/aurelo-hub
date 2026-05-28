@@ -463,10 +463,14 @@ function TaskRow({
             )}
             <button
               onClick={() => setExpanded(v => !v)}
-              className="p-0.5 rounded text-muted-foreground hover:text-foreground hover:bg-accent/60 transition-colors cursor-pointer"
-              title="More"
+              className={`flex-shrink-0 inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded border transition-colors cursor-pointer ${
+                expanded ? 'bg-primary/10 border-primary/30 text-primary' : 'border-border text-muted-foreground hover:text-foreground hover:bg-accent/40'
+              }`}
+              style={{ fontWeight: 500 }}
+              title={expanded ? 'Hide details' : 'Edit details'}
             >
-              <MoreHorizontal className="w-3.5 h-3.5" />
+              Details
+              <ChevronDown className={`w-3 h-3 transition-transform ${expanded ? 'rotate-180' : ''}`} />
             </button>
           </div>
 
