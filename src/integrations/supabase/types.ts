@@ -63,27 +63,45 @@ export type Database = {
           checklist_id: string
           completed: boolean
           created_at: string
+          description: string | null
+          due_date: string | null
+          estimated_hours: number | null
           id: string
+          priority: string | null
           sort_order: number
+          status: string
           text: string
+          work_tags: string[]
         }
         Insert: {
           added_by?: string
           checklist_id: string
           completed?: boolean
           created_at?: string
+          description?: string | null
+          due_date?: string | null
+          estimated_hours?: number | null
           id?: string
+          priority?: string | null
           sort_order?: number
+          status?: string
           text?: string
+          work_tags?: string[]
         }
         Update: {
           added_by?: string
           checklist_id?: string
           completed?: boolean
           created_at?: string
+          description?: string | null
+          due_date?: string | null
+          estimated_hours?: number | null
           id?: string
+          priority?: string | null
           sort_order?: number
+          status?: string
           text?: string
+          work_tags?: string[]
         }
         Relationships: [
           {

@@ -19,6 +19,7 @@ import {
   ChevronDown,
   ChevronRight,
   Tag,
+  Check,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -84,11 +85,25 @@ interface PortalInvoice {
   currency: string;
 }
 
+interface PortalTask {
+  id: string;
+  text: string;
+  description?: string | null;
+  status: 'todo' | 'in_progress' | 'blocked' | 'done';
+  completed: boolean;
+  work_tags?: string[];
+  due_date?: string | null;
+  estimated_hours?: number | null;
+  priority?: string | null;
+  sort_order: number;
+  added_by: string;
+}
+
 interface PortalChecklist {
   id: string;
   title: string;
   project_id?: string;
-  items: { id: string; text: string; completed: boolean; sort_order: number; added_by: string }[];
+  items: PortalTask[];
 }
 
 interface PortalData {
@@ -280,10 +295,10 @@ export default function ClientPortal() {
                 </motion.div>
               )}
 
-              {/* Checklists */}
+              {/* Task lists */}
               {checklists && checklists.length > 0 && (
                 <motion.div variants={itemVariants}>
-                  <SectionHeader icon={CheckSquare} title="Checklists" count={checklists.length} accent={accent} />
+                  <SectionHeader icon={CheckSquare} title="Tasks" count={checklists.length} accent={accent} />
                   <div className="space-y-3 mt-3">
                     {checklists.map(cl => (
                       <PortalChecklistCard key={cl.id} checklist={cl} accent={accent} token={token!} />
@@ -545,60 +560,84 @@ function InvoiceRow({ invoice: inv, accent }: { invoice: PortalInvoice; accent: 
   );
 }
 
-// ── Portal Checklist Card ───────────────────────────────────────────
+// ── Portal Task List Card ───────────────────────────────────────────
+
+const PORTAL_STATUSES: { value: PortalTask['status']; label: string; dot: string; text: string; bg: string }[] = [
+  { value: 'todo',        label: 'To do',       dot: '#9ca3af', text: '#6b7280', bg: '#f3f4f6' },
+  { value: 'in_progress', label: 'In progress', dot: '#0ea5e9', text: '#0369a1', bg: '#e0f2fe' },
+  { value: 'blocked',     label: 'Blocked',     dot: '#f59e0b', text: '#b45309', bg: '#fef3c7' },
+  { value: 'done',        label: 'Done',        dot: '#22c55e', text: '#15803d', bg: '#dcfce7' },
+];
+
+function portalDueLabel(due?: string | null) {
+  if (!due) return null;
+  try {
+    const d = new Date(due);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const diff = Math.floor((d.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    if (diff === 0) return { label: 'Due today', color: '#b45309', bg: '#fef3c7' };
+    if (diff < 0) return { label: `${Math.abs(diff)}d overdue`, color: '#b91c1c', bg: '#fee2e2' };
+    if (diff <= 3) return { label: `Due in ${diff}d`, color: '#b45309', bg: '#fef3c7' };
+    return { label: format(d, 'MMM d'), color: '#6b7280', bg: '#f3f4f6' };
+  } catch { return null; }
+}
 
 function PortalChecklistCard({ checklist, accent, token }: { checklist: PortalChecklist; accent: string; token: string }) {
-  const [items, setItems] = useState(checklist.items);
-  const [newText, setNewText] = useState("");
-  const [adding, setAdding] = useState(false);
+  const [items, setItems] = useState<PortalTask[]>(checklist.items);
+  const [composerOpen, setComposerOpen] = useState(false);
 
-  const completedCount = items.filter(i => i.completed).length;
+  const completedCount = items.filter(i => i.status === 'done').length;
   const totalCount = items.length;
   const progress = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
 
-  const handleToggle = async (itemId: string, current: boolean) => {
-    setItems(prev => prev.map(i => i.id === itemId ? { ...i, completed: !current } : i));
+  const cycleStatus = async (item: PortalTask) => {
+    const order: PortalTask['status'][] = ['todo', 'in_progress', 'blocked', 'done'];
+    const next = order[(order.indexOf(item.status) + 1) % order.length];
+    setItems(prev => prev.map(i => i.id === item.id ? { ...i, status: next, completed: next === 'done' } : i));
     try {
       await fetch(`${SUPABASE_URL}/functions/v1/portal-checklist`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, action: 'toggle', checklist_id: checklist.id, item_id: itemId, completed: !current }),
+        body: JSON.stringify({ token, action: 'update_status', checklist_id: checklist.id, item_id: item.id, status: next }),
       });
     } catch {
-      setItems(prev => prev.map(i => i.id === itemId ? { ...i, completed: current } : i));
+      setItems(prev => prev.map(i => i.id === item.id ? item : i));
     }
   };
 
-  const handleAdd = async () => {
-    if (!newText.trim()) return;
-    setAdding(true);
+  const handleAdd = async (input: { text: string; due_date: string | null; estimated_hours: number | null; work_tags: string[] }) => {
     try {
       const res = await fetch(`${SUPABASE_URL}/functions/v1/portal-checklist`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, action: 'add', checklist_id: checklist.id, text: newText.trim() }),
+        body: JSON.stringify({ token, action: 'add', checklist_id: checklist.id, ...input }),
       });
       const data = await res.json();
       if (data.item) {
+        const it = data.item;
         setItems(prev => [...prev, {
-          id: data.item.id,
-          text: data.item.text,
-          completed: data.item.completed,
-          sort_order: data.item.sort_order,
+          id: it.id,
+          text: it.text,
+          description: it.description ?? null,
+          status: it.status || 'todo',
+          completed: !!it.completed,
+          work_tags: it.work_tags || [],
+          due_date: it.due_date ?? null,
+          estimated_hours: it.estimated_hours ?? null,
+          priority: it.priority ?? null,
+          sort_order: it.sort_order,
           added_by: 'client',
         }]);
-        setNewText("");
+        setComposerOpen(false);
       }
     } catch {
-      // silently fail
-    } finally {
-      setAdding(false);
+      /* silent */
     }
   };
 
   return (
     <div className="bg-white rounded-2xl border border-[#e5e7eb] overflow-hidden">
-      {/* Progress stripe */}
       <div className="h-1.5 bg-[#f3f4f6]">
         <div className="h-full transition-all duration-300 rounded-r-full" style={{ width: `${progress}%`, backgroundColor: progress === 100 ? "#22c55e" : accent }} />
       </div>
@@ -611,48 +650,154 @@ function PortalChecklistCard({ checklist, accent, token }: { checklist: PortalCh
           </span>
         </div>
 
-        <div className="space-y-0.5">
-          {items.map(item => (
-            <button
-              key={item.id}
-              onClick={() => handleToggle(item.id, item.completed)}
-              className="flex items-center gap-2.5 w-full py-2 px-2 -mx-2 rounded-lg hover:bg-[#f9fafb] transition-colors text-left"
-            >
-              {item.completed ? (
-                <CheckSquare className="w-4 h-4 flex-shrink-0" style={{ color: accent }} />
-              ) : (
-                <Square className="w-4 h-4 flex-shrink-0 text-[#d1d5db]" />
-              )}
-              <span className={`text-[13px] flex-1 ${item.completed ? 'line-through text-[#d1d5db]' : 'text-[#374151]'}`}>
-                {item.text}
-              </span>
-              {item.added_by === 'client' && (
-                <span className="text-[10px] font-medium text-[#9ca3af] bg-[#f3f4f6] px-1.5 py-0.5 rounded">You</span>
-              )}
-            </button>
-          ))}
+        <div className="space-y-2">
+          {items.map(item => {
+            const cfg = PORTAL_STATUSES.find(s => s.value === item.status) || PORTAL_STATUSES[0];
+            const due = portalDueLabel(item.due_date);
+            return (
+              <div key={item.id} className="border border-[#eef0f3] rounded-xl p-2.5 hover:bg-[#fafbfc] transition-colors">
+                <div className="flex items-start gap-2.5">
+                  <button
+                    onClick={() => cycleStatus(item)}
+                    title={`Status: ${cfg.label} — tap to advance`}
+                    className="flex-shrink-0 mt-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center"
+                    style={{ borderColor: cfg.dot, backgroundColor: item.status === 'done' ? cfg.dot : 'transparent' }}
+                  >
+                    {item.status === 'done' && <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />}
+                  </button>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start gap-2">
+                      <span className={`text-[13px] flex-1 ${item.status === 'done' ? 'line-through text-[#b1b6bf]' : 'text-[#374151]'}`}>
+                        {item.text}
+                      </span>
+                      {item.added_by === 'client' && (
+                        <span className="text-[10px] font-medium text-[#9ca3af] bg-[#f3f4f6] px-1.5 py-0.5 rounded">You</span>
+                      )}
+                    </div>
+                    {item.description && (
+                      <div className="text-[12px] text-[#6b7280] mt-1 whitespace-pre-wrap">{item.description}</div>
+                    )}
+                    <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                      <span
+                        className="inline-flex items-center gap-1 text-[10.5px] px-1.5 py-0.5 rounded"
+                        style={{ backgroundColor: cfg.bg, color: cfg.text, fontWeight: 600 }}
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: cfg.dot }} />
+                        {cfg.label}
+                      </span>
+                      {(item.work_tags || []).map(tag => (
+                        <span key={tag} className="inline-flex items-center gap-1 text-[10.5px] px-1.5 py-0.5 rounded bg-[#f3f4f6] text-[#4b5563]" style={{ fontWeight: 500 }}>
+                          <Tag className="w-2.5 h-2.5" /> {tag}
+                        </span>
+                      ))}
+                      {due && (
+                        <span className="inline-flex items-center gap-1 text-[10.5px] px-1.5 py-0.5 rounded" style={{ backgroundColor: due.bg, color: due.color, fontWeight: 500 }}>
+                          <Clock className="w-2.5 h-2.5" /> {due.label}
+                        </span>
+                      )}
+                      {item.estimated_hours != null && (
+                        <span className="inline-flex items-center gap-1 text-[10.5px] px-1.5 py-0.5 rounded bg-[#f3f4f6] text-[#6b7280]" style={{ fontWeight: 500 }}>
+                          <Clock className="w-2.5 h-2.5" /> {item.estimated_hours}h est
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+          {items.length === 0 && (
+            <div className="text-center py-4 text-[12px] text-[#9ca3af]">No tasks yet.</div>
+          )}
         </div>
 
-        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-[#f3f4f6]">
-          <Plus className="w-3.5 h-3.5 text-[#d1d5db] flex-shrink-0" />
-          <input
-            value={newText}
-            onChange={(e) => setNewText(e.target.value)}
-            placeholder="Add an item…"
-            className="flex-1 text-[13px] bg-transparent focus:outline-none placeholder:text-[#d1d5db] text-[#374151]"
-            onKeyDown={(e) => { if (e.key === 'Enter') handleAdd(); }}
-            disabled={adding}
-          />
-          {newText.trim() && (
+        <div className="mt-3 pt-3 border-t border-[#f3f4f6]">
+          {composerOpen ? (
+            <PortalComposer accent={accent} onCancel={() => setComposerOpen(false)} onSubmit={handleAdd} />
+          ) : (
             <button
-              onClick={handleAdd}
-              disabled={adding}
-              className="text-[12px] font-semibold px-3 py-1.5 rounded-lg transition-colors text-white"
-              style={{ backgroundColor: accent }}
+              onClick={() => setComposerOpen(true)}
+              className="inline-flex items-center gap-1.5 text-[12px] text-[#6b7280] hover:text-[#1a1a2e] transition-colors"
+              style={{ fontWeight: 500 }}
             >
-              Add
+              <Plus className="w-3.5 h-3.5" /> Add task
             </button>
           )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PortalComposer({
+  accent, onCancel, onSubmit,
+}: {
+  accent: string;
+  onCancel: () => void;
+  onSubmit: (input: { text: string; due_date: string | null; estimated_hours: number | null; work_tags: string[] }) => void;
+}) {
+  const [text, setText] = useState('');
+  const [showDetails, setShowDetails] = useState(false);
+  const [dueDate, setDueDate] = useState('');
+  const [hours, setHours] = useState('');
+
+  const submit = () => {
+    if (!text.trim()) return;
+    onSubmit({
+      text: text.trim(),
+      due_date: dueDate || null,
+      estimated_hours: hours === '' ? null : Number(hours),
+      work_tags: [],
+    });
+  };
+
+  return (
+    <div className="space-y-2">
+      <input
+        autoFocus
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        placeholder="Task title…"
+        className="w-full text-[13px] bg-white border border-[#e5e7eb] rounded-md px-2.5 py-1.5 focus:outline-none focus:border-[#9ca3af] text-[#374151]"
+        onKeyDown={(e) => { if (e.key === 'Enter' && !showDetails) submit(); if (e.key === 'Escape') onCancel(); }}
+      />
+      {showDetails && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <input
+            type="date"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+            className="text-[13px] bg-white border border-[#e5e7eb] rounded-md px-2.5 py-1.5 focus:outline-none focus:border-[#9ca3af] text-[#374151]"
+          />
+          <input
+            type="number"
+            min={0}
+            step={0.25}
+            value={hours}
+            onChange={(e) => setHours(e.target.value)}
+            placeholder="Estimated hours"
+            className="text-[13px] bg-white border border-[#e5e7eb] rounded-md px-2.5 py-1.5 focus:outline-none focus:border-[#9ca3af] text-[#374151] tabular-nums"
+          />
+        </div>
+      )}
+      <div className="flex items-center justify-between">
+        <button
+          onClick={() => setShowDetails(v => !v)}
+          className="text-[11.5px] text-[#6b7280] hover:text-[#1a1a2e]"
+          style={{ fontWeight: 500 }}
+        >
+          {showDetails ? '− Hide details' : '+ Due date & estimate'}
+        </button>
+        <div className="flex items-center gap-1.5">
+          <button onClick={onCancel} className="text-[12px] px-2.5 py-1 text-[#6b7280] hover:text-[#1a1a2e]">Cancel</button>
+          <button
+            onClick={submit}
+            disabled={!text.trim()}
+            className="text-[12px] font-semibold px-3 py-1.5 rounded-md text-white disabled:opacity-40"
+            style={{ backgroundColor: accent }}
+          >
+            Add
+          </button>
         </div>
       </div>
     </div>
