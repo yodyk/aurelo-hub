@@ -718,6 +718,201 @@ function TaskInlineEditor({
   );
 }
 
+// ── Task links (per-client notes & files) ──────────────────────────
+
+function TaskLinksSection({
+  item, clientId, workspaceId, links, clientNotes, clientFiles, onChanged,
+}: {
+  item: ChecklistItem;
+  clientId: string;
+  workspaceId: string;
+  links: TaskLink[];
+  clientNotes: ClientNote[];
+  clientFiles: StoredFile[];
+  onChanged: () => void;
+}) {
+  const [picker, setPicker] = useState<null | 'note' | 'file'>(null);
+  const [query, setQuery] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const linkedNoteIds = new Set(links.filter(l => l.linkType === 'note').map(l => l.noteId!));
+  const linkedFilePaths = new Set(links.filter(l => l.linkType === 'file').map(l => l.filePath!));
+
+  const handleAddNote = async (noteId: string) => {
+    setBusy(true);
+    try {
+      await addNoteLink({ checklistItemId: item.id, workspaceId, clientId, noteId });
+      onChanged();
+      setPicker(null);
+      setQuery('');
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally { setBusy(false); }
+  };
+
+  const handleAddFile = async (f: StoredFile) => {
+    setBusy(true);
+    try {
+      await addFileLink({
+        checklistItemId: item.id, workspaceId, clientId,
+        filePath: f.path, fileName: f.name,
+      });
+      onChanged();
+      setPicker(null);
+      setQuery('');
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally { setBusy(false); }
+  };
+
+  const handleRemove = async (linkId: string) => {
+    try {
+      await removeTaskLink(linkId);
+      onChanged();
+    } catch (err: any) { toast.error(err.message); }
+  };
+
+  const openFile = async (filePath: string) => {
+    const url = await getSignedUrlByPath(filePath);
+    if (url) window.open(url, '_blank');
+    else toast.error('File not found');
+  };
+
+  const noteById = (id: string) => clientNotes.find(n => n.id === id);
+
+  const notesFiltered = clientNotes.filter(n =>
+    !linkedNoteIds.has(n.id) &&
+    (query === '' || (n.content || '').toLowerCase().includes(query.toLowerCase()))
+  ).slice(0, 20);
+
+  const filesFiltered = clientFiles.filter(f =>
+    !linkedFilePaths.has(f.path) &&
+    (query === '' || f.name.toLowerCase().includes(query.toLowerCase()))
+  ).slice(0, 20);
+
+  return (
+    <div>
+      <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mb-1.5" style={{ fontWeight: 500 }}>
+        <Link2 className="w-3 h-3" /> Linked notes & files
+      </div>
+
+      {links.length > 0 && (
+        <div className="space-y-1 mb-2">
+          {links.map(link => {
+            if (link.linkType === 'note') {
+              const note = noteById(link.noteId!);
+              const preview = note
+                ? (note.content || '').replace(/<[^>]+>/g, '').trim().slice(0, 80) || 'Untitled note'
+                : 'Note no longer available';
+              return (
+                <div key={link.id} className="flex items-center gap-2 text-[12px] px-2 py-1 rounded bg-accent/30 group">
+                  <FileText className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                  <span className="flex-1 truncate text-foreground/80">{preview}</span>
+                  <button
+                    onClick={() => handleRemove(link.id)}
+                    className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive cursor-pointer"
+                    title="Unlink"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              );
+            }
+            return (
+              <div key={link.id} className="flex items-center gap-2 text-[12px] px-2 py-1 rounded bg-accent/30 group">
+                <Paperclip className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                <button
+                  onClick={() => openFile(link.filePath!)}
+                  className="flex-1 truncate text-left text-primary hover:underline cursor-pointer inline-flex items-center gap-1"
+                >
+                  {link.fileName || link.filePath} <ExternalLink className="w-2.5 h-2.5 opacity-70" />
+                </button>
+                <button
+                  onClick={() => handleRemove(link.id)}
+                  className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive cursor-pointer"
+                  title="Unlink"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <div className="flex items-center gap-1.5">
+        <button
+          onClick={() => { setPicker(picker === 'note' ? null : 'note'); setQuery(''); }}
+          className={`inline-flex items-center gap-1 text-[11.5px] px-2 py-0.5 rounded border transition-colors cursor-pointer ${
+            picker === 'note' ? 'bg-primary/10 border-primary/30 text-primary' : 'border-border text-muted-foreground hover:bg-accent/40'
+          }`}
+          style={{ fontWeight: 500 }}
+        >
+          <FileText className="w-3 h-3" /> Link note
+        </button>
+        <button
+          onClick={() => { setPicker(picker === 'file' ? null : 'file'); setQuery(''); }}
+          className={`inline-flex items-center gap-1 text-[11.5px] px-2 py-0.5 rounded border transition-colors cursor-pointer ${
+            picker === 'file' ? 'bg-primary/10 border-primary/30 text-primary' : 'border-border text-muted-foreground hover:bg-accent/40'
+          }`}
+          style={{ fontWeight: 500 }}
+        >
+          <Paperclip className="w-3 h-3" /> Link file
+        </button>
+      </div>
+
+      {picker && (
+        <div className="mt-2 border border-border rounded-md bg-background/80 p-2">
+          <input
+            autoFocus
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={picker === 'note' ? 'Search this client\u2019s notes…' : 'Search this client\u2019s files…'}
+            className="w-full text-[12px] bg-transparent border border-border rounded px-2 py-1 mb-1.5 focus:outline-none focus:ring-1 focus:ring-primary/30"
+          />
+          <div className="max-h-40 overflow-y-auto space-y-0.5">
+            {picker === 'note' && notesFiltered.length === 0 && (
+              <div className="text-[11.5px] text-muted-foreground italic px-1.5 py-1">
+                {clientNotes.length === 0 ? 'No notes for this client yet.' : 'No matching notes.'}
+              </div>
+            )}
+            {picker === 'note' && notesFiltered.map(note => {
+              const preview = (note.content || '').replace(/<[^>]+>/g, '').trim().slice(0, 80) || 'Untitled note';
+              return (
+                <button
+                  key={note.id}
+                  disabled={busy}
+                  onClick={() => handleAddNote(note.id)}
+                  className="w-full text-left text-[12px] px-2 py-1 rounded hover:bg-accent/60 truncate text-foreground/80 cursor-pointer disabled:opacity-50"
+                >
+                  {preview}
+                </button>
+              );
+            })}
+            {picker === 'file' && filesFiltered.length === 0 && (
+              <div className="text-[11.5px] text-muted-foreground italic px-1.5 py-1">
+                {clientFiles.length === 0 ? 'No files uploaded for this client yet.' : 'No matching files.'}
+              </div>
+            )}
+            {picker === 'file' && filesFiltered.map(f => (
+              <button
+                key={f.path}
+                disabled={busy}
+                onClick={() => handleAddFile(f)}
+                className="w-full text-left text-[12px] px-2 py-1 rounded hover:bg-accent/60 truncate text-foreground/80 cursor-pointer disabled:opacity-50"
+              >
+                {f.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+
 // ── Composer (for creating new tasks) ──────────────────────────────
 
 function TaskComposer({
