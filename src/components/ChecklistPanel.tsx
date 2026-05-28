@@ -317,7 +317,13 @@ function ChecklistCard({
               <TaskRow
                 key={item.id}
                 item={item}
+                clientId={clientId}
+                workspaceId={workspaceId}
                 workCategoryNames={workCategoryNames}
+                links={linksByItem[item.id] || []}
+                clientNotes={clientNotes}
+                clientFiles={clientFiles}
+                onLinksChanged={onLinksChanged}
                 onUpdate={(patch) => updateLocal(item.id, patch)}
                 onDeleted={() => setItems(prev => prev.filter(i => i.id !== item.id))}
                 onRefresh={onRefresh}
