@@ -521,7 +521,13 @@ function TaskRow({
               >
                 <TaskInlineEditor
                   item={item}
+                  clientId={clientId}
+                  workspaceId={workspaceId}
                   workCategoryNames={workCategoryNames}
+                  links={links}
+                  clientNotes={clientNotes}
+                  clientFiles={clientFiles}
+                  onLinksChanged={onLinksChanged}
                   onChange={(patch, dbPatch) => saveField(patch, dbPatch)}
                   onDelete={handleDelete}
                 />
