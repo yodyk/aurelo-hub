@@ -1,6 +1,9 @@
 // ── Checklists API — Supabase queries ───────────────────────────────
 import { supabase } from '@/integrations/supabase/client';
 
+export type TaskStatus = 'todo' | 'in_progress' | 'blocked' | 'done';
+export type TaskPriority = 'low' | 'medium' | 'high';
+
 export interface Checklist {
   id: string;
   workspaceId: string;
@@ -16,7 +19,13 @@ export interface ChecklistItem {
   id: string;
   checklistId: string;
   text: string;
+  description?: string | null;
+  status: TaskStatus;
   completed: boolean;
+  workTags: string[];
+  dueDate?: string | null;
+  estimatedHours?: number | null;
+  priority?: TaskPriority | null;
   sortOrder: number;
   addedBy: 'owner' | 'client';
   createdAt: string;
@@ -40,7 +49,13 @@ function rowToItem(row: any): ChecklistItem {
     id: row.id,
     checklistId: row.checklist_id,
     text: row.text,
+    description: row.description ?? null,
+    status: (row.status as TaskStatus) || (row.completed ? 'done' : 'todo'),
     completed: row.completed,
+    workTags: row.work_tags || [],
+    dueDate: row.due_date ?? null,
+    estimatedHours: row.estimated_hours ?? null,
+    priority: row.priority ?? null,
     sortOrder: row.sort_order,
     addedBy: row.added_by as 'owner' | 'client',
     createdAt: row.created_at,
@@ -57,7 +72,6 @@ export async function loadChecklists(clientId: string, projectId?: string): Prom
 
   if (!data || data.length === 0) return [];
 
-  // Load all items for these checklists
   const ids = data.map((c: any) => c.id);
   const { data: itemsData } = await supabase
     .from('checklist_items')
@@ -91,7 +105,7 @@ export async function createChecklist(
     })
     .select()
     .single();
-  if (error) throw new Error(`Failed to create checklist: ${error.message}`);
+  if (error) throw new Error(`Failed to create list: ${error.message}`);
   return rowToChecklist(data, []);
 }
 
@@ -99,42 +113,79 @@ export async function updateChecklist(checklistId: string, updates: { title?: st
   const row: Record<string, any> = { updated_at: new Date().toISOString() };
   if (updates.title !== undefined) row.title = updates.title;
   const { error } = await supabase.from('checklists').update(row).eq('id', checklistId);
-  if (error) throw new Error(`Failed to update checklist: ${error.message}`);
+  if (error) throw new Error(`Failed to update list: ${error.message}`);
 }
 
 export async function deleteChecklist(checklistId: string): Promise<void> {
   const { error } = await supabase.from('checklists').delete().eq('id', checklistId);
-  if (error) throw new Error(`Failed to delete checklist: ${error.message}`);
+  if (error) throw new Error(`Failed to delete list: ${error.message}`);
+}
+
+export interface NewTaskInput {
+  text: string;
+  description?: string | null;
+  status?: TaskStatus;
+  workTags?: string[];
+  dueDate?: string | null;
+  estimatedHours?: number | null;
+  priority?: TaskPriority | null;
 }
 
 export async function addChecklistItem(
   checklistId: string,
-  text: string,
+  input: NewTaskInput | string,
   sortOrder: number,
   addedBy: 'owner' | 'client' = 'owner',
 ): Promise<ChecklistItem> {
+  const task: NewTaskInput = typeof input === 'string' ? { text: input } : input;
   const { data, error } = await supabase
     .from('checklist_items')
-    .insert({ checklist_id: checklistId, text, sort_order: sortOrder, added_by: addedBy })
+    .insert({
+      checklist_id: checklistId,
+      text: task.text,
+      description: task.description ?? null,
+      status: task.status ?? 'todo',
+      work_tags: task.workTags ?? [],
+      due_date: task.dueDate ?? null,
+      estimated_hours: task.estimatedHours ?? null,
+      priority: task.priority ?? null,
+      sort_order: sortOrder,
+      added_by: addedBy,
+    })
     .select()
     .single();
-  if (error) throw new Error(`Failed to add item: ${error.message}`);
+  if (error) throw new Error(`Failed to add task: ${error.message}`);
   return rowToItem(data);
 }
 
-export async function updateChecklistItem(
-  itemId: string,
-  updates: { text?: string; completed?: boolean; sortOrder?: number },
-): Promise<void> {
+export interface TaskUpdates {
+  text?: string;
+  description?: string | null;
+  status?: TaskStatus;
+  completed?: boolean;
+  workTags?: string[];
+  dueDate?: string | null;
+  estimatedHours?: number | null;
+  priority?: TaskPriority | null;
+  sortOrder?: number;
+}
+
+export async function updateChecklistItem(itemId: string, updates: TaskUpdates): Promise<void> {
   const row: Record<string, any> = {};
   if (updates.text !== undefined) row.text = updates.text;
+  if (updates.description !== undefined) row.description = updates.description;
+  if (updates.status !== undefined) row.status = updates.status;
   if (updates.completed !== undefined) row.completed = updates.completed;
+  if (updates.workTags !== undefined) row.work_tags = updates.workTags;
+  if (updates.dueDate !== undefined) row.due_date = updates.dueDate;
+  if (updates.estimatedHours !== undefined) row.estimated_hours = updates.estimatedHours;
+  if (updates.priority !== undefined) row.priority = updates.priority;
   if (updates.sortOrder !== undefined) row.sort_order = updates.sortOrder;
   const { error } = await supabase.from('checklist_items').update(row).eq('id', itemId);
-  if (error) throw new Error(`Failed to update item: ${error.message}`);
+  if (error) throw new Error(`Failed to update task: ${error.message}`);
 }
 
 export async function deleteChecklistItem(itemId: string): Promise<void> {
   const { error } = await supabase.from('checklist_items').delete().eq('id', itemId);
-  if (error) throw new Error(`Failed to delete item: ${error.message}`);
+  if (error) throw new Error(`Failed to delete task: ${error.message}`);
 }
