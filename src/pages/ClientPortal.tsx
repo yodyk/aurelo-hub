@@ -294,10 +294,10 @@ export default function ClientPortal() {
                 </motion.div>
               )}
 
-              {/* Checklists */}
+              {/* Task lists */}
               {checklists && checklists.length > 0 && (
                 <motion.div variants={itemVariants}>
-                  <SectionHeader icon={CheckSquare} title="Checklists" count={checklists.length} accent={accent} />
+                  <SectionHeader icon={CheckSquare} title="Tasks" count={checklists.length} accent={accent} />
                   <div className="space-y-3 mt-3">
                     {checklists.map(cl => (
                       <PortalChecklistCard key={cl.id} checklist={cl} accent={accent} token={token!} />
