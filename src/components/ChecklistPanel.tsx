@@ -588,10 +588,17 @@ function StatusPill({ status, onSelect }: { status: TaskStatus; onSelect: (s: Ta
 // ── Inline editor (expanded row) ───────────────────────────────────
 
 function TaskInlineEditor({
-  item, workCategoryNames, onChange, onDelete,
+  item, clientId, workspaceId, workCategoryNames, links, clientNotes, clientFiles,
+  onLinksChanged, onChange, onDelete,
 }: {
   item: ChecklistItem;
+  clientId: string;
+  workspaceId: string;
   workCategoryNames: string[];
+  links: TaskLink[];
+  clientNotes: ClientNote[];
+  clientFiles: StoredFile[];
+  onLinksChanged: () => void;
   onChange: (patch: Partial<ChecklistItem>, dbPatch: any) => void;
   onDelete: () => void;
 }) {
