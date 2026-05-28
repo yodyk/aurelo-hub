@@ -257,88 +257,29 @@ export default function ClientPortal() {
           </motion.div>
 
           {/* Summary stats row */}
-          <motion.div variants={itemVariants} className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
-            <StatCard icon={Clock} label="Hours Logged" value={fmtHours(client.hoursLogged || 0)} accent={accent} />
-            <StatCard icon={FolderOpen} label="Active Projects" value={String(projects.filter(p => p.status.toLowerCase() === "in progress").length)} accent={accent} />
-            {showCosts && (
-              <>
-                <StatCard icon={DollarSign} label="This Month" value={fmt$(client.monthlyEarnings || 0)} accent={accent} />
-                <StatCard icon={FileText} label="Total Invoiced" value={fmt$(totalInvoiced)} accent={accent} />
-              </>
-            )}
-            {!showCosts && (
-              <>
-                <StatCard icon={Activity} label="Total Sessions" value={String(sessions.length)} accent={accent} />
-                <StatCard icon={FolderOpen} label="All Projects" value={String(projects.length)} accent={accent} />
-              </>
-            )}
-          </motion.div>
+          <PortalSummary
+            client={client}
+            projects={projects}
+            sessions={sessions}
+            checklists={checklists}
+            totalInvoiced={totalInvoiced}
+            showCosts={showCosts}
+            accent={accent}
+          />
 
-          {/* Retainer bar */}
-          {client.model === "Retainer" && client.retainerTotal != null && client.retainerTotal > 0 && (
-            <motion.div variants={itemVariants} className="mb-8">
-              <RetainerBar total={client.retainerTotal} remaining={client.retainerRemaining || 0} />
-            </motion.div>
-          )}
-
-          {/* ── Two column layout ── */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
-            {/* Left column — Projects + Checklists */}
-            <div className="lg:col-span-7 space-y-6">
-              {/* Projects */}
-              {projects.length > 0 && (
-                <motion.div variants={itemVariants}>
-                  <SectionHeader icon={FolderOpen} title="Projects" count={projects.length} accent={accent} />
-                  <div className="space-y-3 mt-3">
-                    {projects.map(p => <ProjectCard key={p.id} project={p} showCosts={showCosts} accent={accent} />)}
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Task lists */}
-              {checklists && checklists.length > 0 && (
-                <motion.div variants={itemVariants}>
-                  <SectionHeader icon={CheckSquare} title="Tasks" count={checklists.length} accent={accent} />
-                  <div className="space-y-3 mt-3">
-                    {checklists.map(cl => (
-                      <PortalChecklistCard key={cl.id} checklist={cl} accent={accent} token={token!} />
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </div>
-
-            {/* Right column — Activity + Invoices */}
-            <div className="lg:col-span-5 space-y-6">
-              {/* Recent activity */}
-              {sessions.length > 0 && (
-                <motion.div variants={itemVariants}>
-                  <SectionHeader icon={Timer} title="Recent Activity" count={sessions.length} accent={accent} />
-                  <div className="mt-3 space-y-2">
-                    {sessions.slice(0, 20).map(s => (
-                      <SessionAccordion key={s.id} session={s} projects={projects} showCosts={showCosts} accent={accent} />
-                    ))}
-                    {sessions.length > 20 && (
-                      <p className="text-[12px] text-[#9ca3af] text-center py-2">
-                        Showing 20 of {sessions.length} sessions
-                      </p>
-                    )}
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Invoices */}
-              {invoices.length > 0 && showCosts && (
-                <motion.div variants={itemVariants}>
-                  <SectionHeader icon={FileText} title="Invoices" count={invoices.length} accent={accent} />
-                  <div className="space-y-2 mt-3">
-                    {invoices.map(inv => <InvoiceRow key={inv.id} invoice={inv} accent={accent} />)}
-                  </div>
-                </motion.div>
-              )}
-            </div>
-          </div>
+          {/* Tabbed content */}
+          <PortalTabs
+            client={client}
+            projects={projects}
+            sessions={sessions}
+            invoices={invoices}
+            checklists={checklists}
+            showCosts={showCosts}
+            accent={accent}
+            token={token!}
+          />
         </motion.div>
+
 
         {/* Footer */}
         {!branding.isWhiteLabel && (
