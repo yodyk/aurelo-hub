@@ -695,6 +695,17 @@ function TaskInlineEditor({
         </div>
       )}
 
+      {/* Linked notes & files */}
+      <TaskLinksSection
+        item={item}
+        clientId={clientId}
+        workspaceId={workspaceId}
+        links={links}
+        clientNotes={clientNotes}
+        clientFiles={clientFiles}
+        onChanged={onLinksChanged}
+      />
+
       <div className="flex items-center justify-end">
         <button
           onClick={onDelete}
