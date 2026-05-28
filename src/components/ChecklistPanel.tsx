@@ -497,6 +497,17 @@ function TaskRow({
                 <AlignLeft className="w-2.5 h-2.5" /> Notes
               </span>
             )}
+
+            {links.length > 0 && (
+              <button
+                onClick={() => setExpanded(true)}
+                className="inline-flex items-center gap-1 text-[10.5px] px-1.5 py-0.5 rounded bg-accent/50 text-muted-foreground hover:text-primary cursor-pointer"
+                style={{ fontWeight: 500 }}
+                title="Linked notes & files"
+              >
+                <Link2 className="w-2.5 h-2.5" /> {links.length}
+              </button>
+            )}
           </div>
 
           {/* Expanded editor */}
