@@ -189,3 +189,39 @@ export async function deleteChecklistItem(itemId: string): Promise<void> {
   const { error } = await supabase.from('checklist_items').delete().eq('id', itemId);
   if (error) throw new Error(`Failed to delete task: ${error.message}`);
 }
+
+// ── Workspace-wide tasks loader (for global Tasks page) ──────────────
+
+export interface WorkspaceTask extends ChecklistItem {
+  clientId: string;
+  projectId?: string | null;
+  checklistTitle: string;
+}
+
+export async function loadAllTasksForWorkspace(workspaceId: string): Promise<WorkspaceTask[]> {
+  const { data: cls, error: clsErr } = await supabase
+    .from('checklists')
+    .select('id, client_id, project_id, title')
+    .eq('workspace_id', workspaceId);
+  if (clsErr) { console.error('[checklistsApi] loadAllTasks checklists:', clsErr); return []; }
+  if (!cls || cls.length === 0) return [];
+
+  const ids = cls.map((c: any) => c.id);
+  const { data: items, error: itemsErr } = await supabase
+    .from('checklist_items')
+    .select('*')
+    .in('checklist_id', ids)
+    .order('sort_order', { ascending: true });
+  if (itemsErr) { console.error('[checklistsApi] loadAllTasks items:', itemsErr); return []; }
+
+  const byId = new Map<string, any>(cls.map((c: any) => [c.id, c]));
+  return (items || []).map((row: any) => {
+    const parent = byId.get(row.checklist_id);
+    return {
+      ...rowToItem(row),
+      clientId: parent?.client_id,
+      projectId: parent?.project_id ?? null,
+      checklistTitle: parent?.title || 'Tasks',
+    };
+  });
+}
