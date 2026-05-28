@@ -359,10 +359,17 @@ function ChecklistCard({
 // ── Task row ───────────────────────────────────────────────────────
 
 function TaskRow({
-  item, onUpdate, onDeleted, onRefresh, workCategoryNames,
+  item, clientId, workspaceId, onUpdate, onDeleted, onRefresh, workCategoryNames,
+  links, clientNotes, clientFiles, onLinksChanged,
 }: {
   item: ChecklistItem;
+  clientId: string;
+  workspaceId: string;
   workCategoryNames: string[];
+  links: TaskLink[];
+  clientNotes: ClientNote[];
+  clientFiles: StoredFile[];
+  onLinksChanged: () => void;
   onUpdate: (patch: Partial<ChecklistItem>) => void;
   onDeleted: () => void;
   onRefresh: () => void;
