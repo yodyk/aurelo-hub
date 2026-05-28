@@ -148,11 +148,17 @@ export default function ChecklistPanel({ clientId, projectId, workspaceId }: Che
         <ChecklistCard
           key={checklist.id}
           checklist={checklist}
+          clientId={clientId}
+          workspaceId={workspaceId}
           onDelete={() => handleDelete(checklist.id)}
           onRefresh={refresh}
           statusFilter={statusFilter}
           tagFilter={tagFilter}
           workCategoryNames={workCategoryNames}
+          linksByItem={linksByItem}
+          clientNotes={clientNotes}
+          clientFiles={clientFiles}
+          onLinksChanged={refreshLinks}
         />
       ))}
 
