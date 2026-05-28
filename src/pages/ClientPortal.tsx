@@ -855,8 +855,10 @@ function PortalChecklistCard({ checklist, accent, token, hideCompleted = false }
               </div>
             );
           })}
-          {items.length === 0 && (
-            <div className="text-center py-4 text-[12px] text-[#9ca3af]">No tasks yet.</div>
+          {visibleItems.length === 0 && (
+            <div className="text-center py-4 text-[12px] text-[#9ca3af]">
+              {items.length === 0 ? 'No tasks yet.' : 'All tasks completed.'}
+            </div>
           )}
         </div>
 
