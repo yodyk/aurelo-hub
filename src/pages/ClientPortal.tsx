@@ -731,13 +731,14 @@ function portalDueLabel(due?: string | null) {
   } catch { return null; }
 }
 
-function PortalChecklistCard({ checklist, accent, token }: { checklist: PortalChecklist; accent: string; token: string }) {
+function PortalChecklistCard({ checklist, accent, token, hideCompleted = false }: { checklist: PortalChecklist; accent: string; token: string; hideCompleted?: boolean }) {
   const [items, setItems] = useState<PortalTask[]>(checklist.items);
   const [composerOpen, setComposerOpen] = useState(false);
 
   const completedCount = items.filter(i => i.status === 'done').length;
   const totalCount = items.length;
   const progress = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
+  const visibleItems = hideCompleted ? items.filter(i => i.status !== 'done') : items;
 
   const cycleStatus = async (item: PortalTask) => {
     const order: PortalTask['status'][] = ['todo', 'in_progress', 'blocked', 'done'];
@@ -799,7 +800,7 @@ function PortalChecklistCard({ checklist, accent, token }: { checklist: PortalCh
         </div>
 
         <div className="space-y-2">
-          {items.map(item => {
+          {visibleItems.map(item => {
             const cfg = PORTAL_STATUSES.find(s => s.value === item.status) || PORTAL_STATUSES[0];
             const due = portalDueLabel(item.due_date);
             return (
