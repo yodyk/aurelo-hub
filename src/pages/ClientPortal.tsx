@@ -19,6 +19,7 @@ import {
   ChevronDown,
   ChevronRight,
   Tag,
+  Check,
 } from "lucide-react";
 import { format } from "date-fns";
 
