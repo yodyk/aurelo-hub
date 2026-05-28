@@ -257,88 +257,29 @@ export default function ClientPortal() {
           </motion.div>
 
           {/* Summary stats row */}
-          <motion.div variants={itemVariants} className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
-            <StatCard icon={Clock} label="Hours Logged" value={fmtHours(client.hoursLogged || 0)} accent={accent} />
-            <StatCard icon={FolderOpen} label="Active Projects" value={String(projects.filter(p => p.status.toLowerCase() === "in progress").length)} accent={accent} />
-            {showCosts && (
-              <>
-                <StatCard icon={DollarSign} label="This Month" value={fmt$(client.monthlyEarnings || 0)} accent={accent} />
-                <StatCard icon={FileText} label="Total Invoiced" value={fmt$(totalInvoiced)} accent={accent} />
-              </>
-            )}
-            {!showCosts && (
-              <>
-                <StatCard icon={Activity} label="Total Sessions" value={String(sessions.length)} accent={accent} />
-                <StatCard icon={FolderOpen} label="All Projects" value={String(projects.length)} accent={accent} />
-              </>
-            )}
-          </motion.div>
+          <PortalSummary
+            client={client}
+            projects={projects}
+            sessions={sessions}
+            checklists={checklists}
+            totalInvoiced={totalInvoiced}
+            showCosts={showCosts}
+            accent={accent}
+          />
 
-          {/* Retainer bar */}
-          {client.model === "Retainer" && client.retainerTotal != null && client.retainerTotal > 0 && (
-            <motion.div variants={itemVariants} className="mb-8">
-              <RetainerBar total={client.retainerTotal} remaining={client.retainerRemaining || 0} />
-            </motion.div>
-          )}
-
-          {/* ── Two column layout ── */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
-            {/* Left column — Projects + Checklists */}
-            <div className="lg:col-span-7 space-y-6">
-              {/* Projects */}
-              {projects.length > 0 && (
-                <motion.div variants={itemVariants}>
-                  <SectionHeader icon={FolderOpen} title="Projects" count={projects.length} accent={accent} />
-                  <div className="space-y-3 mt-3">
-                    {projects.map(p => <ProjectCard key={p.id} project={p} showCosts={showCosts} accent={accent} />)}
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Task lists */}
-              {checklists && checklists.length > 0 && (
-                <motion.div variants={itemVariants}>
-                  <SectionHeader icon={CheckSquare} title="Tasks" count={checklists.length} accent={accent} />
-                  <div className="space-y-3 mt-3">
-                    {checklists.map(cl => (
-                      <PortalChecklistCard key={cl.id} checklist={cl} accent={accent} token={token!} />
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </div>
-
-            {/* Right column — Activity + Invoices */}
-            <div className="lg:col-span-5 space-y-6">
-              {/* Recent activity */}
-              {sessions.length > 0 && (
-                <motion.div variants={itemVariants}>
-                  <SectionHeader icon={Timer} title="Recent Activity" count={sessions.length} accent={accent} />
-                  <div className="mt-3 space-y-2">
-                    {sessions.slice(0, 20).map(s => (
-                      <SessionAccordion key={s.id} session={s} projects={projects} showCosts={showCosts} accent={accent} />
-                    ))}
-                    {sessions.length > 20 && (
-                      <p className="text-[12px] text-[#9ca3af] text-center py-2">
-                        Showing 20 of {sessions.length} sessions
-                      </p>
-                    )}
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Invoices */}
-              {invoices.length > 0 && showCosts && (
-                <motion.div variants={itemVariants}>
-                  <SectionHeader icon={FileText} title="Invoices" count={invoices.length} accent={accent} />
-                  <div className="space-y-2 mt-3">
-                    {invoices.map(inv => <InvoiceRow key={inv.id} invoice={inv} accent={accent} />)}
-                  </div>
-                </motion.div>
-              )}
-            </div>
-          </div>
+          {/* Tabbed content */}
+          <PortalTabs
+            client={client}
+            projects={projects}
+            sessions={sessions}
+            invoices={invoices}
+            checklists={checklists}
+            showCosts={showCosts}
+            accent={accent}
+            token={token!}
+          />
         </motion.div>
+
 
         {/* Footer */}
         {!branding.isWhiteLabel && (
@@ -356,7 +297,214 @@ export default function ClientPortal() {
   );
 }
 
+// ── Summary stats (with Open Tasks) ────────────────────────────────
+
+function PortalSummary({
+  client, projects, sessions, checklists, totalInvoiced, showCosts, accent,
+}: {
+  client: PortalClient;
+  projects: PortalProject[];
+  sessions: PortalSession[];
+  checklists: PortalChecklist[];
+  totalInvoiced: number;
+  showCosts: boolean;
+  accent: string;
+}) {
+  const openTasks = useMemo(
+    () => checklists.reduce((acc, cl) => acc + cl.items.filter(i => i.status !== 'done').length, 0),
+    [checklists]
+  );
+
+  return (
+    <motion.div variants={itemVariants} className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+      <StatCard icon={Clock} label="Hours Logged" value={fmtHours(client.hoursLogged || 0)} accent={accent} />
+      <StatCard icon={CheckSquare} label="Open Tasks" value={String(openTasks)} accent={accent} />
+      <StatCard icon={FolderOpen} label="Active Projects" value={String(projects.filter(p => p.status.toLowerCase() === "in progress").length)} accent={accent} />
+      {showCosts ? (
+        <StatCard icon={DollarSign} label="This Month" value={fmt$(client.monthlyEarnings || 0)} accent={accent} />
+      ) : (
+        <StatCard icon={Activity} label="Total Sessions" value={String(sessions.length)} accent={accent} />
+      )}
+    </motion.div>
+  );
+}
+
+// ── Tabbed content ─────────────────────────────────────────────────
+
+type PortalTabId = 'retainer' | 'activity' | 'tasks' | 'projects';
+
+function PortalTabs({
+  client, projects, sessions, invoices, checklists, showCosts, accent, token,
+}: {
+  client: PortalClient;
+  projects: PortalProject[];
+  sessions: PortalSession[];
+  invoices: PortalInvoice[];
+  checklists: PortalChecklist[];
+  showCosts: boolean;
+  accent: string;
+  token: string;
+}) {
+  const isRetainer = client.model === 'Retainer';
+  const openTaskCount = useMemo(
+    () => checklists.reduce((acc, cl) => acc + cl.items.filter(i => i.status !== 'done').length, 0),
+    [checklists]
+  );
+
+  const tabs: { id: PortalTabId; label: string; count?: number }[] = [
+    { id: 'retainer', label: isRetainer ? 'Retainer' : 'Summary' },
+    { id: 'activity', label: 'Recent Activity', count: sessions.length || undefined },
+    { id: 'tasks',    label: 'Tasks',           count: openTaskCount || undefined },
+    { id: 'projects', label: 'Projects',        count: projects.length || undefined },
+  ];
+
+  const [active, setActive] = useState<PortalTabId>('retainer');
+  const [hideCompleted, setHideCompleted] = useState(true);
+
+  return (
+    <motion.div variants={itemVariants}>
+      {/* Tab bar */}
+      <div className="border-b border-[#e5e7eb] mb-6 flex items-end gap-1 overflow-x-auto">
+        {tabs.map(t => {
+          const isActive = active === t.id;
+          return (
+            <button
+              key={t.id}
+              onClick={() => setActive(t.id)}
+              className="relative inline-flex items-center gap-1.5 px-3.5 py-2.5 text-[13px] whitespace-nowrap transition-colors cursor-pointer"
+              style={{
+                fontWeight: isActive ? 600 : 500,
+                color: isActive ? accent : '#6b7280',
+              }}
+            >
+              {t.label}
+              {t.count != null && (
+                <span
+                  className="text-[10.5px] font-medium px-1.5 py-0.5 rounded-full tabular-nums"
+                  style={{
+                    backgroundColor: isActive ? `${accent}14` : '#f3f4f6',
+                    color: isActive ? accent : '#9ca3af',
+                  }}
+                >
+                  {t.count}
+                </span>
+              )}
+              {isActive && (
+                <span className="absolute left-2 right-2 -bottom-px h-[2px] rounded-full" style={{ backgroundColor: accent }} />
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Tab body */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={active}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -4 }}
+          transition={{ duration: 0.18 }}
+        >
+          {active === 'retainer' && (
+            <div className="space-y-5">
+              {isRetainer && client.retainerTotal != null && client.retainerTotal > 0 ? (
+                <RetainerBar total={client.retainerTotal} remaining={client.retainerRemaining || 0} />
+              ) : (
+                <div className="bg-white border border-[#e5e7eb] rounded-2xl p-6 text-center">
+                  <p className="text-[14px] text-[#1a1a2e]" style={{ fontWeight: 600 }}>{client.model} engagement</p>
+                  <p className="text-[12.5px] text-[#6b7280] mt-1">
+                    This engagement isn't on a retainer model — see Recent Activity or Projects for progress details.
+                  </p>
+                </div>
+              )}
+
+              {invoices.length > 0 && showCosts && (
+                <div>
+                  <SectionHeader icon={FileText} title="Invoices" count={invoices.length} accent={accent} />
+                  <div className="space-y-2 mt-3">
+                    {invoices.map(inv => <InvoiceRow key={inv.id} invoice={inv} accent={accent} />)}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {active === 'activity' && (
+            <div>
+              {sessions.length === 0 ? (
+                <EmptyState icon={Timer} title="No sessions yet" body="Time entries for this engagement will appear here." />
+              ) : (
+                <div className="space-y-2">
+                  {sessions.slice(0, 30).map(s => (
+                    <SessionAccordion key={s.id} session={s} projects={projects} showCosts={showCosts} accent={accent} />
+                  ))}
+                  {sessions.length > 30 && (
+                    <p className="text-[12px] text-[#9ca3af] text-center py-2">Showing 30 of {sessions.length} sessions</p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {active === 'tasks' && (
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[12px] text-[#6b7280]">
+                  {openTaskCount} open · {checklists.reduce((a, c) => a + c.items.length, 0)} total
+                </span>
+                <label className="inline-flex items-center gap-2 text-[12px] text-[#374151] cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={hideCompleted}
+                    onChange={(e) => setHideCompleted(e.target.checked)}
+                    className="accent-current"
+                    style={{ accentColor: accent }}
+                  />
+                  Hide completed
+                </label>
+              </div>
+              {checklists.length === 0 ? (
+                <EmptyState icon={CheckSquare} title="No tasks yet" body="Tasks will appear here when added." />
+              ) : (
+                <div className="space-y-3">
+                  {checklists.map(cl => (
+                    <PortalChecklistCard key={cl.id} checklist={cl} accent={accent} token={token} hideCompleted={hideCompleted} />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {active === 'projects' && (
+            <div>
+              {projects.length === 0 ? (
+                <EmptyState icon={FolderOpen} title="No projects yet" body="Projects added for this engagement will appear here." />
+              ) : (
+                <div className="space-y-3">
+                  {projects.map(p => <ProjectCard key={p.id} project={p} showCosts={showCosts} accent={accent} />)}
+                </div>
+              )}
+            </div>
+          )}
+        </motion.div>
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+
+function EmptyState({ icon: Icon, title, body }: { icon: any; title: string; body: string }) {
+  return (
+    <div className="bg-white border border-[#e5e7eb] rounded-2xl p-10 text-center">
+      <Icon className="w-7 h-7 text-[#d1d5db] mx-auto mb-3" />
+      <p className="text-[14px] text-[#1a1a2e]" style={{ fontWeight: 600 }}>{title}</p>
+      <p className="text-[12.5px] text-[#6b7280] mt-1">{body}</p>
+    </div>
+  );
+}
+
 // ── Sub-components ──────────────────────────────────────────────────
+
 
 function StatCard({ icon: Icon, label, value, accent }: { icon: any; label: string; value: string; accent: string }) {
   return (
@@ -583,13 +731,14 @@ function portalDueLabel(due?: string | null) {
   } catch { return null; }
 }
 
-function PortalChecklistCard({ checklist, accent, token }: { checklist: PortalChecklist; accent: string; token: string }) {
+function PortalChecklistCard({ checklist, accent, token, hideCompleted = false }: { checklist: PortalChecklist; accent: string; token: string; hideCompleted?: boolean }) {
   const [items, setItems] = useState<PortalTask[]>(checklist.items);
   const [composerOpen, setComposerOpen] = useState(false);
 
   const completedCount = items.filter(i => i.status === 'done').length;
   const totalCount = items.length;
   const progress = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
+  const visibleItems = hideCompleted ? items.filter(i => i.status !== 'done') : items;
 
   const cycleStatus = async (item: PortalTask) => {
     const order: PortalTask['status'][] = ['todo', 'in_progress', 'blocked', 'done'];
@@ -651,7 +800,7 @@ function PortalChecklistCard({ checklist, accent, token }: { checklist: PortalCh
         </div>
 
         <div className="space-y-2">
-          {items.map(item => {
+          {visibleItems.map(item => {
             const cfg = PORTAL_STATUSES.find(s => s.value === item.status) || PORTAL_STATUSES[0];
             const due = portalDueLabel(item.due_date);
             return (
@@ -706,8 +855,10 @@ function PortalChecklistCard({ checklist, accent, token }: { checklist: PortalCh
               </div>
             );
           })}
-          {items.length === 0 && (
-            <div className="text-center py-4 text-[12px] text-[#9ca3af]">No tasks yet.</div>
+          {visibleItems.length === 0 && (
+            <div className="text-center py-4 text-[12px] text-[#9ca3af]">
+              {items.length === 0 ? 'No tasks yet.' : 'All tasks completed.'}
+            </div>
           )}
         </div>
 

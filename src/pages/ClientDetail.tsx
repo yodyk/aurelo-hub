@@ -161,7 +161,7 @@ function getTabsForClient(client: any, canViewFinancials: boolean): { id: TabId;
   tabs.push(
     { id: "files", label: "Files", icon: FolderOpen },
     { id: "notes", label: "Notes", icon: StickyNote },
-    { id: "checklists", label: "Checklists", icon: CheckSquare },
+    { id: "checklists", label: "Tasks", icon: CheckSquare },
     { id: "portal", label: "Portal", icon: Link2 },
     { id: "settings", label: "Settings", icon: SettingsIcon },
   );
@@ -2257,12 +2257,12 @@ function NotesTab({ clientId, projects }: { clientId?: string; projects: any[] }
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// Checklists Tab
+// Tasks Tab
 // ═══════════════════════════════════════════════════════════════════
 function ChecklistsTab({ clientId, workspaceId }: { clientId: string; workspaceId: string }) {
   return (
     <SectionCard>
-      <SectionHeader>Checklists</SectionHeader>
+      <SectionHeader>Tasks</SectionHeader>
       <ChecklistPanel clientId={clientId} workspaceId={workspaceId} />
     </SectionCard>
   );

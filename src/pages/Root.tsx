@@ -1,7 +1,7 @@
 import { clearDemoData } from '../data/settingsApi';
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Outlet, NavLink, useLocation, useNavigate, Navigate, Link, useParams } from 'react-router';
-import { LayoutDashboard, Users, Clock, TrendingUp, Settings, Timer, Square, Menu, X, FolderKanban, LogOut, FileText, Sun, Moon, Lock, PanelLeftClose, PanelLeftOpen, Monitor, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, Users, Clock, TrendingUp, Settings, Timer, Square, Menu, X, FolderKanban, LogOut, FileText, Sun, Moon, Lock, PanelLeftClose, PanelLeftOpen, Monitor, ChevronRight, CheckSquare } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 import { useData, DataProvider } from '../data/DataContext';
@@ -29,6 +29,7 @@ const navItems: { to: string; icon: any; label: string; end?: boolean; feature?:
   { to: '/clients', icon: Users, label: 'Clients' },
   { to: '/projects', icon: FolderKanban, label: 'Projects' },
   { to: '/time', icon: Clock, label: 'Time' },
+  { to: '/tasks', icon: CheckSquare, label: 'Tasks' },
   { to: '/insights', icon: TrendingUp, label: 'Insights', requiresFinancials: true },
   { to: '/team', icon: Users, label: 'Team', feature: 'teamUtilization', hideUnlessFeature: true, requiresFinancials: true },
   { to: '/invoicing', icon: FileText, label: 'Invoicing', feature: 'clientInvoicing', requiresFinancials: true },
@@ -156,7 +157,7 @@ function Breadcrumbs() {
     if (segments.length === 0) return null;
 
     const topLabels: Record<string, string> = {
-      clients: 'Clients', projects: 'Projects', time: 'Time Log',
+      clients: 'Clients', projects: 'Projects', time: 'Time Log', tasks: 'Tasks',
       insights: 'Insights', invoicing: 'Invoicing', settings: 'Settings', team: 'Team',
     };
 
