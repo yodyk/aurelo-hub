@@ -297,7 +297,214 @@ export default function ClientPortal() {
   );
 }
 
+// ── Summary stats (with Open Tasks) ────────────────────────────────
+
+function PortalSummary({
+  client, projects, sessions, checklists, totalInvoiced, showCosts, accent,
+}: {
+  client: PortalClient;
+  projects: PortalProject[];
+  sessions: PortalSession[];
+  checklists: PortalChecklist[];
+  totalInvoiced: number;
+  showCosts: boolean;
+  accent: string;
+}) {
+  const openTasks = useMemo(
+    () => checklists.reduce((acc, cl) => acc + cl.items.filter(i => i.status !== 'done').length, 0),
+    [checklists]
+  );
+
+  return (
+    <motion.div variants={itemVariants} className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+      <StatCard icon={Clock} label="Hours Logged" value={fmtHours(client.hoursLogged || 0)} accent={accent} />
+      <StatCard icon={CheckSquare} label="Open Tasks" value={String(openTasks)} accent={accent} />
+      <StatCard icon={FolderOpen} label="Active Projects" value={String(projects.filter(p => p.status.toLowerCase() === "in progress").length)} accent={accent} />
+      {showCosts ? (
+        <StatCard icon={DollarSign} label="This Month" value={fmt$(client.monthlyEarnings || 0)} accent={accent} />
+      ) : (
+        <StatCard icon={Activity} label="Total Sessions" value={String(sessions.length)} accent={accent} />
+      )}
+    </motion.div>
+  );
+}
+
+// ── Tabbed content ─────────────────────────────────────────────────
+
+type PortalTabId = 'retainer' | 'activity' | 'tasks' | 'projects';
+
+function PortalTabs({
+  client, projects, sessions, invoices, checklists, showCosts, accent, token,
+}: {
+  client: PortalClient;
+  projects: PortalProject[];
+  sessions: PortalSession[];
+  invoices: PortalInvoice[];
+  checklists: PortalChecklist[];
+  showCosts: boolean;
+  accent: string;
+  token: string;
+}) {
+  const isRetainer = client.model === 'Retainer';
+  const openTaskCount = useMemo(
+    () => checklists.reduce((acc, cl) => acc + cl.items.filter(i => i.status !== 'done').length, 0),
+    [checklists]
+  );
+
+  const tabs: { id: PortalTabId; label: string; count?: number }[] = [
+    { id: 'retainer', label: isRetainer ? 'Retainer' : 'Summary' },
+    { id: 'activity', label: 'Recent Activity', count: sessions.length || undefined },
+    { id: 'tasks',    label: 'Tasks',           count: openTaskCount || undefined },
+    { id: 'projects', label: 'Projects',        count: projects.length || undefined },
+  ];
+
+  const [active, setActive] = useState<PortalTabId>('retainer');
+  const [hideCompleted, setHideCompleted] = useState(true);
+
+  return (
+    <motion.div variants={itemVariants}>
+      {/* Tab bar */}
+      <div className="border-b border-[#e5e7eb] mb-6 flex items-end gap-1 overflow-x-auto">
+        {tabs.map(t => {
+          const isActive = active === t.id;
+          return (
+            <button
+              key={t.id}
+              onClick={() => setActive(t.id)}
+              className="relative inline-flex items-center gap-1.5 px-3.5 py-2.5 text-[13px] whitespace-nowrap transition-colors cursor-pointer"
+              style={{
+                fontWeight: isActive ? 600 : 500,
+                color: isActive ? accent : '#6b7280',
+              }}
+            >
+              {t.label}
+              {t.count != null && (
+                <span
+                  className="text-[10.5px] font-medium px-1.5 py-0.5 rounded-full tabular-nums"
+                  style={{
+                    backgroundColor: isActive ? `${accent}14` : '#f3f4f6',
+                    color: isActive ? accent : '#9ca3af',
+                  }}
+                >
+                  {t.count}
+                </span>
+              )}
+              {isActive && (
+                <span className="absolute left-2 right-2 -bottom-px h-[2px] rounded-full" style={{ backgroundColor: accent }} />
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Tab body */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={active}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -4 }}
+          transition={{ duration: 0.18 }}
+        >
+          {active === 'retainer' && (
+            <div className="space-y-5">
+              {isRetainer && client.retainerTotal != null && client.retainerTotal > 0 ? (
+                <RetainerBar total={client.retainerTotal} remaining={client.retainerRemaining || 0} />
+              ) : (
+                <div className="bg-white border border-[#e5e7eb] rounded-2xl p-6 text-center">
+                  <p className="text-[14px] text-[#1a1a2e]" style={{ fontWeight: 600 }}>{client.model} engagement</p>
+                  <p className="text-[12.5px] text-[#6b7280] mt-1">
+                    This engagement isn't on a retainer model — see Recent Activity or Projects for progress details.
+                  </p>
+                </div>
+              )}
+
+              {invoices.length > 0 && showCosts && (
+                <div>
+                  <SectionHeader icon={FileText} title="Invoices" count={invoices.length} accent={accent} />
+                  <div className="space-y-2 mt-3">
+                    {invoices.map(inv => <InvoiceRow key={inv.id} invoice={inv} accent={accent} />)}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {active === 'activity' && (
+            <div>
+              {sessions.length === 0 ? (
+                <EmptyState icon={Timer} title="No sessions yet" body="Time entries for this engagement will appear here." />
+              ) : (
+                <div className="space-y-2">
+                  {sessions.slice(0, 30).map(s => (
+                    <SessionAccordion key={s.id} session={s} projects={projects} showCosts={showCosts} accent={accent} />
+                  ))}
+                  {sessions.length > 30 && (
+                    <p className="text-[12px] text-[#9ca3af] text-center py-2">Showing 30 of {sessions.length} sessions</p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {active === 'tasks' && (
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[12px] text-[#6b7280]">
+                  {openTaskCount} open · {checklists.reduce((a, c) => a + c.items.length, 0)} total
+                </span>
+                <label className="inline-flex items-center gap-2 text-[12px] text-[#374151] cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={hideCompleted}
+                    onChange={(e) => setHideCompleted(e.target.checked)}
+                    className="accent-current"
+                    style={{ accentColor: accent }}
+                  />
+                  Hide completed
+                </label>
+              </div>
+              {checklists.length === 0 ? (
+                <EmptyState icon={CheckSquare} title="No tasks yet" body="Tasks will appear here when added." />
+              ) : (
+                <div className="space-y-3">
+                  {checklists.map(cl => (
+                    <PortalChecklistCard key={cl.id} checklist={cl} accent={accent} token={token} hideCompleted={hideCompleted} />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {active === 'projects' && (
+            <div>
+              {projects.length === 0 ? (
+                <EmptyState icon={FolderOpen} title="No projects yet" body="Projects added for this engagement will appear here." />
+              ) : (
+                <div className="space-y-3">
+                  {projects.map(p => <ProjectCard key={p.id} project={p} showCosts={showCosts} accent={accent} />)}
+                </div>
+              )}
+            </div>
+          )}
+        </motion.div>
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+
+function EmptyState({ icon: Icon, title, body }: { icon: any; title: string; body: string }) {
+  return (
+    <div className="bg-white border border-[#e5e7eb] rounded-2xl p-10 text-center">
+      <Icon className="w-7 h-7 text-[#d1d5db] mx-auto mb-3" />
+      <p className="text-[14px] text-[#1a1a2e]" style={{ fontWeight: 600 }}>{title}</p>
+      <p className="text-[12.5px] text-[#6b7280] mt-1">{body}</p>
+    </div>
+  );
+}
+
 // ── Sub-components ──────────────────────────────────────────────────
+
 
 function StatCard({ icon: Icon, label, value, accent }: { icon: any; label: string; value: string; accent: string }) {
   return (
