@@ -111,6 +111,7 @@ export async function uploadFile(workspaceId: string, clientId: string, file: Fi
   if (error) throw new Error(`Failed to upload file: ${error.message}`);
   return {
     name: file.name,
+    path,
     size: file.size,
     url: authedUrl('client-files', path),
     createdAt: new Date().toISOString(),
