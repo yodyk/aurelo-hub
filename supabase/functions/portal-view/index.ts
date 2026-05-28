@@ -163,7 +163,13 @@ Deno.serve(async (req) => {
         itemsByChecklist[item.checklist_id].push({
           id: item.id,
           text: item.text,
+          description: item.description ?? null,
+          status: item.status || (item.completed ? 'done' : 'todo'),
           completed: item.completed,
+          work_tags: item.work_tags || [],
+          due_date: item.due_date ?? null,
+          estimated_hours: item.estimated_hours ?? null,
+          priority: item.priority ?? null,
           sort_order: item.sort_order,
           added_by: item.added_by,
         });
