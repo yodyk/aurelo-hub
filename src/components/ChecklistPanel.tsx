@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   Plus, Trash2, Pencil, X, Check, Loader2, MoreHorizontal, Calendar, Clock,
   Tag, AlignLeft, Filter, ChevronDown, CircleDashed, CircleDot, AlertCircle, CheckCircle2,
+  Link2, FileText, Paperclip, ExternalLink,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
@@ -11,8 +12,14 @@ import {
   addChecklistItem, updateChecklistItem, deleteChecklistItem,
   type Checklist, type ChecklistItem, type TaskStatus, type NewTaskInput,
 } from '@/data/checklistsApi';
+import { loadNotes, type ClientNote } from '@/data/notesApi';
+import { loadFiles, getSignedUrlByPath, type StoredFile } from '@/data/storageApi';
+import {
+  loadTaskLinksForClient, addNoteLink, addFileLink, removeTaskLink, type TaskLink,
+} from '@/data/taskLinksApi';
 import { useData } from '@/data/DataContext';
 import { DatePicker } from '@/components/ui/date-picker';
+
 
 interface ChecklistPanelProps {
   clientId: string;
