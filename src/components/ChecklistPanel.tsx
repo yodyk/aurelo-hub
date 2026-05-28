@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   Plus, Trash2, Pencil, X, Check, Loader2, MoreHorizontal, Calendar, Clock,
   Tag, AlignLeft, Filter, ChevronDown, CircleDashed, CircleDot, AlertCircle, CheckCircle2,
+  Link2, FileText, Paperclip, ExternalLink,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
@@ -11,8 +12,14 @@ import {
   addChecklistItem, updateChecklistItem, deleteChecklistItem,
   type Checklist, type ChecklistItem, type TaskStatus, type NewTaskInput,
 } from '@/data/checklistsApi';
+import { loadNotes, type ClientNote } from '@/data/notesApi';
+import { loadFiles, getSignedUrlByPath, type StoredFile } from '@/data/storageApi';
+import {
+  loadTaskLinksForClient, addNoteLink, addFileLink, removeTaskLink, type TaskLink,
+} from '@/data/taskLinksApi';
 import { useData } from '@/data/DataContext';
 import { DatePicker } from '@/components/ui/date-picker';
+
 
 interface ChecklistPanelProps {
   clientId: string;
@@ -41,14 +48,31 @@ export default function ChecklistPanel({ clientId, projectId, workspaceId }: Che
   const [showCreate, setShowCreate] = useState(false);
   const [statusFilter, setStatusFilter] = useState<TaskStatus | 'all' | 'open'>('open');
   const [tagFilter, setTagFilter] = useState<string | 'all'>('all');
+  const [linksByItem, setLinksByItem] = useState<Record<string, TaskLink[]>>({});
+  const [clientNotes, setClientNotes] = useState<ClientNote[]>([]);
+  const [clientFiles, setClientFiles] = useState<StoredFile[]>([]);
 
   const refresh = useCallback(async () => {
-    const data = await loadChecklists(clientId, projectId);
+    const [data, links, notes, files] = await Promise.all([
+      loadChecklists(clientId, projectId),
+      loadTaskLinksForClient(clientId),
+      loadNotes(clientId),
+      loadFiles(workspaceId, clientId),
+    ]);
     setChecklists(data);
+    setLinksByItem(links);
+    setClientNotes(notes);
+    setClientFiles(files);
     setLoading(false);
-  }, [clientId, projectId]);
+  }, [clientId, projectId, workspaceId]);
 
   useEffect(() => { refresh(); }, [refresh]);
+
+  const refreshLinks = useCallback(async () => {
+    const links = await loadTaskLinksForClient(clientId);
+    setLinksByItem(links);
+  }, [clientId]);
+
 
   const handleCreate = async () => {
     if (!creatingTitle.trim()) return;
@@ -124,11 +148,17 @@ export default function ChecklistPanel({ clientId, projectId, workspaceId }: Che
         <ChecklistCard
           key={checklist.id}
           checklist={checklist}
+          clientId={clientId}
+          workspaceId={workspaceId}
           onDelete={() => handleDelete(checklist.id)}
           onRefresh={refresh}
           statusFilter={statusFilter}
           tagFilter={tagFilter}
           workCategoryNames={workCategoryNames}
+          linksByItem={linksByItem}
+          clientNotes={clientNotes}
+          clientFiles={clientFiles}
+          onLinksChanged={refreshLinks}
         />
       ))}
 
@@ -188,14 +218,21 @@ function FilterChip({ active, onClick, label, count }: { active: boolean; onClic
 // ── Individual checklist card ──────────────────────────────────────
 
 function ChecklistCard({
-  checklist, onDelete, onRefresh, statusFilter, tagFilter, workCategoryNames,
+  checklist, clientId, workspaceId, onDelete, onRefresh, statusFilter, tagFilter, workCategoryNames,
+  linksByItem, clientNotes, clientFiles, onLinksChanged,
 }: {
   checklist: Checklist;
+  clientId: string;
+  workspaceId: string;
   onDelete: () => void;
   onRefresh: () => void;
   statusFilter: TaskStatus | 'all' | 'open';
   tagFilter: string | 'all';
   workCategoryNames: string[];
+  linksByItem: Record<string, TaskLink[]>;
+  clientNotes: ClientNote[];
+  clientFiles: StoredFile[];
+  onLinksChanged: () => void;
 }) {
   const [items, setItems] = useState<ChecklistItem[]>(checklist.items);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
@@ -280,7 +317,13 @@ function ChecklistCard({
               <TaskRow
                 key={item.id}
                 item={item}
+                clientId={clientId}
+                workspaceId={workspaceId}
                 workCategoryNames={workCategoryNames}
+                links={linksByItem[item.id] || []}
+                clientNotes={clientNotes}
+                clientFiles={clientFiles}
+                onLinksChanged={onLinksChanged}
                 onUpdate={(patch) => updateLocal(item.id, patch)}
                 onDeleted={() => setItems(prev => prev.filter(i => i.id !== item.id))}
                 onRefresh={onRefresh}
@@ -316,10 +359,17 @@ function ChecklistCard({
 // ── Task row ───────────────────────────────────────────────────────
 
 function TaskRow({
-  item, onUpdate, onDeleted, onRefresh, workCategoryNames,
+  item, clientId, workspaceId, onUpdate, onDeleted, onRefresh, workCategoryNames,
+  links, clientNotes, clientFiles, onLinksChanged,
 }: {
   item: ChecklistItem;
+  clientId: string;
+  workspaceId: string;
   workCategoryNames: string[];
+  links: TaskLink[];
+  clientNotes: ClientNote[];
+  clientFiles: StoredFile[];
+  onLinksChanged: () => void;
   onUpdate: (patch: Partial<ChecklistItem>) => void;
   onDeleted: () => void;
   onRefresh: () => void;
@@ -447,6 +497,17 @@ function TaskRow({
                 <AlignLeft className="w-2.5 h-2.5" /> Notes
               </span>
             )}
+
+            {links.length > 0 && (
+              <button
+                onClick={() => setExpanded(true)}
+                className="inline-flex items-center gap-1 text-[10.5px] px-1.5 py-0.5 rounded bg-accent/50 text-muted-foreground hover:text-primary cursor-pointer"
+                style={{ fontWeight: 500 }}
+                title="Linked notes & files"
+              >
+                <Link2 className="w-2.5 h-2.5" /> {links.length}
+              </button>
+            )}
           </div>
 
           {/* Expanded editor */}
@@ -460,7 +521,13 @@ function TaskRow({
               >
                 <TaskInlineEditor
                   item={item}
+                  clientId={clientId}
+                  workspaceId={workspaceId}
                   workCategoryNames={workCategoryNames}
+                  links={links}
+                  clientNotes={clientNotes}
+                  clientFiles={clientFiles}
+                  onLinksChanged={onLinksChanged}
                   onChange={(patch, dbPatch) => saveField(patch, dbPatch)}
                   onDelete={handleDelete}
                 />
@@ -521,10 +588,17 @@ function StatusPill({ status, onSelect }: { status: TaskStatus; onSelect: (s: Ta
 // ── Inline editor (expanded row) ───────────────────────────────────
 
 function TaskInlineEditor({
-  item, workCategoryNames, onChange, onDelete,
+  item, clientId, workspaceId, workCategoryNames, links, clientNotes, clientFiles,
+  onLinksChanged, onChange, onDelete,
 }: {
   item: ChecklistItem;
+  clientId: string;
+  workspaceId: string;
   workCategoryNames: string[];
+  links: TaskLink[];
+  clientNotes: ClientNote[];
+  clientFiles: StoredFile[];
+  onLinksChanged: () => void;
   onChange: (patch: Partial<ChecklistItem>, dbPatch: any) => void;
   onDelete: () => void;
 }) {
@@ -621,6 +695,17 @@ function TaskInlineEditor({
         </div>
       )}
 
+      {/* Linked notes & files */}
+      <TaskLinksSection
+        item={item}
+        clientId={clientId}
+        workspaceId={workspaceId}
+        links={links}
+        clientNotes={clientNotes}
+        clientFiles={clientFiles}
+        onChanged={onLinksChanged}
+      />
+
       <div className="flex items-center justify-end">
         <button
           onClick={onDelete}
@@ -632,6 +717,201 @@ function TaskInlineEditor({
     </div>
   );
 }
+
+// ── Task links (per-client notes & files) ──────────────────────────
+
+function TaskLinksSection({
+  item, clientId, workspaceId, links, clientNotes, clientFiles, onChanged,
+}: {
+  item: ChecklistItem;
+  clientId: string;
+  workspaceId: string;
+  links: TaskLink[];
+  clientNotes: ClientNote[];
+  clientFiles: StoredFile[];
+  onChanged: () => void;
+}) {
+  const [picker, setPicker] = useState<null | 'note' | 'file'>(null);
+  const [query, setQuery] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const linkedNoteIds = new Set(links.filter(l => l.linkType === 'note').map(l => l.noteId!));
+  const linkedFilePaths = new Set(links.filter(l => l.linkType === 'file').map(l => l.filePath!));
+
+  const handleAddNote = async (noteId: string) => {
+    setBusy(true);
+    try {
+      await addNoteLink({ checklistItemId: item.id, workspaceId, clientId, noteId });
+      onChanged();
+      setPicker(null);
+      setQuery('');
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally { setBusy(false); }
+  };
+
+  const handleAddFile = async (f: StoredFile) => {
+    setBusy(true);
+    try {
+      await addFileLink({
+        checklistItemId: item.id, workspaceId, clientId,
+        filePath: f.path, fileName: f.name,
+      });
+      onChanged();
+      setPicker(null);
+      setQuery('');
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally { setBusy(false); }
+  };
+
+  const handleRemove = async (linkId: string) => {
+    try {
+      await removeTaskLink(linkId);
+      onChanged();
+    } catch (err: any) { toast.error(err.message); }
+  };
+
+  const openFile = async (filePath: string) => {
+    const url = await getSignedUrlByPath(filePath);
+    if (url) window.open(url, '_blank');
+    else toast.error('File not found');
+  };
+
+  const noteById = (id: string) => clientNotes.find(n => n.id === id);
+
+  const notesFiltered = clientNotes.filter(n =>
+    !linkedNoteIds.has(n.id) &&
+    (query === '' || (n.content || '').toLowerCase().includes(query.toLowerCase()))
+  ).slice(0, 20);
+
+  const filesFiltered = clientFiles.filter(f =>
+    !linkedFilePaths.has(f.path) &&
+    (query === '' || f.name.toLowerCase().includes(query.toLowerCase()))
+  ).slice(0, 20);
+
+  return (
+    <div>
+      <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mb-1.5" style={{ fontWeight: 500 }}>
+        <Link2 className="w-3 h-3" /> Linked notes & files
+      </div>
+
+      {links.length > 0 && (
+        <div className="space-y-1 mb-2">
+          {links.map(link => {
+            if (link.linkType === 'note') {
+              const note = noteById(link.noteId!);
+              const preview = note
+                ? (note.content || '').replace(/<[^>]+>/g, '').trim().slice(0, 80) || 'Untitled note'
+                : 'Note no longer available';
+              return (
+                <div key={link.id} className="flex items-center gap-2 text-[12px] px-2 py-1 rounded bg-accent/30 group">
+                  <FileText className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                  <span className="flex-1 truncate text-foreground/80">{preview}</span>
+                  <button
+                    onClick={() => handleRemove(link.id)}
+                    className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive cursor-pointer"
+                    title="Unlink"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              );
+            }
+            return (
+              <div key={link.id} className="flex items-center gap-2 text-[12px] px-2 py-1 rounded bg-accent/30 group">
+                <Paperclip className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                <button
+                  onClick={() => openFile(link.filePath!)}
+                  className="flex-1 truncate text-left text-primary hover:underline cursor-pointer inline-flex items-center gap-1"
+                >
+                  {link.fileName || link.filePath} <ExternalLink className="w-2.5 h-2.5 opacity-70" />
+                </button>
+                <button
+                  onClick={() => handleRemove(link.id)}
+                  className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive cursor-pointer"
+                  title="Unlink"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <div className="flex items-center gap-1.5">
+        <button
+          onClick={() => { setPicker(picker === 'note' ? null : 'note'); setQuery(''); }}
+          className={`inline-flex items-center gap-1 text-[11.5px] px-2 py-0.5 rounded border transition-colors cursor-pointer ${
+            picker === 'note' ? 'bg-primary/10 border-primary/30 text-primary' : 'border-border text-muted-foreground hover:bg-accent/40'
+          }`}
+          style={{ fontWeight: 500 }}
+        >
+          <FileText className="w-3 h-3" /> Link note
+        </button>
+        <button
+          onClick={() => { setPicker(picker === 'file' ? null : 'file'); setQuery(''); }}
+          className={`inline-flex items-center gap-1 text-[11.5px] px-2 py-0.5 rounded border transition-colors cursor-pointer ${
+            picker === 'file' ? 'bg-primary/10 border-primary/30 text-primary' : 'border-border text-muted-foreground hover:bg-accent/40'
+          }`}
+          style={{ fontWeight: 500 }}
+        >
+          <Paperclip className="w-3 h-3" /> Link file
+        </button>
+      </div>
+
+      {picker && (
+        <div className="mt-2 border border-border rounded-md bg-background/80 p-2">
+          <input
+            autoFocus
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={picker === 'note' ? 'Search this client\u2019s notes…' : 'Search this client\u2019s files…'}
+            className="w-full text-[12px] bg-transparent border border-border rounded px-2 py-1 mb-1.5 focus:outline-none focus:ring-1 focus:ring-primary/30"
+          />
+          <div className="max-h-40 overflow-y-auto space-y-0.5">
+            {picker === 'note' && notesFiltered.length === 0 && (
+              <div className="text-[11.5px] text-muted-foreground italic px-1.5 py-1">
+                {clientNotes.length === 0 ? 'No notes for this client yet.' : 'No matching notes.'}
+              </div>
+            )}
+            {picker === 'note' && notesFiltered.map(note => {
+              const preview = (note.content || '').replace(/<[^>]+>/g, '').trim().slice(0, 80) || 'Untitled note';
+              return (
+                <button
+                  key={note.id}
+                  disabled={busy}
+                  onClick={() => handleAddNote(note.id)}
+                  className="w-full text-left text-[12px] px-2 py-1 rounded hover:bg-accent/60 truncate text-foreground/80 cursor-pointer disabled:opacity-50"
+                >
+                  {preview}
+                </button>
+              );
+            })}
+            {picker === 'file' && filesFiltered.length === 0 && (
+              <div className="text-[11.5px] text-muted-foreground italic px-1.5 py-1">
+                {clientFiles.length === 0 ? 'No files uploaded for this client yet.' : 'No matching files.'}
+              </div>
+            )}
+            {picker === 'file' && filesFiltered.map(f => (
+              <button
+                key={f.path}
+                disabled={busy}
+                onClick={() => handleAddFile(f)}
+                className="w-full text-left text-[12px] px-2 py-1 rounded hover:bg-accent/60 truncate text-foreground/80 cursor-pointer disabled:opacity-50"
+              >
+                {f.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 
 // ── Composer (for creating new tasks) ──────────────────────────────
 

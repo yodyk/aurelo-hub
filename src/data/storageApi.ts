@@ -78,6 +78,7 @@ export async function deleteLogo(workspaceId: string, type: 'app' | 'email'): Pr
 
 export interface StoredFile {
   name: string;
+  path: string;
   size: number;
   url: string;
   createdAt: string;
@@ -89,10 +90,17 @@ export async function loadFiles(workspaceId: string, clientId: string): Promise<
   if (error) { console.error('[storageApi] loadFiles:', error); return []; }
   return (data || []).map(f => ({
     name: f.name,
+    path: `${folder}/${f.name}`,
     size: f.metadata?.size || 0,
     url: authedUrl('client-files', `${folder}/${f.name}`),
     createdAt: f.created_at,
   }));
+}
+
+export async function getSignedUrlByPath(fullPath: string): Promise<string | null> {
+  const { data, error } = await supabase.storage.from('client-files').createSignedUrl(fullPath, 3600);
+  if (error || !data) return null;
+  return data.signedUrl;
 }
 
 export async function uploadFile(workspaceId: string, clientId: string, file: File): Promise<StoredFile> {
@@ -103,6 +111,7 @@ export async function uploadFile(workspaceId: string, clientId: string, file: Fi
   if (error) throw new Error(`Failed to upload file: ${error.message}`);
   return {
     name: file.name,
+    path,
     size: file.size,
     url: authedUrl('client-files', path),
     createdAt: new Date().toISOString(),

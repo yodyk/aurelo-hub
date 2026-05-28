@@ -57,6 +57,45 @@ export type Database = {
           },
         ]
       }
+      checklist_item_links: {
+        Row: {
+          checklist_item_id: string
+          client_id: string
+          created_at: string
+          created_by: string | null
+          file_name: string | null
+          file_path: string | null
+          id: string
+          link_type: string
+          note_id: string | null
+          workspace_id: string
+        }
+        Insert: {
+          checklist_item_id: string
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          id?: string
+          link_type: string
+          note_id?: string | null
+          workspace_id: string
+        }
+        Update: {
+          checklist_item_id?: string
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          id?: string
+          link_type?: string
+          note_id?: string | null
+          workspace_id?: string
+        }
+        Relationships: []
+      }
       checklist_items: {
         Row: {
           added_by: string
