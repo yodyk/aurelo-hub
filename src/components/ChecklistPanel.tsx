@@ -48,14 +48,31 @@ export default function ChecklistPanel({ clientId, projectId, workspaceId }: Che
   const [showCreate, setShowCreate] = useState(false);
   const [statusFilter, setStatusFilter] = useState<TaskStatus | 'all' | 'open'>('open');
   const [tagFilter, setTagFilter] = useState<string | 'all'>('all');
+  const [linksByItem, setLinksByItem] = useState<Record<string, TaskLink[]>>({});
+  const [clientNotes, setClientNotes] = useState<ClientNote[]>([]);
+  const [clientFiles, setClientFiles] = useState<StoredFile[]>([]);
 
   const refresh = useCallback(async () => {
-    const data = await loadChecklists(clientId, projectId);
+    const [data, links, notes, files] = await Promise.all([
+      loadChecklists(clientId, projectId),
+      loadTaskLinksForClient(clientId),
+      loadNotes(clientId),
+      loadFiles(workspaceId, clientId),
+    ]);
     setChecklists(data);
+    setLinksByItem(links);
+    setClientNotes(notes);
+    setClientFiles(files);
     setLoading(false);
-  }, [clientId, projectId]);
+  }, [clientId, projectId, workspaceId]);
 
   useEffect(() => { refresh(); }, [refresh]);
+
+  const refreshLinks = useCallback(async () => {
+    const links = await loadTaskLinksForClient(clientId);
+    setLinksByItem(links);
+  }, [clientId]);
+
 
   const handleCreate = async () => {
     if (!creatingTitle.trim()) return;
