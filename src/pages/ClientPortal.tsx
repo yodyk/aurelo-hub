@@ -84,11 +84,25 @@ interface PortalInvoice {
   currency: string;
 }
 
+interface PortalTask {
+  id: string;
+  text: string;
+  description?: string | null;
+  status: 'todo' | 'in_progress' | 'blocked' | 'done';
+  completed: boolean;
+  work_tags?: string[];
+  due_date?: string | null;
+  estimated_hours?: number | null;
+  priority?: string | null;
+  sort_order: number;
+  added_by: string;
+}
+
 interface PortalChecklist {
   id: string;
   title: string;
   project_id?: string;
-  items: { id: string; text: string; completed: boolean; sort_order: number; added_by: string }[];
+  items: PortalTask[];
 }
 
 interface PortalData {
