@@ -557,9 +557,10 @@ function TaskRow({
 
 // ── Status pill with menu ──────────────────────────────────────────
 
-function StatusPill({ status, onSelect }: { status: TaskStatus; onSelect: (s: TaskStatus) => void }) {
+function StatusPill({ status, onSelect, onCycle }: { status: TaskStatus; onSelect: (s: TaskStatus) => void; onCycle?: () => void }) {
   const [open, setOpen] = useState(false);
   const cfg = STATUS_BY_VALUE[status];
+  const StatusIcon = cfg.icon;
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -571,29 +572,40 @@ function StatusPill({ status, onSelect }: { status: TaskStatus; onSelect: (s: Ta
     return () => window.removeEventListener('mousedown', onClick);
   }, [open]);
 
+  // Click cycles; the chevron opens an explicit picker for jumping to a specific status.
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className="relative inline-flex items-center">
+      <button
+        onClick={(e) => { e.stopPropagation(); if (onCycle) onCycle(); else setOpen(v => !v); }}
+        title={onCycle ? `Status: ${cfg.label} — click to advance` : `Status: ${cfg.label}`}
+        className={`inline-flex items-center gap-1.5 text-[12px] pl-2 pr-1.5 py-1 rounded-l-md border-y border-l ${cfg.bgClass} ${cfg.textClass} ${cfg.borderClass} cursor-pointer hover:brightness-95 transition-all min-w-[100px]`}
+        style={{ fontWeight: 600, letterSpacing: '0.01em' }}
+      >
+        <StatusIcon className="w-3.5 h-3.5" />
+        <span>{cfg.label}</span>
+      </button>
       <button
         onClick={(e) => { e.stopPropagation(); setOpen(v => !v); }}
-        className={`inline-flex items-center gap-1 text-[10.5px] px-1.5 py-0.5 rounded ${cfg.bgClass} ${cfg.textClass} cursor-pointer`}
-        style={{ fontWeight: 600 }}
+        title="Set status"
+        className={`inline-flex items-center justify-center px-1 py-1 rounded-r-md border ${cfg.bgClass} ${cfg.textClass} ${cfg.borderClass} cursor-pointer hover:brightness-95 transition-all`}
       >
-        <span className={`w-1.5 h-1.5 rounded-full ${cfg.dotClass}`} />
-        {cfg.label}
-        <ChevronDown className="w-2.5 h-2.5 opacity-70" />
+        <ChevronDown className="w-3 h-3 opacity-70" />
       </button>
       {open && (
-        <div className="absolute z-20 mt-1 w-36 bg-popover border border-border rounded-lg shadow-md py-1">
-          {STATUSES.map(s => (
-            <button
-              key={s.value}
-              onClick={(e) => { e.stopPropagation(); onSelect(s.value); setOpen(false); }}
-              className={`w-full flex items-center gap-2 text-[12px] px-2.5 py-1.5 hover:bg-accent/60 cursor-pointer ${status === s.value ? 'text-primary' : 'text-foreground'}`}
-            >
-              <span className={`w-1.5 h-1.5 rounded-full ${s.dotClass}`} />
-              {s.label}
-            </button>
-          ))}
+        <div className="absolute z-20 left-0 top-full mt-1 w-40 bg-popover border border-border rounded-lg shadow-md py-1">
+          {STATUSES.map(s => {
+            const Icon = s.icon;
+            return (
+              <button
+                key={s.value}
+                onClick={(e) => { e.stopPropagation(); onSelect(s.value); setOpen(false); }}
+                className={`w-full flex items-center gap-2 text-[12.5px] px-2.5 py-1.5 hover:bg-accent/60 cursor-pointer ${status === s.value ? 'text-primary' : 'text-foreground'}`}
+              >
+                <Icon className={`w-3.5 h-3.5 ${s.textClass}`} />
+                {s.label}
+              </button>
+            );
+          })}
         </div>
       )}
     </div>
