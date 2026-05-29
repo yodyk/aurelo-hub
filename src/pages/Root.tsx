@@ -25,14 +25,11 @@ import { useRoleAccess } from '../data/useRoleAccess';
 import { checkTimerReminders, resetFired } from '../data/timerNotifications';
 
 const navItems: { to: string; icon: any; label: string; end?: boolean; feature?: FeatureKey; hideUnlessFeature?: boolean; requiresFinancials?: boolean }[] = [
-  { to: '/', icon: LayoutDashboard, label: 'Home', end: true },
+  { to: '/', icon: LayoutDashboard, label: 'Today', end: true },
   { to: '/clients', icon: Users, label: 'Clients' },
-  { to: '/projects', icon: FolderKanban, label: 'Projects' },
   { to: '/time', icon: Clock, label: 'Time' },
-  { to: '/tasks', icon: CheckSquare, label: 'Tasks' },
+  { to: '/invoicing', icon: FileText, label: 'Invoices', feature: 'clientInvoicing', requiresFinancials: true },
   { to: '/insights', icon: TrendingUp, label: 'Insights', requiresFinancials: true },
-  { to: '/team', icon: Users, label: 'Team', feature: 'teamUtilization', hideUnlessFeature: true, requiresFinancials: true },
-  { to: '/invoicing', icon: FileText, label: 'Invoicing', feature: 'clientInvoicing', requiresFinancials: true },
 ];
 
 function formatTime(seconds: number) {
