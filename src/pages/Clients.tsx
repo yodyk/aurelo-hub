@@ -189,9 +189,12 @@ export default function Clients() {
             />
           </motion.div>
         ) : (
-          <div className="py-20 text-center type-meta text-muted-foreground">
-            {q ? "No clients match that search." : "No clients yet. Aurelo gets useful the moment you add one."}
-          </div>
+          <EmptyState
+            glyph={Users}
+            title={q ? "No clients match that search" : "No clients yet"}
+            body={q ? "Try a different name or clear the search." : "Aurelo gets useful the moment you add one."}
+            primaryAction={q ? undefined : { label: "Add client", icon: Plus, onClick: () => setShowAddModal(true) }}
+          />
         )}
 
         {/* Archived group */}
