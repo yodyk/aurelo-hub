@@ -933,20 +933,21 @@ export default function Home() {
       {/* ══════════════════════════════════════════════════════════════ */}
       {/* TIME & PACE — static full width section                       */}
       {/* ══════════════════════════════════════════════════════════════ */}
-      <motion.div variants={item}>
-        <div className="flex items-center justify-between mb-4">
-          <span className="text-[14px] text-foreground" style={{ fontWeight: 600 }}>Time & Pace</span>
+      <motion.div variants={item} className="mt-12">
+        <div className="flex items-center justify-between mb-5">
+          <h2>Time & Pace</h2>
           {hasData && (
             <div className="hidden md:flex items-center gap-3">
-              <span className="text-[11px] text-muted-foreground"><span style={{ fontWeight: 600 }} className="text-foreground tabular-nums">{thisMonthSessions.length}</span> sessions this month</span>
+              <span className="text-[12px] text-muted-foreground"><span className="font-semibold text-foreground tabular-nums">{thisMonthSessions.length}</span> sessions this month</span>
             </div>
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Weekly pace */}
-          <div className="bg-card border border-[var(--hairline)] rounded-lg p-4">
-            <div className="text-[11px] text-muted-foreground mb-3" style={{ fontWeight: 600 }}>This week's pace</div>
+          <div className="premium-card !p-5">
+            <div className="type-eyebrow mb-4">This week's pace</div>
+
             <div className="flex items-end justify-between mb-1">
               <div className="flex items-baseline gap-1">
                 <span className="text-[24px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 700 }}>{Math.round(weekHours * 10) / 10}h</span>
