@@ -132,45 +132,29 @@ function updateRetainerPlanning(customFields: any, updates: { pendingCarryoverHo
   };
 }
 
-// ── Tab definitions ─────────────────────────────────────────────────
-type TabId = "overview" | "details" | "projects" | "sessions" | "retainer" | "files" | "notes" | "checklists" | "portal" | "settings";
+// ── Tab definitions (5-tab altitude model) ──────────────────────────
+type TabId = "overview" | "work" | "docs" | "billing" | "portal";
 
-type TabDef = { id: TabId; label: string; icon: any; group: "work" | "resources" | "manage" };
+type TabDef = { id: TabId; label: string };
 
-function getTabsForClient(client: any, canViewFinancials: boolean): TabDef[] {
+function getTabsForClient(_client: any, canViewFinancials: boolean): TabDef[] {
   const tabs: TabDef[] = [
-    { id: "overview", label: "Overview", icon: LayoutDashboard, group: "work" },
-    { id: "details", label: "Details", icon: ClipboardList, group: "work" },
-    { id: "projects", label: "Projects", icon: FileText, group: "work" },
-    {
-      id: "sessions",
-      label: "Sessions",
-      group: "work",
-      icon: ({ className }: { className?: string }) => (
-        <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <circle cx="12" cy="12" r="10" />
-          <polyline points="12 6 12 12 16 14" />
-        </svg>
-      ),
-    },
+    { id: "overview", label: "Overview" },
+    { id: "work", label: "Work" },
+    { id: "docs", label: "Docs" },
   ];
-  if (canViewFinancials && client?.model === "Retainer") {
-    tabs.push({ id: "retainer", label: "Retainer", icon: RefreshCw, group: "work" });
-  }
-  tabs.push(
-    { id: "files", label: "Files", icon: FolderOpen, group: "resources" },
-    { id: "notes", label: "Notes", icon: StickyNote, group: "resources" },
-    { id: "checklists", label: "Tasks", icon: CheckSquare, group: "resources" },
-    { id: "portal", label: "Portal", icon: Link2, group: "manage" },
-    { id: "settings", label: "Settings", icon: SettingsIcon, group: "manage" },
-  );
+  if (canViewFinancials) tabs.push({ id: "billing", label: "Billing" });
+  tabs.push({ id: "portal", label: "Portal" });
   return tabs;
 }
 
-const TAB_GROUP_LABELS: Record<"work" | "resources" | "manage", string> = {
-  work: "Workspace",
-  resources: "Resources",
-  manage: "Manage",
+// Contextual primary action label per tab
+const TAB_PRIMARY: Record<TabId, string> = {
+  overview: "Add note",
+  work: "New project",
+  docs: "Upload file",
+  billing: "New invoice",
+  portal: "Copy link",
 };
 
 // ── SectionCard (reused in tabs) ────────────────────────────────────
