@@ -24,6 +24,8 @@ import { useTheme } from '../data/ThemeContext';
 import type { FeatureKey } from '../data/plans';
 import { useRoleAccess } from '../data/useRoleAccess';
 import { checkTimerReminders, resetFired } from '../data/timerNotifications';
+import { TaskDrawerProvider } from '../data/TaskDrawerContext';
+import { TaskDrawer } from '../components/TaskDrawer';
 
 const navItems: { to: string; icon: any; label: string; end?: boolean; feature?: FeatureKey; hideUnlessFeature?: boolean; requiresFinancials?: boolean }[] = [
   { to: '/', icon: LayoutDashboard, label: 'Today', end: true },
