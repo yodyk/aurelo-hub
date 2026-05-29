@@ -1253,7 +1253,7 @@ export function LogSessionModal({ open, onClose, onSave, clients, preSelectedCli
                 <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-1.5">
                   <span>"{selectedProject.name}" after this session</span>
                   <span className="tabular-nums" style={{ fontWeight: 500 }}>
-                    {((selectedProject.hours || 0) + durationNum).toFixed(1)}h{selectedProject.estimatedHours > 0 ? ` of ${selectedProject.estimatedHours}h` : ''}
+                    {formatDuration((selectedProject.hours || 0) + durationNum, { variant: 'display' })}{selectedProject.estimatedHours > 0 ? ` of ${formatDuration(selectedProject.estimatedHours, { variant: 'display' })}` : ''}
                   </span>
                 </div>
                 {selectedProject.estimatedHours > 0 && (
