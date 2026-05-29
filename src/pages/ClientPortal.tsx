@@ -713,12 +713,13 @@ function InvoiceRow({ invoice: inv, accent }: { invoice: PortalInvoice; accent: 
 // ── Portal Task List Card ───────────────────────────────────────────
 
 const PORTAL_STATUSES: { value: PortalTask['status']; label: string; dot: string; text: string; bg: string }[] = [
-  { value: 'todo',        label: 'To Do',       dot: '#9ca3af', text: '#6b7280', bg: '#f3f4f6' },
+  { value: 'to_do',       label: 'To Do',       dot: '#9ca3af', text: '#6b7280', bg: '#f3f4f6' },
   { value: 'in_progress', label: 'In Progress', dot: '#0ea5e9', text: '#0369a1', bg: '#e0f2fe' },
-  { value: 'blocked',     label: 'Blocked',     dot: '#ef4444', text: '#b91c1c', bg: '#fee2e2' },
-  { value: 'on_hold',     label: 'On Hold',     dot: '#f59e0b', text: '#b45309', bg: '#fef3c7' },
-  { value: 'done',        label: 'Done',        dot: '#22c55e', text: '#15803d', bg: '#dcfce7' },
+  { value: 'in_review',   label: 'In Review',   dot: '#f59e0b', text: '#b45309', bg: '#fef3c7' },
+  { value: 'on_hold',     label: 'On Hold',     dot: '#94a3b8', text: '#475569', bg: '#f1f5f9' },
+  { value: 'complete',    label: 'Complete',    dot: '#22c55e', text: '#15803d', bg: '#dcfce7' },
 ];
+
 
 function portalDueLabel(due?: string | null) {
   if (!due) return null;
