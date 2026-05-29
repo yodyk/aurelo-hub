@@ -4,7 +4,7 @@ import { FolderKanban, Plus, DollarSign, Clock, CheckCircle2, ChevronDown, Searc
 import { motion } from "motion/react";
 import { useData } from "../data/DataContext";
 import { AddProjectModal } from "../components/Modals";
-import { toast } from "sonner";
+import { toast } from '@/lib/toast';
 import { usePlan } from "../data/PlanContext";
 import { LimitEnforcementModal } from "../components/PlanEnforcement";
 import { formatMoney } from "@/lib/format";

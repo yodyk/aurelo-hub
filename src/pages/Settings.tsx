@@ -51,7 +51,7 @@ import {
   Timer,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { toast } from "sonner";
+import { toast } from '@/lib/toast';
 import {
   financialSettings as defaultFinancial,
   teamMembers as defaultTeam,

@@ -42,7 +42,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { toast } from "sonner";
+import { toast } from '@/lib/toast';
 import { useData } from "../data/DataContext";
 import { useAuth } from "@/data/AuthContext";
 import { NotificationEvents } from "@/data/notificationsApi";

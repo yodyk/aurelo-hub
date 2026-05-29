@@ -30,7 +30,7 @@ import {
   Archive,
   EyeOff,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from '@/lib/toast';
 import { usePlan } from "../data/PlanContext";
 import { PLANS } from "../data/plans";
 import { useData } from "../data/DataContext";

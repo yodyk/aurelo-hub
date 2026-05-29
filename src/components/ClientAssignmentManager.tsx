@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Plus, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useData } from "@/data/DataContext";
-import { toast } from "sonner";
+import { toast } from '@/lib/toast';
 import {
   Popover,
   PopoverContent,

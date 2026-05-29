@@ -6,7 +6,7 @@ import {
   Tag, FolderKanban, Search, ChevronDown, MoreHorizontal, Pencil,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import DOMPurify from 'dompurify';
 import * as notesApi from '../data/notesApi';
 import type { ClientNote, NoteType } from '../data/notesApi';

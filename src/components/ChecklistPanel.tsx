@@ -5,7 +5,7 @@ import {
   Link2, FileText, Paperclip, ExternalLink,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { format, parseISO, isPast, isToday, differenceInCalendarDays } from 'date-fns';
 import {
   loadChecklists, createChecklist, deleteChecklist, updateChecklist,

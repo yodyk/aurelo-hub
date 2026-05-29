@@ -26,6 +26,10 @@ export const toast = {
   /** Persistent toast — use when user must act (e.g. undo). */
   action: (message: string, options?: ExternalToast) =>
     sonner(message, { duration: DURATIONS.action, ...options }),
-  /** Escape hatch for advanced sonner APIs (promise, custom, dismiss). */
+  /** Loading toast — sonner spinner; pair with `id` to replace on resolve. */
+  loading: (message: string, options?: ExternalToast) =>
+    sonner.loading(message, { duration: DURATIONS.action, ...options }),
+  dismiss: (id?: string | number) => sonner.dismiss(id),
+  /** Escape hatch for advanced sonner APIs (promise, custom). */
   raw: sonner,
 };

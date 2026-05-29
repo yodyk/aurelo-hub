@@ -6,7 +6,7 @@ import { useData } from "../data/DataContext";
 import { LogSessionModal, EditSessionModal } from "../components/Modals";
 import BulkSessionActions from "../components/BulkSessionActions";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { toast } from '@/lib/toast';
 import { useAuth } from "@/data/AuthContext";
 import { NotificationEvents } from "@/data/notificationsApi";
 import { startOfDay, subDays, startOfMonth, startOfQuarter, startOfYear, isBefore, isAfter, startOfWeek, endOfWeek } from "date-fns";
