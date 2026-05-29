@@ -159,15 +159,15 @@ export default function Tasks() {
     const sortByDate = (a: WorkspaceTask, b: WorkspaceTask) =>
       (a.dueDate ? new Date(a.dueDate).getTime() : Infinity) -
       (b.dueDate ? new Date(b.dueDate).getTime() : Infinity);
-    return [
-      { key: 'overdue', label: 'Overdue', tone: 'danger',  tasks: overdue.sort(sortByDate) },
-      { key: 'today',   label: 'Today',   tone: 'warning', tasks: today.sort(sortByDate) },
+    return ([
+      { key: 'overdue', label: 'Overdue', tone: 'danger' as const,  tasks: overdue.sort(sortByDate) },
+      { key: 'today',   label: 'Today',   tone: 'warning' as const, tasks: today.sort(sortByDate) },
       { key: 'week',    label: 'This week', tasks: week.sort(sortByDate) },
       { key: 'waiting', label: 'Waiting / Follow-up', tasks: waiting.sort(sortByDate) },
       { key: 'later',   label: 'Later',   tasks: later.sort(sortByDate) },
       { key: 'no_date', label: 'No date', tasks: noDate },
-      { key: 'done',    label: 'Completed', tone: 'muted', tasks: done.slice(0, 50) },
-    ].filter(b => b.tasks.length > 0);
+      { key: 'done',    label: 'Completed', tone: 'muted' as const, tasks: done.slice(0, 50) },
+    ] as Bucket[]).filter(b => b.tasks.length > 0);
   }, [filtered]);
 
   const patchTask = async (taskId: string, patch: Partial<WorkspaceTask>, dbPatch: any) => {
