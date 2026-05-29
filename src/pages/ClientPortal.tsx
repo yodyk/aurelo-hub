@@ -774,7 +774,7 @@ function PortalChecklistCard({ checklist, accent, token, hideCompleted = false }
           id: it.id,
           text: it.text,
           description: it.description ?? null,
-          status: it.status || 'todo',
+          status: it.status || 'to_do',
           completed: !!it.completed,
           work_tags: it.work_tags || [],
           due_date: it.due_date ?? null,
