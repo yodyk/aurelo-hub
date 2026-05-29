@@ -8,7 +8,8 @@ const Home = lazy(() => import("./pages/Home"));
 const Clients = lazy(() => import("./pages/Clients"));
 const ClientDetail = lazy(() => import("./pages/ClientDetail"));
 const ClientEdit = lazy(() => import("./pages/ClientEdit"));
-// Projects (top-level), Tasks, and Team are relocated per the altitude roadmap.
+const Tasks = lazy(() => import("./pages/Tasks"));
+// Projects (top-level) and Team are relocated per the altitude roadmap.
 // Their routes now redirect to /time and /settings?tab=team respectively.
 // ProjectDetail is preserved for deep-link sharing.
 const ProjectDetail = lazy(() => import("./pages/ProjectDetail"));
@@ -104,7 +105,7 @@ export const router = createBrowserRouter([
       { path: "projects", element: <Navigate to="/time" replace /> },
       { path: "projects/:clientId/:projectId", element: <SuspensePage><ProjectDetail /></SuspensePage> },
       { path: "time", element: <SuspensePage><TimeLog /></SuspensePage> },
-      { path: "tasks", element: <Navigate to="/time" replace /> },
+      { path: "tasks", element: <SuspensePage><Tasks /></SuspensePage> },
       { path: "insights", element: <SuspensePage><Insights /></SuspensePage> },
       { path: "invoicing", element: <SuspensePage><Invoicing /></SuspensePage> },
       { path: "settings", element: <SuspensePage><Settings /></SuspensePage> },
