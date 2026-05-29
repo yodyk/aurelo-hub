@@ -291,7 +291,7 @@ export default function TeamUtilization() {
                         {Math.round(m.billableHours * 10) / 10}h
                       </td>
                       <td className="px-6 py-4 text-right text-[14px] tabular-nums" style={{ fontWeight: 500 }}>
-                        ${Math.round(m.revenue).toLocaleString()}
+                        {formatMoney(Math.round(m.revenue))}
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
