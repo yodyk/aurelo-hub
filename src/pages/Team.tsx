@@ -63,7 +63,7 @@ export default function Team() {
               <div
                 key={key}
                 className="bg-card border border-border rounded-xl p-5"
-                style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}
+                style={{ boxShadow: "var(--elev-1)" }}
               >
                 <div className="flex items-center gap-2.5 mb-3">
                   <div className="w-8 h-8 rounded-lg bg-primary/8 flex items-center justify-center">

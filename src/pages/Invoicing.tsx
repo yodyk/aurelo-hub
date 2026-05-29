@@ -59,13 +59,13 @@ const item = {
 };
 
 const STATUS_CONFIG: Record<InvoiceStatus, { label: string; color: string; bg: string; icon: any }> = {
-  draft: { label: "Draft", color: "#78716c", bg: "bg-muted", icon: FileText },
+  draft: { label: "Draft", color: "var(--muted-foreground)", bg: "bg-muted", icon: FileText },
   sent: { label: "Sent", color: GOLD, bg: "bg-warning/10", icon: Send },
   paid: { label: "Paid", color: BLUE, bg: "bg-primary/10", icon: CheckCircle2 },
   overdue: { label: "Overdue", color: RED, bg: "bg-destructive/10", icon: AlertCircle },
-  voided: { label: "Voided", color: "#a8a29e", bg: "bg-muted", icon: Ban },
-  cancelled: { label: "Cancelled", color: "#a8a29e", bg: "bg-muted", icon: X },
-  archived: { label: "Archived", color: "#a8a29e", bg: "bg-muted", icon: Archive },
+  voided: { label: "Voided", color: "var(--foreground-subtle)", bg: "bg-muted", icon: Ban },
+  cancelled: { label: "Cancelled", color: "var(--foreground-subtle)", bg: "bg-muted", icon: X },
+  archived: { label: "Archived", color: "var(--foreground-subtle)", bg: "bg-muted", icon: Archive },
 };
 
 // ── Helpers ────────────────────────────────────────────────────────
@@ -602,7 +602,7 @@ export default function Invoicing() {
           >
             <div
               className="flex items-center gap-3 px-5 py-3 bg-card border border-border rounded-2xl"
-              style={{ boxShadow: "0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06)" }}
+              style={{ boxShadow: "var(--elev-3)" }}
             >
               <div className="flex items-center gap-2 pr-3 border-r border-border">
                 <span className="text-[13px] text-foreground tabular-nums" style={{ fontWeight: 600 }}>
@@ -838,7 +838,7 @@ function InvoiceRow({
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.1 }}
                 className={`absolute right-0 w-44 bg-card border border-border rounded-xl overflow-hidden z-30 ${isNearBottom ? "bottom-full mb-1" : "top-full mt-1"}`}
-                style={{ boxShadow: "0 8px 24px rgba(0,0,0,0.08)" }}
+                style={{ boxShadow: "var(--elev-2)" }}
               >
                 <button
                   onClick={() => { onView(); setMenuOpen(false); }}
@@ -1141,7 +1141,7 @@ function InvoiceBuilder({
         exit={{ opacity: 0, y: 20, scale: 0.97 }}
         transition={{ duration: 0.25 }}
         className="relative bg-card border border-border rounded-2xl w-full max-w-2xl mx-4 overflow-hidden"
-        style={{ boxShadow: "0 24px 48px rgba(0,0,0,0.12)" }}
+        style={{ boxShadow: "var(--elev-3)" }}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border">
@@ -1614,7 +1614,7 @@ function InvoiceDetail({
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 20, scale: 0.97 }}
         className="relative bg-card border border-border rounded-2xl w-full max-w-lg mx-4 overflow-hidden"
-        style={{ boxShadow: "0 24px 48px rgba(0,0,0,0.12)" }}
+        style={{ boxShadow: "var(--elev-3)" }}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border">
@@ -1910,7 +1910,7 @@ function LockedInvoicingPreview() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3, delay: 0.1 }}
               className="relative bg-card border border-border rounded-2xl p-8 max-w-sm text-center"
-              style={{ boxShadow: "0 8px 32px rgba(0,0,0,0.08)" }}
+              style={{ boxShadow: "var(--elev-2)" }}
             >
               <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
                 <Lock className="w-5 h-5 text-primary" />
@@ -1943,12 +1943,12 @@ function LockedInvoicingPreview() {
                 { label: "Outstanding", value: "$5,950", icon: Clock, color: GOLD },
                 { label: "Paid (30d)", value: "$8,175", icon: CheckCircle2, color: BLUE },
                 { label: "Overdue", value: "$2,100", icon: AlertCircle, color: RED },
-                { label: "Draft", value: "1", icon: FileText, color: "#78716c" },
+                { label: "Draft", value: "1", icon: FileText, color: "var(--muted-foreground)" },
               ].map((stat) => (
                 <div
                   key={stat.label}
                   className="bg-card border border-border rounded-xl p-4"
-                  style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}
+                  style={{ boxShadow: "var(--elev-1)" }}
                 >
                   <div className="flex items-center gap-2 mb-2">
                     <stat.icon className="w-3.5 h-3.5" style={{ color: stat.color }} />
@@ -1965,7 +1965,7 @@ function LockedInvoicingPreview() {
 
             <div
               className="bg-card border border-border rounded-xl overflow-hidden"
-              style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}
+              style={{ boxShadow: "var(--elev-1)" }}
             >
               <table className="w-full">
                 <thead>
@@ -2072,7 +2072,7 @@ function SendInvoiceModal({
         transition={{ duration: 0.18 }}
         className="bg-card border border-border rounded-2xl w-full max-w-md overflow-hidden"
         onClick={(e) => e.stopPropagation()}
-        style={{ boxShadow: "0 20px 60px rgba(0,0,0,0.18)" }}
+        style={{ boxShadow: "var(--elev-3)" }}
       >
         <div className="px-5 py-4 border-b border-border flex items-center justify-between">
           <div>
