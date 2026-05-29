@@ -386,11 +386,6 @@ export default function Today() {
           </motion.div>
         )}
 
-        {/* ── Focus surface (PART E refinement) ── */}
-        <div className="space-y-6">
-          <NowStrip />
-          <TodayTasksModule />
-        </div>
 
 
 
