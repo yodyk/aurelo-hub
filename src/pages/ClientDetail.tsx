@@ -371,6 +371,9 @@ export default function ClientDetail() {
   const totalHours = clientSessions.reduce((s: number, sess: any) => s + sess.duration, 0);
   const billableHours = clientSessions.filter((s: any) => s.billable).reduce((s: number, sess: any) => s + sess.duration, 0);
   const utilizationRate = totalHours > 0 ? Math.round((billableHours / totalHours) * 100) : 0;
+  const effectiveRate = billableHours > 0
+    ? (client.lifetimeRevenue || 0) / billableHours
+    : (client.rate || 0);
 
   const priorityLevel = client.priorityLevel || 'medium';
   const riskLevel = client.riskLevel || 'low';
