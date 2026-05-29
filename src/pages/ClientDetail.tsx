@@ -581,12 +581,20 @@ export default function ClientDetail() {
   // ═════════════════════════════════════════════════════════════════
   return (
     <motion.div className="w-full min-w-0 page-wrapper" variants={container} initial="hidden" animate="show">
-      {/* ── Client Header (editorial hero, no card wrapper) ─────── */}
-      <motion.div variants={item} className="mb-8 md:mb-10">
-        <div className="flex items-start gap-5 md:gap-6">
-          {/* Avatar */}
+      {/* Breadcrumb */}
+      <motion.div variants={item} className="mb-3">
+        <Link to="/clients" className="type-meta text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1">
+          <ChevronLeft className="w-3 h-3" />
+          Clients
+        </Link>
+      </motion.div>
+
+      {/* ── Editorial masthead ────────────────────────────────────── */}
+      <motion.div variants={item} className="mb-6 md:mb-8">
+        <div className="flex items-start gap-5">
+          {/* Avatar — 40px circle per spec */}
           <div
-            className="w-14 h-14 md:w-16 md:h-16 rounded-circle flex items-center justify-center overflow-hidden flex-shrink-0"
+            className="w-10 h-10 rounded-circle flex items-center justify-center overflow-hidden flex-shrink-0 mt-2"
             style={{
               background: clientFaviconUrl ? "transparent" : "color-mix(in srgb, var(--primary) 8%, transparent)",
               boxShadow: clientFaviconUrl ? "0 0 0 1px var(--hairline)" : "none",
@@ -595,21 +603,20 @@ export default function ClientDetail() {
             {clientFaviconUrl ? (
               <img src={clientFaviconUrl} alt={client.name} className="w-full h-full object-cover" />
             ) : (
-              <div className="text-[22px] md:text-[24px] text-primary" style={{ fontWeight: 600, letterSpacing: "-0.02em" }}>
+              <div className="text-[16px] text-primary" style={{ fontWeight: 600, letterSpacing: "-0.02em" }}>
                 {client.name.charAt(0)}
               </div>
             )}
           </div>
 
-          {/* Name + status + meta */}
+          {/* Name + sub-line */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <h1 className="page-header truncate" style={{ margin: 0 }}>{client.name}</h1>
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="type-display truncate" style={{ margin: 0 }}>{client.name}</h1>
               <span
                 className="inline-flex items-center gap-1.5 text-[11.5px] px-2 py-0.5 rounded-md"
                 style={{
                   fontWeight: 600,
-                  letterSpacing: "0.01em",
                   background: `color-mix(in oklab, var(--${client.status === "Active" ? "primary" : client.status === "Prospect" ? "warning" : "muted-foreground"}) 10%, transparent)`,
                   color: `var(--${client.status === "Active" ? "primary" : client.status === "Prospect" ? "warning" : "muted-foreground"})`,
                 }}
@@ -622,185 +629,134 @@ export default function ClientDetail() {
               </span>
             </div>
 
-            {/* Contact strip */}
-            {(client.contactName || client.contactEmail || client.phone) && (
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-[13px] text-muted-foreground">
-                {client.contactName && (
-                  <span className="flex items-center gap-1.5"><User className="w-3.5 h-3.5 opacity-50" />{client.contactName}</span>
-                )}
-                {client.contactEmail && (
-                  <a href={`mailto:${client.contactEmail}`} className="flex items-center gap-1.5 hover:text-foreground transition-colors"><Mail className="w-3.5 h-3.5 opacity-50" />{client.contactEmail}</a>
-                )}
-                {client.phone && (
-                  <a href={`tel:${client.phone}`} className="flex items-center gap-1.5 hover:text-foreground transition-colors"><Phone className="w-3.5 h-3.5 opacity-50" />{client.phone}</a>
-                )}
+            {/* Editorial sub-line — rate + lifetime in Page numerals */}
+            {canViewFinancials && (
+              <div className="flex items-baseline gap-2 mt-2 tabular-nums">
+                <span className="type-page" style={{ margin: 0, fontSize: 22 }}>
+                  ${effectiveRate.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                </span>
+                <span className="type-meta text-muted-foreground">/hr effective</span>
+                <span className="type-meta text-muted-foreground opacity-40">·</span>
+                <span className="type-meta text-muted-foreground">
+                  ${(client.lifetimeRevenue || 0).toLocaleString()} lifetime
+                </span>
               </div>
             )}
-
-            {/* Metadata: model + priority + risk + secondary refs */}
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-3 text-[12px] text-muted-foreground">
-              <span style={{ fontWeight: 500 }}>{client.model}</span>
-              <span className="opacity-40">·</span>
-              <span className="inline-flex items-center gap-1" style={{ color: priorityCfg.color, fontWeight: 500 }}>
-                <Flag className="w-3 h-3" /> {priorityLevel.charAt(0).toUpperCase() + priorityLevel.slice(1)} priority
-              </span>
-              <span className="opacity-40">·</span>
-              <span className="inline-flex items-center gap-1" style={{ color: riskCfg.color, fontWeight: 500 }}>
-                <ShieldAlert className="w-3 h-3" /> {riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1)} risk
-              </span>
-              {client.website && (
-                <>
-                  <span className="opacity-40">·</span>
-                  <a href={`https://${client.website}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-primary hover:opacity-80 transition-opacity" style={{ fontWeight: 500 }}>
-                    <Globe className="w-3 h-3" />{client.website}
-                  </a>
-                </>
-              )}
-              {client.address && (
-                <>
-                  <span className="opacity-40">·</span>
-                  <span className="inline-flex items-center gap-1"><MapPin className="w-3 h-3 opacity-50" />{client.address}</span>
-                </>
-              )}
-              {client.startDate && (
-                <>
-                  <span className="opacity-40">·</span>
-                  <span>Since {format(parseISO(client.startDate), "MMM yyyy")}</span>
-                </>
-              )}
-            </div>
           </div>
 
-          {/* Actions */}
-          <div className="flex items-center gap-1.5 flex-shrink-0">
+          {/* Actions: gear + secondary timer + contextual primary */}
+          <div className="flex items-center gap-2 flex-shrink-0">
             <button
-              onClick={() => navigate(`/clients/${clientId}/edit`)}
-              className="px-3 h-9 text-[13px] rounded-md border border-[var(--hairline)] hover:bg-accent/60 transition-all flex items-center gap-1.5 cursor-pointer"
+              onClick={() => setSettingsOpen(true)}
+              aria-label="Client settings"
+              className="w-9 h-9 inline-flex items-center justify-center rounded-md border border-[var(--hairline)] hover:bg-accent/60 transition-all cursor-pointer text-muted-foreground hover:text-foreground"
+            >
+              <SettingsIcon className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setShowLogModal(true)}
+              className="h-9 px-3 inline-flex items-center gap-1.5 rounded-md border border-[var(--hairline)] hover:bg-accent/60 transition-all cursor-pointer text-[13px] text-muted-foreground hover:text-foreground"
               style={{ fontWeight: 500 }}
             >
-              <Pencil className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Edit</span>
+              <Plus className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Start timer</span>
+            </button>
+            <button
+              onClick={() => {
+                if (activeTab === "work") setShowProjectModal(true);
+                else if (activeTab === "docs") fileInputRef.current?.click();
+                else if (activeTab === "billing") navigate(`/invoicing?client=${clientId}`);
+                else if (activeTab === "portal") handleCopyPortalLink();
+                else handleTabChange("docs"); // overview → notes live in Docs
+              }}
+              className="h-9 px-3.5 inline-flex items-center gap-1.5 rounded-md bg-primary text-primary-foreground hover:opacity-90 transition-all cursor-pointer text-[13px]"
+              style={{ fontWeight: 600 }}
+            >
+              {activeTab === "portal" && copied ? <Check className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+              {activeTab === "portal" && copied ? "Copied" : TAB_PRIMARY[activeTab]}
             </button>
           </div>
         </div>
       </motion.div>
 
+      {/* ── Underline tab bar ─────────────────────────────────────── */}
+      <motion.div variants={item} className="border-b border-[var(--hairline)] mb-8">
+        <div role="tablist" className="flex items-center gap-1 -mb-px overflow-x-auto scrollbar-thin">
+          {visibleTabs.map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                role="tab"
+                aria-selected={isActive}
+                onClick={() => handleTabChange(tab.id)}
+                className={`relative px-3 py-2.5 text-[13.5px] whitespace-nowrap cursor-pointer transition-colors ${
+                  isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                }`}
+                style={{ fontWeight: isActive ? 600 : 500 }}
+              >
+                {tab.label}
+                {isActive && (
+                  <motion.div
+                    layoutId="client-tab-underline"
+                    className="absolute left-0 right-0 -bottom-px h-[2px] bg-primary"
+                    transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                  />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </motion.div>
 
-      {/* Tab layout */}
-      <div className="flex flex-col lg:flex-row gap-6 lg:gap-10">
-        {/* Vertical tab nav — grouped, no card wrapper on desktop */}
-        <motion.nav variants={item} className="w-full lg:w-48 flex-shrink-0">
-          {/* Mobile: horizontal scroller */}
-          <div className="lg:hidden flex gap-1 overflow-x-auto pb-1 -mx-2 px-2 scrollbar-thin">
-            {visibleTabs.map((tab) => {
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => handleTabChange(tab.id)}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-[13px] whitespace-nowrap cursor-pointer transition-colors ${
-                    isActive ? "bg-[var(--surface-raised)] text-foreground shadow-[var(--elev-1)]" : "text-muted-foreground hover:text-foreground"
-                  }`}
-                  style={{ fontWeight: isActive ? 600 : 500 }}
-                >
-                  <tab.icon className="w-3.5 h-3.5" />
-                  {tab.label}
-                </button>
-              );
-            })}
-          </div>
+      {/* ── Tab content ───────────────────────────────────────────── */}
+      <div className="min-w-0">
+        <AnimatePresence>
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] as const }}
+            className="space-y-10"
+          >
+            {activeTab === "overview" && (
+              <OverviewTab
+                client={client}
+                clientFaviconUrl={clientFaviconUrl}
+                viewMode={viewMode}
+                setViewMode={setViewMode}
+                netMultiplier={netMultiplier}
+                canViewFinancials={canViewFinancials}
+                revenueShare={revenueShare}
+                revenueTrend={revenueTrend}
+                lastMonthEarnings={lastMonthEarnings}
+                utilizationRate={utilizationRate}
+                billableHours={billableHours}
+                totalHours={totalHours}
+                projects={projects}
+                clientSessions={clientSessions}
+                priorityLevel={priorityLevel}
+                riskLevel={riskLevel}
+                priorityCfg={priorityCfg}
+                riskCfg={riskCfg}
+              />
+            )}
 
-          {/* Desktop: grouped vertical nav */}
-          <div className="hidden lg:block lg:sticky lg:top-[72px] space-y-5">
-            {(["work", "resources", "manage"] as const).map((group) => {
-              const groupTabs = visibleTabs.filter((t) => t.group === group);
-              if (groupTabs.length === 0) return null;
-              return (
-                <div key={group}>
-                  <div className="type-eyebrow px-2 mb-1.5">{TAB_GROUP_LABELS[group]}</div>
-                  <div className="flex flex-col gap-0.5">
-                    {groupTabs.map((tab) => {
-                      const isActive = activeTab === tab.id;
-                      return (
-                        <button
-                          key={tab.id}
-                          onClick={() => handleTabChange(tab.id)}
-                          className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-[13px] text-left relative cursor-pointer transition-colors duration-150 ${
-                            isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
-                          }`}
-                          style={{
-                            fontWeight: isActive ? 600 : 500,
-                            background: isActive ? "color-mix(in oklab, var(--primary) 6%, transparent)" : "transparent",
-                          }}
-                        >
-                          {isActive && (
-                            <motion.div
-                              layoutId="client-tab-indicator"
-                              className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-4 rounded-r-full"
-                              style={{ background: "var(--primary)" }}
-                              transition={{ type: "spring", stiffness: 350, damping: 30 }}
-                            />
-                          )}
-                          <tab.icon className={`w-3.5 h-3.5 flex-shrink-0 ${isActive ? "text-primary" : "text-muted-foreground/60"}`} />
-                          {tab.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </motion.nav>
-
-
-        {/* Content */}
-        <div className="flex-1 min-w-0">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.2 }}
-              className="space-y-6"
-            >
-              {activeTab === "overview" && (
-                <OverviewTab
-                  client={client}
-                  clientFaviconUrl={clientFaviconUrl}
-                  viewMode={viewMode}
-                  setViewMode={setViewMode}
-                  netMultiplier={netMultiplier}
-                  canViewFinancials={canViewFinancials}
-                  revenueShare={revenueShare}
-                  revenueTrend={revenueTrend}
-                  lastMonthEarnings={lastMonthEarnings}
-                  utilizationRate={utilizationRate}
-                  billableHours={billableHours}
-                  totalHours={totalHours}
-                  projects={projects}
-                  clientSessions={clientSessions}
-                  priorityLevel={priorityLevel}
-                  riskLevel={riskLevel}
-                  priorityCfg={priorityCfg}
-                  riskCfg={riskCfg}
-                />
-              )}
-              {activeTab === "details" && (
-                <DetailsTab client={client} onUpdateClient={handleEditSave} />
-              )}
-              {activeTab === "projects" && (
-                <ProjectsTab
-                  projects={projects}
-                  client={client}
-                  canViewFinancials={canViewFinancials}
-                  onAddProject={() => setShowProjectModal(true)}
-                  onNavigate={(pId: string) => navigate(`/projects/${clientId}/${pId}`)}
-                />
-              )}
-              {activeTab === "sessions" && (
-                <>
+            {activeTab === "work" && (
+              <>
+                <section>
+                  <div className="type-eyebrow mb-4">Projects</div>
+                  <ProjectsTab
+                    projects={projects}
+                    client={client}
+                    canViewFinancials={canViewFinancials}
+                    onAddProject={() => setShowProjectModal(true)}
+                    onNavigate={(pId: string) => navigate(`/projects/${clientId}/${pId}`)}
+                  />
+                </section>
+                <section>
+                  <div className="type-eyebrow mb-4">Sessions</div>
                   <SessionsTab
                     clientSessions={clientSessions}
                     client={client}
@@ -811,68 +767,164 @@ export default function ClientDetail() {
                     onLogSession={() => setShowLogModal(true)}
                     onEditSession={setEditingSession}
                   />
-                  <div className="mt-6 bg-card border border-border/50 rounded-xl p-5">
-                    <RecurringSessionsManager
-                      clients={clients}
-                      projects={projects}
-                      fixedClientId={clientId}
-                    />
+                </section>
+                {workspaceId && clientId && (
+                  <section>
+                    <div className="type-eyebrow mb-4">Tasks &amp; checklists</div>
+                    <ChecklistsTab clientId={clientId} workspaceId={workspaceId} />
+                  </section>
+                )}
+                <section>
+                  <div className="type-eyebrow mb-4">Recurring rules</div>
+                  <RecurringSessionsManager
+                    clients={clients}
+                    projects={projects}
+                    fixedClientId={clientId}
+                  />
+                </section>
+              </>
+            )}
+
+            {activeTab === "docs" && (
+              <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                <div className="lg:col-span-3 min-w-0">
+                  <div className="type-eyebrow mb-4">Notes</div>
+                  <NotesTab clientId={clientId} projects={projects} />
+                </div>
+                <div className="lg:col-span-2 min-w-0">
+                  <div className="type-eyebrow mb-4">Files</div>
+                  <FilesTab
+                    files={files}
+                    uploading={uploading}
+                    fileInputRef={fileInputRef}
+                    onUpload={handleFileUpload}
+                    onDelete={handleFileDelete}
+                    onDrop={handleDrop}
+                    formatFileSize={formatFileSize}
+                  />
+                </div>
+              </div>
+            )}
+
+            {activeTab === "billing" && canViewFinancials && (
+              <>
+                <section className="flex items-center justify-between">
+                  <div>
+                    <div className="type-eyebrow mb-1.5">Invoices</div>
+                    <div className="type-body text-muted-foreground">
+                      Invoicing lives in the Invoices ledger — filtered to {client.name}.
+                    </div>
                   </div>
-                </>
-              )}
-              {activeTab === "retainer" && (
-                <RetainerTab
-                  client={client}
-                  clientId={clientId}
-                  workspaceId={workspaceId}
-                  clientSessions={clientSessions}
-                  onUpdateClient={async (updates: any) => {
-                    await dataApi.updateClient(workspaceId, clientId!, updates);
-                    updateClient(clientId!, updates);
-                  }}
-                  sentThresholds={sentThresholds}
-                  setSentThresholds={setSentThresholds}
-                  resending={resending}
-                  setResending={setResending}
-                  sendingManualUpdate={sendingManualUpdate}
-                  setSendingManualUpdate={setSendingManualUpdate}
-                  confirmSendUpdate={confirmSendUpdate}
-                  setConfirmSendUpdate={setConfirmSendUpdate}
-                  emailStatuses={emailStatuses}
-                  getDeliveryStatus={getDeliveryStatus}
-                />
-              )}
-              {activeTab === "files" && (
-                <FilesTab
-                  files={files}
-                  uploading={uploading}
-                  fileInputRef={fileInputRef}
-                  onUpload={handleFileUpload}
-                  onDelete={handleFileDelete}
-                  onDrop={handleDrop}
-                  formatFileSize={formatFileSize}
-                />
-              )}
-              {activeTab === "notes" && (
-                <NotesTab clientId={clientId} projects={projects} />
-              )}
-              {activeTab === "checklists" && workspaceId && clientId && (
-                <ChecklistsTab clientId={clientId} workspaceId={workspaceId} />
-              )}
-              {activeTab === "portal" && (
-                <PortalTab
-                  client={client}
-                  clientId={clientId}
-                  portalConfig={portalConfig}
-                  portalLoading={portalLoading}
-                  copied={copied}
-                  onCopyPortalLink={handleCopyPortalLink}
-                  onGeneratePortal={handleGeneratePortal}
-                  onTogglePortal={handleTogglePortal}
-                  onEmailPortalLink={handleEmailPortalLink}
-                />
-              )}
-              {activeTab === "settings" && (
+                  <button
+                    onClick={() => navigate(`/invoicing?client=${clientId}`)}
+                    className="h-9 px-3 inline-flex items-center gap-1.5 rounded-md border border-[var(--hairline)] hover:bg-accent/60 transition-all cursor-pointer text-[13px]"
+                    style={{ fontWeight: 500 }}
+                  >
+                    Open invoices
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </button>
+                </section>
+
+                {client.model === "Retainer" && (
+                  <section>
+                    <div className="type-eyebrow mb-4">Retainer cycle</div>
+                    <RetainerTab
+                      client={client}
+                      clientId={clientId}
+                      workspaceId={workspaceId}
+                      clientSessions={clientSessions}
+                      onUpdateClient={async (updates: any) => {
+                        await dataApi.updateClient(workspaceId, clientId!, updates);
+                        updateClient(clientId!, updates);
+                      }}
+                      sentThresholds={sentThresholds}
+                      setSentThresholds={setSentThresholds}
+                      resending={resending}
+                      setResending={setResending}
+                      sendingManualUpdate={sendingManualUpdate}
+                      setSendingManualUpdate={setSendingManualUpdate}
+                      confirmSendUpdate={confirmSendUpdate}
+                      setConfirmSendUpdate={setConfirmSendUpdate}
+                      emailStatuses={emailStatuses}
+                      getDeliveryStatus={getDeliveryStatus}
+                    />
+                  </section>
+                )}
+
+                <section>
+                  <div className="type-eyebrow mb-4">Rate &amp; terms</div>
+                  <dl className="divide-y divide-[var(--hairline)] border-y border-[var(--hairline)]">
+                    <div className="flex justify-between py-3 text-[13.5px]">
+                      <dt className="text-muted-foreground">Billing model</dt>
+                      <dd style={{ fontWeight: 500 }}>{client.model}</dd>
+                    </div>
+                    <div className="flex justify-between py-3 text-[13.5px]">
+                      <dt className="text-muted-foreground">Base rate</dt>
+                      <dd className="tabular-nums" style={{ fontWeight: 500 }}>${(client.rate || 0).toLocaleString()}/hr</dd>
+                    </div>
+                    <div className="flex justify-between py-3 text-[13.5px]">
+                      <dt className="text-muted-foreground">Effective rate</dt>
+                      <dd className="tabular-nums" style={{ fontWeight: 500 }}>${effectiveRate.toLocaleString(undefined, { maximumFractionDigits: 2 })}/hr</dd>
+                    </div>
+                    {client.paymentTerms && (
+                      <div className="flex justify-between py-3 text-[13.5px]">
+                        <dt className="text-muted-foreground">Payment terms</dt>
+                        <dd style={{ fontWeight: 500 }}>{client.paymentTerms}</dd>
+                      </div>
+                    )}
+                  </dl>
+                </section>
+              </>
+            )}
+
+            {activeTab === "portal" && (
+              <PortalTab
+                client={client}
+                clientId={clientId}
+                portalConfig={portalConfig}
+                portalLoading={portalLoading}
+                copied={copied}
+                onCopyPortalLink={handleCopyPortalLink}
+                onGeneratePortal={handleGeneratePortal}
+                onTogglePortal={handleTogglePortal}
+                onEmailPortalLink={handleEmailPortalLink}
+              />
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      {/* ── Settings slideover ────────────────────────────────────── */}
+      {settingsOpen && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/40 z-40 backdrop-blur-[2px]"
+            onClick={() => setSettingsOpen(false)}
+          />
+          <motion.aside
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ duration: 0.24, ease: [0.32, 0.72, 0, 1] as const }}
+            className="fixed top-0 right-0 bottom-0 w-full sm:w-[480px] bg-background border-l border-[var(--hairline)] z-50 overflow-y-auto"
+          >
+            <div className="sticky top-0 z-10 bg-background border-b border-[var(--hairline)] px-6 py-4 flex items-center justify-between">
+              <h2 className="type-section">Client settings</h2>
+              <button
+                onClick={() => setSettingsOpen(false)}
+                aria-label="Close"
+                className="w-8 h-8 inline-flex items-center justify-center rounded-md hover:bg-accent/60 transition-colors cursor-pointer text-muted-foreground"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-6 space-y-10">
+              <section>
+                <div className="type-eyebrow mb-4">Details</div>
+                <DetailsTab client={client} onUpdateClient={handleEditSave} />
+              </section>
+              <section>
+                <div className="type-eyebrow mb-4">Workspace administration</div>
                 <SettingsTab
                   client={client}
                   clientId={clientId}
@@ -883,11 +935,12 @@ export default function ClientDetail() {
                   onPermanentDelete={handlePermanentDelete}
                   onNavigateEdit={() => navigate(`/clients/${clientId}/edit`)}
                 />
-              )}
-            </motion.div>
-          </AnimatePresence>
-        </div>
-      </div>
+              </section>
+            </div>
+          </motion.aside>
+        </>
+      )}
+
 
       {/* Modals */}
       <LogSessionModal open={showLogModal} onClose={() => setShowLogModal(false)} onSave={handleLogSession} clients={clients} preSelectedClient={clientId} />
