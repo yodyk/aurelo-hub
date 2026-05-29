@@ -438,7 +438,7 @@ export default function Today() {
                     hasData && previous > 0 ? (
                       <span className="inline-flex items-center gap-1">
                         {isUp ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-                        {Math.abs(monthChange).toFixed(1)}% vs last month
+                        {formatPercent(Math.abs(monthChange), { fraction: false })} vs last month
                       </span>
                     ) : undefined
                   }
