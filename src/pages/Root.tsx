@@ -492,7 +492,7 @@ function RootLayout() {
                   transition={{ duration: 0.12 }}
                   className="absolute bottom-full left-0 mb-2 w-52 bg-card border border-border rounded-xl overflow-hidden z-50 shadow-elevated"
                 >
-                  <div className="px-3 py-2.5 border-b border-border">
+                  <div className="px-3 py-2.5 border-b border-[var(--hairline)]">
                     <div className="text-[13px] truncate" style={{ fontWeight: 500 }}>{displayName}</div>
                     <div className="text-[11px] text-muted-foreground truncate">{displayEmail}</div>
                   </div>
@@ -658,7 +658,7 @@ function RootLayout() {
             }}
           >
             {/* Modal header */}
-            <div className="h-14 flex items-center justify-between px-5 border-b border-border">
+            <div className="h-14 flex items-center justify-between px-5 border-b border-[var(--hairline)]">
               <AureloWordmark className="h-[18px] w-auto text-foreground" />
               <button
                 onClick={() => setMobileMenuOpen(false)}
