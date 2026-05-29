@@ -3,6 +3,7 @@ import { X, Loader2, User, Globe, Mail, DollarSign, Clock, Repeat, FolderKanban,
 import { DatePicker } from '@/components/ui/date-picker';
 import { motion, AnimatePresence } from 'motion/react';
 import { useData } from '../data/DataContext';
+import { formatMoney, formatDuration } from '@/lib/format';
 
 // ── Unsaved Changes Confirmation (inline in modal) ─────────────────
 function UnsavedChangesConfirm({ onDiscard, onCancel }: { onDiscard: () => void; onCancel: () => void }) {
@@ -389,7 +390,7 @@ export function AddClientModal({ open, onClose, onSave }: {
         {model === 'Retainer' && rateNum > 0 && retainerNum > 0 && (
           <div className="bg-accent/30 rounded-lg px-3.5 py-2.5 flex items-center justify-between text-[13px]">
             <span className="text-muted-foreground">Monthly retainer value</span>
-            <span className="tabular-nums text-primary" style={{ fontWeight: 600 }}>${retainerMonthlyValue.toLocaleString()}/mo</span>
+            <span className="tabular-nums text-primary" style={{ fontWeight: 600 }}>{formatMoney(retainerMonthlyValue, { precision: 'compact' })}/mo</span>
           </div>
         )}
 
@@ -625,7 +626,7 @@ export function EditClientModal({ open, onClose, client, onSave, workspaceId, is
                   />
                 </div>
                 <div className="flex items-center justify-between text-[11px] text-muted-foreground mt-1.5">
-                  <span>${retainerMonthlyValue.toLocaleString()}/mo</span>
+                  <span>{formatMoney(retainerMonthlyValue, { precision: 'compact' })}/mo</span>
                   <span>Resets 1st of month</span>
                 </div>
               </div>
@@ -1190,7 +1191,7 @@ export function LogSessionModal({ open, onClose, onSave, clients, preSelectedCli
                 {billable ? 'Estimated revenue' : 'Time value'}{selectedClient.rate ? ` @ $${selectedClient.rate}/hr` : ''}
               </span>
               <span className={`tabular-nums ${billable ? 'text-primary' : 'text-muted-foreground'}`} style={{ fontWeight: 600 }}>
-                {billable ? `$${revenue.toLocaleString()}` : `$0 (non-billable)`}
+                {billable ? formatMoney(revenue) : `${formatMoney(0)} (non-billable)`}
               </span>
             </div>
 
@@ -1200,7 +1201,7 @@ export function LogSessionModal({ open, onClose, onSave, clients, preSelectedCli
                 <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-1.5">
                   <span>Retainer after this session</span>
                   <span className="tabular-nums" style={{ fontWeight: 500 }}>
-                    {Math.max(0, (selectedClient.retainerRemaining || 0) - durationNum).toFixed(1)}h of {selectedClient.retainerTotal}h remaining
+                    {formatDuration(Math.max(0, (selectedClient.retainerRemaining || 0) - durationNum), { variant: 'display' })} of {formatDuration(selectedClient.retainerTotal, { variant: 'display' })} remaining
                   </span>
                 </div>
                 <div className="h-1.5 bg-accent/60 rounded-full overflow-hidden">
@@ -1216,7 +1217,7 @@ export function LogSessionModal({ open, onClose, onSave, clients, preSelectedCli
                 </div>
                 {(selectedClient.retainerRemaining || 0) - durationNum < 0 && (
                   <div className="text-[11px] text-primary mt-1" style={{ fontWeight: 500 }}>
-                    {Math.abs((selectedClient.retainerRemaining || 0) - durationNum).toFixed(1)}h over retainer — will be billed as overage
+                    {formatDuration(Math.abs((selectedClient.retainerRemaining || 0) - durationNum), { variant: 'display' })} over retainer — will be billed as overage
                   </div>
                 )}
               </div>
@@ -1230,11 +1231,11 @@ export function LogSessionModal({ open, onClose, onSave, clients, preSelectedCli
                   <div className="mb-2">
                     {(selectedProject.hours || 0) > 0 ? (
                       <div className="text-[11px] text-muted-foreground">
-                        This project: <span className="tabular-nums" style={{ fontWeight: 500, color: '#3B66F0' }}>${Math.round(selectedProject.totalValue / (selectedProject.hours || 1))}/hr</span> effective across {selectedProject.hours}h logged
+                        This project: <span className="tabular-nums" style={{ fontWeight: 500, color: '#3B66F0' }}>{formatMoney(Math.round(selectedProject.totalValue / (selectedProject.hours || 1)), { showZeroDecimals: false })}/hr</span> effective across {selectedProject.hours}h logged
                       </div>
                     ) : (
                       <div className="text-[11px] text-muted-foreground">
-                        This project: <span className="tabular-nums" style={{ fontWeight: 500 }}>${selectedProject.totalValue.toLocaleString()}</span> total — no hours logged yet
+                        This project: <span className="tabular-nums" style={{ fontWeight: 500 }}>{formatMoney(selectedProject.totalValue, { showZeroDecimals: false })}</span> total — no hours logged yet
                       </div>
                     )}
                     {durationNum > 0 && (selectedProject.hours || 0) + durationNum > 0 && (() => {
@@ -1243,7 +1244,7 @@ export function LogSessionModal({ open, onClose, onSave, clients, preSelectedCli
                       const rateColor = cl && newEffRate < (cl.rate * 0.5) ? '#c27272' : cl && newEffRate < cl.rate ? '#C2860C' : '#3B66F0';
                       return (
                         <div className="text-[11px] text-muted-foreground mt-0.5">
-                          After this session: <span className="tabular-nums" style={{ fontWeight: 500, color: rateColor }}>${newEffRate}/hr</span>
+                          After this session: <span className="tabular-nums" style={{ fontWeight: 500, color: rateColor }}>{formatMoney(newEffRate, { showZeroDecimals: false })}/hr</span>
                         </div>
                       );
                     })()}
@@ -1252,7 +1253,7 @@ export function LogSessionModal({ open, onClose, onSave, clients, preSelectedCli
                 <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-1.5">
                   <span>"{selectedProject.name}" after this session</span>
                   <span className="tabular-nums" style={{ fontWeight: 500 }}>
-                    {((selectedProject.hours || 0) + durationNum).toFixed(1)}h{selectedProject.estimatedHours > 0 ? ` of ${selectedProject.estimatedHours}h` : ''}
+                    {formatDuration((selectedProject.hours || 0) + durationNum, { variant: 'display' })}{selectedProject.estimatedHours > 0 ? ` of ${formatDuration(selectedProject.estimatedHours, { variant: 'display' })}` : ''}
                   </span>
                 </div>
                 {selectedProject.estimatedHours > 0 && (
@@ -1270,7 +1271,7 @@ export function LogSessionModal({ open, onClose, onSave, clients, preSelectedCli
                     </div>
                     {((selectedProject.hours || 0) + durationNum) > selectedProject.estimatedHours && (
                       <div className="text-[11px] text-primary mt-1" style={{ fontWeight: 500 }}>
-                        {(((selectedProject.hours || 0) + durationNum) - selectedProject.estimatedHours).toFixed(1)}h over estimated scope
+                        {formatDuration(((selectedProject.hours || 0) + durationNum) - selectedProject.estimatedHours, { variant: 'display' })} over estimated scope
                       </div>
                     )}
                   </>
@@ -1279,7 +1280,7 @@ export function LogSessionModal({ open, onClose, onSave, clients, preSelectedCli
                   <div className="flex items-center justify-between text-[11px] text-muted-foreground mt-1">
                     <span>Revenue earned</span>
                     <span className="tabular-nums" style={{ fontWeight: 500 }}>
-                      ${((selectedProject.revenue || 0) + revenue).toLocaleString()} of ${selectedProject.totalValue.toLocaleString()}
+                      {formatMoney((selectedProject.revenue || 0) + revenue, { showZeroDecimals: false })} of {formatMoney(selectedProject.totalValue, { showZeroDecimals: false })}
                     </span>
                   </div>
                 )}
@@ -1514,7 +1515,7 @@ export function AddProjectModal({ open, onClose, onSave, clients, preSelectedCli
         <div className="flex items-center justify-between pt-3 border-t border-border">
           <div className="text-[12px] text-muted-foreground">
             {canSave
-              ? `${status}${valueNum > 0 ? ` · $${valueNum.toLocaleString()}` : ''}${hoursNum > 0 ? ` · ${hoursNum}h estimated` : ''}`
+              ? `${status}${valueNum > 0 ? ` · ${formatMoney(valueNum, { showZeroDecimals: false })}` : ''}${hoursNum > 0 ? ` · ${formatDuration(hoursNum, { variant: 'display' })} estimated` : ''}`
               : 'Enter a project name to continue'}
           </div>
           <div className="flex gap-2">
@@ -1821,7 +1822,7 @@ export function EditSessionModal({ open, onClose, session, onSave, onDelete, cli
                 {billable ? 'Estimated revenue' : 'Time value'}{selectedClient.rate ? ` @ $${selectedClient.rate}/hr` : ''}
               </span>
               <span className={`tabular-nums ${billable ? 'text-primary' : 'text-muted-foreground'}`} style={{ fontWeight: 600 }}>
-                {billable ? `$${revenue.toLocaleString()}` : `$0 (non-billable)`}
+                {billable ? formatMoney(revenue) : `${formatMoney(0)} (non-billable)`}
               </span>
             </div>
           </div>

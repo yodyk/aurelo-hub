@@ -1,4 +1,5 @@
 import { transitions } from '@/lib/motion';
+import { formatPercent } from '@/lib/format';
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router";
 import {
@@ -2291,7 +2292,7 @@ function InvoiceTemplatesSection() {
                     <div className="text-[12px] text-muted-foreground mt-0.5">
                       {(t.line_items as any[])?.length || 0} line item{(t.line_items as any[])?.length !== 1 ? 's' : ''}
                       {t.payment_terms ? ` · ${t.payment_terms}` : ''}
-                      {t.tax_rate ? ` · ${(t.tax_rate * 100).toFixed(1)}% tax` : ''}
+                      {t.tax_rate ? ` · ${formatPercent(t.tax_rate)} tax` : ''}
                     </div>
                   </div>
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

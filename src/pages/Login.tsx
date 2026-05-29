@@ -75,7 +75,7 @@ export default function Login() {
                 });
                 if (error) setError(error.message || "Google sign-in failed");
               }}
-              className="w-full h-10 rounded-lg border border-[var(--hairline)] bg-card text-foreground text-[14px] flex items-center justify-center gap-2.5 hover:bg-[var(--surface-sunken)] active:bg-[var(--accent)] transition-all duration-200"
+              className="w-full h-[var(--control-xl)] rounded-lg border border-[var(--hairline)] bg-card text-foreground text-[14px] flex items-center justify-center gap-2.5 hover:bg-[var(--surface-sunken)] active:bg-[var(--accent)] transition-all duration-200"
               style={{ fontWeight: 500 }}
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24">
@@ -95,7 +95,7 @@ export default function Login() {
                 });
                 if (error) setError(error.message || "Apple sign-in failed");
               }}
-              className="w-full h-10 rounded-lg bg-[#1c1c1c] text-white text-[14px] flex items-center justify-center gap-2.5 hover:bg-[#333] active:bg-[#111] transition-all duration-200"
+              className="w-full h-[var(--control-xl)] rounded-lg bg-[#1c1c1c] text-white text-[14px] flex items-center justify-center gap-2.5 hover:bg-[#333] active:bg-[#111] transition-all duration-200"
               style={{ fontWeight: 500 }}
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
@@ -134,7 +134,7 @@ export default function Login() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@company.com"
                 autoComplete="email"
-                className="w-full h-10 px-3 rounded-lg border border-[var(--hairline)] bg-card text-[14px] text-foreground placeholder:text-[var(--foreground-subtle)] outline-none focus:border-primary/55 focus:ring-2 focus:ring-primary/15 transition-all"
+                className="w-full h-[var(--control-xl)] px-3 rounded-lg border border-[var(--hairline)] bg-card text-[14px] text-foreground placeholder:text-[var(--foreground-subtle)] outline-none focus:border-primary/55 focus:ring-2 focus:ring-primary/15 transition-all"
               />
             </div>
 
@@ -149,7 +149,7 @@ export default function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
                   autoComplete="current-password"
-                  className="w-full h-10 px-3 pr-10 rounded-lg border border-[var(--hairline)] bg-card text-[14px] text-foreground placeholder:text-[var(--foreground-subtle)] outline-none focus:border-primary/55 focus:ring-2 focus:ring-primary/15 transition-all"
+                  className="w-full h-[var(--control-xl)] px-3 pr-10 rounded-lg border border-[var(--hairline)] bg-card text-[14px] text-foreground placeholder:text-[var(--foreground-subtle)] outline-none focus:border-primary/55 focus:ring-2 focus:ring-primary/15 transition-all"
                 />
                 <button
                   type="button"
@@ -173,7 +173,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-10 rounded-lg bg-primary text-white text-[14px] flex items-center justify-center gap-2 hover:bg-[color-mix(in_oklab,var(--primary)_92%,black)] active:bg-[color-mix(in_oklab,var(--primary)_84%,black)] disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
+              className="w-full h-[var(--control-xl)] rounded-lg bg-primary text-white text-[14px] flex items-center justify-center gap-2 hover:bg-[color-mix(in_oklab,var(--primary)_92%,black)] active:bg-[color-mix(in_oklab,var(--primary)_84%,black)] disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
               style={{ fontWeight: 500 }}
             >
               {loading ? (
