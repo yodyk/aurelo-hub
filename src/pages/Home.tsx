@@ -501,15 +501,15 @@ export default function Home() {
   // ══════════════════════════════════════════════════════════════════
 
   return (
-    <motion.div className="w-full min-w-0 px-4 lg:px-8 py-6" variants={container} initial="hidden" animate="show">
+    <motion.div className="page-wrapper" variants={container} initial="hidden" animate="show">
       {/* ── Greeting ── */}
-      <motion.div variants={item} className="mb-6">
-        <h1 className="text-[26px] md:text-[30px] tracking-tight mb-1" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
+      <motion.div variants={item} className="mb-10">
+        <h1 className="page-header mb-2">
           {getGreeting()}, {displayFirstName}
         </h1>
         <div className="flex items-center gap-2">
-          {workspaceLogo && <img src={workspaceLogo} alt="" className="w-4 h-4 rounded object-contain flex-shrink-0" />}
-          <p className="text-[13px] text-muted-foreground">{workspaceName} · {new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })}</p>
+          {workspaceLogo && <img src={workspaceLogo} alt="" className="w-4 h-4 rounded object-contain flex-shrink-0 opacity-80" />}
+          <p className="page-subtitle !mt-0">{workspaceName} · {new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })}</p>
         </div>
       </motion.div>
 
@@ -518,11 +518,11 @@ export default function Home() {
 
       {/* ── Empty state ── */}
       {!dataLoading && !hasData && (
-        <motion.div variants={item} className="bg-card border border-primary/15 rounded-lg p-5 mb-6">
+        <motion.div variants={item} className="premium-card mb-10" style={{ borderColor: "color-mix(in oklab, var(--primary) 22%, transparent)" }}>
           <div className="flex items-center gap-3">
             <Sparkles className="w-4 h-4 text-primary flex-shrink-0" />
             <div>
-              <div className="text-[14px] mb-0.5" style={{ fontWeight: 600 }}>Your workspace is empty</div>
+              <div className="text-[14px] mb-0.5 font-semibold">Your workspace is empty</div>
               <div className="text-[13px] text-muted-foreground">Add your first client to get started — head to the Clients page to begin.</div>
             </div>
           </div>
@@ -530,7 +530,7 @@ export default function Home() {
       )}
 
       {/* ── Summary stat cards ── */}
-      <motion.div variants={item} className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      <motion.div variants={item} className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
         {[
           { label: "Clients", value: activeClientCount, onClick: () => navigate("/clients") },
           { label: "Projects", value: activeProjectCount, onClick: () => navigate("/projects") },
@@ -539,17 +539,18 @@ export default function Home() {
         ].map((stat) => (
           <div
             key={stat.label}
-            className={`bg-card border border-border rounded-lg px-4 py-3 ${stat.onClick ? "cursor-pointer hover:bg-accent/30 transition-colors" : ""}`}
+            className={`stat-card ${stat.onClick ? "cursor-pointer lift-on-hover" : ""}`}
             onClick={stat.onClick}
           >
-            <div className="text-[11px] text-muted-foreground mb-1" style={{ fontWeight: 500 }}>{stat.label}</div>
-            <div className="text-[22px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 700 }}>
+            <div className="type-eyebrow mb-2">{stat.label}</div>
+            <div className="text-[26px] leading-none tracking-tight tabular-nums font-semibold">
               <AnimatedNumber value={stat.value} />
             </div>
-            {stat.sub && <div className="text-[10px] text-muted-foreground mt-0.5">{stat.sub}</div>}
+            {stat.sub && <div className="text-[11px] text-muted-foreground mt-1.5">{stat.sub}</div>}
           </div>
         ))}
       </motion.div>
+
 
       {/* ══════════════════════════════════════════════════════════════ */}
       {/* TWO-COLUMN LAYOUT                                             */}
