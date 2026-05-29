@@ -747,26 +747,27 @@ export default function Home() {
 
           {/* Active projects — in left column */}
           {activeProjects.length > 0 && (
-            <motion.div variants={item} className="bg-card border border-border rounded-lg overflow-hidden">
-              <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-                <span className="text-[12px] text-muted-foreground" style={{ fontWeight: 600 }}>Active projects</span>
-                <button onClick={() => navigate("/projects")} className="text-[11px] text-primary hover:text-primary/80 transition-colors flex items-center gap-1" style={{ fontWeight: 500 }}>View all <ArrowRight className="w-3 h-3" /></button>
+            <motion.div variants={item} className="premium-card !p-0 overflow-hidden">
+              <div className="flex items-center justify-between px-5 py-3.5" style={{ borderBottom: "1px solid var(--hairline)" }}>
+                <span className="type-eyebrow">Active projects</span>
+                <button onClick={() => navigate("/projects")} className="text-[11px] text-primary hover:text-primary/80 transition-colors flex items-center gap-1 font-medium">View all <ArrowRight className="w-3 h-3" /></button>
               </div>
-              <div className="divide-y divide-border">
+              <div className="divide-y" style={{ borderColor: "var(--hairline)" }}>
                 {activeProjects.slice(0, 5).map((proj) => (
-                  <div key={`${proj.clientId}-${proj.id}`} className="px-4 py-2.5 hover:bg-accent/20 transition-colors cursor-pointer" onClick={() => navigate(`/clients/${proj.clientId}`)}>
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="min-w-0 flex-1"><div className="text-[12px] truncate" style={{ fontWeight: 500 }}>{proj.name}</div><div className="text-[10px] text-muted-foreground">{proj.clientName}</div></div>
-                      <span className="text-[10px] tabular-nums text-muted-foreground ml-2" style={{ fontWeight: 500 }}>{proj.hours || 0}h{proj.estimatedHours ? ` / ${proj.estimatedHours}h` : ""}</span>
+                  <div key={`${proj.clientId}-${proj.id}`} className="px-5 py-3 hover:bg-accent/40 transition-colors cursor-pointer" onClick={() => navigate(`/clients/${proj.clientId}`)}>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="min-w-0 flex-1"><div className="text-[13px] truncate font-medium">{proj.name}</div><div className="text-[11px] text-muted-foreground mt-0.5">{proj.clientName}</div></div>
+                      <span className="text-[11px] tabular-nums text-muted-foreground ml-2 font-medium">{proj.hours || 0}h{proj.estimatedHours ? ` / ${proj.estimatedHours}h` : ""}</span>
                     </div>
                     {proj.estimatedHours > 0 && (
-                      <div className="h-1 bg-accent/60 rounded-circle overflow-hidden"><div className="h-full rounded-circle transition-all duration-500" style={{ width: `${Math.min(proj.completion, 100)}%`, backgroundColor: proj.completion >= 90 ? GOLD : BLUE, opacity: 0.5 }} /></div>
+                      <div className="h-1 bg-[var(--surface-sunken)] rounded-circle overflow-hidden"><div className="h-full rounded-circle transition-all duration-500" style={{ width: `${Math.min(proj.completion, 100)}%`, backgroundColor: proj.completion >= 90 ? GOLD : BLUE, opacity: 0.55 }} /></div>
                     )}
                   </div>
                 ))}
               </div>
             </motion.div>
           )}
+
         </div>
 
         {/* ── RIGHT COLUMN (2/5 = 40%) ── */}
