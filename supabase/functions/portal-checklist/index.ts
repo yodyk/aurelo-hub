@@ -9,7 +9,7 @@ const corsHeaders = {
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-const ALLOWED_STATUSES = ['todo', 'in_progress', 'blocked', 'on_hold', 'done'];
+const ALLOWED_STATUSES = ['to_do', 'in_progress', 'in_review', 'on_hold', 'complete'];
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -97,13 +97,14 @@ Deno.serve(async (req) => {
         });
       }
       const nextCompleted = completed !== undefined ? !!completed : !item.completed;
-      const nextStatus = nextCompleted ? 'done' : (item.status === 'done' ? 'todo' : item.status);
+      const nextStatus = nextCompleted ? 'complete' : (item.status === 'complete' ? 'to_do' : item.status);
       const { error } = await sb
         .from('checklist_items')
         .update({ status: nextStatus })
         .eq('id', item_id);
       if (error) throw error;
       result = { success: true, status: nextStatus, completed: nextCompleted };
+
 
     } else if (action === 'update_status' && item_id) {
       if (!ALLOWED_STATUSES.includes(status)) {
@@ -153,7 +154,7 @@ Deno.serve(async (req) => {
           description: safeDescription,
           sort_order: nextOrder,
           added_by: 'client',
-          status: 'todo',
+          status: 'to_do',
           work_tags: safeTags,
           due_date: safeDueDate,
           estimated_hours: safeHours,

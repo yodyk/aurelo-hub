@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   Plus, Trash2, Pencil, X, Check, Loader2, MoreHorizontal, Calendar, Clock,
-  Tag, AlignLeft, Filter, ChevronDown, CircleDashed, CircleDot, AlertCircle, CheckCircle2, PauseCircle,
+  Tag, AlignLeft, Filter, ChevronDown,
   Link2, FileText, Paperclip, ExternalLink,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -12,6 +12,8 @@ import {
   addChecklistItem, updateChecklistItem, deleteChecklistItem,
   type Checklist, type ChecklistItem, type TaskStatus, type NewTaskInput,
 } from '@/data/checklistsApi';
+import { TASK_STATUSES as STATUSES, STATUS_BY_VALUE, nextStatus as cycleNextStatus } from '@/data/taskStatus';
+
 import { loadNotes, type ClientNote } from '@/data/notesApi';
 import { loadFiles, getSignedUrlByPath, type StoredFile } from '@/data/storageApi';
 import {
@@ -27,17 +29,9 @@ interface ChecklistPanelProps {
   workspaceId: string;
 }
 
-// ── Status config ──────────────────────────────────────────────────
+// Status config is centralized in @/data/taskStatus.
 
-const STATUSES: { value: TaskStatus; label: string; icon: any; dotClass: string; textClass: string; bgClass: string; borderClass: string }[] = [
-  { value: 'to_do',        label: 'To Do',       icon: CircleDashed, dotClass: 'bg-muted-foreground/50', textClass: 'text-muted-foreground', bgClass: 'bg-muted/50',         borderClass: 'border-border' },
-  { value: 'in_progress', label: 'In Progress', icon: CircleDot,    dotClass: 'bg-sky-500',             textClass: 'text-sky-700 dark:text-sky-400', bgClass: 'bg-sky-500/10',       borderClass: 'border-sky-500/30' },
-  { value: 'on_hold',     label: 'Blocked',     icon: AlertCircle,  dotClass: 'bg-red-500',             textClass: 'text-red-700 dark:text-red-400', bgClass: 'bg-red-500/10',       borderClass: 'border-red-500/30' },
-  { value: 'on_hold',     label: 'On Hold',     icon: PauseCircle,  dotClass: 'bg-amber-500',           textClass: 'text-amber-700 dark:text-amber-400', bgClass: 'bg-amber-500/10', borderClass: 'border-amber-500/30' },
-  { value: 'complete',        label: 'Done',        icon: CheckCircle2, dotClass: 'bg-emerald-500',         textClass: 'text-emerald-700 dark:text-emerald-400', bgClass: 'bg-emerald-500/10', borderClass: 'border-emerald-500/30' },
-];
 
-const STATUS_BY_VALUE = Object.fromEntries(STATUSES.map(s => [s.value, s]));
 
 // ── Main panel ─────────────────────────────────────────────────────
 
@@ -383,8 +377,7 @@ function TaskRow({
   const [textValue, setTextValue] = useState(item.text);
 
   const cycleStatus = async () => {
-    const order: TaskStatus[] = ['to_do', 'in_progress', 'on_hold', 'on_hold', 'complete'];
-    const next = order[(order.indexOf(item.status) + 1) % order.length];
+    const next = cycleNextStatus(item.status);
     onUpdate({ status: next });
     try {
       await updateChecklistItem(item.id, { status: next });
@@ -393,6 +386,7 @@ function TaskRow({
       toast.error(err.message);
     }
   };
+
 
   const setStatus = async (status: TaskStatus) => {
     onUpdate({ status });
@@ -418,7 +412,7 @@ function TaskRow({
     catch (err: any) { toast.error(err.message); onRefresh(); }
   };
 
-  const cfg = STATUS_BY_VALUE[item.status] || STATUS_BY_VALUE.todo;
+  const cfg = STATUS_BY_VALUE[item.status] || STATUS_BY_VALUE.to_do;
   const StatusIcon = cfg.icon;
 
   const dueMeta = dueLabel(item.dueDate);

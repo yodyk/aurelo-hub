@@ -89,7 +89,7 @@ interface PortalTask {
   id: string;
   text: string;
   description?: string | null;
-  status: 'todo' | 'in_progress' | 'blocked' | 'on_hold' | 'done';
+  status: 'to_do' | 'in_progress' | 'in_review' | 'on_hold' | 'complete';
   completed: boolean;
   work_tags?: string[];
   due_date?: string | null;
@@ -313,7 +313,7 @@ function PortalSummary({
   accent: string;
 }) {
   const openTasks = useMemo(
-    () => checklists.reduce((acc, cl) => acc + cl.items.filter(i => i.status !== 'done').length, 0),
+    () => checklists.reduce((acc, cl) => acc + cl.items.filter(i => i.status !== 'complete').length, 0),
     [checklists]
   );
 
@@ -349,7 +349,7 @@ function PortalTabs({
 }) {
   const isRetainer = client.model === 'Retainer';
   const openTaskCount = useMemo(
-    () => checklists.reduce((acc, cl) => acc + cl.items.filter(i => i.status !== 'done').length, 0),
+    () => checklists.reduce((acc, cl) => acc + cl.items.filter(i => i.status !== 'complete').length, 0),
     [checklists]
   );
 
@@ -713,12 +713,13 @@ function InvoiceRow({ invoice: inv, accent }: { invoice: PortalInvoice; accent: 
 // ── Portal Task List Card ───────────────────────────────────────────
 
 const PORTAL_STATUSES: { value: PortalTask['status']; label: string; dot: string; text: string; bg: string }[] = [
-  { value: 'todo',        label: 'To Do',       dot: '#9ca3af', text: '#6b7280', bg: '#f3f4f6' },
+  { value: 'to_do',       label: 'To Do',       dot: '#9ca3af', text: '#6b7280', bg: '#f3f4f6' },
   { value: 'in_progress', label: 'In Progress', dot: '#0ea5e9', text: '#0369a1', bg: '#e0f2fe' },
-  { value: 'blocked',     label: 'Blocked',     dot: '#ef4444', text: '#b91c1c', bg: '#fee2e2' },
-  { value: 'on_hold',     label: 'On Hold',     dot: '#f59e0b', text: '#b45309', bg: '#fef3c7' },
-  { value: 'done',        label: 'Done',        dot: '#22c55e', text: '#15803d', bg: '#dcfce7' },
+  { value: 'in_review',   label: 'In Review',   dot: '#f59e0b', text: '#b45309', bg: '#fef3c7' },
+  { value: 'on_hold',     label: 'On Hold',     dot: '#94a3b8', text: '#475569', bg: '#f1f5f9' },
+  { value: 'complete',    label: 'Complete',    dot: '#22c55e', text: '#15803d', bg: '#dcfce7' },
 ];
+
 
 function portalDueLabel(due?: string | null) {
   if (!due) return null;
@@ -738,15 +739,16 @@ function PortalChecklistCard({ checklist, accent, token, hideCompleted = false }
   const [items, setItems] = useState<PortalTask[]>(checklist.items);
   const [composerOpen, setComposerOpen] = useState(false);
 
-  const completedCount = items.filter(i => i.status === 'done').length;
+  const completedCount = items.filter(i => i.status === 'complete').length;
   const totalCount = items.length;
   const progress = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
-  const visibleItems = hideCompleted ? items.filter(i => i.status !== 'done') : items;
+  const visibleItems = hideCompleted ? items.filter(i => i.status !== 'complete') : items;
 
   const cycleStatus = async (item: PortalTask) => {
-    const order: PortalTask['status'][] = ['todo', 'in_progress', 'blocked', 'on_hold', 'done'];
+    const order: PortalTask['status'][] = ['to_do', 'in_progress', 'in_review', 'on_hold', 'complete'];
     const next = order[(order.indexOf(item.status) + 1) % order.length];
-    setItems(prev => prev.map(i => i.id === item.id ? { ...i, status: next, completed: next === 'done' } : i));
+    setItems(prev => prev.map(i => i.id === item.id ? { ...i, status: next, completed: next === 'complete' } : i));
+
     try {
       await fetch(`${SUPABASE_URL}/functions/v1/portal-checklist`, {
         method: 'POST',
@@ -772,7 +774,7 @@ function PortalChecklistCard({ checklist, accent, token, hideCompleted = false }
           id: it.id,
           text: it.text,
           description: it.description ?? null,
-          status: it.status || 'todo',
+          status: it.status || 'to_do',
           completed: !!it.completed,
           work_tags: it.work_tags || [],
           due_date: it.due_date ?? null,
@@ -813,13 +815,13 @@ function PortalChecklistCard({ checklist, accent, token, hideCompleted = false }
                     onClick={() => cycleStatus(item)}
                     title={`Status: ${cfg.label} — tap to advance`}
                     className="flex-shrink-0 mt-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center"
-                    style={{ borderColor: cfg.dot, backgroundColor: item.status === 'done' ? cfg.dot : 'transparent' }}
+                    style={{ borderColor: cfg.dot, backgroundColor: item.status === 'complete' ? cfg.dot : 'transparent' }}
                   >
-                    {item.status === 'done' && <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />}
+                    {item.status === 'complete' && <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />}
                   </button>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start gap-2">
-                      <span className={`text-[13px] flex-1 ${item.status === 'done' ? 'line-through text-[#b1b6bf]' : 'text-[#374151]'}`}>
+                      <span className={`text-[13px] flex-1 ${item.status === 'complete' ? 'line-through text-[#b1b6bf]' : 'text-[#374151]'}`}>
                         {item.text}
                       </span>
                       {item.added_by === 'client' && (
