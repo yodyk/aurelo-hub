@@ -70,24 +70,18 @@ const STATUS_CONFIG: Record<InvoiceStatus, { label: string; color: string; bg: s
 
 // ── Helpers ────────────────────────────────────────────────────────
 
+import { formatMoney, formatDate as formatDateFn, formatPercent } from "@/lib/format";
+
 function formatCurrency(amount: number, currency = "USD"): string {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency, minimumFractionDigits: 2 }).format(amount);
+  return formatMoney(amount, { currency, precision: "exact" });
 }
 
 function formatDate(dateStr: string): string {
-  try {
-    return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-  } catch {
-    return dateStr;
-  }
+  return formatDateFn(dateStr, "medium");
 }
 
 function shortDate(dateStr: string): string {
-  try {
-    return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric" });
-  } catch {
-    return dateStr;
-  }
+  return formatDateFn(dateStr, "short");
 }
 
 function daysUntil(dateStr: string): number {
@@ -95,6 +89,7 @@ function daysUntil(dateStr: string): number {
   const now = new Date();
   return Math.ceil((d.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 }
+
 
 // ── Main Component ─────────────────────────────────────────────────
 
