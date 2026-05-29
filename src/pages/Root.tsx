@@ -144,7 +144,10 @@ function PlanBridge() {
   const isOwner = workspaceRole === 'Owner';
   return (
     <PlanProvider initialPlan={initPlan} workspaceId={workspaceId} isOwner={isOwner}>
-      <RootLayout />
+      <TaskDrawerProvider>
+        <RootLayout />
+        <TaskDrawer />
+      </TaskDrawerProvider>
     </PlanProvider>
   );
 }
