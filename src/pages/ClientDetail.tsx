@@ -948,78 +948,96 @@ function OverviewTab({
     <>
       {/* Financial metrics */}
       {canViewFinancials && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Revenue card */}
-          <div className="lg:col-span-2 bg-card border border-border/60 rounded-xl overflow-hidden" style={{ boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
-            <div className="p-4 md:p-5">
-              <div className="flex items-center justify-between mb-4">
-                <div className="text-[12px] text-muted-foreground" style={{ fontWeight: 600 }}>Financial Overview</div>
-                <div className="inline-flex gap-0 bg-accent/60 rounded-md p-0.5">
-                  {(["gross", "net"] as const).map(mode => (
-                    <button
-                      key={mode}
-                      onClick={() => setViewMode(mode)}
-                      className={`px-2.5 py-0.5 text-[11px] rounded-sm transition-all duration-200 capitalize ${
-                        viewMode === mode ? "bg-card text-foreground" : "text-muted-foreground hover:text-foreground"
-                      }`}
-                      style={{ fontWeight: 600, boxShadow: viewMode === mode ? "0 1px 3px rgba(0,0,0,0.06)" : "none" }}
-                    >
-                      {mode}
-                    </button>
-                  ))}
-                </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          {/* Revenue hero card */}
+          <div className="lg:col-span-2 premium-card !p-6 md:!p-7 flex flex-col">
+            <div className="flex items-center justify-between mb-5">
+              <div className="type-eyebrow">Financial overview</div>
+              <div className="inline-flex gap-0 p-0.5 rounded-md" style={{ background: "var(--surface-sunken)" }}>
+                {(["gross", "net"] as const).map((mode) => (
+                  <button
+                    key={mode}
+                    onClick={() => setViewMode(mode)}
+                    className={`px-2.5 py-0.5 text-[11px] rounded-sm transition-all duration-200 capitalize cursor-pointer ${
+                      viewMode === mode ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                    }`}
+                    style={{
+                      fontWeight: 600,
+                      background: viewMode === mode ? "var(--surface-raised)" : "transparent",
+                      boxShadow: viewMode === mode ? "var(--elev-1)" : "none",
+                    }}
+                  >
+                    {mode}
+                  </button>
+                ))}
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div>
-                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>This month</div>
-                  <div className="text-[22px] leading-none tracking-tighter tabular-nums" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
-                    ${viewMode === "net" ? Math.round((client.monthlyEarnings || 0) * netMultiplier).toLocaleString() : (client.monthlyEarnings || 0).toLocaleString()}
-                  </div>
-                  {revenueTrend !== 'flat' && (
-                    <div className={`flex items-center gap-0.5 mt-1 text-[11px] ${revenueTrend === 'up' ? 'text-success' : 'text-destructive'}`} style={{ fontWeight: 600 }}>
-                      {revenueTrend === 'up' ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                      {revenueTrend === 'up' ? '+' : ''}{Math.abs(Math.round(((client.monthlyEarnings || 0) - lastMonthEarnings) / Math.max(lastMonthEarnings, 1) * 100))}% vs last
-                    </div>
-                  )}
+            </div>
+
+            {/* Primary metric — This month */}
+            <div>
+              <div className="type-eyebrow mb-2">This month</div>
+              <div className="flex items-baseline gap-3 flex-wrap">
+                <div className="text-[40px] md:text-[48px] leading-none tabular-nums text-foreground" style={{ fontWeight: 600, letterSpacing: "-0.035em" }}>
+                  ${viewMode === "net" ? Math.round((client.monthlyEarnings || 0) * netMultiplier).toLocaleString() : (client.monthlyEarnings || 0).toLocaleString()}
                 </div>
-                <div>
-                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>Eff. rate</div>
-                  <div className="text-[22px] leading-none tracking-tighter tabular-nums" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
-                    ${client.trueHourlyRate ? (viewMode === "net" ? Math.round(client.trueHourlyRate * netMultiplier) : client.trueHourlyRate.toFixed(2)) : '—'}
+                {revenueTrend !== "flat" && (
+                  <div
+                    className={`flex items-center gap-1 text-[12px] ${revenueTrend === "up" ? "text-success" : "text-destructive"}`}
+                    style={{ fontWeight: 600 }}
+                  >
+                    {revenueTrend === "up" ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
+                    {revenueTrend === "up" ? "+" : ""}
+                    {Math.abs(Math.round((((client.monthlyEarnings || 0) - lastMonthEarnings) / Math.max(lastMonthEarnings, 1)) * 100))}% vs last month
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Secondary metrics — sunken strip */}
+            <div className="mt-6 rounded-lg overflow-hidden" style={{ background: "var(--surface-sunken)" }}>
+              <div className="grid grid-cols-3 divide-x" style={{ borderColor: "var(--hairline)" }}>
+                <div className="p-4">
+                  <div className="type-eyebrow mb-1.5">Effective rate</div>
+                  <div className="text-[18px] tabular-nums text-foreground" style={{ fontWeight: 600, letterSpacing: "-0.02em" }}>
+                    ${client.trueHourlyRate ? (viewMode === "net" ? Math.round(client.trueHourlyRate * netMultiplier) : client.trueHourlyRate.toFixed(2)) : "—"}
+                    <span className="text-[11px] text-muted-foreground ml-0.5" style={{ fontWeight: 400 }}>/hr</span>
                   </div>
                 </div>
-                <div>
-                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>Lifetime</div>
-                  <div className="text-[22px] leading-none tracking-tighter tabular-nums" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
+                <div className="p-4">
+                  <div className="type-eyebrow mb-1.5">Lifetime</div>
+                  <div className="text-[18px] tabular-nums text-foreground" style={{ fontWeight: 600, letterSpacing: "-0.02em" }}>
                     ${viewMode === "net" ? Math.round((client.lifetimeRevenue || 0) * netMultiplier).toLocaleString() : (client.lifetimeRevenue || 0).toLocaleString()}
                   </div>
                 </div>
-                <div>
-                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>Hours</div>
-                  <div className="text-[22px] leading-none tracking-tighter tabular-nums" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
+                <div className="p-4">
+                  <div className="type-eyebrow mb-1.5">Hours</div>
+                  <div className="text-[18px] tabular-nums text-foreground" style={{ fontWeight: 600, letterSpacing: "-0.02em" }}>
                     {client.hoursLogged || 0}
                   </div>
                 </div>
               </div>
-
-              {/* Retainer mini bar */}
-              {client.model === "Retainer" && (() => {
-                const hoursUsed = (client.retainerTotal || 0) - (client.retainerRemaining || 0);
-                const usagePct = client.retainerTotal ? Math.round((hoursUsed / client.retainerTotal) * 100) : 0;
-                return (
-                  <div className="mt-4 pt-4 border-t border-border/60">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="text-[11px] text-muted-foreground" style={{ fontWeight: 500 }}>Retainer: {hoursUsed}h / {client.retainerTotal || 0}h</div>
-                      <div className="text-[13px] tabular-nums" style={{ fontWeight: 700, color: getUsageTextColor(usagePct) }}>{usagePct}%</div>
-                    </div>
-                    <div className="h-1.5 bg-accent/60 rounded-sm overflow-hidden">
-                      <motion.div className="h-full rounded-sm" style={{ background: getUsageBarColor(usagePct) }} initial={{ width: 0 }} animate={{ width: `${usagePct}%` }} transition={{ delay: 0.3, duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }} />
-                    </div>
-                  </div>
-                );
-              })()}
             </div>
+
+            {/* Retainer mini bar */}
+            {client.model === "Retainer" && (() => {
+              const hoursUsed = (client.retainerTotal || 0) - (client.retainerRemaining || 0);
+              const usagePct = client.retainerTotal ? Math.round((hoursUsed / client.retainerTotal) * 100) : 0;
+              return (
+                <div className="mt-5 pt-5 border-t" style={{ borderColor: "var(--hairline)" }}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>
+                      Retainer · {hoursUsed}h of {client.retainerTotal || 0}h
+                    </div>
+                    <div className="text-[13px] tabular-nums" style={{ fontWeight: 700, color: getUsageTextColor(usagePct) }}>{usagePct}%</div>
+                  </div>
+                  <div className="h-1.5 rounded-sm overflow-hidden" style={{ background: "var(--surface-sunken)" }}>
+                    <motion.div className="h-full rounded-sm" style={{ background: getUsageBarColor(usagePct) }} initial={{ width: 0 }} animate={{ width: `${usagePct}%` }} transition={{ delay: 0.3, duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }} />
+                  </div>
+                </div>
+              );
+            })()}
           </div>
+
 
           {/* 7-day activity sparkline card */}
           <div className="bg-card border border-border/60 rounded-xl overflow-hidden flex flex-col" style={{ boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
