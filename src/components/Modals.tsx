@@ -626,7 +626,7 @@ export function EditClientModal({ open, onClose, client, onSave, workspaceId, is
                   />
                 </div>
                 <div className="flex items-center justify-between text-[11px] text-muted-foreground mt-1.5">
-                  <span>${retainerMonthlyValue.toLocaleString()}/mo</span>
+                  <span>{formatMoney(retainerMonthlyValue, { precision: 'compact' })}/mo</span>
                   <span>Resets 1st of month</span>
                 </div>
               </div>
