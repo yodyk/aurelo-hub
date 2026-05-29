@@ -390,7 +390,7 @@ export function AddClientModal({ open, onClose, onSave }: {
         {model === 'Retainer' && rateNum > 0 && retainerNum > 0 && (
           <div className="bg-accent/30 rounded-lg px-3.5 py-2.5 flex items-center justify-between text-[13px]">
             <span className="text-muted-foreground">Monthly retainer value</span>
-            <span className="tabular-nums text-primary" style={{ fontWeight: 600 }}>${retainerMonthlyValue.toLocaleString()}/mo</span>
+            <span className="tabular-nums text-primary" style={{ fontWeight: 600 }}>{formatMoney(retainerMonthlyValue, { precision: 'compact' })}/mo</span>
           </div>
         )}
 
