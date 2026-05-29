@@ -745,17 +745,36 @@ export default function ClientDetail() {
             {activeTab === "work" && (
               <>
                 <section>
-                  <div className="type-eyebrow mb-4">Projects</div>
+                  <div className="flex items-baseline justify-between mb-4">
+                    <div className="type-eyebrow">Projects <span className="text-muted-foreground/60 ml-1">({projects.length})</span></div>
+                    <button
+                      onClick={() => setShowProjectModal(true)}
+                      className="h-8 px-3 inline-flex items-center gap-1.5 rounded-md border border-[var(--hairline)] hover:bg-accent/60 transition-colors cursor-pointer text-[12.5px] text-muted-foreground hover:text-foreground"
+                      style={{ fontWeight: 500 }}
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      Add project
+                    </button>
+                  </div>
                   <ProjectsTab
                     projects={projects}
                     client={client}
                     canViewFinancials={canViewFinancials}
-                    onAddProject={() => setShowProjectModal(true)}
                     onNavigate={(pId: string) => navigate(`/projects/${clientId}/${pId}`)}
                   />
                 </section>
                 <section>
-                  <div className="type-eyebrow mb-4">Sessions</div>
+                  <div className="flex items-baseline justify-between mb-4">
+                    <div className="type-eyebrow">Sessions <span className="text-muted-foreground/60 ml-1">({clientSessions.length})</span></div>
+                    <button
+                      onClick={() => setShowLogModal(true)}
+                      className="h-8 px-3 inline-flex items-center gap-1.5 rounded-md border border-[var(--hairline)] hover:bg-accent/60 transition-colors cursor-pointer text-[12.5px] text-muted-foreground hover:text-foreground"
+                      style={{ fontWeight: 500 }}
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      Log session
+                    </button>
+                  </div>
                   <SessionsTab
                     clientSessions={clientSessions}
                     client={client}
@@ -763,7 +782,6 @@ export default function ClientDetail() {
                     selectedIds={selectedIds}
                     onToggleSelect={toggleSelect}
                     onToggleSelectAll={toggleSelectAll}
-                    onLogSession={() => setShowLogModal(true)}
                     onEditSession={setEditingSession}
                   />
                 </section>
