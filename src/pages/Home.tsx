@@ -561,26 +561,26 @@ export default function Home() {
 
           {/* Hero panel — financial */}
           {canViewFinancials ? (
-            <motion.div variants={item} className="bg-card border border-border rounded-lg p-5 md:p-6 relative overflow-hidden flex-1 flex flex-col">
+            <motion.div variants={item} className="premium-card !p-6 md:!p-8 relative overflow-hidden flex-1 flex flex-col">
               {/* Headline */}
-              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 mb-5 relative">
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 mb-6 relative">
                 <div>
-                  <div className="text-[12px] text-muted-foreground mb-2 flex items-center gap-2" style={{ fontWeight: 500 }}>
+                  <div className="type-eyebrow mb-3 flex items-center gap-2">
                     Earnings this month
                     {hasData && (
-                      <span className="inline-flex items-center gap-0.5 text-[11px] px-1.5 py-0.5 rounded" style={{ fontWeight: 500, backgroundColor: isUp ? BLUE_BG : RED_BG, color: isUp ? BLUE : RED }}>
+                      <span className="inline-flex items-center gap-0.5 text-[10.5px] px-1.5 py-0.5 rounded normal-case tracking-normal" style={{ fontWeight: 600, backgroundColor: isUp ? BLUE_BG : RED_BG, color: isUp ? BLUE : RED, letterSpacing: 0 }}>
                         {isUp ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
                         {monthChange}%
                       </span>
                     )}
                   </div>
-                  <div className="text-[36px] md:text-[44px] leading-none tracking-tighter text-foreground mb-1.5" style={{ fontWeight: 700 }}>
+                  <div className="text-[40px] md:text-[52px] leading-none tracking-tighter text-foreground mb-2 font-semibold">
                     $<AnimatedNumber value={currentEarnings} />
                   </div>
-                  <div className="text-[13px] text-muted-foreground">
+                  <div className="text-[13.5px] text-muted-foreground">
                     {hasData ? (
                       <>
-                        Projected <span className="text-foreground" style={{ fontWeight: 500 }}>${projectedDisplay.toLocaleString()}</span>
+                        Projected <span className="text-foreground font-medium">${projectedDisplay.toLocaleString()}</span>
                         {lastMonthEarnings > 0 && (
                           <span className="ml-1.5" style={{ color: isUp ? BLUE : RED }}> · {paceDirection} last month</span>
                         )}
@@ -588,14 +588,15 @@ export default function Home() {
                     ) : "Log sessions to see your pulse"}
                   </div>
                 </div>
-                <div className="inline-flex gap-0 bg-accent/60 rounded p-0.5 self-start w-fit">
+                <div className="inline-flex gap-0 bg-[var(--surface-sunken)] rounded p-0.5 self-start w-fit">
                   {([{ key: "gross" as const, label: "Gross" }, { key: "net" as const, label: "Net" }]).map((m) => (
-                    <button key={m.key} onClick={() => setViewMode(m.key)} className={`px-3 py-1 text-[12px] rounded transition-all duration-200 ${viewMode === m.key ? "bg-card text-foreground" : "text-muted-foreground hover:text-foreground"}`} style={{ fontWeight: 500, boxShadow: viewMode === m.key ? "0 1px 3px rgba(0,0,0,0.04)" : "none" }}>
+                    <button key={m.key} onClick={() => setViewMode(m.key)} className={`px-3 py-1 text-[12px] rounded transition-all duration-200 ${viewMode === m.key ? "bg-card text-foreground shadow-[var(--elev-1)]" : "text-muted-foreground hover:text-foreground"}`} style={{ fontWeight: 500 }}>
                       {m.label}
                     </button>
                   ))}
                 </div>
               </div>
+
 
               {/* Expandable breakdowns */}
               <div className="flex flex-wrap gap-2 mb-4">
