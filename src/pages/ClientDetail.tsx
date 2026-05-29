@@ -58,7 +58,7 @@ import { usePlan } from "@/data/PlanContext";
 import { useRoleAccess } from "@/data/useRoleAccess";
 import RecurringSessionsManager from "../components/RecurringSessionsManager";
 import ClientAssignmentManager from "../components/ClientAssignmentManager";
-import { SegmentedControl, type SegmentOption } from "@/components/primitives/composition";
+import { SegmentedControl, HairlineBar, type SegmentOption } from "@/components/primitives/composition";
 
 // ── Animation variants ──────────────────────────────────────────────
 const container = {
