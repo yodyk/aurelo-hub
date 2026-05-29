@@ -586,13 +586,7 @@ export default function ClientDetail() {
   // ═════════════════════════════════════════════════════════════════
   return (
     <motion.div className="w-full min-w-0 page-wrapper" variants={container} initial="hidden" animate="show">
-      {/* Breadcrumb */}
-      <motion.div variants={item} className="mb-3">
-        <Link to="/clients" className="type-meta text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1">
-          <ChevronLeft className="w-3 h-3" />
-          Clients
-        </Link>
-      </motion.div>
+      {/* Breadcrumb is provided by the global shell — no local back link needed */}
 
       {/* ── Editorial masthead ────────────────────────────────────── */}
       <motion.div variants={item} className="mb-6 md:mb-8">
