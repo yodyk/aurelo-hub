@@ -616,7 +616,7 @@ export default function Home() {
                       <div className="flex justify-between text-[12px]"><span className="text-muted-foreground">Gross earnings</span><span className="tabular-nums" style={{ fontWeight: 500 }}>${grossEarnings.toLocaleString()}</span></div>
                       <div className="flex justify-between text-[12px]"><span className="text-muted-foreground">Processing ({(financialDefaults.processingFeeRate * 100).toFixed(1)}%)</span><span className="tabular-nums text-muted-foreground">&minus;${Math.round(processingFee).toLocaleString()}</span></div>
                       <div className="flex justify-between text-[12px]"><span className="text-muted-foreground">Tax ({financialDefaults.taxRate * 100}%)</span><span className="tabular-nums text-muted-foreground">&minus;${Math.round(taxEstimate).toLocaleString()}</span></div>
-                      <div className="border-t border-border pt-2 flex justify-between text-[12px]"><span style={{ fontWeight: 500 }}>After fees &amp; taxes</span><span className="tabular-nums text-primary" style={{ fontWeight: 600 }}>${Math.round(netEarnings).toLocaleString()}</span></div>
+                      <div className="border-t border-[var(--hairline)] pt-2 flex justify-between text-[12px]"><span style={{ fontWeight: 500 }}>After fees &amp; taxes</span><span className="tabular-nums text-primary" style={{ fontWeight: 600 }}>${Math.round(netEarnings).toLocaleString()}</span></div>
                     </div>
                   </motion.div>
                 )}
@@ -725,7 +725,7 @@ export default function Home() {
             </motion.div>
           ) : (
             /* Member view — no financials */
-            <motion.div variants={item} className="bg-card border border-border rounded-lg p-5">
+            <motion.div variants={item} className="bg-card border border-[var(--hairline)] rounded-lg p-5">
               <div className="grid grid-cols-2 gap-5">
                 <div>
                   <div className="text-[11px] text-muted-foreground mb-1.5" style={{ fontWeight: 500 }}>Hours this month</div>
@@ -802,12 +802,12 @@ export default function Home() {
                         <div className="absolute inset-0 z-10 backdrop-blur-[4px] bg-background/50 rounded-lg flex items-center justify-center">
                           <button onClick={() => navigate("/settings?tab=billing")} className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] rounded bg-primary/10 text-primary hover:bg-primary/20 transition-all" style={{ fontWeight: 500 }}><Sparkles className="w-3 h-3" />Upgrade for signals</button>
                         </div>
-                        <div className="bg-card border border-border rounded-lg p-5 text-center text-[12px] text-muted-foreground select-none pointer-events-none" style={{ minHeight: 80 }}>Predictive signals about your clients and revenue</div>
+                        <div className="bg-card border border-[var(--hairline)] rounded-lg p-5 text-center text-[12px] text-muted-foreground select-none pointer-events-none" style={{ minHeight: 80 }}>Predictive signals about your clients and revenue</div>
                       </div>
                     ) : forwardSignals.length > 0 ? (
                       <div className="space-y-1.5">
                         {forwardSignals.map((sig) => (
-                          <div key={sig.id} className="flex items-start gap-2.5 bg-card border border-border rounded-lg px-3 py-2 transition-all duration-200 cursor-pointer hover:bg-accent/30 group" style={{ borderLeftWidth: "3px", borderLeftColor: sig.color }} onClick={() => sig.clientId && navigate(`/clients/${sig.clientId}`)}>
+                          <div key={sig.id} className="flex items-start gap-2.5 bg-card border border-[var(--hairline)] rounded-lg px-3 py-2 transition-all duration-200 cursor-pointer hover:bg-accent/30 group" style={{ borderLeftWidth: "3px", borderLeftColor: sig.color }} onClick={() => sig.clientId && navigate(`/clients/${sig.clientId}`)}>
                             <div className="flex-1 min-w-0">
                               <div className="text-[12px] leading-snug" style={{ fontWeight: 500 }}>{sig.signal}</div>
                               <div className="text-[10px] text-muted-foreground mt-0.5">{sig.detail}</div>
@@ -817,7 +817,7 @@ export default function Home() {
                         ))}
                       </div>
                     ) : (
-                      <div className="bg-card border border-border rounded-lg p-4 text-center text-[12px] text-muted-foreground">No signals — looking good.</div>
+                      <div className="bg-card border border-[var(--hairline)] rounded-lg p-4 text-center text-[12px] text-muted-foreground">No signals — looking good.</div>
                     )}
                   </div>
 
@@ -827,13 +827,13 @@ export default function Home() {
                       <span className="type-eyebrow">Recent work</span>
                       <button onClick={() => navigate("/time")} className="text-[11px] text-primary hover:text-primary/80 transition-colors flex items-center gap-1" style={{ fontWeight: 500 }}>View all <ArrowRight className="w-3 h-3" /></button>
                     </div>
-                    <div className="bg-card border border-border rounded-lg overflow-hidden">
+                    <div className="bg-card border border-[var(--hairline)] rounded-lg overflow-hidden">
                       {activityFeed.length > 0 ? (
                         activityFeed.slice(0, 3).map((group) => (
                           <div key={group.date}>
-                            <div className="px-3 py-1 bg-accent/30 border-b border-border"><span className="text-[10px] text-muted-foreground" style={{ fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>{group.label}</span></div>
+                            <div className="px-3 py-1 bg-accent/30 border-b border-[var(--hairline)]"><span className="text-[10px] text-muted-foreground" style={{ fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>{group.label}</span></div>
                             {group.sessions.slice(0, 3).map((s: any) => (
-                              <div key={s.id} className="px-3 py-2 border-b border-border last:border-0 hover:bg-accent/20 transition-colors cursor-pointer flex items-center gap-2.5" onClick={() => navigate(`/clients/${s.clientId}`)}>
+                              <div key={s.id} className="px-3 py-2 border-b border-[var(--hairline)] last:border-0 hover:bg-accent/20 transition-colors cursor-pointer flex items-center gap-2.5" onClick={() => navigate(`/clients/${s.clientId}`)}>
                                 <div className="flex-1 min-w-0">
                                   <div className="text-[12px] truncate" style={{ fontWeight: 500 }}>{s.task || "Untitled"}</div>
                                   <div className="text-[10px] text-muted-foreground">{s.client}</div>
@@ -863,14 +863,14 @@ export default function Home() {
                       <span className="type-eyebrow">Revenue by client</span>
                       <button onClick={() => navigate("/clients")} className="text-[11px] text-primary hover:text-primary/80 transition-colors flex items-center gap-1" style={{ fontWeight: 500 }}>All clients <ArrowRight className="w-3 h-3" /></button>
                     </div>
-                    <div className="bg-card border border-border rounded-lg overflow-hidden">
+                    <div className="bg-card border border-[var(--hairline)] rounded-lg overflow-hidden">
                       {clientRevenue.length > 0 ? (
                         clientRevenue.slice(0, 5).map((cr, i) => {
                           const maxRev = clientRevenue[0]?.revenue || 1;
                           const barW = Math.max((cr.revenue / maxRev) * 100, 4);
                           const share = grossEarnings > 0 ? Math.round((cr.revenue / grossEarnings) * 100) : 0;
                           return (
-                            <div key={cr.id} className={`px-3 py-2.5 hover:bg-accent/20 transition-colors cursor-pointer ${i < Math.min(clientRevenue.length, 5) - 1 ? "border-b border-border" : ""}`} onClick={() => navigate(`/clients/${cr.id}`)}>
+                            <div key={cr.id} className={`px-3 py-2.5 hover:bg-accent/20 transition-colors cursor-pointer ${i < Math.min(clientRevenue.length, 5) - 1 ? "border-b border-[var(--hairline)]" : ""}`} onClick={() => navigate(`/clients/${cr.id}`)}>
                               <div className="flex items-center justify-between mb-1">
                                 <div className="min-w-0">
                                   <div className="text-[12px] truncate" style={{ fontWeight: 500 }}>{cr.name}</div>
@@ -895,7 +895,7 @@ export default function Home() {
                   <div>
                     <div className="mb-2.5"><span className="type-eyebrow">Retainer health</span></div>
                     {retainerHealth.length > 0 ? (
-                      <div className="bg-card border border-border rounded-lg divide-y divide-border">
+                      <div className="bg-card border border-[var(--hairline)] rounded-lg divide-y divide-[var(--hairline)]">
                         {retainerHealth.map((r) => {
                           const ringColor = r.pct >= 90 ? RED : r.pct >= 70 ? GOLD : BLUE;
                           const radius = 16;
@@ -916,7 +916,7 @@ export default function Home() {
                         })}
                       </div>
                     ) : (
-                      <div className="bg-card border border-border rounded-lg p-4 text-center text-[12px] text-muted-foreground">No active retainers</div>
+                      <div className="bg-card border border-[var(--hairline)] rounded-lg p-4 text-center text-[12px] text-muted-foreground">No active retainers</div>
                     )}
                   </div>
 
@@ -945,7 +945,7 @@ export default function Home() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {/* Weekly pace */}
-          <div className="bg-card border border-border rounded-lg p-4">
+          <div className="bg-card border border-[var(--hairline)] rounded-lg p-4">
             <div className="text-[11px] text-muted-foreground mb-3" style={{ fontWeight: 600 }}>This week's pace</div>
             <div className="flex items-end justify-between mb-1">
               <div className="flex items-baseline gap-1">
@@ -972,7 +972,7 @@ export default function Home() {
             </div>
 
             {/* Month totals */}
-            <div className="mt-4 pt-3 border-t border-border">
+            <div className="mt-4 pt-3 border-t border-[var(--hairline)]">
               <div className="text-[11px] text-muted-foreground mb-2" style={{ fontWeight: 500 }}>{new Date().toLocaleDateString("en-US", { month: "long" })} totals</div>
               <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
                 <div className="flex items-center justify-between"><span className="text-[11px] text-muted-foreground">Hours</span><span className="text-[11px] tabular-nums" style={{ fontWeight: 600 }}>{Math.round(totalHoursThisMonth * 10) / 10}h</span></div>
@@ -985,7 +985,7 @@ export default function Home() {
 
           {/* Time allocation */}
           <div>
-            <div className="bg-card border border-border rounded-lg p-4">
+            <div className="bg-card border border-[var(--hairline)] rounded-lg p-4">
               <div className="text-[11px] text-muted-foreground mb-3" style={{ fontWeight: 600 }}>Where your time goes</div>
               {timeAllocation.length > 0 ? (
                 <>
@@ -1010,7 +1010,7 @@ export default function Home() {
             </div>
 
             {/* Insights callout */}
-            <div className="mt-3 bg-card border border-border rounded-lg p-4 cursor-pointer hover:bg-accent/20 transition-colors group" onClick={() => (hasFullInsights ? navigate("/insights") : navigate("/settings?tab=billing"))}>
+            <div className="mt-3 bg-card border border-[var(--hairline)] rounded-lg p-4 cursor-pointer hover:bg-accent/20 transition-colors group" onClick={() => (hasFullInsights ? navigate("/insights") : navigate("/settings?tab=billing"))}>
               <div className="flex items-center justify-between mb-1"><span className="text-[12px]" style={{ fontWeight: 600 }}>{hasFullInsights ? "Deeper insights" : "Unlock deeper insights"}</span><ArrowRight className="w-3 h-3 text-muted-foreground group-hover:text-primary transition-colors" /></div>
               <p className="text-[11px] text-muted-foreground leading-relaxed">{hasFullInsights ? "See full client rankings, utilization trends, and revenue projections." : "Upgrade to Pro for client rankings, dependency analysis, and historical trends."}</p>
               {!hasFullInsights && <span className="inline-flex items-center gap-1 mt-1.5 px-1.5 py-0.5 text-[10px] rounded bg-primary/10 text-primary" style={{ fontWeight: 600 }}><Sparkles className="w-2.5 h-2.5" />PRO</span>}
