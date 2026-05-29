@@ -42,6 +42,7 @@ import BatchInvoiceBuilder from "../components/BatchInvoiceBuilder";
 import EmailActivityLog from "../components/EmailActivityLog";
 import { friendlyPaymentTerms, PAYMENT_TERMS_OPTIONS } from "../data/paymentTermsMap";
 import { PageHeader, SegmentedControl, type SegmentOption } from "@/components/primitives/composition";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 
 // ── Constants ──────────────────────────────────────────────────────
 
@@ -523,36 +524,26 @@ export default function Invoicing() {
                 )}
               </div>
             ) : (
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="w-10 px-3 py-3">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-10">
                       <input
                         type="checkbox"
                         checked={filtered.length > 0 && filtered.every((i) => selectedIds.has(i.id))}
                         onChange={toggleSelectAll}
                         className="w-3.5 h-3.5 rounded accent-primary cursor-pointer"
                       />
-                    </th>
-                    <th className="text-left px-5 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>
-                      Invoice
-                    </th>
-                    <th className="text-left px-5 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>
-                      Client
-                    </th>
-                    <th className="text-left px-5 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>
-                      Amount
-                    </th>
-                    <th className="text-left px-5 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>
-                      Status
-                    </th>
-                    <th className="text-left px-5 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>
-                      Due
-                    </th>
-                    <th className="w-10" />
-                  </tr>
-                </thead>
-                <tbody>
+                    </TableHead>
+                    <TableHead>Invoice</TableHead>
+                    <TableHead>Client</TableHead>
+                    <TableHead numeric>Amount</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Due</TableHead>
+                    <TableHead className="w-10" />
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {filtered.map((inv, idx) => (
                     <InvoiceRow
                       key={inv.id}
@@ -575,8 +566,8 @@ export default function Invoicing() {
                       onGetPaymentLink={() => handleGetPaymentLink(inv)}
                     />
                   ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             )}
             </div>
           </div>
@@ -773,31 +764,31 @@ function InvoiceRow({
   const dueDays = invoice.dueDate ? daysUntil(invoice.dueDate) : null;
 
   return (
-    <tr
-      className={`border-b border-border last:border-0 hover:bg-accent/20 transition-colors group cursor-pointer ${selected ? "bg-accent/30" : ""}`}
+    <TableRow
+      className={`cursor-pointer group ${selected ? "bg-accent/30" : ""}`}
       onClick={onView}
     >
-      <td className="px-3 py-3.5" onClick={(e) => e.stopPropagation()}>
+      <TableCell onClick={(e) => e.stopPropagation()}>
         <input
           type="checkbox"
           checked={selected}
           onChange={onToggleSelect}
           className="w-3.5 h-3.5 rounded accent-primary cursor-pointer"
         />
-      </td>
-      <td className="px-5 py-3.5 text-[13px] text-foreground" style={{ fontWeight: 500 }}>
+      </TableCell>
+      <TableCell className="text-[13px] text-foreground" style={{ fontWeight: 500 }}>
         <span className="text-primary">#{invoice.number}</span>
-      </td>
-      <td className="px-5 py-3.5">
+      </TableCell>
+      <TableCell>
         <div className="text-[13px] text-foreground" style={{ fontWeight: 500 }}>
           {invoice.clientName}
         </div>
         {invoice.projectName && <div className="text-[11px] text-muted-foreground">{invoice.projectName}</div>}
-      </td>
-      <td className="px-5 py-3.5 text-[13px] text-foreground tabular-nums" style={{ fontWeight: 500 }}>
+      </TableCell>
+      <TableCell numeric className="text-[13px] text-foreground" style={{ fontWeight: 500 }}>
         {formatCurrency(invoice.total, invoice.currency)}
-      </td>
-      <td className="px-5 py-3.5">
+      </TableCell>
+      <TableCell>
         <span
           className={`inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full ${sc.bg}`}
           style={{ fontWeight: 600, color: sc.color }}
@@ -805,16 +796,16 @@ function InvoiceRow({
           <StatusIcon className="w-3 h-3" />
           {sc.label}
         </span>
-      </td>
-      <td className="px-5 py-3.5">
+      </TableCell>
+      <TableCell>
         <div className="text-[13px] text-muted-foreground">{invoice.dueDate ? shortDate(invoice.dueDate) : "—"}</div>
         {invoice.status === "sent" && dueDays !== null && dueDays < 0 && (
           <div className="text-[10px] text-destructive" style={{ fontWeight: 500 }}>
             {Math.abs(dueDays)}d overdue
           </div>
         )}
-      </td>
-      <td className="px-3 py-3.5" onClick={(e) => e.stopPropagation()}>
+      </TableCell>
+      <TableCell onClick={(e) => e.stopPropagation()}>
         <div className="relative" ref={menuRef}>
           <button
             onClick={() => {
