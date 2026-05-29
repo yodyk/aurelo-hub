@@ -299,6 +299,21 @@ function RootLayout() {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [timerRunning]);
 
+  // Sync with timer started elsewhere (e.g. TaskDrawer)
+  useEffect(() => {
+    const onChanged = () => {
+      const stored = localStorage.getItem('aurelo_timer_start');
+      if (stored && !timerRunning) {
+        setTimerSeconds(Math.max(0, Math.floor((Date.now() - Number(stored)) / 1000)));
+        setTimerRunning(true);
+      } else if (!stored && timerRunning) {
+        setTimerRunning(false);
+      }
+    };
+    window.addEventListener('aurelo:timer-changed', onChanged);
+    return () => window.removeEventListener('aurelo:timer-changed', onChanged);
+  }, [timerRunning]);
+
   const handleStartTimer = () => {
     localStorage.setItem('aurelo_timer_start', String(Date.now()));
     resetFired();
