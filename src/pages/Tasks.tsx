@@ -124,11 +124,24 @@ export default function Tasks() {
     catch (err: any) { toast.error(err.message); refresh(); }
   };
 
-  const deleteTask = async (taskId: string) => {
-    setTasks(prev => prev.filter(t => t.id !== taskId));
-    try { await deleteChecklistItem(taskId); toast.success('Task deleted'); }
-    catch (err: any) { toast.error(err.message); refresh(); }
+  const deleteTask = (taskId: string) => {
+    const snapshot = tasks;
+    const target = snapshot.find(t => t.id === taskId);
+    if (!target) return;
+    const targetIndex = snapshot.findIndex(t => t.id === taskId);
+    deferredDelete({
+      label: `Task deleted — "${target.text.slice(0, 40)}${target.text.length > 40 ? '…' : ''}"`,
+      onOptimisticRemove: () => setTasks(prev => prev.filter(t => t.id !== taskId)),
+      onUndo: () => setTasks(prev => {
+        if (prev.some(t => t.id === taskId)) return prev;
+        const next = [...prev];
+        next.splice(Math.min(targetIndex, next.length), 0, target);
+        return next;
+      }),
+      onCommit: () => deleteChecklistItem(taskId),
+    });
   };
+
 
   const sortedClients = useMemo(() => {
     return [...clients].sort((a: any, b: any) => (a.name || '').localeCompare(b.name || ''));
