@@ -16,6 +16,8 @@ import { usePlan } from "../data/PlanContext";
 import RecurringSessionsManager from "../components/RecurringSessionsManager";
 import { PageHeader, SegmentedControl, type SegmentOption } from "@/components/primitives/composition";
 import { useRoleAccess } from "@/data/useRoleAccess";
+import { formatMoney } from "@/lib/format";
+
 
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.04 } } };
 const item = {
