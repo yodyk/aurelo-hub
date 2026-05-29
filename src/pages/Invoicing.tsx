@@ -40,6 +40,7 @@ import type { Invoice, LineItem, InvoiceStatus } from "../data/invoiceApi";
 import BatchInvoiceBuilder from "../components/BatchInvoiceBuilder";
 import EmailActivityLog from "../components/EmailActivityLog";
 import { friendlyPaymentTerms, PAYMENT_TERMS_OPTIONS } from "../data/paymentTermsMap";
+import { PageHeader, SegmentedControl, type SegmentOption } from "@/components/primitives/composition";
 
 // ── Constants ──────────────────────────────────────────────────────
 
