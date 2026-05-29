@@ -66,7 +66,7 @@ function dueText(d?: string | null): { text: string; tone: 'danger' | 'warning' 
 }
 
 export default function Tasks() {
-  const { workspaceId, user } = useAuth();
+  const { workspaceId } = useAuth();
   const { clients } = useData();
   const { open, changeCounter } = useTaskDrawer();
   const navigate = useNavigate();
