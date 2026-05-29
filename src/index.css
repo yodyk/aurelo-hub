@@ -478,24 +478,23 @@
     @apply bg-muted text-muted-foreground;
   }
 
-  /* ── Standardized card shadow ── */
-  .shadow-card {
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-  }
-  .shadow-card-hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.02);
-  }
-  .shadow-elevated {
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.03);
-  }
+  /* ── Standardized card elevation tokens ── */
+  .shadow-card        { box-shadow: var(--elev-1); }
+  .shadow-card-hover  { box-shadow: var(--elev-2); }
+  .shadow-elevated    { box-shadow: var(--elev-3); }
 
   /* ── Standardized stat/metric card ── */
   .stat-card {
-    @apply bg-card border border-border rounded-xl p-5 transition-all duration-200;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    @apply bg-card rounded-xl p-5;
+    border: 1px solid var(--hairline);
+    box-shadow: var(--elev-1);
+    transition:
+      box-shadow 0.25s var(--ease-standard),
+      border-color 0.25s var(--ease-standard);
   }
   .stat-card:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.02);
+    border-color: var(--border);
+    box-shadow: var(--elev-2);
   }
 
   /* ── Status dot + label pattern ── */
@@ -504,44 +503,93 @@
     font-weight: 600;
   }
 
-  /* ── Page header pattern ── */
+  /* ── Page header pattern — more confident scale ── */
   .page-header {
-    @apply text-[20px] md:text-[24px] tracking-tight;
+    font-size: clamp(22px, 2.4vw, 28px);
     font-weight: 600;
-    letter-spacing: -0.02em;
+    line-height: 1.15;
+    letter-spacing: -0.025em;
+    @apply text-foreground;
   }
   .page-subtitle {
-    @apply text-[14px] text-muted-foreground mt-0.5;
+    font-size: 14px;
+    line-height: 1.5;
+    @apply text-muted-foreground mt-1;
   }
 
-  /* ── Primary CTA button ── */
+  /* ── Primary CTA — tactile, spring-feel press ── */
   .btn-primary {
-    @apply inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-[13px] rounded-md transition-all duration-200;
+    @apply inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-[13px] rounded-md;
     font-weight: 500;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    box-shadow: var(--elev-1), inset 0 1px 0 rgba(255,255,255,0.10);
+    transition:
+      transform 0.18s var(--ease-emphasized),
+      box-shadow 0.18s var(--ease-emphasized),
+      opacity 0.18s var(--ease-emphasized);
   }
   .btn-primary:hover {
-    opacity: 0.92;
+    box-shadow: var(--elev-2), inset 0 1px 0 rgba(255,255,255,0.12);
+    opacity: 0.96;
   }
+  .btn-primary:active { transform: scale(0.985); }
 
   /* ── Secondary/outline button ── */
   .btn-secondary {
-    @apply inline-flex items-center gap-2 px-3.5 py-2 text-[13px] border border-border rounded-md text-muted-foreground transition-all duration-200;
+    @apply inline-flex items-center gap-2 px-3.5 py-2 text-[13px] rounded-md text-muted-foreground;
+    background: transparent;
+    border: 1px solid var(--border);
     font-weight: 500;
+    transition:
+      background-color 0.18s var(--ease-standard),
+      color 0.18s var(--ease-standard),
+      border-color 0.18s var(--ease-standard);
   }
   .btn-secondary:hover {
-    @apply text-foreground bg-accent/40;
+    @apply text-foreground;
+    background: var(--accent);
+    border-color: var(--border-strong);
   }
+  .btn-secondary:active { transform: scale(0.985); }
 
-  /* ── Page container standardized ── */
+  /* ── Page container — generous breathing room ── */
   .page-wrapper {
-    @apply w-full min-w-0 px-4 lg:px-8 py-6;
+    @apply w-full min-w-0 px-4 lg:px-10 py-8;
   }
 
   /* True circle — only for spinners, tiny dots, and circular avatars */
-  .rounded-circle {
-    border-radius: 9999px !important;
+  .rounded-circle { border-radius: 9999px !important; }
+
+  /* ── Subtle hover lift for clickable surfaces ── */
+  .lift-on-hover {
+    transition:
+      transform 0.25s var(--ease-emphasized),
+      box-shadow 0.25s var(--ease-emphasized);
   }
+  .lift-on-hover:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--elev-2);
+  }
+
+  /* ── Skeleton shimmer for loading states ── */
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      var(--muted) 0%,
+      color-mix(in oklab, var(--muted) 70%, var(--background)) 50%,
+      var(--muted) 100%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.4s ease-in-out infinite;
+    border-radius: 4px;
+  }
+  @keyframes skeleton-shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* ── Hairline divider ── */
+  .hairline { border-color: var(--hairline); }
+  .hairline-strong { border-color: var(--border); }
 }
 
 /* ── Clean native selects ──────────────────────────────────────── */
