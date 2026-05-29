@@ -280,7 +280,7 @@ export async function loadAllTasksForWorkspace(workspaceId: string): Promise<Wor
   const checklistIds = checklists.map((c: any) => c.id);
 
   // Fetch BOTH: items in those checklists AND loose items (workspace_id set, checklist_id null)
-  const queries: Promise<any>[] = [];
+  const queries: any[] = [];
   if (checklistIds.length > 0) {
     queries.push(
       supabase
