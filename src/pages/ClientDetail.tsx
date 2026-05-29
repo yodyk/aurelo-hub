@@ -1838,7 +1838,7 @@ function SessionsTab({ clientSessions, client: _client, canViewFinancials, selec
                   <td className="px-3 py-3 text-[13px] text-right tabular-nums" style={{ fontWeight: 600 }}>{session.duration}h</td>
                   {canViewFinancials && (
                     <td className="px-3 py-3 text-right">
-                      <div className="text-[13px] tabular-nums" style={{ fontWeight: 600 }}>${session.revenue.toLocaleString()}</div>
+                      <div className="text-[13px] tabular-nums" style={{ fontWeight: 600 }}>{formatMoney(session.revenue)}</div>
                       {!session.billable && <span className="type-meta text-muted-foreground">Non-billable</span>}
                     </td>
                   )}
