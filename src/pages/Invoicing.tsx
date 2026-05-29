@@ -43,6 +43,7 @@ import EmailActivityLog from "../components/EmailActivityLog";
 import { friendlyPaymentTerms, PAYMENT_TERMS_OPTIONS } from "../data/paymentTermsMap";
 import { PageHeader, SegmentedControl, type SegmentOption } from "@/components/primitives/composition";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { EmptyState } from "@/components/primitives/EmptyState";
 
 // ── Constants ──────────────────────────────────────────────────────
 
