@@ -214,13 +214,13 @@ export default function AcceptInvite() {
             <div className="flex flex-col gap-2.5 pt-2">
               <Link
                 to={`/login?redirect=/accept-invite?id=${inviteId}`}
-                className="w-full h-10 rounded-lg bg-primary text-white text-sm font-medium flex items-center justify-center hover:bg-[color-mix(in_oklab,var(--primary)_92%,black)] transition-colors"
+                className="w-full h-[var(--control-xl)] rounded-lg bg-primary text-white text-sm font-medium flex items-center justify-center hover:bg-[color-mix(in_oklab,var(--primary)_92%,black)] transition-colors"
               >
                 Sign in to accept
               </Link>
               <Link
                 to={`/signup?redirect=/accept-invite?id=${inviteId}`}
-                className="w-full h-10 rounded-lg border border-[var(--hairline)] bg-card text-foreground text-sm font-medium flex items-center justify-center hover:bg-[var(--surface-sunken)] transition-colors"
+                className="w-full h-[var(--control-xl)] rounded-lg border border-[var(--hairline)] bg-card text-foreground text-sm font-medium flex items-center justify-center hover:bg-[var(--surface-sunken)] transition-colors"
               >
                 Create an account
               </Link>

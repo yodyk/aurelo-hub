@@ -137,14 +137,14 @@ export default function ResetPassword() {
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="you@company.com"
                       autoComplete="email"
-                      className="w-full h-10 px-3 rounded-lg border border-[var(--hairline)] bg-card text-[14px] text-foreground placeholder:text-[var(--foreground-subtle)] outline-none focus:border-primary/55 focus:ring-2 focus:ring-primary/15 transition-all"
+                      className="w-full h-[var(--control-xl)] px-3 rounded-lg border border-[var(--hairline)] bg-card text-[14px] text-foreground placeholder:text-[var(--foreground-subtle)] outline-none focus:border-primary/55 focus:ring-2 focus:ring-primary/15 transition-all"
                     />
                   </div>
 
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full h-10 rounded-lg bg-primary text-white text-[14px] flex items-center justify-center gap-2 hover:bg-[color-mix(in_oklab,var(--primary)_92%,black)] active:bg-[color-mix(in_oklab,var(--primary)_84%,black)] disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
+                    className="w-full h-[var(--control-xl)] rounded-lg bg-primary text-white text-[14px] flex items-center justify-center gap-2 hover:bg-[color-mix(in_oklab,var(--primary)_92%,black)] active:bg-[color-mix(in_oklab,var(--primary)_84%,black)] disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
                     style={{ fontWeight: 500 }}
                   >
                     {loading ? (
@@ -209,7 +209,7 @@ export default function ResetPassword() {
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="At least 8 characters"
                       autoComplete="new-password"
-                      className="w-full h-10 px-3 rounded-lg border border-[var(--hairline)] bg-card text-[14px] text-foreground placeholder:text-[var(--foreground-subtle)] outline-none focus:border-primary/55 focus:ring-2 focus:ring-primary/15 transition-all"
+                      className="w-full h-[var(--control-xl)] px-3 rounded-lg border border-[var(--hairline)] bg-card text-[14px] text-foreground placeholder:text-[var(--foreground-subtle)] outline-none focus:border-primary/55 focus:ring-2 focus:ring-primary/15 transition-all"
                     />
                   </div>
 
@@ -223,14 +223,14 @@ export default function ResetPassword() {
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Re-enter your password"
                       autoComplete="new-password"
-                      className="w-full h-10 px-3 rounded-lg border border-[var(--hairline)] bg-card text-[14px] text-foreground placeholder:text-[var(--foreground-subtle)] outline-none focus:border-primary/55 focus:ring-2 focus:ring-primary/15 transition-all"
+                      className="w-full h-[var(--control-xl)] px-3 rounded-lg border border-[var(--hairline)] bg-card text-[14px] text-foreground placeholder:text-[var(--foreground-subtle)] outline-none focus:border-primary/55 focus:ring-2 focus:ring-primary/15 transition-all"
                     />
                   </div>
 
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full h-10 rounded-lg bg-primary text-white text-[14px] flex items-center justify-center gap-2 hover:bg-[color-mix(in_oklab,var(--primary)_92%,black)] active:bg-[color-mix(in_oklab,var(--primary)_84%,black)] disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
+                    className="w-full h-[var(--control-xl)] rounded-lg bg-primary text-white text-[14px] flex items-center justify-center gap-2 hover:bg-[color-mix(in_oklab,var(--primary)_92%,black)] active:bg-[color-mix(in_oklab,var(--primary)_84%,black)] disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
                     style={{ fontWeight: 500 }}
                   >
                     {loading ? (
