@@ -4,6 +4,8 @@ import { Users, Clock, DollarSign, TrendingUp, BarChart3 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useData } from "@/data/DataContext";
 import { MemberClientAssignments } from "./ClientAssignmentManager";
+import { formatMoney } from "@/lib/format";
+
 
 interface TeamMember {
   id: string;
