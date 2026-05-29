@@ -497,12 +497,33 @@ function TaskDetailsEditor({
         >
           Open in client <ExternalLink className="w-3 h-3" />
         </Link>
-        <button
-          onClick={onDelete}
-          className="inline-flex items-center gap-1 text-[11.5px] text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
-        >
-          <Trash2 className="w-3 h-3" /> Delete task
-        </button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <button
+              className="inline-flex items-center gap-1 text-[11.5px] text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
+            >
+              <Trash2 className="w-3 h-3" /> Delete task
+            </button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete this task?</AlertDialogTitle>
+              <AlertDialogDescription>
+                "{task.text}" will be removed. You'll have a few seconds to undo.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={onDelete}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
       </div>
     </div>
   );
