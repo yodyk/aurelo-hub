@@ -1124,7 +1124,7 @@ function OverviewTab({
             <div className="type-eyebrow mb-4">7-day cadence</div>
             <div className="flex items-baseline gap-2 mb-4">
               <div className="text-[28px] tabular-nums" style={{ fontWeight: 600, letterSpacing: '-0.03em' }}>
-                {last7Days.reduce((a, b) => a + b, 0).toFixed(1)}
+                {formatDuration(last7Days.reduce((a, b) => a + b, 0), { variant: 'display' }).replace(' hrs', '')}
               </div>
               <div className="type-meta text-muted-foreground">total hours this week</div>
             </div>
