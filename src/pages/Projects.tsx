@@ -7,6 +7,8 @@ import { AddProjectModal } from "../components/Modals";
 import { toast } from "sonner";
 import { usePlan } from "../data/PlanContext";
 import { LimitEnforcementModal } from "../components/PlanEnforcement";
+import { formatMoney } from "@/lib/format";
+
 
 const container = {
   hidden: {},
