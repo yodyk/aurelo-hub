@@ -446,7 +446,7 @@ export default function Today() {
                 />
                 {hasData && (
                   <div className="type-meta mt-2">
-                    Projected <span className="text-foreground tabular-nums" style={{ fontWeight: 500 }}>${projectedDisplay.toLocaleString()}</span> by month end
+                    Projected <span className="text-foreground tabular-nums" style={{ fontWeight: 500 }}>{formatMoney(projectedDisplay, { precision: "compact" })}</span> by month end
                   </div>
                 )}
               </div>
