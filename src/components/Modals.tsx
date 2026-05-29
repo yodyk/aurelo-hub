@@ -1217,7 +1217,7 @@ export function LogSessionModal({ open, onClose, onSave, clients, preSelectedCli
                 </div>
                 {(selectedClient.retainerRemaining || 0) - durationNum < 0 && (
                   <div className="text-[11px] text-primary mt-1" style={{ fontWeight: 500 }}>
-                    {Math.abs((selectedClient.retainerRemaining || 0) - durationNum).toFixed(1)}h over retainer — will be billed as overage
+                    {formatDuration(Math.abs((selectedClient.retainerRemaining || 0) - durationNum), { variant: 'display' })} over retainer — will be billed as overage
                   </div>
                 )}
               </div>
