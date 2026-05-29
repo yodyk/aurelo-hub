@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { Bell, X, Clock, FileText, Users, TrendingUp, UserPlus, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router';
+import { useIsMobile } from '@/lib/useIsMobile';
 import {
   type Notification,
   type NotificationPreference,
@@ -134,30 +136,21 @@ export function NotificationCenter({ workspaceId }: NotificationCenterProps) {
     }
   };
 
-  return (
-    <div className="relative" ref={ref}>
-      <button
-        onClick={() => setOpen(o => !o)}
-        className="relative w-8 h-8 flex items-center justify-center rounded-lg hover:bg-accent/60 transition-colors text-muted-foreground hover:text-foreground"
-      >
-        <Bell className="w-4 h-4" />
-        {unreadCount > 0 && (
-          <span className="absolute top-1 right-1 w-4 h-4 rounded-circle bg-primary text-[9px] text-primary-foreground flex items-center justify-center" style={{ fontWeight: 600 }}>
-            {unreadCount > 9 ? '9+' : unreadCount}
-          </span>
-        )}
-      </button>
+  const isMobile = useIsMobile();
 
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: 4, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 4, scale: 0.97 }}
-            transition={{ duration: 0.15 }}
-            className="absolute top-full mt-2 left-2 right-2 w-auto sm:left-auto sm:right-0 sm:w-96 max-w-[calc(100vw-1rem)] sm:max-w-96 bg-card border border-border rounded-xl overflow-hidden z-50"
-            style={{ boxShadow: 'var(--elev-2)' }}
-          >
+  const panel = (
+    <motion.div
+      initial={{ opacity: 0, y: 4, scale: 0.97 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 4, scale: 0.97 }}
+      transition={{ duration: 0.15 }}
+      className={
+        isMobile
+          ? 'fixed left-2 right-2 top-[60px] bg-card border border-border rounded-xl overflow-hidden z-[60]'
+          : 'absolute top-full mt-2 right-0 w-96 max-w-[calc(100vw-1rem)] bg-card border border-border rounded-xl overflow-hidden z-50'
+      }
+      style={{ boxShadow: 'var(--elev-2)' }}
+    >
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-border">
               <div className="flex items-center gap-2">
