@@ -31,6 +31,7 @@ import * as invoiceApi from "../data/invoiceApi";
 import { formatMoney } from "@/lib/format";
 
 import { PageHeader, SegmentedControl, type SegmentOption } from "@/components/primitives/composition";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 
 const container = {
   hidden: {},
@@ -458,76 +459,74 @@ export default function Insights() {
           ) : (
             <div className="bg-card border border-border rounded-xl overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-border bg-accent/30">
-                      <th className="text-left px-5 py-3 text-[12px] text-muted-foreground sticky left-0 bg-accent/30 z-10" style={{ fontWeight: 500, minWidth: 140 }}>Client</th>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="sticky left-0 bg-card z-10" style={{ minWidth: 140 }}>Client</TableHead>
                       {heatmapMonths.map(mk => {
                         const [y, m] = mk.split('-');
                         const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
                         return (
-                          <th key={mk} className="text-right px-4 py-3 text-[11px] text-muted-foreground" style={{ fontWeight: 500, minWidth: 80 }}>
+                          <TableHead key={mk} numeric style={{ minWidth: 80 }}>
                             {months[parseInt(m) - 1]}<br /><span className="text-[10px] opacity-60">{y}</span>
-                          </th>
+                          </TableHead>
                         );
                       })}
-                      <th className="text-right px-5 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500, minWidth: 90 }}>Total</th>
-                      <th className="text-right px-5 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500, minWidth: 70 }}>$/hr</th>
-                    </tr>
-                  </thead>
-                  <tbody>
+                      <TableHead numeric style={{ minWidth: 90 }}>Total</TableHead>
+                      <TableHead numeric style={{ minWidth: 70 }}>$/hr</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {metrics.profitability.map((row) => {
                       const maxRev = Math.max(...Object.values(row.months).map(m => m.revenue), 1);
                       return (
-                        <tr
+                        <TableRow
                           key={row.clientId}
-                          className="border-b border-border last:border-0 hover:bg-accent/20 transition-colors cursor-pointer"
+                          className="cursor-pointer"
                           onClick={() => hasFullInsights && navigate(`/clients/${row.clientId}`)}
                         >
-                          <td className="px-5 py-3 text-[13px] text-foreground sticky left-0 bg-card z-10" style={{ fontWeight: 500 }}>
+                          <TableCell className="text-[13px] text-foreground sticky left-0 bg-card z-10" style={{ fontWeight: 500 }}>
                             <div className="flex items-center gap-2">
                               <div className="w-5 h-5 rounded-md bg-primary/8 flex items-center justify-center flex-shrink-0">
                                 <span className="text-[9px] text-primary" style={{ fontWeight: 600 }}>{row.clientName.charAt(0)}</span>
                               </div>
                               <span className="truncate max-w-[120px]">{row.clientName}</span>
                             </div>
-                          </td>
+                          </TableCell>
                           {heatmapMonths.map(mk => {
                             const cell = row.months[mk];
                             const rev = cell?.revenue || 0;
                             const intensity = maxRev > 0 ? Math.max(0.05, rev / maxRev) : 0;
                             return (
-                              <td key={mk} className="px-4 py-3 text-right">
+                              <TableCell key={mk} numeric>
                                 {rev > 0 ? (
-                                  <div className="inline-flex items-center justify-end">
-                                    <span
-                                      className="text-[12px] tabular-nums px-2 py-0.5 rounded"
-                                      style={{
-                                        fontWeight: 500,
-                                        background: `hsl(var(--primary) / ${intensity * 0.15})`,
-                                        color: intensity > 0.5 ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
-                                      }}
-                                    >
-                                      {formatMoney(rev)}
-                                    </span>
-                                  </div>
+                                  <span
+                                    className="inline-block text-[12px] tabular-nums px-2 py-0.5 rounded"
+                                    style={{
+                                      fontWeight: 500,
+                                      background: `hsl(var(--primary) / ${intensity * 0.15})`,
+                                      color: intensity > 0.5 ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
+                                    }}
+                                  >
+                                    {formatMoney(rev)}
+                                  </span>
                                 ) : (
                                   <span className="text-[12px] text-muted-foreground/30">—</span>
                                 )}
-                              </td>
+                              </TableCell>
                             );
                           })}
-                          <td className="px-5 py-3 text-right text-[13px] text-foreground tabular-nums" style={{ fontWeight: 600 }}>
+                          <TableCell numeric className="text-[13px] text-foreground" style={{ fontWeight: 600 }}>
                             {formatMoney(row.totalRevenue)}
-                          </td>
-                          <td className="px-5 py-3 text-right text-[13px] text-muted-foreground tabular-nums">
+                          </TableCell>
+                          <TableCell numeric className="text-[13px] text-muted-foreground">
                             ${row.effectiveRate}
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       );
                     })}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
             </div>
           )}
@@ -568,43 +567,40 @@ export default function Insights() {
           ) : (
              <div className="bg-card border border-border rounded-xl overflow-hidden">
               <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-border bg-accent/30">
-                    <th className="text-left px-6 py-3 text-[12px] text-muted-foreground w-12" style={{ fontWeight: 500 }}>#</th>
-                    <th className="text-left px-6 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Client</th>
-                    <th className="text-right px-6 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Earnings</th>
-                    <th className="text-right px-6 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Eff. rate</th>
-                    <th className="text-right px-6 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Billable time</th>
-                    <th className="text-left px-6 py-3 text-[12px] text-muted-foreground w-48" style={{ fontWeight: 500 }}>Share</th>
-                    <th className="text-center px-6 py-3 text-[12px] text-muted-foreground w-16" style={{ fontWeight: 500 }}>Trend</th>
-                  </tr>
-                </thead>
-                <tbody>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-12">#</TableHead>
+                    <TableHead>Client</TableHead>
+                    <TableHead numeric>Earnings</TableHead>
+                    <TableHead numeric>Eff. rate</TableHead>
+                    <TableHead numeric>Billable time</TableHead>
+                    <TableHead className="w-48">Share</TableHead>
+                    <TableHead className="w-16 text-center">Trend</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {sortedRankings.map((ranking, index) => (
-                    <motion.tr
+                    <TableRow
                       key={ranking.clientId}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.3 + index * 0.06 }}
-                      className="border-b border-border last:border-0 hover:bg-accent/40 transition-colors group cursor-pointer"
+                      className="cursor-pointer group"
                       onClick={() => hasFullInsights && navigate(`/clients/${ranking.clientId}`)}
                     >
-                      <td className="px-6 py-4">
+                      <TableCell>
                         <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-[13px] ${ranking.rank === 1 ? "bg-primary/8 text-primary" : "bg-accent/60 text-muted-foreground"}`} style={{ fontWeight: 600 }}>{ranking.rank}</div>
-                      </td>
-                      <td className="px-6 py-4 text-[14px]" style={{ fontWeight: 500 }}>
+                      </TableCell>
+                      <TableCell className="text-[14px]" style={{ fontWeight: 500 }}>
                         <div className="flex items-center gap-2.5">
                           <div className="w-6 h-6 rounded-md bg-primary/8 flex items-center justify-center flex-shrink-0">
                             <span className="text-[10px] text-primary" style={{ fontWeight: 600 }}>{ranking.client.charAt(0)}</span>
                           </div>
                           {ranking.client}
                         </div>
-                      </td>
-                      <td className="px-6 py-4 text-[14px] text-right tabular-nums" style={{ fontWeight: 500 }}>{formatMoney(applyViewMode(ranking.revenue))}</td>
-                      <td className="px-6 py-4 text-[14px] text-right tabular-nums text-muted-foreground">${applyViewMode(ranking.trueHourlyRate)}</td>
-                      <td className="px-6 py-4 text-[14px] text-right tabular-nums text-muted-foreground">{ranking.utilization}%</td>
-                      <td className="px-6 py-4">
+                      </TableCell>
+                      <TableCell numeric className="text-[14px]" style={{ fontWeight: 500 }}>{formatMoney(applyViewMode(ranking.revenue))}</TableCell>
+                      <TableCell numeric className="text-[14px] text-muted-foreground">${applyViewMode(ranking.trueHourlyRate)}</TableCell>
+                      <TableCell numeric className="text-[14px] text-muted-foreground">{ranking.utilization}%</TableCell>
+                      <TableCell>
                         <div className="flex items-center gap-3">
                           <div className="flex-1 h-2 bg-accent/60 rounded-circle overflow-hidden">
                             <motion.div
@@ -616,12 +612,12 @@ export default function Insights() {
                           </div>
                           <span className="text-[13px] text-primary tabular-nums w-10 text-right" style={{ fontWeight: 600 }}>{ranking.share}%</span>
                         </div>
-                      </td>
-                      <td className="px-6 py-4 text-center">{trendIcon(ranking.trend)}</td>
-                    </motion.tr>
+                      </TableCell>
+                      <TableCell className="text-center">{trendIcon(ranking.trend)}</TableCell>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
               </div>
             </div>
           )}
