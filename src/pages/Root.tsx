@@ -1,3 +1,4 @@
+import { transitions } from '@/lib/motion';
 import { clearDemoData } from '../data/settingsApi';
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Outlet, NavLink, useLocation, useNavigate, Navigate, Link, useParams } from 'react-router';
@@ -422,7 +423,7 @@ function RootLayout() {
                         <motion.div
                           layoutId="sidebar-indicator"
                           className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full"
-                          transition={{ type: 'spring', stiffness: 350, damping: 30 }}
+                          transition={transitions.emphasized}
                         />
                       )}
                       <item.icon className={`w-4 h-4 flex-shrink-0 transition-colors duration-200 ${isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'}`} />
@@ -797,7 +798,7 @@ function RootLayout() {
             initial={{ opacity: 0, y: 20, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.9 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+            transition={transitions.emphasized}
             className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-card border border-border rounded-full px-5 py-3"
             style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06)' }}
           >

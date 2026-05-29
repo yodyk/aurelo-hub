@@ -1,3 +1,4 @@
+import { transitions } from '@/lib/motion';
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { format, parseISO } from "date-fns";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -699,7 +700,7 @@ export default function ClientDetail() {
                   <motion.div
                     layoutId="client-tab-underline"
                     className="absolute left-0 right-0 -bottom-px h-[2px] bg-primary"
-                    transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                    transition={transitions.emphasized}
                   />
                 )}
               </button>
@@ -1377,7 +1378,7 @@ function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (
     if (type === 'toggle' || type === 'checkbox') {
       return (
         <button onClick={onToggle} className={`relative w-9 h-5 rounded-circle transition-colors duration-200 ${value ? 'bg-primary' : 'bg-switch-background'}`}>
-          <motion.div className="absolute top-0.5 w-4 h-4 rounded-circle bg-white shadow-sm" animate={{ left: value ? 18 : 2 }} transition={{ type: "spring", stiffness: 400, damping: 30 }} />
+          <motion.div className="absolute top-0.5 w-4 h-4 rounded-circle bg-white shadow-sm" animate={{ left: value ? 18 : 2 }} transition={transitions.emphasized} />
         </button>
       );
     }

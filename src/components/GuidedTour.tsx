@@ -1,3 +1,4 @@
+import { transitions } from '@/lib/motion';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
@@ -306,7 +307,7 @@ export function GuidedTour({ open, onComplete }: GuidedTourProps) {
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 20, delay: 0.15 }}
+                transition={{ ...transitions.emphasized, delay: 0.15 }}
                 className="w-14 h-14 rounded-2xl bg-[#2e7d9a]/10 flex items-center justify-center mx-auto mb-5"
               >
                 <motion.div

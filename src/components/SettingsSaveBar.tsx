@@ -1,3 +1,4 @@
+import { transitions } from '@/lib/motion';
 import { createContext, useContext, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Loader2, AlertTriangle } from 'lucide-react';
@@ -51,7 +52,7 @@ export function SettingsSaveBar({
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 16 }}
-          transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+          transition={transitions.emphasized}
           className="fixed bottom-6 left-1/2 -translate-x-1/2 max-w-2xl w-[calc(100%-3rem)] flex items-center justify-between gap-4 px-5 py-3 bg-card border border-border rounded-xl z-50"
           style={{ boxShadow: '0 -4px 24px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04)' }}
         >
