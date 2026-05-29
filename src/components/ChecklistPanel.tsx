@@ -410,11 +410,19 @@ function TaskRow({
     await saveField({ text: textValue.trim() }, { text: textValue.trim() });
   };
 
-  const handleDelete = async () => {
-    onDeleted();
-    try { await deleteChecklistItem(item.id); }
-    catch (err: any) { toast.error(err.message); onRefresh(); }
+  const handleDelete = () => {
+    const snapshot = item;
+    deferredDelete({
+      label: `Task deleted — "${snapshot.text.slice(0, 40)}${snapshot.text.length > 40 ? '…' : ''}"`,
+      onOptimisticRemove: () => onDeleted(),
+      onUndo: () => onUndoDelete(snapshot),
+      onCommit: async () => {
+        try { await deleteChecklistItem(snapshot.id); }
+        catch (err: any) { onRefresh(); throw err; }
+      },
+    });
   };
+
 
   const cfg = STATUS_BY_VALUE[item.status] || STATUS_BY_VALUE.to_do;
   const StatusIcon = cfg.icon;
