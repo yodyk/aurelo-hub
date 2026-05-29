@@ -154,8 +154,8 @@ function Breadcrumbs() {
     if (segments.length === 0) return null;
 
     const topLabels: Record<string, string> = {
-      clients: 'Clients', projects: 'Projects', time: 'Time Log', tasks: 'Tasks',
-      insights: 'Insights', invoicing: 'Invoicing', settings: 'Settings', team: 'Team',
+      clients: 'Clients', projects: 'Projects', time: 'Time', tasks: 'Tasks',
+      insights: 'Insights', invoicing: 'Invoices', settings: 'Settings', team: 'Team',
     };
 
     const first = segments[0];
