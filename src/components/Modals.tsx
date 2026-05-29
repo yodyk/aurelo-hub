@@ -1271,7 +1271,7 @@ export function LogSessionModal({ open, onClose, onSave, clients, preSelectedCli
                     </div>
                     {((selectedProject.hours || 0) + durationNum) > selectedProject.estimatedHours && (
                       <div className="text-[11px] text-primary mt-1" style={{ fontWeight: 500 }}>
-                        {(((selectedProject.hours || 0) + durationNum) - selectedProject.estimatedHours).toFixed(1)}h over estimated scope
+                        {formatDuration(((selectedProject.hours || 0) + durationNum) - selectedProject.estimatedHours, { variant: 'display' })} over estimated scope
                       </div>
                     )}
                   </>
