@@ -355,7 +355,7 @@ export default function Today() {
     <motion.div variants={container} initial="hidden" animate="show">
       <PageHeader
         eyebrow={workspaceName || undefined}
-        title="Focus"
+        title="Today"
         subtitle={now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
         actions={
           canViewFinancials && hasData ? (
