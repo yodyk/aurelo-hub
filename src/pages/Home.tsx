@@ -535,6 +535,12 @@ export default function Today() {
           </div>
         </motion.section>
 
+        {/* ── Focus surface (PART E refinement) — between Week Pulse and Active work ── */}
+        <motion.section variants={item} className="space-y-6">
+          <NowStrip />
+          <TodayTasksModule />
+        </motion.section>
+
         {/* ── Two columns: Active work + Recent activity ── */}
         <motion.section variants={item} className="grid grid-cols-1 lg:grid-cols-2 gap-10">
           {/* Active work */}
