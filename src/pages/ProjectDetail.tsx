@@ -1431,7 +1431,7 @@ export default function ProjectDetail() {
                             </div>
                             {file.size && (
                               <div className="text-[11px] text-muted-foreground">
-                                {(file.size / 1024).toFixed(1)} KB
+                                {formatBytes(file.size)}
                               </div>
                             )}
                           </div>
