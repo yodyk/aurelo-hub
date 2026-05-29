@@ -28,6 +28,7 @@ import { usePlan } from "../data/PlanContext";
 import { PLANS } from "../data/plans";
 import { computeInsightsMetrics, type InsightsMetrics } from "../data/insightsMetrics";
 import * as invoiceApi from "../data/invoiceApi";
+import { PageHeader, SegmentedControl, type SegmentOption } from "@/components/primitives/composition";
 
 const container = {
   hidden: {},
@@ -211,35 +212,32 @@ export default function Insights() {
   return (
     <motion.div
       data-tour="insights-view"
-      className="w-full min-w-0 px-6 lg:px-12 py-8 md:py-14"
+      className="w-full min-w-0"
       variants={container}
       initial="hidden"
       animate="show"
     >
-      {/* Header */}
-      <motion.div variants={item} className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-[24px] md:text-[28px] tracking-tight mb-1" style={{ fontWeight: 700, letterSpacing: "-0.03em" }}>Insights</h1>
-          <p className="text-[14px] text-muted-foreground">
-            {hasFullInsights ? "Strategic layer" : "Basic insights"} &middot; {metrics.periodLabel}
-          </p>
-        </div>
-        <div className="flex gap-0 bg-accent/60 rounded-lg p-0.5 self-start md:self-auto">
-          {([{ key: "gross" as const, label: "Gross" }, { key: "net" as const, label: "Net" }]).map((m) => (
-            <button
-              key={m.key}
-              onClick={() => setViewMode(m.key)}
-              className={`px-4 py-1.5 text-[13px] rounded-md transition-all duration-200 ${
-                viewMode === m.key ? "bg-card text-foreground" : "text-muted-foreground hover:text-foreground"
-              }`}
-              style={{ fontWeight: 500, boxShadow: viewMode === m.key ? "0 1px 3px rgba(0,0,0,0.04)" : "none" }}
-              title={m.key === "gross" ? "Gross: total billed" : "Net: minus payment fees and estimated taxes"}
-            >
-              {m.label}
-            </button>
-          ))}
-        </div>
-      </motion.div>
+      <PageHeader
+        eyebrow={hasFullInsights ? "Strategic layer" : "Basic insights"}
+        title="Insights"
+        subtitle={
+          <span className="tabular-nums">{metrics.periodLabel}</span>
+        }
+        actions={
+          <SegmentedControl<"gross" | "net">
+            options={[
+              { value: "gross", label: "Gross" },
+              { value: "net", label: "Net" },
+            ]}
+            value={viewMode}
+            onChange={setViewMode}
+            ariaLabel="Revenue view"
+          />
+        }
+      />
+
+      <div className="px-4 lg:px-6 py-8">
+
 
       {/* Performance Panel */}
       <motion.div variants={item} className="mb-8">
@@ -715,6 +713,8 @@ export default function Insights() {
           )}
         </div>
       </motion.div>
+      </div>
     </motion.div>
+
   );
 }
