@@ -579,6 +579,29 @@
   .shadow-card-hover  { box-shadow: var(--elev-2); }
   .shadow-elevated    { box-shadow: var(--elev-3); }
 
+  /* ── Phase 1C: Calm legacy Tailwind shadow utilities ──
+     Map heavy default shadows to the Cool Graphite elevation system
+     so historical `shadow-lg/xl/2xl` usage reads as restrained depth
+     instead of glossy lift. Hairline-led, never theatrical. */
+  .shadow-sm  { box-shadow: var(--elev-1) !important; }
+  .shadow,
+  .shadow-md  { box-shadow: var(--elev-1) !important; }
+  .shadow-lg  { box-shadow: var(--elev-2) !important; }
+  .shadow-xl,
+  .shadow-2xl { box-shadow: var(--elev-3) !important; }
+
+  /* ── Phase 1C: Section surface (hairline-led, no card walls) ──
+     Use in place of a card when grouping content within a page.
+     Reads as structure, not as an object. */
+  .surface-section {
+    background: transparent;
+    border-top: 1px solid var(--hairline);
+    padding-top: var(--space-6, 1.5rem);
+  }
+  .surface-section + .surface-section {
+    margin-top: var(--space-8, 2rem);
+  }
+
   /* ── Standardized stat/metric card ── */
   .stat-card {
     @apply bg-card rounded-xl p-5;
