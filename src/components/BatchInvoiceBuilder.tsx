@@ -28,25 +28,16 @@ interface BatchInvoiceBuilderProps {
   onClose: () => void;
 }
 
+import { formatMoney, formatDate as formatDateFn } from "@/lib/format";
+
 function formatCurrency(amount: number, currency = "USD"): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency,
-    minimumFractionDigits: 2,
-  }).format(amount);
+  return formatMoney(amount, { currency, precision: "exact" });
 }
 
 function formatDate(dateStr: string): string {
-  try {
-    return new Date(dateStr).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  } catch {
-    return dateStr;
-  }
+  return formatDateFn(dateStr, "medium");
 }
+
 
 export default function BatchInvoiceBuilder({
   clients,
