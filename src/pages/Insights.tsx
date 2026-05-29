@@ -319,18 +319,19 @@ export default function Insights() {
                         <div className="flex items-center gap-2">
                           <div className="w-2 h-2 rounded-circle" style={{ background: "var(--chart-2)" }} />
                           <span className="text-muted-foreground">Gross:</span>
-                          <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>${d.revenue?.toLocaleString()}</span>
+                          <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>{formatMoney(d.revenue || 0)}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <div className="w-2 h-2 rounded-circle" style={{ background: "#0ea5e9" }} />
                           <span className="text-muted-foreground">Net:</span>
-                          <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>${d.net?.toLocaleString()}</span>
+                          <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>{formatMoney(d.net || 0)}</span>
                         </div>
                         {d.collected > 0 && (
                           <div className="flex items-center gap-2">
                             <div className="w-2 h-2 rounded-circle" style={{ background: "hsl(var(--primary) / 0.5)" }} />
                             <span className="text-muted-foreground">Collected:</span>
-                            <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>${d.collected?.toLocaleString()}</span>
+                            <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>{formatMoney(d.collected || 0)}</span>
+
                           </div>
                         )}
                       </div>
