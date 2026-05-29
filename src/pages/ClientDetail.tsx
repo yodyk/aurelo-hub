@@ -1040,43 +1040,42 @@ function OverviewTab({
 
 
           {/* 7-day activity sparkline card */}
-          <div className="bg-card border border-border/60 rounded-xl overflow-hidden flex flex-col" style={{ boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
-            <div className="p-4 md:p-5 flex flex-col flex-1 justify-between">
-              <div>
-                <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>7-Day Activity</div>
-                <div className="text-[26px] leading-none tracking-tighter tabular-nums" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
-                  {last7Days.reduce((a, b) => a + b, 0).toFixed(1)}h
-                </div>
-                <div className="text-[10px] text-muted-foreground mt-1" style={{ fontWeight: 500 }}>total this week</div>
+          <div className="premium-card !p-6 md:!p-7 flex flex-col">
+            <div className="flex-1">
+              <div className="type-eyebrow mb-2">7-day activity</div>
+              <div className="text-[32px] md:text-[36px] leading-none tabular-nums text-foreground" style={{ fontWeight: 600, letterSpacing: "-0.03em" }}>
+                {last7Days.reduce((a, b) => a + b, 0).toFixed(1)}<span className="text-[18px] text-muted-foreground ml-1" style={{ fontWeight: 500 }}>h</span>
               </div>
-              <div className="mt-3">
-                <svg viewBox="0 0 200 44" className="w-full" style={{ height: 48 }}>
-                  <defs>
-                    <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.15" />
-                      <stop offset="100%" stopColor="var(--primary)" stopOpacity="0" />
-                    </linearGradient>
-                  </defs>
-                  <polygon points={sparkFillPoints} fill="url(#sparkGrad)" />
-                  <polyline points={sparkPoints} fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  {last7Days.map((h, i) => {
-                    const x = (i / 6) * 200;
-                    const y = 40 - (h / maxHours) * 36;
-                    return h > 0 ? <circle key={i} cx={x} cy={y} r="2.5" fill="var(--primary)" /> : null;
-                  })}
-                </svg>
-                <div className="flex justify-between text-[9px] text-muted-foreground/50 mt-1 px-0.5" style={{ fontWeight: 600 }}>
-                  {last7Days.map((_, i) => {
-                    const d = new Date();
-                    d.setDate(d.getDate() - (6 - i));
-                    return <span key={i}>{format(d, 'EEE')}</span>;
-                  })}
-                </div>
+              <div className="text-[12px] text-muted-foreground mt-1.5" style={{ fontWeight: 500 }}>total this week</div>
+            </div>
+            <div className="mt-5">
+              <svg viewBox="0 0 200 44" className="w-full" style={{ height: 48 }}>
+                <defs>
+                  <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.18" />
+                    <stop offset="100%" stopColor="var(--primary)" stopOpacity="0" />
+                  </linearGradient>
+                </defs>
+                <polygon points={sparkFillPoints} fill="url(#sparkGrad)" />
+                <polyline points={sparkPoints} fill="none" stroke="var(--primary)" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+                {last7Days.map((h, i) => {
+                  const x = (i / 6) * 200;
+                  const y = 40 - (h / maxHours) * 36;
+                  return h > 0 ? <circle key={i} cx={x} cy={y} r="2" fill="var(--primary)" /> : null;
+                })}
+              </svg>
+              <div className="flex justify-between text-[10px] text-muted-foreground/60 mt-2 px-0.5" style={{ fontWeight: 600, letterSpacing: "0.05em" }}>
+                {last7Days.map((_, i) => {
+                  const d = new Date();
+                  d.setDate(d.getDate() - (6 - i));
+                  return <span key={i}>{format(d, "EEE").toUpperCase()}</span>;
+                })}
               </div>
             </div>
           </div>
         </div>
       )}
+
 
       {/* Activity + Insights */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
