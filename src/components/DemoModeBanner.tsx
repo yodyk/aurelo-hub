@@ -1,3 +1,4 @@
+import { transitions } from '@/lib/motion';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowRight, RotateCcw, Loader2, X } from 'lucide-react';
@@ -30,7 +31,7 @@ export function DemoModeBanner({ onClearDemo, onRestartTour }: DemoModeBannerPro
       initial={{ y: 80, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       exit={{ y: 80, opacity: 0 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 28, delay: 0.3 }}
+      transition={{ ...transitions.emphasized, delay: 0.3 }}
       className="fixed bottom-5 left-1/2 -translate-x-1/2 z-[999]"
     >
       <div

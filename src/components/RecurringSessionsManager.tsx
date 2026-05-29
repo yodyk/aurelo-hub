@@ -1,3 +1,4 @@
+import { transitions } from '@/lib/motion';
 import { useState, useEffect, useCallback } from "react";
 import { Plus, Repeat, Trash2, Pause, Play, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
@@ -246,7 +247,7 @@ export default function RecurringSessionsManager({ clients, projects = [], fixed
                     <motion.div
                       className="absolute top-0.5 w-4 h-4 rounded-circle bg-white shadow-sm"
                       animate={{ left: skipWeekends ? 18 : 2 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                      transition={transitions.emphasized}
                     />
                   </button>
                   <span className="text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Skip weekends</span>
@@ -264,7 +265,7 @@ export default function RecurringSessionsManager({ clients, projects = [], fixed
                     <motion.div
                       className="absolute top-0.5 w-4 h-4 rounded-circle bg-white shadow-sm"
                       animate={{ left: billable ? 18 : 2 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                      transition={transitions.emphasized}
                     />
                   </button>
                   <span className="text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Billable</span>

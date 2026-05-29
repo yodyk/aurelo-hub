@@ -1,3 +1,4 @@
+import { transitions } from '@/lib/motion';
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router";
 import {
@@ -389,7 +390,7 @@ export default function Settings() {
                     <motion.div
                       layoutId="settings-tab-indicator"
                       className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full hidden md:block"
-                      transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                      transition={transitions.emphasized}
                     />
                   )}
                   <tab.icon

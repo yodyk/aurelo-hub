@@ -1,3 +1,4 @@
+import { transitions } from '@/lib/motion';
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { DatePicker } from "@/components/ui/date-picker";
 import { useNavigate, Navigate } from "react-router";
@@ -596,7 +597,7 @@ export default function Invoicing() {
             initial={{ y: 80, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 80, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+            transition={transitions.emphasized}
             className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50"
           >
             <div
