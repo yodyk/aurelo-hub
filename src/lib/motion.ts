@@ -43,3 +43,27 @@ export const transitions = {
   /** Dismiss / fade-out. */
   exit: { duration: duration.micro, ease: ease.exit },
 } as const;
+
+/**
+ * Shared Framer Motion variants for staggered list/page enters.
+ * Kept here as the canonical Aurelo entry choreography.
+ */
+export const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.04,
+      delayChildren: 0.02,
+    },
+  },
+} as const;
+
+export const itemVariants = {
+  hidden: { opacity: 0, y: 6 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: transitions.emphasized,
+  },
+} as const;
