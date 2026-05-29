@@ -82,7 +82,8 @@ function ChartTooltip({ active, payload, label }: any) {
           <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>
             {p.dataKey.includes('hours') || p.dataKey === 'hours'
               ? `${p.value}h`
-              : `$${Number(p.value).toLocaleString()}`}
+              : formatMoney(Number(p.value), { precision: "display" })}
+
           </span>
         </div>
       ))}
