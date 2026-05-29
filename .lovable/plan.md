@@ -227,3 +227,20 @@ Single-commit, value-only migration. Rollback = revert `src/index.css` and `tail
 **Result:** 22 files touched, 0 retired hexes remaining (verified by `rg`). Hover/active state differentiation preserved by mapping each shade independently. No structural / layout / behavior changes. Future phases will progressively migrate these arbitrary classes to semantic Tailwind tokens (`primary`, `warning`, `background`) per component.
 
 **READY FOR PHASE 1G.**
+
+# PHASE 1G — App Shell Hairline Refinement (executed)
+
+**Objective:** Tune the persistent app shell (sidebar, topbar, breadcrumb bar, mobile menu, floating timer) to the constitution's hairline-led, calmer altitude system. Surgical pass on `Root.tsx` only.
+
+**Changes:**
+- Sidebar chrome divider: `border-border` → `border-[var(--sidebar-border)]` (sunken-surface-tuned).
+- Internal shell rules (logo divider, settings footer, breadcrumb bar, topbar, mobile-menu header, workspace block, mobile bottom section, user-menu popover divider): `border-border` → `border-[var(--hairline)]`.
+- Floating timer pill shadow: inline `0 8px 32px rgba(0,0,0,0.10)...` → `var(--elev-3)` (token-driven, theme-aware).
+
+**Intentionally preserved:**
+- User-menu popover and floating timer pill keep `border border-border` — they float above content and need a visible edge, not a hairline.
+- Sidebar active-state (cobalt rail + `bg-primary/8`), nav typography, theme switcher, timer pill colors — already on-token from Phases 1A–1F.
+
+**Result:** Shell chrome now reads as one continuous calm surface; dividers recede to ~6% opacity (light) / 4.5% (dark) per constitution. No behavior, no layout, no component-API change.
+
+**READY FOR PHASE 1H.**
