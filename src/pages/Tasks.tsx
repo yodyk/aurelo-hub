@@ -4,28 +4,29 @@ import { motion, AnimatePresence } from 'motion/react';
 import { containerVariants, itemVariants } from '@/lib/motion';
 import {
   CheckSquare, Filter, Loader2, Tag, Clock, Calendar, ChevronDown,
-  CircleDashed, CircleDot, AlertCircle, CheckCircle2, PauseCircle, AlignLeft, ExternalLink, X, Trash2,
+  AlignLeft, ExternalLink, X, Trash2,
 } from 'lucide-react';
 import { format, parseISO, isPast, isToday, differenceInCalendarDays } from 'date-fns';
 import { useAuth } from '@/data/AuthContext';
 import { useData } from '@/data/DataContext';
 import {
   loadAllTasksForWorkspace, updateChecklistItem, deleteChecklistItem,
-  type WorkspaceTask, type TaskStatus, type ChecklistItem,
+  type WorkspaceTask, type ChecklistItem,
 } from '@/data/checklistsApi';
+import { TASK_STATUSES, STATUS_BY_VALUE, nextStatus, type TaskStatus } from '@/data/taskStatus';
 import { supabase } from '@/integrations/supabase/client';
 import { DatePicker } from '@/components/ui/date-picker';
 import { toast } from '@/lib/toast';
 import { EmptyState } from '@/components/primitives/EmptyState';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
-const STATUSES: { value: TaskStatus; label: string; icon: any; dotClass: string; textClass: string; bgClass: string; borderClass: string }[] = [
-  { value: 'todo',        label: 'To Do',       icon: CircleDashed, dotClass: 'bg-muted-foreground/50', textClass: 'text-muted-foreground', bgClass: 'bg-muted/50',         borderClass: 'border-border' },
-  { value: 'in_progress', label: 'In Progress', icon: CircleDot,    dotClass: 'bg-sky-500',             textClass: 'text-sky-700 dark:text-sky-400', bgClass: 'bg-sky-500/10',       borderClass: 'border-sky-500/30' },
-  { value: 'blocked',     label: 'Blocked',     icon: AlertCircle,  dotClass: 'bg-red-500',             textClass: 'text-red-700 dark:text-red-400', bgClass: 'bg-red-500/10',       borderClass: 'border-red-500/30' },
-  { value: 'on_hold',     label: 'On Hold',     icon: PauseCircle,  dotClass: 'bg-amber-500',           textClass: 'text-amber-700 dark:text-amber-400', bgClass: 'bg-amber-500/10', borderClass: 'border-amber-500/30' },
-  { value: 'done',        label: 'Done',        icon: CheckCircle2, dotClass: 'bg-emerald-500',         textClass: 'text-emerald-700 dark:text-emerald-400', bgClass: 'bg-emerald-500/10', borderClass: 'border-emerald-500/30' },
-];
-const STATUS_MAP = Object.fromEntries(STATUSES.map(s => [s.value, s]));
+const STATUSES = TASK_STATUSES;
+const STATUS_MAP = STATUS_BY_VALUE;
+
 
 function dueMeta(due?: string | null) {
   if (!due) return null;
