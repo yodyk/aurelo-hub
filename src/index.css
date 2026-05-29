@@ -585,8 +585,12 @@
 
   /* ── Page container — generous breathing room ── */
   .page-wrapper {
-    @apply w-full min-w-0 px-4 lg:px-10 py-8;
+    @apply w-full min-w-0 px-5 lg:px-12 py-10 lg:py-12;
   }
+  .page-container {
+    @apply px-5 sm:px-8 lg:px-12 py-10 lg:py-12 w-full;
+  }
+
 
   /* True circle — only for spinners, tiny dots, and circular avatars */
   .rounded-circle { border-radius: 9999px !important; }
