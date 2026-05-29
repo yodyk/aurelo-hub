@@ -258,7 +258,7 @@ export default function TimeLog() {
               <span className="opacity-40 mx-1.5">·</span>
               {weekStats.billableHours}h billable
               <span className="opacity-40 mx-1.5">·</span>
-              ${weekStats.accrued.toLocaleString()} accrued
+              {formatMoney(weekStats.accrued, { precision: "compact" })} accrued
             </span>
           ) : (
             <span className="tabular-nums">{weekStats.hours}h this week</span>
