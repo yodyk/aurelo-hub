@@ -389,11 +389,11 @@ export default function Today() {
 
 
 
-        {/* ── Needs You rail ── */}
+        {/* ── Needs Attention rail ── */}
         {signals.length > 0 && (
           <motion.section variants={item}>
             <SectionEyebrow trailing={`${signals.length} item${signals.length === 1 ? "" : "s"}`}>
-              Needs you
+              Needs attention
             </SectionEyebrow>
             <ul className="mt-3 divide-y divide-border border-y border-border">
               {signals.map((sig) => {
