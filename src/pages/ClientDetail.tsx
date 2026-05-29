@@ -900,51 +900,80 @@ export default function ClientDetail() {
       </div>
 
       {/* ── Settings slideover ────────────────────────────────────── */}
-      {settingsOpen && (
-        <>
-          <div
-            className="fixed inset-0 bg-black/40 z-40 backdrop-blur-[2px]"
-            onClick={() => setSettingsOpen(false)}
-          />
-          <motion.aside
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ duration: 0.24, ease: [0.32, 0.72, 0, 1] as const }}
-            className="fixed top-0 right-0 bottom-0 w-full sm:w-[480px] bg-background border-l border-[var(--hairline)] z-50 overflow-y-auto"
-          >
-            <div className="sticky top-0 z-10 bg-background border-b border-[var(--hairline)] px-6 py-4 flex items-center justify-between">
-              <h2 className="type-section">Client settings</h2>
-              <button
-                onClick={() => setSettingsOpen(false)}
-                aria-label="Close"
-                className="w-8 h-8 inline-flex items-center justify-center rounded-md hover:bg-accent/60 transition-colors cursor-pointer text-muted-foreground"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="p-6 space-y-10">
-              <section>
-                <div className="type-eyebrow mb-4">Details</div>
-                <DetailsTab client={client} onUpdateClient={handleEditSave} />
-              </section>
-              <section>
-                <div className="type-eyebrow mb-4">Workspace administration</div>
-                <SettingsTab
-                  client={client}
-                  clientId={clientId}
-                  confirmArchive={confirmArchive}
-                  setConfirmArchive={setConfirmArchive}
-                  onArchive={handleArchive}
-                  onRestore={handleRestore}
-                  onPermanentDelete={handlePermanentDelete}
-                  onNavigateEdit={() => navigate(`/clients/${clientId}/edit`)}
-                />
-              </section>
-            </div>
-          </motion.aside>
-        </>
-      )}
+      <AnimatePresence>
+        {settingsOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18 }}
+              className="fixed inset-0 bg-black/40 z-40 backdrop-blur-[2px]"
+              onClick={() => setSettingsOpen(false)}
+            />
+            <motion.aside
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] as const }}
+              className="fixed top-0 right-0 bottom-0 w-full sm:w-[520px] bg-background border-l border-[var(--hairline)] z-50 flex flex-col"
+              role="dialog"
+              aria-label="Client settings"
+            >
+              {/* Sticky header */}
+              <div className="flex-shrink-0 border-b border-[var(--hairline)]">
+                <div className="px-6 pt-5 pb-3 flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <div className="type-eyebrow mb-1.5">Settings</div>
+                    <h2 className="type-section truncate">{client.name}</h2>
+                  </div>
+                  <button
+                    onClick={() => setSettingsOpen(false)}
+                    aria-label="Close"
+                    className="w-8 h-8 inline-flex items-center justify-center rounded-md hover:bg-accent/60 transition-colors cursor-pointer text-muted-foreground flex-shrink-0"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="px-6 pb-4">
+                  <SegmentedControl<'details' | 'admin'>
+                    options={[
+                      { value: 'details', label: 'Details' },
+                      { value: 'admin', label: 'Administration' },
+                    ]}
+                    value={settingsSection}
+                    onChange={setSettingsSection}
+                    ariaLabel="Settings section"
+                  />
+                </div>
+              </div>
+
+              {/* Scrollable body */}
+              <div className="flex-1 overflow-y-auto">
+                {settingsSection === 'details' ? (
+                  <div className="p-6">
+                    <DetailsTab client={client} onUpdateClient={handleEditSave} />
+                  </div>
+                ) : (
+                  <div className="p-6">
+                    <SettingsTab
+                      client={client}
+                      clientId={clientId}
+                      confirmArchive={confirmArchive}
+                      setConfirmArchive={setConfirmArchive}
+                      onArchive={handleArchive}
+                      onRestore={handleRestore}
+                      onPermanentDelete={handlePermanentDelete}
+                      onNavigateEdit={() => navigate(`/clients/${clientId}/edit`)}
+                    />
+                  </div>
+                )}
+              </div>
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
+
 
 
       {/* Modals */}
