@@ -58,7 +58,7 @@ import { usePlan } from "@/data/PlanContext";
 import { useRoleAccess } from "@/data/useRoleAccess";
 import RecurringSessionsManager from "../components/RecurringSessionsManager";
 import ClientAssignmentManager from "../components/ClientAssignmentManager";
-import { SegmentedControl, type SegmentOption } from "@/components/primitives/composition";
+import { SegmentedControl, HairlineBar, type SegmentOption } from "@/components/primitives/composition";
 
 // ── Animation variants ──────────────────────────────────────────────
 const container = {
@@ -989,11 +989,11 @@ export default function ClientDetail() {
 // Overview Tab
 // ═══════════════════════════════════════════════════════════════════
 function OverviewTab({
-  client, clientFaviconUrl, viewMode, setViewMode, netMultiplier, canViewFinancials,
+  client, viewMode, setViewMode, netMultiplier, canViewFinancials,
   revenueShare, revenueTrend, lastMonthEarnings, utilizationRate, billableHours, totalHours,
-  projects, clientSessions, priorityLevel, riskLevel, priorityCfg, riskCfg,
+  projects, clientSessions,
 }: any) {
-  // Build a simple 7-day sparkline from sessions
+  // 7-day sparkline
   const last7Days = useMemo(() => {
     const days: number[] = [];
     for (let i = 6; i >= 0; i--) {
@@ -1016,189 +1016,197 @@ function OverviewTab({
   }).join(' ');
   const sparkFillPoints = `0,40 ${sparkPoints} 200,40`;
 
+  const monthly = client.monthlyEarnings || 0;
+  const monthlyDisplay = viewMode === 'net' ? Math.round(monthly * netMultiplier) : monthly;
+  const lifetime = client.lifetimeRevenue || 0;
+  const lifetimeDisplay = viewMode === 'net' ? Math.round(lifetime * netMultiplier) : lifetime;
+  const effRate = client.trueHourlyRate || 0;
+  const effRateDisplay = viewMode === 'net' ? Math.round(effRate * netMultiplier) : effRate;
+  const deltaPct = Math.abs(Math.round(((monthly - lastMonthEarnings) / Math.max(lastMonthEarnings, 1)) * 100));
+
   return (
     <>
-      {/* Financial metrics */}
+      {/* ── Financial pulse ─────────────────────────────────────── */}
       {canViewFinancials && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-          {/* Revenue hero card */}
-          <div className="lg:col-span-2 premium-card !p-6 md:!p-7 flex flex-col">
-            <div className="flex items-center justify-between mb-5">
-              <div className="type-eyebrow">Financial overview</div>
-              <div className="inline-flex gap-0 p-0.5 rounded-md" style={{ background: "var(--surface-sunken)" }}>
-                {(["gross", "net"] as const).map((mode) => (
-                  <button
-                    key={mode}
-                    onClick={() => setViewMode(mode)}
-                    className={`px-2.5 py-0.5 text-[11px] rounded-sm transition-all duration-200 capitalize cursor-pointer ${
-                      viewMode === mode ? "text-foreground" : "text-muted-foreground hover:text-foreground"
-                    }`}
-                    style={{
-                      fontWeight: 600,
-                      background: viewMode === mode ? "var(--surface-raised)" : "transparent",
-                      boxShadow: viewMode === mode ? "var(--elev-1)" : "none",
-                    }}
-                  >
-                    {mode}
-                  </button>
-                ))}
-              </div>
-            </div>
+        <section>
+          <div className="flex items-baseline justify-between mb-5">
+            <div className="type-eyebrow">Financial pulse</div>
+            <SegmentedControl<'gross' | 'net'>
+              options={[
+                { value: 'gross', label: 'Gross' },
+                { value: 'net', label: 'Net' },
+              ]}
+              value={viewMode}
+              onChange={setViewMode}
+              ariaLabel="Revenue view mode"
+            />
+          </div>
 
-            {/* Primary metric — This month */}
-            <div>
-              <div className="type-eyebrow mb-2">This month</div>
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-10">
+            {/* Display metric */}
+            <div className="lg:col-span-2">
+              <div className="type-meta mb-2">This month</div>
               <div className="flex items-baseline gap-3 flex-wrap">
-                <div className="text-[40px] md:text-[48px] leading-none tabular-nums text-foreground" style={{ fontWeight: 600, letterSpacing: "-0.035em" }}>
-                  ${viewMode === "net" ? Math.round((client.monthlyEarnings || 0) * netMultiplier).toLocaleString() : (client.monthlyEarnings || 0).toLocaleString()}
+                <div className="type-display tabular-nums">
+                  ${monthlyDisplay.toLocaleString()}
                 </div>
-                {revenueTrend !== "flat" && (
+                {revenueTrend !== 'flat' && (
                   <div
-                    className={`flex items-center gap-1 text-[12px] ${revenueTrend === "up" ? "text-success" : "text-destructive"}`}
+                    className={`flex items-center gap-1 type-meta ${revenueTrend === 'up' ? 'text-success' : 'text-destructive'}`}
                     style={{ fontWeight: 600 }}
                   >
-                    {revenueTrend === "up" ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
-                    {revenueTrend === "up" ? "+" : ""}
-                    {Math.abs(Math.round((((client.monthlyEarnings || 0) - lastMonthEarnings) / Math.max(lastMonthEarnings, 1)) * 100))}% vs last month
+                    {revenueTrend === 'up' ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                    {revenueTrend === 'up' ? '+' : '−'}{deltaPct}% vs last month
                   </div>
                 )}
               </div>
-            </div>
 
-            {/* Secondary metrics — sunken strip */}
-            <div className="mt-6 rounded-lg overflow-hidden" style={{ background: "var(--surface-sunken)" }}>
-              <div className="grid grid-cols-3 divide-x" style={{ borderColor: "var(--hairline)" }}>
-                <div className="p-4">
-                  <div className="type-eyebrow mb-1.5">Effective rate</div>
-                  <div className="text-[18px] tabular-nums text-foreground" style={{ fontWeight: 600, letterSpacing: "-0.02em" }}>
-                    ${client.trueHourlyRate ? (viewMode === "net" ? Math.round(client.trueHourlyRate * netMultiplier) : client.trueHourlyRate.toFixed(2)) : "—"}
-                    <span className="text-[11px] text-muted-foreground ml-0.5" style={{ fontWeight: 400 }}>/hr</span>
-                  </div>
-                </div>
-                <div className="p-4">
-                  <div className="type-eyebrow mb-1.5">Lifetime</div>
-                  <div className="text-[18px] tabular-nums text-foreground" style={{ fontWeight: 600, letterSpacing: "-0.02em" }}>
-                    ${viewMode === "net" ? Math.round((client.lifetimeRevenue || 0) * netMultiplier).toLocaleString() : (client.lifetimeRevenue || 0).toLocaleString()}
-                  </div>
-                </div>
-                <div className="p-4">
-                  <div className="type-eyebrow mb-1.5">Hours</div>
-                  <div className="text-[18px] tabular-nums text-foreground" style={{ fontWeight: 600, letterSpacing: "-0.02em" }}>
-                    {client.hoursLogged || 0}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Retainer mini bar */}
-            {client.model === "Retainer" && (() => {
-              const hoursUsed = (client.retainerTotal || 0) - (client.retainerRemaining || 0);
-              const usagePct = client.retainerTotal ? Math.round((hoursUsed / client.retainerTotal) * 100) : 0;
-              return (
-                <div className="mt-5 pt-5 border-t" style={{ borderColor: "var(--hairline)" }}>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>
-                      Retainer · {hoursUsed}h of {client.retainerTotal || 0}h
+              {client.model === 'Retainer' && (() => {
+                const hoursUsed = (client.retainerTotal || 0) - (client.retainerRemaining || 0);
+                const pct = client.retainerTotal ? hoursUsed / client.retainerTotal : 0;
+                return (
+                  <div className="mt-6">
+                    <div className="flex items-baseline justify-between mb-1.5">
+                      <div className="type-meta">Retainer · {hoursUsed}h of {client.retainerTotal || 0}h</div>
+                      <div className="type-meta tabular-nums" style={{ fontWeight: 600 }}>{Math.round(pct * 100)}%</div>
                     </div>
-                    <div className="text-[13px] tabular-nums" style={{ fontWeight: 700, color: getUsageTextColor(usagePct) }}>{usagePct}%</div>
+                    <HairlineBar value={pct} />
                   </div>
-                  <div className="h-1.5 rounded-sm overflow-hidden" style={{ background: "var(--surface-sunken)" }}>
-                    <motion.div className="h-full rounded-sm" style={{ background: getUsageBarColor(usagePct) }} initial={{ width: 0 }} animate={{ width: `${usagePct}%` }} transition={{ delay: 0.3, duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }} />
-                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Secondary metrics — hairline-divided */}
+            <div className="lg:col-span-3 grid grid-cols-3 divide-x divide-[var(--hairline)] border-y border-[var(--hairline)]">
+              <div className="px-4 py-4 first:pl-0">
+                <div className="type-eyebrow mb-2">Effective rate</div>
+                <div className="text-[20px] tabular-nums" style={{ fontWeight: 600, letterSpacing: '-0.02em' }}>
+                  ${effRate ? effRateDisplay.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '—'}
+                  <span className="type-meta ml-1 text-muted-foreground">/hr</span>
                 </div>
-              );
-            })()}
-          </div>
-
-
-          {/* 7-day activity sparkline card */}
-          <div className="premium-card !p-6 md:!p-7 flex flex-col">
-            <div className="flex-1">
-              <div className="type-eyebrow mb-2">7-day activity</div>
-              <div className="text-[32px] md:text-[36px] leading-none tabular-nums text-foreground" style={{ fontWeight: 600, letterSpacing: "-0.03em" }}>
-                {last7Days.reduce((a, b) => a + b, 0).toFixed(1)}<span className="text-[18px] text-muted-foreground ml-1" style={{ fontWeight: 500 }}>h</span>
               </div>
-              <div className="text-[12px] text-muted-foreground mt-1.5" style={{ fontWeight: 500 }}>total this week</div>
-            </div>
-            <div className="mt-5">
-              <svg viewBox="0 0 200 44" className="w-full" style={{ height: 48 }}>
-                <defs>
-                  <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.18" />
-                    <stop offset="100%" stopColor="var(--primary)" stopOpacity="0" />
-                  </linearGradient>
-                </defs>
-                <polygon points={sparkFillPoints} fill="url(#sparkGrad)" />
-                <polyline points={sparkPoints} fill="none" stroke="var(--primary)" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
-                {last7Days.map((h, i) => {
-                  const x = (i / 6) * 200;
-                  const y = 40 - (h / maxHours) * 36;
-                  return h > 0 ? <circle key={i} cx={x} cy={y} r="2" fill="var(--primary)" /> : null;
-                })}
-              </svg>
-              <div className="flex justify-between text-[10px] text-muted-foreground/60 mt-2 px-0.5" style={{ fontWeight: 600, letterSpacing: "0.05em" }}>
-                {last7Days.map((_, i) => {
-                  const d = new Date();
-                  d.setDate(d.getDate() - (6 - i));
-                  return <span key={i}>{format(d, "EEE").toUpperCase()}</span>;
-                })}
+              <div className="px-4 py-4">
+                <div className="type-eyebrow mb-2">Lifetime</div>
+                <div className="text-[20px] tabular-nums" style={{ fontWeight: 600, letterSpacing: '-0.02em' }}>
+                  ${lifetimeDisplay.toLocaleString()}
+                </div>
+              </div>
+              <div className="px-4 py-4 last:pr-0">
+                <div className="type-eyebrow mb-2">Hours logged</div>
+                <div className="text-[20px] tabular-nums" style={{ fontWeight: 600, letterSpacing: '-0.02em' }}>
+                  {client.hoursLogged || 0}
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </section>
       )}
 
+      {/* ── Activity + Insights — two column hairline grid ─────── */}
+      <section>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+          {/* 7-day cadence */}
+          <div>
+            <div className="type-eyebrow mb-4">7-day cadence</div>
+            <div className="flex items-baseline gap-2 mb-4">
+              <div className="text-[28px] tabular-nums" style={{ fontWeight: 600, letterSpacing: '-0.03em' }}>
+                {last7Days.reduce((a, b) => a + b, 0).toFixed(1)}
+              </div>
+              <div className="type-meta text-muted-foreground">total hours this week</div>
+            </div>
+            <svg viewBox="0 0 200 44" className="w-full" style={{ height: 56 }} preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.18" />
+                  <stop offset="100%" stopColor="var(--primary)" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              <polygon points={sparkFillPoints} fill="url(#sparkGrad)" />
+              <polyline points={sparkPoints} fill="none" stroke="var(--primary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+              {last7Days.map((h, i) => {
+                const x = (i / 6) * 200;
+                const y = 40 - (h / maxHours) * 36;
+                return h > 0 ? <circle key={i} cx={x} cy={y} r="1.75" fill="var(--primary)" /> : null;
+              })}
+            </svg>
+            <div className="flex justify-between type-meta text-muted-foreground/60 mt-2" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>
+              {last7Days.map((_, i) => {
+                const d = new Date();
+                d.setDate(d.getDate() - (6 - i));
+                return <span key={i}>{format(d, 'EEE').toUpperCase()}</span>;
+              })}
+            </div>
 
-      {/* Activity + Insights */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <SectionCard>
-          <SectionHeader>Activity</SectionHeader>
-          <div className="grid grid-cols-2 gap-3">
-            <MetricCard label="Projects" value={projects.length} />
-            <MetricCard label="Sessions" value={clientSessions.length} />
-            <MetricCard label="Utilization" value={`${utilizationRate}%`} accent={utilizationRate >= 80} />
-            {canViewFinancials && <MetricCard label="Revenue share" value={`${revenueShare}%`} accent={revenueShare > 40} />}
-          </div>
-        </SectionCard>
-
-        {canViewFinancials && (
-          <SectionCard>
-            <SectionHeader>
-              <span className="flex items-center gap-2">
-                <Lightbulb className="w-3.5 h-3.5 text-primary/60" />
-                Insights
-              </span>
-            </SectionHeader>
-            <div className="space-y-2.5">
-              {revenueShare > 40 && (
-                <div className="p-3.5 rounded-xl bg-primary/[0.04] border border-primary/10">
-                  <div className="text-[12px] text-primary mb-1" style={{ fontWeight: 600 }}>Client dependency</div>
-                  <div className="text-[12px] text-muted-foreground leading-relaxed">
-                    <span className="text-foreground" style={{ fontWeight: 600 }}>{revenueShare}%</span> of monthly revenue. Consider diversifying.
-                  </div>
+            {/* Inline ledger of activity stats */}
+            <dl className="mt-6 divide-y divide-[var(--hairline)] border-t border-[var(--hairline)]">
+              <div className="flex justify-between py-3 text-[13px]">
+                <dt className="text-muted-foreground">Projects</dt>
+                <dd className="tabular-nums" style={{ fontWeight: 600 }}>{projects.length}</dd>
+              </div>
+              <div className="flex justify-between py-3 text-[13px]">
+                <dt className="text-muted-foreground">Sessions</dt>
+                <dd className="tabular-nums" style={{ fontWeight: 600 }}>{clientSessions.length}</dd>
+              </div>
+              <div className="flex justify-between py-3 text-[13px]">
+                <dt className="text-muted-foreground">Utilization</dt>
+                <dd className="tabular-nums" style={{ fontWeight: 600 }}>
+                  {utilizationRate}% <span className="type-meta text-muted-foreground">· {billableHours}h of {totalHours}h</span>
+                </dd>
+              </div>
+              {canViewFinancials && (
+                <div className="flex justify-between py-3 text-[13px]">
+                  <dt className="text-muted-foreground">Revenue share</dt>
+                  <dd className="tabular-nums" style={{ fontWeight: 600 }}>{revenueShare}%</dd>
                 </div>
               )}
-              <div className="p-3.5 rounded-xl bg-accent/30 border border-border/30">
-                <div className="text-[12px] mb-1" style={{ fontWeight: 600 }}>Utilization rate</div>
-                <div className="text-[12px] text-muted-foreground leading-relaxed">
-                  <span className="text-foreground" style={{ fontWeight: 600 }}>{utilizationRate}%</span> billable — {billableHours}h of {totalHours}h total
-                </div>
+            </dl>
+          </div>
+
+          {/* Signals */}
+          {canViewFinancials && (
+            <div>
+              <div className="type-eyebrow mb-4 flex items-center gap-1.5">
+                <Lightbulb className="w-3 h-3 text-primary/70" />
+                Signals
               </div>
-              <div className="p-3.5 rounded-xl bg-accent/30 border border-border/30">
-                <div className="text-[12px] mb-1" style={{ fontWeight: 600 }}>Pacing</div>
-                <div className="text-[12px] text-muted-foreground leading-relaxed">
-                  On pace for <span className="text-foreground" style={{ fontWeight: 600 }}>${Math.round((client.monthlyEarnings || 0) * 1.15).toLocaleString()}</span> this month
+              <div className="space-y-px border-y border-[var(--hairline)]">
+                {revenueShare > 40 && (
+                  <div className="py-4">
+                    <div className="text-[13px] mb-1" style={{ fontWeight: 600 }}>
+                      Client dependency · <span className="text-primary tabular-nums">{revenueShare}%</span>
+                    </div>
+                    <div className="type-meta text-muted-foreground leading-relaxed">
+                      This client represents over 40% of monthly revenue. Consider diversifying.
+                    </div>
+                  </div>
+                )}
+                <div className="py-4 border-t border-[var(--hairline)]">
+                  <div className="text-[13px] mb-1" style={{ fontWeight: 600 }}>
+                    Utilization · <span className="tabular-nums">{utilizationRate}%</span>
+                  </div>
+                  <div className="type-meta text-muted-foreground leading-relaxed">
+                    {billableHours}h billable of {totalHours}h logged.
+                  </div>
+                </div>
+                <div className="py-4 border-t border-[var(--hairline)]">
+                  <div className="text-[13px] mb-1" style={{ fontWeight: 600 }}>
+                    Pacing · <span className="tabular-nums">${Math.round(monthly * 1.15).toLocaleString()}</span>
+                  </div>
+                  <div className="type-meta text-muted-foreground leading-relaxed">
+                    Projected month-end at current cadence.
+                  </div>
                 </div>
               </div>
             </div>
-          </SectionCard>
-        )}
-      </div>
+          )}
+        </div>
+      </section>
 
-      {/* Team assignments */}
-      <SectionCard>
+      {/* ── Team assignments ───────────────────────────────────── */}
+      <section>
+        <div className="type-eyebrow mb-4">Team</div>
         <ClientAssignmentManager clientId={client.id} />
-      </SectionCard>
+      </section>
     </>
   );
 }
@@ -1708,151 +1716,154 @@ function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (
 // ═══════════════════════════════════════════════════════════════════
 function ProjectsTab({ projects, client, canViewFinancials, onAddProject, onNavigate }: any) {
   return (
-    <SectionCard>
-      <SectionHeader action={
-        <button onClick={onAddProject} className="px-3.5 py-1.5 text-[12px] bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all" style={{ fontWeight: 600 }}>
+    <div>
+      <div className="flex items-center justify-end -mt-12 mb-3 relative z-10">
+        <button
+          onClick={onAddProject}
+          className="h-8 px-3 inline-flex items-center gap-1.5 rounded-md border border-[var(--hairline)] hover:bg-accent/60 transition-colors cursor-pointer text-[12.5px] text-muted-foreground hover:text-foreground"
+          style={{ fontWeight: 500 }}
+        >
+          <Plus className="w-3.5 h-3.5" />
           Add project
         </button>
-      }>
-        Projects <span className="text-muted-foreground/60 ml-1">({projects.length})</span>
-      </SectionHeader>
+      </div>
       {projects.length > 0 ? (
-        <div className="overflow-hidden rounded-xl border border-border/60">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[600px]">
-              <thead>
-                <tr className="bg-accent/40">
-                  <th className="text-left px-4 py-3 text-[11px] text-muted-foreground uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.05em' }}>Project</th>
-                  <th className="text-left px-4 py-3 text-[11px] text-muted-foreground uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.05em' }}>Status</th>
-                  {canViewFinancials && <th className="text-right px-4 py-3 text-[11px] text-muted-foreground uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.05em' }}>Value</th>}
-                  <th className="text-right px-4 py-3 text-[11px] text-muted-foreground uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.05em' }}>Hours</th>
-                  <th className="text-left px-4 py-3 text-[11px] text-muted-foreground uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.05em' }}>Dates</th>
-                </tr>
-              </thead>
-              <tbody>
-                {projects.map((project: any) => (
-                  <tr key={project.id} className="border-t border-border/40 hover:bg-accent/20 transition-colors cursor-pointer" onClick={() => onNavigate(project.id)}>
-                    <td className="px-4 py-3.5 text-[13px]" style={{ fontWeight: 600 }}>{project.name}</td>
-                    <td className="px-4 py-3.5">
-                      <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 text-[11px] rounded-lg ${project.status === "In Progress" ? "bg-primary/[0.07] text-primary" : "bg-accent/60 text-muted-foreground"}`} style={{ fontWeight: 600 }}>
-                        <div className={`w-1.5 h-1.5 rounded-circle ${project.status === "In Progress" ? "bg-primary" : "bg-muted-foreground/40"}`} />
-                        {project.status}
-                      </div>
+        <div className="overflow-x-auto border-y border-[var(--hairline)]">
+          <table className="w-full min-w-[600px]">
+            <thead>
+              <tr>
+                <th className="text-left px-3 py-2.5 type-eyebrow">Project</th>
+                <th className="text-left px-3 py-2.5 type-eyebrow">Status</th>
+                {canViewFinancials && <th className="text-right px-3 py-2.5 type-eyebrow">Value</th>}
+                <th className="text-right px-3 py-2.5 type-eyebrow">Hours</th>
+                <th className="text-left px-3 py-2.5 type-eyebrow">Dates</th>
+              </tr>
+            </thead>
+            <tbody>
+              {projects.map((project: any) => (
+                <tr
+                  key={project.id}
+                  className="border-t border-[var(--hairline)] hover:bg-accent/30 transition-colors cursor-pointer"
+                  onClick={() => onNavigate(project.id)}
+                >
+                  <td className="px-3 py-3 text-[13px]" style={{ fontWeight: 600 }}>{project.name}</td>
+                  <td className="px-3 py-3">
+                    <div className="inline-flex items-center gap-1.5 type-meta" style={{ fontWeight: 500 }}>
+                      <div className={`w-1.5 h-1.5 rounded-circle ${project.status === 'In Progress' ? 'bg-primary' : 'bg-muted-foreground/40'}`} />
+                      {project.status}
+                    </div>
+                  </td>
+                  {canViewFinancials && (
+                    <td className="px-3 py-3 text-[13px] text-right tabular-nums" style={{ fontWeight: 600 }}>
+                      ${(project.totalValue || 0).toLocaleString()}
+                      {(() => {
+                        if (!project.totalValue || project.totalValue <= 0 || !project.hours || project.hours <= 0) return null;
+                        const effRate = Math.round(project.totalValue / project.hours);
+                        const rateColor = effRate < (client.rate * 0.5) ? 'var(--destructive)' : effRate < client.rate ? 'var(--warning)' : 'var(--muted-foreground)';
+                        return <div className="type-meta tabular-nums mt-0.5" style={{ color: rateColor }}>${effRate}/hr effective</div>;
+                      })()}
                     </td>
-                    {canViewFinancials && (
-                      <td className="px-4 py-3.5 text-[13px] text-right tabular-nums" style={{ fontWeight: 600 }}>
-                        ${(project.totalValue || 0).toLocaleString()}
-                        {(() => {
-                          if (!project.totalValue || project.totalValue <= 0 || !project.hours || project.hours <= 0) return null;
-                          const effRate = Math.round(project.totalValue / project.hours);
-                          const rateColor = effRate < (client.rate * 0.5) ? '#c27272' : effRate < client.rate ? '#bfa044' : '#2e7d9a';
-                          return <div className="text-[10px] mt-0.5 tabular-nums" style={{ fontWeight: 600, color: rateColor }}>${effRate}/hr effective</div>;
-                        })()}
-                      </td>
-                    )}
-                    <td className="px-4 py-3.5 text-[13px] text-right tabular-nums text-muted-foreground">{project.hours || 0}/{project.estimatedHours || 0}h</td>
-                    <td className="px-4 py-3.5 text-[12px] text-muted-foreground">{project.startDate}{project.endDate ? ` — ${project.endDate}` : ""}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                  )}
+                  <td className="px-3 py-3 text-[13px] text-right tabular-nums text-muted-foreground">{project.hours || 0}/{project.estimatedHours || 0}h</td>
+                  <td className="px-3 py-3 type-meta text-muted-foreground">{project.startDate}{project.endDate ? ` — ${project.endDate}` : ''}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       ) : (
-        <div className="text-center py-16 text-muted-foreground">
-          <div className="w-12 h-12 mx-auto mb-4 rounded-2xl bg-accent/40 flex items-center justify-center">
-            <FileText className="w-5 h-5 text-muted-foreground/30" />
-          </div>
-          <div className="text-[14px]" style={{ fontWeight: 600 }}>No projects yet</div>
-          <div className="text-[12px] text-muted-foreground/60 mt-1">Add your first project to start tracking</div>
+        <div className="text-center py-12 border-y border-[var(--hairline)]">
+          <div className="type-body text-muted-foreground" style={{ fontWeight: 500 }}>No projects yet</div>
+          <div className="type-meta text-muted-foreground/70 mt-1">Add your first project to start tracking</div>
         </div>
       )}
-    </SectionCard>
+    </div>
   );
 }
 
 // ═══════════════════════════════════════════════════════════════════
 // Sessions Tab
 // ═══════════════════════════════════════════════════════════════════
-function SessionsTab({ clientSessions, client, canViewFinancials, selectedIds, onToggleSelect, onToggleSelectAll, onLogSession, onEditSession }: any) {
+function SessionsTab({ clientSessions, client: _client, canViewFinancials, selectedIds, onToggleSelect, onToggleSelectAll, onLogSession, onEditSession }: any) {
   return (
-    <SectionCard>
-      <SectionHeader action={
-        <button onClick={onLogSession} className="px-3.5 py-1.5 text-[12px] bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all" style={{ fontWeight: 600 }}>
+    <div>
+      <div className="flex items-center justify-end -mt-12 mb-3 relative z-10">
+        <button
+          onClick={onLogSession}
+          className="h-8 px-3 inline-flex items-center gap-1.5 rounded-md border border-[var(--hairline)] hover:bg-accent/60 transition-colors cursor-pointer text-[12.5px] text-muted-foreground hover:text-foreground"
+          style={{ fontWeight: 500 }}
+        >
+          <Plus className="w-3.5 h-3.5" />
           Log session
         </button>
-      }>
-        Time Sessions <span className="text-muted-foreground/60 ml-1">({clientSessions.length})</span>
-      </SectionHeader>
+      </div>
       {clientSessions.length > 0 ? (
-        <div className="overflow-hidden rounded-xl border border-border/60">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[600px]">
-              <thead>
-                <tr className="bg-accent/40">
-                  <th className="w-10 px-2 py-3">
-                    <button onClick={onToggleSelectAll} className="w-5 h-5 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
-                      {selectedIds.size === clientSessions.length && clientSessions.length > 0 ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4" />}
+        <div className="overflow-x-auto border-y border-[var(--hairline)]">
+          <table className="w-full min-w-[600px]">
+            <thead>
+              <tr>
+                <th className="w-10 px-2 py-2.5">
+                  <button onClick={onToggleSelectAll} className="w-5 h-5 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
+                    {selectedIds.size === clientSessions.length && clientSessions.length > 0 ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4" />}
+                  </button>
+                </th>
+                <th className="text-left px-3 py-2.5 type-eyebrow">Date</th>
+                <th className="text-left px-3 py-2.5 type-eyebrow">Description</th>
+                <th className="text-left px-3 py-2.5 type-eyebrow">Tags</th>
+                <th className="text-right px-3 py-2.5 type-eyebrow">Duration</th>
+                {canViewFinancials && <th className="text-right px-3 py-2.5 type-eyebrow">Cost</th>}
+                <th className="w-10 px-2 py-2.5" />
+              </tr>
+            </thead>
+            <tbody>
+              {clientSessions.map((session: any) => (
+                <tr
+                  key={session.id}
+                  className={`group border-t border-[var(--hairline)] hover:bg-accent/30 transition-colors ${selectedIds.has(session.id) ? 'bg-primary/[0.04]' : ''}`}
+                >
+                  <td className="px-2 py-3">
+                    <button onClick={() => onToggleSelect(session.id)} className="w-5 h-5 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
+                      {selectedIds.has(session.id) ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4" />}
                     </button>
-                  </th>
-                  <th className="text-left px-4 py-3 text-[11px] text-muted-foreground uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.05em' }}>Date</th>
-                  <th className="text-left px-4 py-3 text-[11px] text-muted-foreground uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.05em' }}>Description</th>
-                  <th className="text-left px-4 py-3 text-[11px] text-muted-foreground uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.05em' }}>Tags</th>
-                  <th className="text-right px-4 py-3 text-[11px] text-muted-foreground uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.05em' }}>Duration</th>
-                  {canViewFinancials && <th className="text-right px-4 py-3 text-[11px] text-muted-foreground uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.05em' }}>Cost</th>}
-                  <th className="w-10 px-2 py-3" />
-                </tr>
-              </thead>
-              <tbody>
-                {clientSessions.map((session: any) => (
-                  <tr key={session.id} className={`group border-t border-border/40 hover:bg-accent/20 transition-colors ${selectedIds.has(session.id) ? "bg-primary/[0.04]" : ""}`}>
-                    <td className="px-2 py-3.5">
-                      <button onClick={() => onToggleSelect(session.id)} className="w-5 h-5 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
-                        {selectedIds.has(session.id) ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4" />}
+                  </td>
+                  <td className="px-3 py-3 type-meta text-muted-foreground tabular-nums">{session.date}</td>
+                  <td className="px-3 py-3">
+                    <div className="text-[13px]" style={{ fontWeight: 600 }}>{session.task || '—'}</div>
+                    {session.projectName && <div className="type-meta text-muted-foreground mt-0.5">{session.projectName}</div>}
+                  </td>
+                  <td className="px-3 py-3">
+                    <div className="flex flex-wrap gap-1">
+                      {(session.workTags || []).map((tag: string, i: number) => (
+                        <span key={i} className="type-meta text-muted-foreground">#{tag}</span>
+                      ))}
+                    </div>
+                  </td>
+                  <td className="px-3 py-3 text-[13px] text-right tabular-nums" style={{ fontWeight: 600 }}>{session.duration}h</td>
+                  {canViewFinancials && (
+                    <td className="px-3 py-3 text-right">
+                      <div className="text-[13px] tabular-nums" style={{ fontWeight: 600 }}>${session.revenue.toLocaleString()}</div>
+                      {!session.billable && <span className="type-meta text-muted-foreground">Non-billable</span>}
+                    </td>
+                  )}
+                  <td className="px-2 py-3">
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button onClick={(e) => { e.stopPropagation(); onEditSession(session); }} className="w-7 h-7 flex items-center justify-center rounded hover:bg-accent/60 text-muted-foreground hover:text-foreground transition-all cursor-pointer" title="Edit session">
+                        <Pencil className="w-3.5 h-3.5" />
                       </button>
-                    </td>
-                    <td className="px-4 py-3.5 text-[12px] text-muted-foreground tabular-nums" style={{ fontWeight: 500 }}>{session.date}</td>
-                    <td className="px-4 py-3.5">
-                      <div className="text-[13px]" style={{ fontWeight: 600 }}>{session.task || "—"}</div>
-                      {session.projectName && <div className="text-[11px] text-muted-foreground mt-0.5">{session.projectName}</div>}
-                    </td>
-                    <td className="px-4 py-3.5">
-                      <div className="flex flex-wrap gap-1">
-                        {(session.workTags || []).map((tag: string, i: number) => (
-                          <span key={i} className="px-1.5 py-0.5 bg-accent/80 text-muted-foreground text-[10px] rounded-lg" style={{ fontWeight: 600 }}>{tag}</span>
-                        ))}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3.5 text-[13px] text-right tabular-nums" style={{ fontWeight: 600 }}>{session.duration}h</td>
-                    {canViewFinancials && (
-                      <td className="px-4 py-3.5 text-right">
-                        <div className="text-[13px] tabular-nums" style={{ fontWeight: 600 }}>${session.revenue.toLocaleString()}</div>
-                        {!session.billable && <span className="px-1.5 py-0.5 bg-accent/80 text-muted-foreground text-[10px] rounded-lg" style={{ fontWeight: 600 }}>Non-billable</span>}
-                      </td>
-                    )}
-                    <td className="px-2 py-3.5">
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={(e) => { e.stopPropagation(); onEditSession(session); }} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-accent/60 text-muted-foreground hover:text-foreground transition-all" title="Edit session">
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       ) : (
-        <div className="text-center py-16 text-muted-foreground">
-          <div className="w-12 h-12 mx-auto mb-4 rounded-2xl bg-accent/40 flex items-center justify-center">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5 text-muted-foreground/30"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
-          </div>
-          <div className="text-[14px]" style={{ fontWeight: 600 }}>No sessions logged</div>
-          <div className="text-[12px] text-muted-foreground/60 mt-1">Log your first session to start tracking</div>
+        <div className="text-center py-12 border-y border-[var(--hairline)]">
+          <div className="type-body text-muted-foreground" style={{ fontWeight: 500 }}>No sessions logged</div>
+          <div className="type-meta text-muted-foreground/70 mt-1">Log your first session to start tracking</div>
         </div>
       )}
-    </SectionCard>
+    </div>
   );
 }
 
