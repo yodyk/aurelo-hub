@@ -377,8 +377,7 @@ function TaskRow({
   const [textValue, setTextValue] = useState(item.text);
 
   const cycleStatus = async () => {
-    const order: TaskStatus[] = ['to_do', 'in_progress', 'on_hold', 'on_hold', 'complete'];
-    const next = order[(order.indexOf(item.status) + 1) % order.length];
+    const next = cycleNextStatus(item.status);
     onUpdate({ status: next });
     try {
       await updateChecklistItem(item.id, { status: next });
@@ -387,6 +386,7 @@ function TaskRow({
       toast.error(err.message);
     }
   };
+
 
   const setStatus = async (status: TaskStatus) => {
     onUpdate({ status });
