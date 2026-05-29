@@ -106,6 +106,7 @@ export default function ChecklistPanel({ clientId, projectId, workspaceId }: Che
     todo: allItems.filter(i => i.status === 'todo').length,
     in_progress: allItems.filter(i => i.status === 'in_progress').length,
     blocked: allItems.filter(i => i.status === 'blocked').length,
+    on_hold: allItems.filter(i => i.status === 'on_hold').length,
     done: allItems.filter(i => i.status === 'done').length,
   }), [allItems]);
 
