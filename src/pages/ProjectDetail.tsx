@@ -107,16 +107,12 @@ function getLinkTypeConfig(type: string) {
 
 // ── Helpers ────────────────────────────────────────────────────────
 
+import { formatDate as formatDateFn, formatMoney, formatBytes } from "@/lib/format";
+
 function formatDate(d: string | undefined): string {
-  if (!d) return "—";
-  try {
-    const date = new Date(d);
-    if (isNaN(date.getTime())) return d;
-    return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-  } catch {
-    return d;
-  }
+  return formatDateFn(d, "medium");
 }
+
 
 function daysUntil(dateStr: string | undefined): number | null {
   if (!dateStr) return null;
