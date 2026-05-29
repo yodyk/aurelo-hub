@@ -64,7 +64,7 @@ function AnimatedNumber({ value, prefix = "" }: { value: number; prefix?: string
   return (
     <>
       {prefix}
-      {display.toLocaleString()}
+      {formatCount(display)}
     </>
   );
 }
