@@ -11,6 +11,8 @@ import { useRoleAccess } from "../data/useRoleAccess";
 import ClientAssignmentManager from "../components/ClientAssignmentManager";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader, SegmentedControl, HairlineBar, type SegmentOption } from "@/components/primitives/composition";
+import { formatMoney } from "@/lib/format";
+
 
 const container = {
   hidden: {},
