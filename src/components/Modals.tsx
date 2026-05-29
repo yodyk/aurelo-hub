@@ -1244,7 +1244,7 @@ export function LogSessionModal({ open, onClose, onSave, clients, preSelectedCli
                       const rateColor = cl && newEffRate < (cl.rate * 0.5) ? '#c27272' : cl && newEffRate < cl.rate ? '#C2860C' : '#3B66F0';
                       return (
                         <div className="text-[11px] text-muted-foreground mt-0.5">
-                          After this session: <span className="tabular-nums" style={{ fontWeight: 500, color: rateColor }}>${newEffRate}/hr</span>
+                          After this session: <span className="tabular-nums" style={{ fontWeight: 500, color: rateColor }}>{formatMoney(newEffRate, { showZeroDecimals: false })}/hr</span>
                         </div>
                       );
                     })()}
