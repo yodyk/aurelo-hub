@@ -302,3 +302,25 @@ Single-commit, value-only migration. Rollback = revert `src/index.css` and `tail
 **Result:** 2 files migrated, 0 retired hexes or stone-* utilities remaining in onboarding scope (verified by `rg`). Onboarding now inherits the Cool Graphite + Cobalt foundation and is dark-mode-ready alongside the rest of the auth funnel. The plan-picker accent map auto-tracks token edits.
 
 **READY FOR PHASE 1J.**
+
+# PHASE 1J — Core Internal Surfaces Token Sweep (executed)
+
+**Objective:** Migrate the seven highest-traffic internal pages (Settings, Invoicing, ClientDetail, ClientEdit, ProjectDetail, Projects, Insights) off hardcoded hex / rgba / stone-* utilities onto semantic tokens (`primary`, `destructive`, `warning`, `chart-2`, `accent`, `muted-foreground`, `--foreground-subtle`, `--surface-sunken`). Single regex pass via `/tmp/phase1j.mjs`.
+
+**Mappings applied:**
+- **Destructive** `#c27272` + `rgba(194,114,114,…)` + darker hover `#b05656` → `destructive` token across `bg-`, `text-`, `border-`, `ring-`, `hover:` variants. Inline string literals (`RED = "#c27272"`, `'#c27272'`, `'#b05656'`) → `'var(--destructive)'`. Hover-darker recipe: `color-mix(in_oklab,var(--destructive)_88%,black)`.
+- **Warning** `#C2860C` → `warning` token. Inline `GOLD = "#C2860C"` → `'var(--warning)'`.
+- **Primary** `#3B66F0` → `primary` token across all utility variants (incl. `/8` → `/[0.08]`, `/6` → `/[0.06]`, `border-/12` → `border-primary/15`). Inline `BLUE = "#3B66F0"` → `'var(--primary)'`. Gradients `linear-gradient(…, #3B66F0, #5bb8d4)` → `linear-gradient(…, var(--primary), var(--chart-2))`.
+- **Retired cyan accent** `#5bb8d4` (paired with cobalt in retainer/profit gradients) → `var(--chart-2)` (cool steel blue, on-palette).
+- **Sky** `#38bdf8` (Insights `CHART_BLUE`) → `var(--chart-2)`.
+- **Stone palette:** `bg-stone-100[ dark:bg-stone-800]` → `bg-accent`; `text-stone-600 dark:text-stone-400` / `text-stone-500 dark:text-stone-400` → `text-muted-foreground`; `text-stone-400` / `bg-stone-400` → `[var(--foreground-subtle)]`; `bg-stone-800` → `bg-[var(--surface-sunken)]`.
+- **Stone hex** `text-[#a8a29e]` / `text-[#78716c]` / `text-[#9a9aac]` → `--foreground-subtle` / `muted-foreground`.
+
+**Intentionally preserved:**
+- `Settings.tsx:944` `brandColor: '#3B66F0'` and `Settings.tsx:1249` `ws.brandColor || "#3B66F0"` — workspace brand color is a **user-customizable data value** persisted to the database; the literal `#3B66F0` is the seed default, not a styling token.
+- Integration partner brand hexes (`#4285F4` Google, `#4A154B` Slack, `#A259FF` Figma, `#0061FF` Dropbox, `#FFD02F`, `#10b981`, `#0ea5e9`) — third-party brand colors required for visual recognition.
+- Switch knob `bg-white` instances — intentionally white-in-all-themes for "on" indicator contrast.
+
+**Result:** 7 files migrated, ~145 hardcoded color references removed in one pass. Zero retired hex/stone references remain outside the brandColor data defaults (verified by `rg`). Profit gradients, retainer pacing fills, destructive Danger Zone blocks, warning amber alerts, and Insights chart blues all now follow the Cool Graphite + Cobalt foundation and respect dark mode automatically.
+
+**READY FOR PHASE 1K.**

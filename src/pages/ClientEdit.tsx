@@ -679,7 +679,7 @@ export default function ClientEdit() {
             <FieldLabel>Status</FieldLabel>
             <div className="flex gap-2">
               <StatusPill active={status === 'Active'} onClick={() => setStatus('Active')} label="Active" dot="bg-primary" />
-              <StatusPill active={status === 'Prospect'} onClick={() => setStatus('Prospect')} label="Prospect" dot="bg-stone-400" />
+              <StatusPill active={status === 'Prospect'} onClick={() => setStatus('Prospect')} label="Prospect" dot="bg-[var(--foreground-subtle)]" />
               <StatusPill active={status === 'Archived'} onClick={() => setStatus('Archived')} label="Archived" dot="bg-zinc-400" />
             </div>
             {status === 'Archived' && (
@@ -736,7 +736,7 @@ export default function ClientEdit() {
                       className="h-full rounded-circle transition-all duration-300"
                       style={{
                         width: `${Math.max(0, Math.min(100, ((retainerTotalNum - retainerRemainingNum) / retainerTotalNum) * 100))}%`,
-                        background: retainerUsedPct > 85 ? '#c27272' : retainerUsedPct > 70 ? '#C2860C' : 'linear-gradient(90deg, #3B66F0, #5bb8d4)',
+                        background: retainerUsedPct > 85 ? 'var(--destructive)' : retainerUsedPct > 70 ? 'var(--warning)' : 'linear-gradient(90deg, var(--primary), var(--chart-2))',
                       }}
                     />
                   </div>

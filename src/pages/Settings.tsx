@@ -1769,7 +1769,7 @@ function IdentitySection() {
                 title={cat.billable ? "Billable — click to make non-billable" : "Non-billable — click to make billable"}
               >
                 <div
-                  className={`w-2 h-2 rounded-circle transition-colors ${cat.billable ? "bg-primary" : "bg-stone-400"}`}
+                  className={`w-2 h-2 rounded-circle transition-colors ${cat.billable ? "bg-primary" : "bg-[var(--foreground-subtle)]"}`}
                 />
               </button>
 
@@ -1796,7 +1796,7 @@ function IdentitySection() {
               {/* Meta badges */}
               {!cat.billable && (
                 <span
-                  className="text-[10px] text-stone-400 bg-stone-100 px-1.5 py-0.5 rounded"
+                  className="text-[10px] text-[var(--foreground-subtle)] bg-accent px-1.5 py-0.5 rounded"
                   style={{ fontWeight: 500 }}
                 >
                   non-billable
@@ -1832,7 +1832,7 @@ function IdentitySection() {
                 </button>
                 <button
                   onClick={() => (canCustomize ? handleRemoveCategory(index) : setShowUpgradeModal(true))}
-                  className="w-6 h-6 flex items-center justify-center rounded text-muted-foreground hover:text-[#c27272] hover:bg-[rgba(194,114,114,0.08)] transition-all"
+                  className="w-6 h-6 flex items-center justify-center rounded text-muted-foreground hover:text-destructive hover:bg-destructive/[0.08] transition-all"
                   title="Remove"
                 >
                   <Trash2 className="w-3 h-3" />
@@ -4333,23 +4333,23 @@ function DataTab() {
       </SectionCard>
 
       {/* Danger Zone */}
-      <div className="rounded-xl border-2 border-[#c27272]/30 overflow-hidden">
-        <div className="px-6 py-4 bg-[#c27272]/[0.05] border-b border-[#c27272]/20">
+      <div className="rounded-xl border-2 border-destructive/30 overflow-hidden">
+        <div className="px-6 py-4 bg-destructive/[0.05] border-b border-destructive/20">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#c27272]/10 flex items-center justify-center">
-              <AlertTriangle className="w-4 h-4 text-[#c27272]" />
+            <div className="w-8 h-8 rounded-lg bg-destructive/10 flex items-center justify-center">
+              <AlertTriangle className="w-4 h-4 text-destructive" />
             </div>
             <div>
-              <h3 className="text-[15px] text-[#b05656]" style={{ fontWeight: 600 }}>
+              <h3 className="text-[15px] text-destructive" style={{ fontWeight: 600 }}>
                 Danger zone
               </h3>
-              <p className="text-[12px] text-[#c27272]/70">These actions are permanent and cannot be undone</p>
+              <p className="text-[12px] text-destructive/70">These actions are permanent and cannot be undone</p>
             </div>
           </div>
         </div>
         <div className="p-6 space-y-4 bg-card">
           {/* Reset Financial */}
-          <div className="py-3.5 px-4 rounded-lg border border-[#c27272]/15 bg-[#c27272]/[0.02] hover:bg-[#c27272]/[0.04] transition-colors">
+          <div className="py-3.5 px-4 rounded-lg border border-destructive/15 bg-destructive/[0.02] hover:bg-destructive/[0.04] transition-colors">
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-[14px] text-foreground" style={{ fontWeight: 500 }}>
@@ -4361,7 +4361,7 @@ function DataTab() {
               </div>
               <button
                 onClick={() => setShowResetModal(true)}
-                className="px-3.5 py-1.5 text-[12px] rounded-lg border border-[#c27272]/30 text-[#b05656] hover:bg-[#c27272]/[0.08] transition-all"
+                className="px-3.5 py-1.5 text-[12px] rounded-lg border border-destructive/30 text-destructive hover:bg-destructive/[0.08] transition-all"
                 style={{ fontWeight: 500 }}
               >
                 Reset data
@@ -4370,7 +4370,7 @@ function DataTab() {
           </div>
 
           {/* Delete Workspace */}
-          <div className="py-3.5 px-4 rounded-lg border border-[#c27272]/15 bg-[#c27272]/[0.02] hover:bg-[#c27272]/[0.04] transition-colors">
+          <div className="py-3.5 px-4 rounded-lg border border-destructive/15 bg-destructive/[0.02] hover:bg-destructive/[0.04] transition-colors">
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-[14px] text-foreground" style={{ fontWeight: 500 }}>
@@ -4382,7 +4382,7 @@ function DataTab() {
               </div>
               <button
                 onClick={() => setShowDeleteModal(true)}
-                className="px-3.5 py-1.5 text-[12px] rounded-lg bg-[#c27272]/10 border border-[#c27272]/30 text-[#b05656] hover:bg-[#c27272]/[0.18] transition-all"
+                className="px-3.5 py-1.5 text-[12px] rounded-lg bg-destructive/10 border border-destructive/30 text-destructive hover:bg-destructive/[0.18] transition-all"
                 style={{ fontWeight: 500 }}
               >
                 Delete workspace
@@ -4415,8 +4415,8 @@ function DataTab() {
               style={{ boxShadow: "0 16px 48px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06)" }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="w-11 h-11 rounded-xl bg-[#c27272]/10 flex items-center justify-center mb-4">
-                <AlertTriangle className="w-5 h-5 text-[#c27272]" />
+              <div className="w-11 h-11 rounded-xl bg-destructive/10 flex items-center justify-center mb-4">
+                <AlertTriangle className="w-5 h-5 text-destructive" />
               </div>
               <h3 className="text-[16px] text-foreground mb-1" style={{ fontWeight: 600 }}>
                 Reset all financial data?
@@ -4425,7 +4425,7 @@ function DataTab() {
                 This will permanently delete all earnings, time sessions, and invoices. Your clients and projects will
                 be preserved.
               </p>
-              <p className="text-[13px] text-[#b05656] leading-relaxed mb-5" style={{ fontWeight: 500 }}>
+              <p className="text-[13px] text-destructive leading-relaxed mb-5" style={{ fontWeight: 500 }}>
                 This action cannot be undone.
               </p>
 
@@ -4437,7 +4437,7 @@ function DataTab() {
                   value={resetTyped}
                   onChange={(e) => setResetTyped(e.target.value)}
                   placeholder="RESET"
-                  className="w-full px-3 py-2 text-[13px] bg-accent/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c27272]/20 focus:border-[#c27272]/30 transition-all font-mono"
+                  className="w-full px-3 py-2 text-[13px] bg-accent/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-destructive/20 focus:border-destructive/30 transition-all font-mono"
                 />
               </div>
 
@@ -4455,7 +4455,7 @@ function DataTab() {
                 <button
                   onClick={handleResetFinancial}
                   disabled={resetTyped !== "RESET" || resetting}
-                  className="px-4 py-2 text-[13px] rounded-lg bg-[#c27272] text-white hover:bg-[#b05656] disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-1.5"
+                  className="px-4 py-2 text-[13px] rounded-lg bg-destructive text-white hover:bg-[color-mix(in_oklab,var(--destructive)_88%,black)] disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-1.5"
                   style={{ fontWeight: 500 }}
                 >
                   {resetting && <Loader2 className="w-3 h-3 animate-spin" />}
@@ -4490,8 +4490,8 @@ function DataTab() {
               style={{ boxShadow: "0 16px 48px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06)" }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="w-11 h-11 rounded-xl bg-[#c27272]/10 flex items-center justify-center mb-4">
-                <AlertTriangle className="w-5 h-5 text-[#c27272]" />
+              <div className="w-11 h-11 rounded-xl bg-destructive/10 flex items-center justify-center mb-4">
+                <AlertTriangle className="w-5 h-5 text-destructive" />
               </div>
               <h3 className="text-[16px] text-foreground mb-1" style={{ fontWeight: 600 }}>
                 Delete this workspace?
@@ -4503,8 +4503,8 @@ function DataTab() {
 
               {/* Subscription warning */}
               {currentPlanId !== "starter" && (
-                <div className="flex items-start gap-2.5 px-3.5 py-3 rounded-lg bg-[#C2860C]/[0.06] border border-[#C2860C]/20 mb-4">
-                  <Shield className="w-4 h-4 text-[#C2860C] mt-0.5 flex-shrink-0" />
+                <div className="flex items-start gap-2.5 px-3.5 py-3 rounded-lg bg-warning/[0.06] border border-warning/20 mb-4">
+                  <Shield className="w-4 h-4 text-warning mt-0.5 flex-shrink-0" />
                   <div>
                     <div className="text-[12px] text-foreground" style={{ fontWeight: 600 }}>
                       Your subscription will be downgraded
@@ -4517,7 +4517,7 @@ function DataTab() {
                 </div>
               )}
 
-              <p className="text-[13px] text-[#b05656] leading-relaxed mb-5" style={{ fontWeight: 500 }}>
+              <p className="text-[13px] text-destructive leading-relaxed mb-5" style={{ fontWeight: 500 }}>
                 This action is permanent and cannot be undone.
               </p>
 
@@ -4529,7 +4529,7 @@ function DataTab() {
                   value={deleteTyped}
                   onChange={(e) => setDeleteTyped(e.target.value)}
                   placeholder="DELETE"
-                  className="w-full px-3 py-2 text-[13px] bg-accent/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c27272]/20 focus:border-[#c27272]/30 transition-all font-mono"
+                  className="w-full px-3 py-2 text-[13px] bg-accent/20 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-destructive/20 focus:border-destructive/30 transition-all font-mono"
                 />
               </div>
 
@@ -4547,7 +4547,7 @@ function DataTab() {
                 <button
                   onClick={handleDeleteWorkspace}
                   disabled={deleteTyped !== "DELETE" || deleting}
-                  className="px-4 py-2 text-[13px] rounded-lg bg-[#c27272] text-white hover:bg-[#b05656] disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-1.5"
+                  className="px-4 py-2 text-[13px] rounded-lg bg-destructive text-white hover:bg-[color-mix(in_oklab,var(--destructive)_88%,black)] disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-1.5"
                   style={{ fontWeight: 500 }}
                 >
                   {deleting && <Loader2 className="w-3 h-3 animate-spin" />}

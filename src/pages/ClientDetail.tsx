@@ -74,15 +74,15 @@ const item = {
 
 // ── Helpers ─────────────────────────────────────────────────────────
 function getUsageBarColor(usagePct: number): string {
-  if (usagePct >= 85) return "#c27272";
-  if (usagePct >= 70) return "#C2860C";
-  return "linear-gradient(90deg, #3B66F0, #5bb8d4)";
+  if (usagePct >= 85) return "var(--destructive)";
+  if (usagePct >= 70) return "var(--warning)";
+  return "linear-gradient(90deg, var(--primary), var(--chart-2))";
 }
 
 function getUsageTextColor(usagePct: number): string {
-  if (usagePct >= 85) return "#c27272";
-  if (usagePct >= 70) return "#C2860C";
-  return "#3B66F0";
+  if (usagePct >= 85) return "var(--destructive)";
+  if (usagePct >= 70) return "var(--warning)";
+  return "var(--primary)";
 }
 
 const PRIORITY_CONFIG: Record<string, { color: string; bg: string; icon: string }> = {
@@ -2227,7 +2227,7 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
                 {history.slice(0, 12).reverse().map((h, i) => {
                   const pct = h.hours_total > 0 ? (h.hours_used / h.hours_total) * 100 : 0;
                   const barH = Math.max((pct / 100) * 72, 3);
-                  const color = pct >= 85 ? '#c27272' : pct >= 70 ? '#C2860C' : '#3B66F0';
+                  const color = pct >= 85 ? 'var(--destructive)' : pct >= 70 ? 'var(--warning)' : 'var(--primary)';
                   return (
                     <div key={h.id} className="flex-1 flex flex-col items-center gap-1" title={`${format(new Date(h.cycle_start + 'T00:00:00'), 'MMM d')} – ${format(new Date(h.cycle_end + 'T00:00:00'), 'MMM d')}: ${Math.round(pct)}% used`}>
                       <div className="w-full rounded-t transition-all" style={{ height: barH, backgroundColor: color, opacity: 0.6, maxWidth: 28 }} />
@@ -2460,7 +2460,7 @@ function PortalTab({ client, clientId, portalConfig, portalLoading, copied, onCo
         {portalConfig && (
           <div className="flex items-center justify-between p-3 bg-accent/20 rounded-lg">
             <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-circle ${portalConfig.active ? "bg-[#3B66F0]" : "bg-zinc-300"}`} />
+              <div className={`w-2 h-2 rounded-circle ${portalConfig.active ? "bg-primary" : "bg-zinc-300"}`} />
               <span className="text-[13px]" style={{ fontWeight: 500 }}>{portalConfig.active ? "Portal is live" : "Portal is deactivated"}</span>
             </div>
             <button
@@ -2620,13 +2620,13 @@ function SettingsTab({ client, clientId, confirmArchive, setConfirmArchive, onAr
               <div className="text-[13px] text-muted-foreground">This will hide the client from active views. Data will be preserved.</div>
             </div>
             {!confirmArchive ? (
-              <button onClick={() => setConfirmArchive(true)} className="px-4 py-2 text-[13px] text-[#c27272] border border-[rgba(194,114,114,0.3)] rounded-lg hover:bg-[rgba(194,114,114,0.08)] transition-all" style={{ fontWeight: 500 }}>
+              <button onClick={() => setConfirmArchive(true)} className="px-4 py-2 text-[13px] text-destructive border border-destructive/30 rounded-lg hover:bg-destructive/[0.08] transition-all" style={{ fontWeight: 500 }}>
                 Archive client
               </button>
             ) : (
               <div className="flex items-center gap-2">
                 <button onClick={() => setConfirmArchive(false)} className="px-3 py-1.5 text-[13px] rounded-lg border border-border text-muted-foreground hover:bg-accent/40 transition-all" style={{ fontWeight: 500 }}>Cancel</button>
-                <button onClick={onArchive} className="px-3 py-1.5 text-[13px] rounded-lg bg-[rgba(194,114,114,0.1)] border border-[rgba(194,114,114,0.3)] text-[#b05656] hover:bg-[rgba(194,114,114,0.18)] transition-all" style={{ fontWeight: 500 }}>
+                <button onClick={onArchive} className="px-3 py-1.5 text-[13px] rounded-lg bg-destructive/10 border border-destructive/30 text-destructive hover:bg-destructive/20 transition-all" style={{ fontWeight: 500 }}>
                   Confirm archive
                 </button>
               </div>
@@ -2655,7 +2655,7 @@ function SettingsTab({ client, clientId, confirmArchive, setConfirmArchive, onAr
               <div className="text-[13px] text-muted-foreground">This will permanently remove the client and all associated sessions, projects, invoices, notes, and files. This action cannot be undone.</div>
             </div>
             {!confirmDelete ? (
-              <button onClick={() => setConfirmDelete(true)} className="px-4 py-2 text-[13px] text-[#c27272] border border-[rgba(194,114,114,0.3)] rounded-lg hover:bg-[rgba(194,114,114,0.08)] transition-all whitespace-nowrap" style={{ fontWeight: 500 }}>
+              <button onClick={() => setConfirmDelete(true)} className="px-4 py-2 text-[13px] text-destructive border border-destructive/30 rounded-lg hover:bg-destructive/[0.08] transition-all whitespace-nowrap" style={{ fontWeight: 500 }}>
                 Delete permanently
               </button>
             ) : (

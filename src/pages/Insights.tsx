@@ -62,7 +62,7 @@ const signalIcons: Record<string, any> = {
 
 type SortKey = "revenue" | "trueHourlyRate" | "utilization";
 
-const CHART_BLUE = "#38bdf8";
+const CHART_BLUE = "var(--chart-2)";
 const BLUE = "hsl(var(--primary))";
 const BLUE_LIGHT = "hsl(var(--primary) / 0.15)";
 
@@ -314,7 +314,7 @@ export default function Insights() {
                       <div className="bg-card border border-border rounded-lg px-3 py-2 shadow-lg text-[12px]">
                         <div className="text-muted-foreground mb-1" style={{ fontWeight: 500 }}>{label}</div>
                         <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-circle" style={{ background: "#38bdf8" }} />
+                          <div className="w-2 h-2 rounded-circle" style={{ background: "var(--chart-2)" }} />
                           <span className="text-muted-foreground">Gross:</span>
                           <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>${d.revenue?.toLocaleString()}</span>
                         </div>

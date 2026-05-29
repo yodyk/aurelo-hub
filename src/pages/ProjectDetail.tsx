@@ -42,9 +42,9 @@ import { useRoleAccess } from "@/data/useRoleAccess";
 
 // ── Constants ──────────────────────────────────────────────────────
 
-const BLUE = "#3B66F0";
-const GOLD = "#C2860C";
-const RED = "#c27272";
+const BLUE = "var(--primary)";
+const GOLD = "var(--warning)";
+const RED = "var(--destructive)";
 
 const container = {
   hidden: {},
@@ -61,11 +61,11 @@ const statusOptions = ["Not Started", "In Progress", "On Hold", "Complete"] as c
 const statusColors: Record<string, { bg: string; text: string; dot: string }> = {
   "In Progress": { bg: "bg-primary/8", text: "text-primary", dot: "bg-primary" },
   "Not Started": {
-    bg: "bg-stone-100 dark:bg-stone-800",
-    text: "text-stone-600 dark:text-stone-400",
-    dot: "bg-stone-400",
+    bg: "bg-accent",
+    text: "text-muted-foreground",
+    dot: "bg-[var(--foreground-subtle)]",
   },
-  "On Hold": { bg: "bg-stone-100 dark:bg-stone-800", text: "text-stone-500 dark:text-stone-400", dot: "bg-stone-400" },
+  "On Hold": { bg: "bg-accent", text: "text-muted-foreground", dot: "bg-[var(--foreground-subtle)]" },
   Complete: { bg: "bg-zinc-100 dark:bg-zinc-800", text: "text-zinc-500 dark:text-zinc-400", dot: "bg-zinc-400" },
 };
 
@@ -582,7 +582,7 @@ export default function ProjectDetail() {
                   if (d === null) return null;
                   return (
                     <span
-                      className={`text-[12px] px-2 py-0.5 rounded-full ${d < 0 ? "bg-[#c27272]/10 text-[#c27272]" : d <= 7 ? "bg-[#C2860C]/10 text-[#C2860C]" : "bg-accent/40 text-muted-foreground"}`}
+                      className={`text-[12px] px-2 py-0.5 rounded-full ${d < 0 ? "bg-destructive/10 text-destructive" : d <= 7 ? "bg-warning/10 text-warning" : "bg-accent/40 text-muted-foreground"}`}
                       style={{ fontWeight: 500 }}
                     >
                       {d < 0 ? `${Math.abs(d)}d overdue` : d === 0 ? "Due today" : `${d}d left`}
@@ -653,7 +653,7 @@ export default function ProjectDetail() {
                           e.stopPropagation();
                           handleDeleteLink(link.id);
                         }}
-                        className="ml-0.5 opacity-0 group-hover/link:opacity-100 p-0.5 rounded hover:bg-accent/60 text-muted-foreground hover:text-[#c27272] transition-all"
+                        className="ml-0.5 opacity-0 group-hover/link:opacity-100 p-0.5 rounded hover:bg-accent/60 text-muted-foreground hover:text-destructive transition-all"
                       >
                         <X className="w-2.5 h-2.5" />
                       </button>
@@ -947,7 +947,7 @@ export default function ProjectDetail() {
                         const diff = Math.ceil((projected.getTime() - deadline.getTime()) / (1000 * 60 * 60 * 24));
                         return (
                           <span
-                            className={`inline-flex items-center gap-1 text-[12px] px-2 py-0.5 rounded-full ${diff > 0 ? "bg-[#c27272]/10 text-[#c27272]" : "bg-[#3B66F0]/10 text-[#3B66F0]"}`}
+                            className={`inline-flex items-center gap-1 text-[12px] px-2 py-0.5 rounded-full ${diff > 0 ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary"}`}
                             style={{ fontWeight: 500 }}
                           >
                             {diff > 0 ? (
@@ -987,8 +987,8 @@ export default function ProjectDetail() {
                     className="bg-card border border-border rounded-xl p-6 text-center max-w-sm"
                     style={{ boxShadow: "0 8px 32px rgba(0,0,0,0.08)" }}
                   >
-                    <div className="w-10 h-10 rounded-xl bg-[#3B66F0]/10 flex items-center justify-center mx-auto mb-3">
-                      <Sparkles className="w-5 h-5 text-[#3B66F0]" />
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                      <Sparkles className="w-5 h-5 text-primary" />
                     </div>
                     <h3 className="text-[15px] mb-1" style={{ fontWeight: 600 }}>
                       Unlock project insights
@@ -1027,7 +1027,7 @@ export default function ProjectDetail() {
                   <div className="text-[12px] text-muted-foreground">Portfolio average</div>
                   {insights && insights.rateVsAvg !== 0 && (
                     <div
-                      className={`mt-3 inline-flex items-center gap-1 text-[12px] px-2 py-0.5 rounded-full ${insights.rateVsAvg > 0 ? "bg-[#3B66F0]/10 text-[#3B66F0]" : "bg-[#c27272]/10 text-[#c27272]"}`}
+                      className={`mt-3 inline-flex items-center gap-1 text-[12px] px-2 py-0.5 rounded-full ${insights.rateVsAvg > 0 ? "bg-primary/10 text-primary" : "bg-destructive/10 text-destructive"}`}
                       style={{ fontWeight: 500 }}
                     >
                       {insights.rateVsAvg > 0 ? "+" : ""}
@@ -1069,9 +1069,9 @@ export default function ProjectDetail() {
                   {(() => {
                     const risk = insights?.deadlineRisk || "low";
                     const rc = {
-                      low: { label: "On track", color: BLUE, bg: "bg-[#3B66F0]/10" },
-                      medium: { label: "Watch closely", color: GOLD, bg: "bg-[#C2860C]/10" },
-                      high: { label: "At risk", color: RED, bg: "bg-[#c27272]/10" },
+                      low: { label: "On track", color: BLUE, bg: "bg-primary/10" },
+                      medium: { label: "Watch closely", color: GOLD, bg: "bg-warning/10" },
+                      high: { label: "At risk", color: RED, bg: "bg-destructive/10" },
                     }[risk];
                     return (
                       <>
@@ -1224,7 +1224,7 @@ export default function ProjectDetail() {
                       >
                         <button onClick={() => handleToggleMilestone(m.id)} className="flex-shrink-0">
                           {m.completed ? (
-                            <Check className="w-4 h-4 text-[#3B66F0]" />
+                            <Check className="w-4 h-4 text-primary" />
                           ) : (
                             <Circle className="w-4 h-4 text-muted-foreground/40 hover:text-muted-foreground transition-colors" />
                           )}
@@ -1237,7 +1237,7 @@ export default function ProjectDetail() {
                         </span>
                         <button
                           onClick={() => handleDeleteMilestone(m.id)}
-                          className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-accent/60 text-muted-foreground hover:text-[#c27272] transition-all"
+                          className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-accent/60 text-muted-foreground hover:text-destructive transition-all"
                         >
                           <Trash2 className="w-3 h-3" />
                         </button>
