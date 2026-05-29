@@ -107,16 +107,12 @@ function getLinkTypeConfig(type: string) {
 
 // ── Helpers ────────────────────────────────────────────────────────
 
+import { formatDate as formatDateFn, formatMoney, formatBytes } from "@/lib/format";
+
 function formatDate(d: string | undefined): string {
-  if (!d) return "—";
-  try {
-    const date = new Date(d);
-    if (isNaN(date.getTime())) return d;
-    return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-  } catch {
-    return d;
-  }
+  return formatDateFn(d, "medium");
 }
+
 
 function daysUntil(dateStr: string | undefined): number | null {
   if (!dateStr) return null;
@@ -781,10 +777,11 @@ export default function ProjectDetail() {
                     </span>
                   </div>
                   <div className="text-[24px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 700 }}>
-                    ${budgetData.revenueEarned.toLocaleString()}
+                    {formatMoney(budgetData.revenueEarned)}
                   </div>
                   <div className="text-[12px] text-muted-foreground mt-1 tabular-nums">
-                    of ${budgetData.totalValue.toLocaleString()} · {budgetData.budgetPct}%
+                    of {formatMoney(budgetData.totalValue)} · {budgetData.budgetPct}%
+
                   </div>
                 </div>
                 )}
@@ -923,7 +920,7 @@ export default function ProjectDetail() {
                       />
                     </div>
                     <div className="text-[11px] text-muted-foreground mt-1.5 tabular-nums">
-                      ${budgetData.revenueEarned.toLocaleString()} of ${budgetData.totalValue.toLocaleString()}
+                      {formatMoney(budgetData.revenueEarned)} of {formatMoney(budgetData.totalValue)}
                     </div>
                   </div>
                   )}
@@ -1313,7 +1310,7 @@ export default function ProjectDetail() {
                               {session.date ? formatDate(session.date) : "—"}
                             </span>
                             <span className="text-[11px] tabular-nums text-muted-foreground">
-                              {session.billable ? `$${(session.revenue || 0).toLocaleString()}` : "Non-billable"}
+                              {session.billable ? formatMoney(session.revenue || 0) : "Non-billable"}
                             </span>
                           </div>
                           {session.workTags && session.workTags.length > 0 && (
@@ -1434,7 +1431,7 @@ export default function ProjectDetail() {
                             </div>
                             {file.size && (
                               <div className="text-[11px] text-muted-foreground">
-                                {(file.size / 1024).toFixed(1)} KB
+                                {formatBytes(file.size)}
                               </div>
                             )}
                           </div>

@@ -4,6 +4,8 @@ import { Users, Clock, DollarSign, TrendingUp, BarChart3 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useData } from "@/data/DataContext";
 import { MemberClientAssignments } from "./ClientAssignmentManager";
+import { formatMoney } from "@/lib/format";
+
 
 interface TeamMember {
   id: string;
@@ -79,7 +81,7 @@ export default function TeamUtilization() {
     { key: "members", label: "Active members", value: activeMembers.length.toString(), sub: `of ${members.length} total`, icon: Users },
     { key: "utilization", label: "Billable utilization", value: `${utilizationRate}%`, sub: `${Math.round(billableHours)}h billable`, icon: TrendingUp },
     { key: "capacity", label: "Avg hours / member", value: avgHoursPerMember.toString(), sub: `of ${totalWeeklyCapacity}h capacity`, icon: Clock },
-    { key: "revenue", label: "Team revenue", value: `$${Math.round(totalRevenue).toLocaleString()}`, sub: "this period", icon: DollarSign },
+    { key: "revenue", label: "Team revenue", value: formatMoney(Math.round(totalRevenue), { precision: "compact" }), sub: "this period", icon: DollarSign },
   ];
 
   if (loading) {
@@ -289,7 +291,7 @@ export default function TeamUtilization() {
                         {Math.round(m.billableHours * 10) / 10}h
                       </td>
                       <td className="px-6 py-4 text-right text-[14px] tabular-nums" style={{ fontWeight: 500 }}>
-                        ${Math.round(m.revenue).toLocaleString()}
+                        {formatMoney(Math.round(m.revenue))}
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">

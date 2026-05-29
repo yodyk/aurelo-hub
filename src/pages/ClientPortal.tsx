@@ -120,18 +120,20 @@ interface PortalData {
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
+import { formatMoney, formatDuration, formatDate as formatDateFn } from "@/lib/format";
+
 function fmt$(amount: number, currency = "USD") {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency, minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
+  return formatMoney(amount, { currency, precision: "compact" });
 }
 
 function fmtHours(h: number) {
-  return `${h.toFixed(1)}h`;
+  return formatDuration(h, { variant: "display" }).replace(' hrs', 'h');
 }
 
 function fmtDate(d?: string | null) {
-  if (!d) return "—";
-  try { return format(new Date(d), "MMM d, yyyy"); } catch { return d; }
+  return formatDateFn(d, "medium");
 }
+
 
 function statusColor(status: string) {
   const s = status.toLowerCase();

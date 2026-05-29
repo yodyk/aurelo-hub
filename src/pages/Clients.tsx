@@ -11,6 +11,8 @@ import { useRoleAccess } from "../data/useRoleAccess";
 import ClientAssignmentManager from "../components/ClientAssignmentManager";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader, SegmentedControl, HairlineBar, type SegmentOption } from "@/components/primitives/composition";
+import { formatMoney } from "@/lib/format";
+
 
 const container = {
   hidden: {},
@@ -135,7 +137,7 @@ export default function Clients() {
             {canViewFinancials && (
               <>
                 <span className="opacity-40 mx-1.5">·</span>
-                <span className="tabular-nums">${totalMonthly.toLocaleString()}</span> this month
+                <span className="tabular-nums">{formatMoney(totalMonthly, { precision: "compact" })}</span> this month
               </>
             )}
           </>
@@ -350,7 +352,7 @@ function ClientTable({
               {canViewFinancials ? (
                 <div className="text-right">
                   <div className="text-[12.5px] tabular-nums mb-1" style={{ fontWeight: 600 }}>
-                    ${earnings.toLocaleString()}
+                    {formatMoney(earnings)}
                     <span className="text-muted-foreground text-[11px] ml-1" style={{ fontWeight: 400 }}>
                       · {sessionCount}
                     </span>

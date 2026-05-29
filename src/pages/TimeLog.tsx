@@ -16,6 +16,8 @@ import { usePlan } from "../data/PlanContext";
 import RecurringSessionsManager from "../components/RecurringSessionsManager";
 import { PageHeader, SegmentedControl, type SegmentOption } from "@/components/primitives/composition";
 import { useRoleAccess } from "@/data/useRoleAccess";
+import { formatMoney } from "@/lib/format";
+
 
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.04 } } };
 const item = {
@@ -256,7 +258,7 @@ export default function TimeLog() {
               <span className="opacity-40 mx-1.5">·</span>
               {weekStats.billableHours}h billable
               <span className="opacity-40 mx-1.5">·</span>
-              ${weekStats.accrued.toLocaleString()} accrued
+              {formatMoney(weekStats.accrued, { precision: "compact" })} accrued
             </span>
           ) : (
             <span className="tabular-nums">{weekStats.hours}h this week</span>
@@ -386,7 +388,7 @@ export default function TimeLog() {
                       {canViewFinancials && (
                         <>
                           <span className="opacity-40 mx-1.5">·</span>
-                          ${group.totalRevenue.toLocaleString()}
+                          {formatMoney(group.totalRevenue)}
                         </>
                       )}
                     </div>

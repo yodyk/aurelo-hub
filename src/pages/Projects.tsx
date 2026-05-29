@@ -7,6 +7,8 @@ import { AddProjectModal } from "../components/Modals";
 import { toast } from "sonner";
 import { usePlan } from "../data/PlanContext";
 import { LimitEnforcementModal } from "../components/PlanEnforcement";
+import { formatMoney } from "@/lib/format";
+
 
 const container = {
   hidden: {},
@@ -207,9 +209,10 @@ export default function Projects() {
             className="text-[32px] leading-none tracking-tight text-primary tabular-nums"
             style={{ fontWeight: 600 }}
           >
-            ${activeValue.toLocaleString()}
+            {formatMoney(activeValue, { precision: "compact" })}
           </div>
-          <div className="text-[12px] text-muted-foreground mt-1.5">${totalValue.toLocaleString()} total</div>
+          <div className="text-[12px] text-muted-foreground mt-1.5">{formatMoney(totalValue, { precision: "compact" })} total</div>
+
         </div>
 
         <div className="stat-card">
@@ -416,21 +419,22 @@ export default function Projects() {
                       </td>
                       <td className="px-4 py-4 text-right">
                         <div className="text-[14px] tabular-nums" style={{ fontWeight: 500 }}>
-                          ${(project.totalValue || 0).toLocaleString()}
+                          {formatMoney(project.totalValue || 0)}
                         </div>
                         {project.totalValue > 0 && project.hours > 0 ? (() => {
                           const effRate = Math.round(project.totalValue / project.hours);
                           const rateColor = effRate < (project.clientRate * 0.5) ? 'var(--destructive)' : effRate < project.clientRate ? 'var(--warning)' : 'var(--primary)';
                           return (
                             <div className="text-[11px] tabular-nums" style={{ fontWeight: 500, color: rateColor }}>
-                              ${effRate}/hr effective
+                              {formatMoney(effRate, { precision: "compact" })}/hr effective
                             </div>
                           );
                         })() : project.revenue > 0 ? (
                           <div className="text-[11px] text-muted-foreground tabular-nums">
-                            ${project.revenue.toLocaleString()} earned
+                            {formatMoney(project.revenue)} earned
                           </div>
                         ) : null}
+
                       </td>
                       <td className="px-4 py-4">
                         <div className="text-[13px] text-muted-foreground">

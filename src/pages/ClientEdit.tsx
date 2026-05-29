@@ -12,6 +12,8 @@ import { usePlan } from '@/data/PlanContext';
 import { useRoleAccess } from '@/data/useRoleAccess';
 import { supabase } from '@/integrations/supabase/client';
 import { SettingsSaveBar, UnsavedChangesDialog } from '@/components/SettingsSaveBar';
+import { formatMoney } from '@/lib/format';
+
 import * as settingsApi from '@/data/settingsApi';
 
 // ── Types ───────────────────────────────────────────────────────────
@@ -741,7 +743,7 @@ export default function ClientEdit() {
                     />
                   </div>
                   <div className="flex items-center justify-between text-[11px] text-muted-foreground mt-1.5">
-                    <span>${retainerMonthlyValue.toLocaleString()}/mo</span>
+                    <span>{formatMoney(retainerMonthlyValue)}/mo</span>
                     <span>Resets 1st of month</span>
                   </div>
                 </div>

@@ -54,6 +54,8 @@ import ChecklistPanel from "../components/ChecklistPanel";
 import EmailActivityLog from "../components/EmailActivityLog";
 import BulkSessionActions from "../components/BulkSessionActions";
 import { supabase } from "@/integrations/supabase/client";
+import { formatMoney, formatBytes } from "@/lib/format";
+
 import * as settingsApi from "@/data/settingsApi";
 import { usePlan } from "@/data/PlanContext";
 import { useRoleAccess } from "@/data/useRoleAccess";
@@ -576,11 +578,8 @@ export default function ClientDetail() {
   };
 
   const handleDrop = (e: React.DragEvent) => { e.preventDefault(); const file = e.dataTransfer.files[0]; if (file) handleFileUpload(file); };
-  const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  };
+  const formatFileSize = (bytes: number) => formatBytes(bytes);
+
 
   // ═════════════════════════════════════════════════════════════════
   // RENDER
@@ -633,12 +632,13 @@ export default function ClientDetail() {
             {canViewFinancials && (
               <div className="flex items-baseline gap-2 mt-2 tabular-nums">
                 <span className="type-page" style={{ margin: 0, fontSize: 22 }}>
-                  ${effectiveRate.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                  {formatMoney(effectiveRate)}
                 </span>
                 <span className="type-meta text-muted-foreground">/hr effective</span>
                 <span className="type-meta text-muted-foreground opacity-40">·</span>
                 <span className="type-meta text-muted-foreground">
-                  ${(client.lifetimeRevenue || 0).toLocaleString()} lifetime
+                  {formatMoney(client.lifetimeRevenue || 0, { precision: "compact" })} lifetime
+
                 </span>
               </div>
             )}
@@ -878,11 +878,12 @@ export default function ClientDetail() {
                     </div>
                     <div className="flex justify-between py-3 text-[13.5px]">
                       <dt className="text-muted-foreground">Base rate</dt>
-                      <dd className="tabular-nums" style={{ fontWeight: 500 }}>${(client.rate || 0).toLocaleString()}/hr</dd>
+                      <dd className="tabular-nums" style={{ fontWeight: 500 }}>{formatMoney(client.rate || 0)}/hr</dd>
                     </div>
                     <div className="flex justify-between py-3 text-[13.5px]">
                       <dt className="text-muted-foreground">Effective rate</dt>
-                      <dd className="tabular-nums" style={{ fontWeight: 500 }}>${effectiveRate.toLocaleString(undefined, { maximumFractionDigits: 2 })}/hr</dd>
+                      <dd className="tabular-nums" style={{ fontWeight: 500 }}>{formatMoney(effectiveRate)}/hr</dd>
+
                     </div>
                     {client.paymentTerms && (
                       <div className="flex justify-between py-3 text-[13.5px]">
@@ -1061,7 +1062,7 @@ function OverviewTab({
               <div className="type-meta mb-2">This month</div>
               <div className="flex items-baseline gap-3 flex-wrap">
                 <div className="type-display tabular-nums">
-                  ${monthlyDisplay.toLocaleString()}
+                  {formatMoney(monthlyDisplay, { precision: "compact" })}
                 </div>
                 {revenueTrend !== 'flat' && (
                   <div
@@ -1094,14 +1095,14 @@ function OverviewTab({
               <div className="px-4 py-4 first:pl-0">
                 <div className="type-eyebrow mb-2">Effective rate</div>
                 <div className="text-[20px] tabular-nums" style={{ fontWeight: 600, letterSpacing: '-0.02em' }}>
-                  ${effRate ? effRateDisplay.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '—'}
+                  {effRate ? formatMoney(effRateDisplay) : '—'}
                   <span className="type-meta ml-1 text-muted-foreground">/hr</span>
                 </div>
               </div>
               <div className="px-4 py-4">
                 <div className="type-eyebrow mb-2">Lifetime</div>
                 <div className="text-[20px] tabular-nums" style={{ fontWeight: 600, letterSpacing: '-0.02em' }}>
-                  ${lifetimeDisplay.toLocaleString()}
+                  {formatMoney(lifetimeDisplay, { precision: "compact" })}
                 </div>
               </div>
               <div className="px-4 py-4 last:pr-0">
@@ -1203,7 +1204,7 @@ function OverviewTab({
                 </div>
                 <div className="py-4 border-t border-[var(--hairline)]">
                   <div className="text-[13px] mb-1" style={{ fontWeight: 600 }}>
-                    Pacing · <span className="tabular-nums">${Math.round(monthly * 1.15).toLocaleString()}</span>
+                    Pacing · <span className="tabular-nums">{formatMoney(Math.round(monthly * 1.15), { precision: "compact" })}</span>
                   </div>
                   <div className="type-meta text-muted-foreground leading-relaxed">
                     Projected month-end at current cadence.
@@ -1759,12 +1760,13 @@ function ProjectsTab({ projects, client, canViewFinancials, onNavigate }: any) {
                   </td>
                   {canViewFinancials && (
                     <td className="px-3 py-3 text-[13px] text-right tabular-nums" style={{ fontWeight: 600 }}>
-                      ${(project.totalValue || 0).toLocaleString()}
+                      {formatMoney(project.totalValue || 0)}
                       {(() => {
                         if (!project.totalValue || project.totalValue <= 0 || !project.hours || project.hours <= 0) return null;
                         const effRate = Math.round(project.totalValue / project.hours);
                         const rateColor = effRate < (client.rate * 0.5) ? 'var(--destructive)' : effRate < client.rate ? 'var(--warning)' : 'var(--muted-foreground)';
-                        return <div className="type-meta tabular-nums mt-0.5" style={{ color: rateColor }}>${effRate}/hr effective</div>;
+                        return <div className="type-meta tabular-nums mt-0.5" style={{ color: rateColor }}>{formatMoney(effRate, { precision: "compact" })}/hr effective</div>;
+
                       })()}
                     </td>
                   )}
@@ -1836,7 +1838,7 @@ function SessionsTab({ clientSessions, client: _client, canViewFinancials, selec
                   <td className="px-3 py-3 text-[13px] text-right tabular-nums" style={{ fontWeight: 600 }}>{session.duration}h</td>
                   {canViewFinancials && (
                     <td className="px-3 py-3 text-right">
-                      <div className="text-[13px] tabular-nums" style={{ fontWeight: 600 }}>${session.revenue.toLocaleString()}</div>
+                      <div className="text-[13px] tabular-nums" style={{ fontWeight: 600 }}>{formatMoney(session.revenue)}</div>
                       {!session.billable && <span className="type-meta text-muted-foreground">Non-billable</span>}
                     </td>
                   )}
@@ -2046,8 +2048,9 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
       <SectionCard>
         <SectionHeader>Retainer Details</SectionHeader>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
-          <MetricCard label="Monthly price" value={`$${((client.retainerTotal || 0) * (client.rate || 0)).toLocaleString()}`} />
-          <MetricCard label="Rate" value={`$${client.rate || 0}/hr`} />
+          <MetricCard label="Monthly price" value={formatMoney((client.retainerTotal || 0) * (client.rate || 0))} />
+          <MetricCard label="Rate" value={`${formatMoney(client.rate || 0)}/hr`} />
+
           <MetricCard label="Cycle length" value={`${client.retainerCycleDays || 30} days`} />
         </div>
 
@@ -2215,9 +2218,10 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
             {/* Summary insights */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
               <MetricCard label="Avg utilization" value={`${avgUtilization}%`} accent={avgUtilization < 70} />
-              <MetricCard label="Avg revenue" value={`$${avgRevenue.toLocaleString()}`} />
+              <MetricCard label="Avg revenue" value={formatMoney(avgRevenue)} />
               <MetricCard label="Cycles tracked" value={history.length} />
-              <MetricCard label="Total revenue" value={`$${history.reduce((s, h) => s + (h.revenue || 0), 0).toLocaleString()}`} />
+              <MetricCard label="Total revenue" value={formatMoney(history.reduce((s, h) => s + (h.revenue || 0), 0))} />
+
             </div>
 
             {/* Usage bar chart */}
@@ -2268,7 +2272,7 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
                           <td className="text-right px-3 py-2.5 tabular-nums">{h.hours_used}h</td>
                           <td className="text-right px-3 py-2.5 tabular-nums text-muted-foreground">{h.hours_total}h</td>
                           <td className="text-right px-3 py-2.5 tabular-nums" style={{ fontWeight: 500, color: getUsageTextColor(pct) }}>{pct}%</td>
-                          <td className="text-right px-3 py-2.5 tabular-nums" style={{ fontWeight: 500 }}>${(h.revenue || 0).toLocaleString()}</td>
+                          <td className="text-right px-3 py-2.5 tabular-nums" style={{ fontWeight: 500 }}>{formatMoney(h.revenue || 0)}</td>
                         </tr>
                       );
                     })}

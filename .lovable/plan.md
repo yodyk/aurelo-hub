@@ -1,25 +1,36 @@
-# Final Polish Phase — Execution
+# Final Polish Phase — P4/P5 Sweep (in progress)
 
-## Status: Foundations shipped (P1, P2, P3, P7 audit deliverable)
+## Shipped this turn (P5 surface sweep — first pass)
 
-### Shipped this turn
-- **P1 Formatters** — `src/lib/format.ts` with `formatMoney/Percent/Date/Duration/Bytes/Relative/Count` + `EMPTY_CELL`. Three precision tiers (exact/display/compact). Currency derived from workspace `financialDefaults.currency`.
-- **P2 Tokens** — `--control-sm/--control/--control-lg/--control-xl`, `--focus-ring`, `--row-hover` added to `index.css` (light + dark).
-- **P2 Components** — `Button` size variants → control tokens, focus ring → `--focus-ring`. `Input` height → `--control`, focus ring → token. `DatePicker` trigger → `--control` height + token focus ring + input-background surface. `Calendar` nav → `--control-sm`. `Table` → header height `52px`, `numeric` prop on `TableHead`/`TableCell` (right-align + tabular-nums), row hover → `--row-hover` token.
-- **P3 Primitives** — `IconFrame` (3 sizes × 6 tones), `EmptyState` (inline + page variants, primary/secondary actions), `NumericCell` (right-aligned, tabular-nums, em-dash for null).
-- **P3 Toast helper** — `src/lib/toast.ts` wraps sonner with intent durations (success 2500 / info 4000 / error 6000 / action ∞).
-- **Sweep sample** — `BulkSessionActions.tsx` migrated to `formatMoney`/`formatDuration` + `useData` currency + toast helper.
-- **P7 Density Audit** — `.lovable/density-audit.md` covering Clients, Client Workspace, Projects, Time, Invoices, Insights, Today.
+Formatter helpers now drive these surfaces:
 
-### Remaining (subsequent turns)
-- **P4 Table numeric sweep** — apply `<TableCell numeric>` + `NumericCell` across Invoicing, Projects, TimeLog, Clients, Insights, BatchInvoiceBuilder.
-- **P5 Surface sweep** — replace inline `formatDate`/`formatCurrency` in Invoicing & ProjectDetail; remove raw `toLocaleString`/`toFixed`/`` `$${}` `` across all pages; swap empty surfaces to `<EmptyState>`; freehand icon frames to `<IconFrame>`; auth pages `h-10` → `h-[var(--control-lg)]`.
-- **P6 Minor + Micro** — disabled opacity lock, em-dash empty cells, tabular-nums on count badges, segmented-control inner shadow, keyboard hints in modals, table right-edge bleed, badge variant audit per Adj.5.
-- **Lint guardrail** — `no-restricted-syntax` ban on `toFixed`/`Intl.NumberFormat`/`$${` outside `src/lib/format.ts`.
-- **P7 trim PRs** — enact density-audit recommendations per surface.
+- **`src/pages/Invoicing.tsx`** — local `formatCurrency`/`formatDate`/`shortDate` delegate to `formatMoney`/`formatDate`; tax-rate lines via `formatPercent`; outstanding-invoice row via `formatMoney`.
+- **`src/pages/ProjectDetail.tsx`** — local `formatDate` delegates to `formatDateFn`; budget/spent and session revenue via `formatMoney`; file size via `formatBytes`.
+- **`src/components/BatchInvoiceBuilder.tsx`** — local helpers delegate to lib/format.
+- **`src/pages/Clients.tsx`** — monthly subtitle (compact) + per-row earnings via `formatMoney`.
+- **`src/pages/TimeLog.tsx`** — week-accrued (compact) + per-group revenue via `formatMoney`.
+- **`src/pages/Home.tsx`** — overdue-invoice detail, scope-creep detail, month delta (`formatPercent`), projected total, revenue-by-client rail.
+- **`src/pages/Insights.tsx`** — chart tooltip ($, Gross/Net/Collected), Y-axis tick formatters (compact), forecast tiles, heatmap revenue cells, client-ranking earnings.
+- **`src/pages/ClientDetail.tsx`** — masthead effective rate + lifetime; identity card base/effective rate; KPI block (monthly/effective/lifetime); pacing chip; project table value + effective rate; session revenue cell; retainer MetricCards; retainer history avg/total revenue + per-cycle revenue; file size helper.
+- **`src/pages/ClientEdit.tsx`** — retainer monthly-value chip.
+- **`src/pages/ClientPortal.tsx`** — `fmt$`/`fmtHours`/`fmtDate` delegate to lib/format.
+- **`src/pages/Projects.tsx`** — active/total value stat tiles + per-row totalValue, effective rate, earned line.
+- **`src/components/TeamUtilization.tsx`** — team-revenue KPI tile + per-row revenue cell.
 
-### Regressions to watch
-- Workspace currency now drives the bulk-bar — verify non-USD workspaces.
-- Table header now 52px (was 40px) — sticky offsets in Invoicing/Insights may shift.
-- Row hover token softer (3.5% vs 55% accent) — verify selected-state still distinguishable.
-- DatePicker height standardized to 32px (was freehand) — verify alignment beside Inputs.
+## Remaining (next turn — finish P5, then P4 numeric prop, then P6)
+
+- **Modals.tsx** — 7 remaining `${...toLocaleString()}` and `.toFixed(1)` spots (retainer chips, session totals, project budget bar, weekly hours, status meta).
+- **Settings.tsx** — 2 `.toFixed(1)` spots (processing-fee state, tax-rate label) → `formatPercent`.
+- **ClientDetail.tsx:1127** — `.toFixed(1)` 7-day hours total → `formatDuration` or local rounding.
+- **Home.tsx:67** — `AnimatedNumber` uses `display.toLocaleString()`; replace with `formatCount` (or whitelist; it's a tween primitive).
+- **P4 numeric prop** — apply `<TableCell numeric>` / `<TableHead numeric>` across Invoicing / Projects / TimeLog / Clients / Insights / BatchInvoiceBuilder tables.
+- **P6 polish** — auth-page control heights, `<EmptyState>`/`<IconFrame>` swaps, count-badge tabular-nums, segmented-control inner shadow, kbd hints, toast helper rollout.
+- **Lint guardrail** — once Modals/Settings/ClientDetail residue is gone, add `no-restricted-syntax` ban.
+
+## Regressions to watch
+
+- Compact precision is now used in subtitle / KPI / projection chips — verify symbol+suffix combos (`$1.2M`, `$12k`) read cleanly with the workspace currency.
+- All `formatMoney` calls still default to USD; workspace currency threading is the next pass (single source: `useData().financialDefaults.currency`).
+- Y-axis tickFormatters in Insights now use `formatMoney(v, { precision: 'compact' })` — check axis width still 52/60px is enough.
+- Tooltips in Insights area chart now show 2-decimal exact dollars (was rounded); verify spacing.
+- `fmtHours` in ClientPortal now derived from `formatDuration` and trimmed; double-check no portal place shows literal " hrs".

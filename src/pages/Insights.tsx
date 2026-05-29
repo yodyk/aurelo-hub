@@ -28,6 +28,8 @@ import { usePlan } from "../data/PlanContext";
 import { PLANS } from "../data/plans";
 import { computeInsightsMetrics, type InsightsMetrics } from "../data/insightsMetrics";
 import * as invoiceApi from "../data/invoiceApi";
+import { formatMoney } from "@/lib/format";
+
 import { PageHeader, SegmentedControl, type SegmentOption } from "@/components/primitives/composition";
 
 const container = {
@@ -80,7 +82,8 @@ function ChartTooltip({ active, payload, label }: any) {
           <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>
             {p.dataKey.includes('hours') || p.dataKey === 'hours'
               ? `${p.value}h`
-              : `$${Number(p.value).toLocaleString()}`}
+              : formatMoney(Number(p.value), { precision: "display" })}
+
           </span>
         </div>
       ))}
@@ -304,7 +307,7 @@ export default function Insights() {
                 </defs>
                 <CartesianGrid vertical horizontal={false} stroke="var(--border)" strokeOpacity={0.35} />
                 <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: "#9a9aac", fontSize: 11, fontWeight: 500 }} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: "#9a9aac", fontSize: 11 }} tickFormatter={(v) => v >= 1000 ? `$${(v / 1000).toFixed(v >= 10000 ? 0 : 1)}k` : `$${v}`} width={52} allowDecimals={false} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: "#9a9aac", fontSize: 11 }} tickFormatter={(v) => formatMoney(v, { precision: "compact" })} width={52} allowDecimals={false} />
                 <Tooltip
                   content={({ active, payload, label }) => {
                     if (!active || !payload?.length) return null;
@@ -316,18 +319,19 @@ export default function Insights() {
                         <div className="flex items-center gap-2">
                           <div className="w-2 h-2 rounded-circle" style={{ background: "var(--chart-2)" }} />
                           <span className="text-muted-foreground">Gross:</span>
-                          <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>${d.revenue?.toLocaleString()}</span>
+                          <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>{formatMoney(d.revenue || 0)}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <div className="w-2 h-2 rounded-circle" style={{ background: "#0ea5e9" }} />
                           <span className="text-muted-foreground">Net:</span>
-                          <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>${d.net?.toLocaleString()}</span>
+                          <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>{formatMoney(d.net || 0)}</span>
                         </div>
                         {d.collected > 0 && (
                           <div className="flex items-center gap-2">
                             <div className="w-2 h-2 rounded-circle" style={{ background: "hsl(var(--primary) / 0.5)" }} />
                             <span className="text-muted-foreground">Collected:</span>
-                            <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>${d.collected?.toLocaleString()}</span>
+                            <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>{formatMoney(d.collected || 0)}</span>
+
                           </div>
                         )}
                       </div>
@@ -386,7 +390,7 @@ export default function Insights() {
                   <BarChart data={metrics.collectionMetrics.agingBuckets} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
                     <XAxis dataKey="label" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${v.toLocaleString()}`} width={60} />
+                    <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} tickFormatter={(v) => formatMoney(v, { precision: "compact" })} width={60} />
                     <Tooltip content={<ChartTooltip />} />
                     <Bar dataKey="amount" radius={[6, 6, 0, 0]}>
                       {metrics.collectionMetrics.agingBuckets.map((_, i) => (
@@ -408,8 +412,9 @@ export default function Insights() {
           <SectionLabel pro={!hasFullInsights}>Forecasting & projections</SectionLabel>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { label: "Projected monthly", value: `$${applyViewMode(metrics.forecast.projectedMonthly).toLocaleString()}`, sub: "next month est.", icon: TrendingUp },
-              { label: "Projected annual", value: `$${applyViewMode(metrics.forecast.projectedAnnual).toLocaleString()}`, sub: "annualized run rate", icon: BarChart3 },
+              { label: "Projected monthly", value: formatMoney(applyViewMode(metrics.forecast.projectedMonthly), { precision: "compact" }), sub: "next month est.", icon: TrendingUp },
+              { label: "Projected annual", value: formatMoney(applyViewMode(metrics.forecast.projectedAnnual), { precision: "compact" }), sub: "annualized run rate", icon: BarChart3 },
+
               {
                 label: "Growth rate",
                 value: `${metrics.forecast.growthRate >= 0 ? "+" : ""}${Math.round(metrics.forecast.growthRate * 100)}%`,
@@ -503,7 +508,7 @@ export default function Insights() {
                                         color: intensity > 0.5 ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
                                       }}
                                     >
-                                      ${rev.toLocaleString()}
+                                      {formatMoney(rev)}
                                     </span>
                                   </div>
                                 ) : (
@@ -513,7 +518,7 @@ export default function Insights() {
                             );
                           })}
                           <td className="px-5 py-3 text-right text-[13px] text-foreground tabular-nums" style={{ fontWeight: 600 }}>
-                            ${row.totalRevenue.toLocaleString()}
+                            {formatMoney(row.totalRevenue)}
                           </td>
                           <td className="px-5 py-3 text-right text-[13px] text-muted-foreground tabular-nums">
                             ${row.effectiveRate}
@@ -596,7 +601,7 @@ export default function Insights() {
                           {ranking.client}
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-[14px] text-right tabular-nums" style={{ fontWeight: 500 }}>${applyViewMode(ranking.revenue).toLocaleString()}</td>
+                      <td className="px-6 py-4 text-[14px] text-right tabular-nums" style={{ fontWeight: 500 }}>{formatMoney(applyViewMode(ranking.revenue))}</td>
                       <td className="px-6 py-4 text-[14px] text-right tabular-nums text-muted-foreground">${applyViewMode(ranking.trueHourlyRate)}</td>
                       <td className="px-6 py-4 text-[14px] text-right tabular-nums text-muted-foreground">{ranking.utilization}%</td>
                       <td className="px-6 py-4">

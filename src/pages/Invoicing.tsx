@@ -70,24 +70,18 @@ const STATUS_CONFIG: Record<InvoiceStatus, { label: string; color: string; bg: s
 
 // ── Helpers ────────────────────────────────────────────────────────
 
+import { formatMoney, formatDate as formatDateFn, formatPercent } from "@/lib/format";
+
 function formatCurrency(amount: number, currency = "USD"): string {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency, minimumFractionDigits: 2 }).format(amount);
+  return formatMoney(amount, { currency, precision: "exact" });
 }
 
 function formatDate(dateStr: string): string {
-  try {
-    return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-  } catch {
-    return dateStr;
-  }
+  return formatDateFn(dateStr, "medium");
 }
 
 function shortDate(dateStr: string): string {
-  try {
-    return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric" });
-  } catch {
-    return dateStr;
-  }
+  return formatDateFn(dateStr, "short");
 }
 
 function daysUntil(dateStr: string): number {
@@ -95,6 +89,7 @@ function daysUntil(dateStr: string): number {
   const now = new Date();
   return Math.ceil((d.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 }
+
 
 // ── Main Component ─────────────────────────────────────────────────
 
@@ -1374,7 +1369,7 @@ function InvoiceBuilder({
                 {taxRate > 0 && (
                   <div className="flex justify-between text-[13px]">
                     <span className="text-muted-foreground">
-                      Tax ({(taxRate * 100).toFixed(1)}%){taxInclusive ? " incl." : ""}
+                      Tax ({formatPercent(taxRate, { fraction: true })}){taxInclusive ? " incl." : ""}
                     </span>
                     <span className="tabular-nums" style={{ fontWeight: 500 }}>
                       {formatCurrency(taxAmount)}
@@ -1728,7 +1723,7 @@ function InvoiceDetail({
               </div>
               {invoice.taxRate > 0 && (
                 <div className="flex justify-between text-[13px]">
-                  <span className="text-muted-foreground">Tax ({(invoice.taxRate * 100).toFixed(1)}%)</span>
+                  <span className="text-muted-foreground">Tax ({formatPercent(invoice.taxRate, { fraction: true })})</span>
                   <span className="tabular-nums" style={{ fontWeight: 500 }}>
                     {formatCurrency(invoice.taxAmount)}
                   </span>
@@ -2002,7 +1997,7 @@ function LockedInvoicingPreview() {
                           className="px-5 py-3.5 text-[13px] text-foreground tabular-nums"
                           style={{ fontWeight: 500 }}
                         >
-                          ${inv.amount.toLocaleString()}
+                          {formatCurrency(inv.amount)}
                         </td>
                         <td className="px-5 py-3.5">
                           <span

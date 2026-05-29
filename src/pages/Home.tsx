@@ -28,6 +28,8 @@ import { motion } from "motion/react";
 
 import { useData } from "../data/DataContext";
 import { useAuth } from "../data/AuthContext";
+import { formatMoney, formatPercent, formatDate } from "@/lib/format";
+
 import * as settingsApi from "../data/settingsApi";
 import * as invoiceApi from "../data/invoiceApi";
 import type { Invoice } from "../data/invoiceApi";
@@ -279,7 +281,7 @@ export default function Today() {
         icon: <Receipt className="w-3.5 h-3.5" />,
         tone: "danger",
         title: `${inv.clientName} — invoice ${inv.number} overdue`,
-        detail: `$${inv.total.toLocaleString()} · due ${new Date(inv.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`,
+        detail: `${formatMoney(inv.total)} · due ${formatDate(inv.dueDate, "short")}`,
         onClick: () => navigate("/invoicing"),
       });
     }
@@ -308,8 +310,9 @@ export default function Today() {
           id: `creep-${p.id}`,
           icon: <TrendingDown className="w-3.5 h-3.5" />,
           tone: severe ? "danger" : "warning",
-          title: `${client.name} — ${p.name} at $${Math.round(effRate)}/hr`,
-          detail: `Below your $${client.rate}/hr rate · ${p.hours}h on $${p.totalValue.toLocaleString()}`,
+          title: `${client.name} — ${p.name} at ${formatMoney(effRate, { precision: "compact" })}/hr`,
+          detail: `Below your ${formatMoney(client.rate, { precision: "compact" })}/hr rate · ${p.hours}h on ${formatMoney(p.totalValue)}`,
+
           onClick: () => navigate(`/clients/${p.clientId}`),
         });
       }
@@ -435,7 +438,7 @@ export default function Today() {
                     hasData && previous > 0 ? (
                       <span className="inline-flex items-center gap-1">
                         {isUp ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-                        {Math.abs(monthChange).toFixed(1)}% vs last month
+                        {formatPercent(Math.abs(monthChange), { fraction: false })} vs last month
                       </span>
                     ) : undefined
                   }
@@ -443,7 +446,7 @@ export default function Today() {
                 />
                 {hasData && (
                   <div className="type-meta mt-2">
-                    Projected <span className="text-foreground tabular-nums" style={{ fontWeight: 500 }}>${projectedDisplay.toLocaleString()}</span> by month end
+                    Projected <span className="text-foreground tabular-nums" style={{ fontWeight: 500 }}>{formatMoney(projectedDisplay, { precision: "compact" })}</span> by month end
                   </div>
                 )}
               </div>
@@ -692,7 +695,7 @@ export default function Today() {
                           </div>
                           <div className="text-right flex-shrink-0">
                             <div className="type-body tabular-nums" style={{ fontWeight: 600 }}>
-                              ${cr.revenue.toLocaleString()}
+                              {formatMoney(cr.revenue)}
                             </div>
                             <div className="type-meta tabular-nums">{share}%</div>
                           </div>
