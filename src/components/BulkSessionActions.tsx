@@ -1,7 +1,9 @@
 import { transitions } from '@/lib/motion';
 import { motion, AnimatePresence } from "motion/react";
 import { Trash2, Download, FileText, X } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
+import { formatMoney, formatDuration } from "@/lib/format";
+import { useData } from "@/data/DataContext";
 
 interface BulkSessionActionsProps {
   selectedCount: number;
@@ -20,6 +22,7 @@ export default function BulkSessionActions({
   onExportSelected,
   onGenerateInvoice,
 }: BulkSessionActionsProps) {
+  const { financialDefaults } = useData();
   if (selectedCount === 0) return null;
 
   const totalHours = selectedSessions.reduce((sum, s) => sum + s.duration, 0);
@@ -54,7 +57,7 @@ export default function BulkSessionActions({
               {selectedCount} selected
             </span>
             <span className="text-[12px] text-muted-foreground tabular-nums">
-              {totalHours}h · ${totalRevenue.toLocaleString()}
+              {formatDuration(totalHours, { variant: 'compact' })} · {formatMoney(totalRevenue, { currency: financialDefaults.currency, precision: 'compact' })}
             </span>
           </div>
 

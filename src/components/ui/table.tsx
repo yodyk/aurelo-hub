@@ -34,7 +34,7 @@ const TableRow = React.forwardRef<HTMLTableRowElement, React.HTMLAttributes<HTML
       ref={ref}
       className={cn(
         "border-b border-[var(--hairline)] transition-colors duration-150 ease-out",
-        "hover:bg-[color-mix(in_oklab,var(--accent)_55%,transparent)] data-[state=selected]:bg-accent",
+        "hover:bg-[var(--row-hover)] data-[state=selected]:bg-accent",
         className
       )}
       {...props}
@@ -43,27 +43,40 @@ const TableRow = React.forwardRef<HTMLTableRowElement, React.HTMLAttributes<HTML
 );
 TableRow.displayName = "TableRow";
 
-const TableHead = React.forwardRef<HTMLTableCellElement, React.ThHTMLAttributes<HTMLTableCellElement>>(
-  ({ className, ...props }, ref) => (
-    <th
-      ref={ref}
-      className={cn(
-        "h-10 px-3 text-left align-middle text-[10.5px] uppercase text-muted-foreground/80",
-        "[&:has([role=checkbox])]:pr-0",
-        className
-      )}
-      style={{ fontWeight: 600, letterSpacing: "0.08em" }}
-      {...props}
-    />
-  )
-);
+interface NumericProp { numeric?: boolean }
+
+const TableHead = React.forwardRef<
+  HTMLTableCellElement,
+  React.ThHTMLAttributes<HTMLTableCellElement> & NumericProp
+>(({ className, numeric, ...props }, ref) => (
+  <th
+    ref={ref}
+    className={cn(
+      "h-[52px] px-3 align-middle text-[10.5px] uppercase text-muted-foreground/80",
+      numeric ? "text-right tabular-nums" : "text-left",
+      "[&:has([role=checkbox])]:pr-0",
+      className
+    )}
+    style={{ fontWeight: 600, letterSpacing: "0.08em" }}
+    {...props}
+  />
+));
 TableHead.displayName = "TableHead";
 
-const TableCell = React.forwardRef<HTMLTableCellElement, React.TdHTMLAttributes<HTMLTableCellElement>>(
-  ({ className, ...props }, ref) => (
-    <td ref={ref} className={cn("px-3 py-3.5 align-middle [&:has([role=checkbox])]:pr-0", className)} {...props} />
-  )
-);
+const TableCell = React.forwardRef<
+  HTMLTableCellElement,
+  React.TdHTMLAttributes<HTMLTableCellElement> & NumericProp
+>(({ className, numeric, ...props }, ref) => (
+  <td
+    ref={ref}
+    className={cn(
+      "px-3 py-3.5 align-middle [&:has([role=checkbox])]:pr-0",
+      numeric && "text-right tabular-nums",
+      className
+    )}
+    {...props}
+  />
+));
 TableCell.displayName = "TableCell";
 
 export { Table, TableHeader, TableBody, TableHead, TableRow, TableCell };

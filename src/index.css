@@ -134,6 +134,18 @@
   --type-eyebrow-size: 10.5px;
   --type-eyebrow-weight: 600;
   --type-eyebrow-tracking: 0.09em;
+
+  /* Control heights — one ladder for buttons, inputs, triggers, chips */
+  --control-sm: 28px;
+  --control: 32px;
+  --control-lg: 36px;
+  --control-xl: 40px;
+
+  /* Focus halo — single token applied identically across all controls */
+  --focus-ring: 0 0 0 3px rgba(59, 102, 240, 0.30);
+
+  /* Table row hover — softer than accent token to reduce noise */
+  --row-hover: rgba(15, 23, 35, 0.035);
 }
 
 .dark {
@@ -198,6 +210,10 @@
   --sidebar-accent-foreground: #E8ECF1;
   --sidebar-border: rgba(255, 255, 255, 0.05);
   --sidebar-ring: rgba(107, 143, 255, 0.50);
+
+  /* Focus halo + row hover — dark-mode tuned */
+  --focus-ring: 0 0 0 3px rgba(107, 143, 255, 0.35);
+  --row-hover: rgba(255, 255, 255, 0.04);
 }
 
 @theme inline {
