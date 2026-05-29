@@ -1997,7 +1997,7 @@ function LockedInvoicingPreview() {
                           className="px-5 py-3.5 text-[13px] text-foreground tabular-nums"
                           style={{ fontWeight: 500 }}
                         >
-                          ${inv.amount.toLocaleString()}
+                          {formatCurrency(inv.amount)}
                         </td>
                         <td className="px-5 py-3.5">
                           <span
