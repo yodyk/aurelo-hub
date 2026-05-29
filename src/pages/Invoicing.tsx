@@ -369,173 +369,126 @@ export default function Invoicing() {
     return <LockedInvoicingPreview />;
   }
 
+  const statusSegments: SegmentOption<InvoiceStatus | "all">[] = useMemo(() => {
+    const active = invoices.filter((i) => i.status !== "archived" && i.status !== "voided");
+    return [
+      { value: "all", label: "All", count: active.length },
+      { value: "draft", label: "Drafts", count: active.filter((i) => i.status === "draft").length },
+      { value: "sent", label: "Sent", count: active.filter((i) => i.status === "sent").length },
+      { value: "overdue", label: "Overdue", count: active.filter((i) => i.status === "overdue").length },
+      { value: "paid", label: "Paid", count: active.filter((i) => i.status === "paid").length },
+    ];
+  }, [invoices]);
+
   return (
-    <div className="page-wrapper">
+    <div className="w-full min-w-0">
       <motion.div variants={container} initial="hidden" animate="show">
-        {/* Header */}
-        <motion.div variants={item} className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="page-header text-foreground">
-              Invoicing
-            </h1>
-            <p className="page-subtitle">Create, send, and track invoices for your clients</p>
-          </div>
-          <div className="flex items-center gap-2">
-            {hasBatchInvoicing && (
+        <PageHeader
+          title="Invoicing"
+          subtitle={
+            <span className="inline-flex items-center gap-3">
+              <span>
+                <span className="tabular-nums text-foreground" style={{ fontWeight: 600 }}>
+                  {formatCurrency(stats.outstanding)}
+                </span>{" "}
+                outstanding
+              </span>
+              {stats.overdue > 0 && (
+                <>
+                  <span className="opacity-40">·</span>
+                  <span className="text-[color:var(--destructive)]">
+                    <span className="tabular-nums" style={{ fontWeight: 600 }}>
+                      {formatCurrency(stats.overdue)}
+                    </span>{" "}
+                    overdue
+                  </span>
+                </>
+              )}
+              <span className="opacity-40">·</span>
+              <span>
+                <span className="tabular-nums text-foreground" style={{ fontWeight: 600 }}>
+                  {formatCurrency(stats.paidLast30)}
+                </span>{" "}
+                collected · 30d
+              </span>
+            </span>
+          }
+          actions={
+            <>
+              {hasBatchInvoicing && (
+                <button
+                  onClick={() => setShowBatchBuilder(true)}
+                  className="inline-flex items-center gap-1.5 h-9 px-3 text-[13px] rounded-md border border-border text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-all cursor-pointer"
+                  style={{ fontWeight: 500 }}
+                >
+                  <Layers className="w-3.5 h-3.5" />
+                  Batch
+                </button>
+              )}
               <button
-                onClick={() => setShowBatchBuilder(true)}
-                className="inline-flex items-center gap-2 px-4 py-2 text-[13px] rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-all"
-                style={{ fontWeight: 500 }}
-              >
-                <Layers className="w-3.5 h-3.5" />
-                Batch
-              </button>
-            )}
-            <button
-              onClick={() => {
-                setEditingInvoice(null);
-                setShowBuilder(true);
-              }}
-              className="btn-primary"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              New invoice
-            </button>
-          </div>
-        </motion.div>
-
-        {/* Stats row */}
-        <motion.div variants={item} className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          {[
-            { label: "Outstanding", value: formatCurrency(stats.outstanding), icon: Clock, color: GOLD },
-            { label: "Paid (30d)", value: formatCurrency(stats.paidLast30), icon: CheckCircle2, color: BLUE },
-            { label: "Overdue", value: formatCurrency(stats.overdue), icon: AlertCircle, color: RED },
-            { label: "Drafts", value: String(stats.draftCount), icon: FileText, color: "#78716c" },
-          ].map((stat) => (
-            <div
-              key={stat.label}
-              className="stat-card"
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <stat.icon className="w-3.5 h-3.5" style={{ color: stat.color }} />
-                <span className="text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>
-                  {stat.label}
-                </span>
-              </div>
-              <div className="text-[20px] text-foreground tabular-nums" style={{ fontWeight: 600 }}>
-                {stat.value}
-              </div>
-            </div>
-          ))}
-        </motion.div>
-
-        {/* Stripe connection banner */}
-        <motion.div variants={item} className="mb-6">
-          {stripeConnected ? (
-            <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-[#2e7d9a]/20 bg-[#2e7d9a]/[0.05]">
-              <div className="w-8 h-8 rounded-lg bg-[#2e7d9a]/15 flex items-center justify-center flex-shrink-0">
-                <CreditCard className="w-4 h-4 text-[#2e7d9a]" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-[13px] text-foreground" style={{ fontWeight: 500 }}>
-                  Stripe connected
-                </div>
-                <div className="text-[12px] text-muted-foreground">
-                  You can generate payment links for invoices. Clients pay directly to your Stripe account.
-                </div>
-              </div>
-              <span
-                className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] text-[#2e7d9a] bg-[#2e7d9a]/10 rounded-full flex-shrink-0"
+                onClick={() => {
+                  setEditingInvoice(null);
+                  setShowBuilder(true);
+                }}
+                className="inline-flex items-center gap-1.5 h-9 px-3.5 bg-primary text-primary-foreground text-[13px] rounded-md hover:opacity-90 transition-all cursor-pointer"
                 style={{ fontWeight: 600 }}
               >
-                <CheckCircle2 className="w-3 h-3" />
-                Active
-              </span>
-            </div>
-          ) : (
-            <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-[#2e7d9a]/15 bg-[#2e7d9a]/[0.03]">
-              <div className="w-8 h-8 rounded-lg bg-[#2e7d9a]/10 flex items-center justify-center flex-shrink-0">
-                <CreditCard className="w-4 h-4 text-[#2e7d9a]" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-[13px] text-foreground" style={{ fontWeight: 500 }}>
-                  Connect Stripe for payment collection
-                </div>
-                <div className="text-[12px] text-muted-foreground">
-                  Generate payment links so clients can pay invoices directly to your Stripe account.
-                </div>
+                <Plus className="w-3.5 h-3.5" />
+                New invoice
+              </button>
+            </>
+          }
+        />
+
+        <div className="px-4 lg:px-6 py-6">
+          {/* Stripe banner — only when not connected */}
+          {!stripeConnected && (
+            <motion.div variants={item} className="flex items-center gap-3 px-3 py-2.5 mb-5 border border-border rounded-md bg-[color:var(--surface-sunken)]">
+              <CreditCard className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+              <div className="flex-1 min-w-0 text-[12.5px] text-muted-foreground">
+                Connect Stripe to generate payment links on invoices.
               </div>
               <button
                 onClick={() => navigate("/settings?tab=integrations")}
-                className="px-3 py-1.5 text-[12px] text-[#2e7d9a] bg-[#2e7d9a]/8 rounded-lg hover:bg-[#2e7d9a]/14 transition-colors flex-shrink-0"
+                className="text-[12px] text-primary hover:underline flex-shrink-0 cursor-pointer"
                 style={{ fontWeight: 500 }}
               >
-                Connect Stripe
+                Connect →
               </button>
-            </div>
+            </motion.div>
           )}
-        </motion.div>
 
-        {/* Filter bar */}
-        <motion.div variants={item} className="flex flex-col gap-3 mb-4">
-          <div className="flex flex-col md:flex-row md:items-center gap-3">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search invoices..."
-                className="w-full pl-9 pr-3 py-2 text-[13px] bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all"
-              />
-            </div>
-            <div className="flex items-center gap-2 md:ml-auto">
-              <button
-                onClick={() => setHideVoided((h) => !h)}
-                className={`inline-flex items-center gap-1 px-2 py-1.5 text-[11px] rounded-lg transition-all whitespace-nowrap ${hideVoided ? "bg-accent/60 text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-accent/40"}`}
-                style={{ fontWeight: 500 }}
-              >
-                <EyeOff className="w-3 h-3" />
-                Voided
-              </button>
+          {/* Controls strip */}
+          <motion.div variants={item} className="flex items-center justify-between gap-3 mb-5 flex-wrap">
+            <SegmentedControl<InvoiceStatus | "all">
+              options={statusSegments}
+              value={statusFilter}
+              onChange={setStatusFilter}
+              ariaLabel="Filter by status"
+            />
+            <div className="flex items-center gap-2 ml-auto">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search…"
+                  className="w-48 pl-8 pr-3 h-9 text-[13px] bg-card border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all"
+                />
+              </div>
               <button
                 onClick={() => setHideArchived((h) => !h)}
-                className={`inline-flex items-center gap-1 px-2 py-1.5 text-[11px] rounded-lg transition-all whitespace-nowrap ${hideArchived ? "bg-accent/60 text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-accent/40"}`}
+                className={`inline-flex items-center gap-1 h-9 px-2.5 text-[12px] rounded-md border border-border transition-all whitespace-nowrap cursor-pointer ${hideArchived ? "text-muted-foreground hover:text-foreground" : "bg-accent/60 text-foreground"}`}
                 style={{ fontWeight: 500 }}
+                title={hideArchived ? "Show archived" : "Hide archived"}
               >
-                <EyeOff className="w-3 h-3" />
+                {hideArchived ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
                 Archived
               </button>
             </div>
-          </div>
-          {/* Status pills — horizontal scroll on mobile */}
-          <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-4 px-4 md:mx-0 md:px-0 md:flex-wrap">
-            <button
-              onClick={() => setStatusFilter("all")}
-              className={`px-2.5 py-1.5 text-[12px] rounded-lg transition-all whitespace-nowrap flex-shrink-0 ${statusFilter === "all" ? "bg-foreground/8 text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-accent/40"}`}
-              style={{ fontWeight: 500 }}
-            >
-              All
-            </button>
-            {(["draft", "sent", "paid", "overdue"] as InvoiceStatus[]).map((s) => {
-              const conf = STATUS_CONFIG[s];
-              const count = invoices.filter((i) => i.status === s).length;
-              if (count === 0 && statusFilter !== s) return null;
-              return (
-                <button
-                  key={s}
-                  onClick={() => setStatusFilter(statusFilter === s ? "all" : s)}
-                  className={`inline-flex items-center gap-1 px-2.5 py-1.5 text-[12px] rounded-lg transition-all whitespace-nowrap flex-shrink-0 ${statusFilter === s ? `${conf.bg}` : "text-muted-foreground hover:text-foreground hover:bg-accent/40"}`}
-                  style={{ fontWeight: 500, color: statusFilter === s ? conf.color : undefined }}
-                >
-                  <conf.icon className="w-3 h-3" />
-                  {conf.label}
-                  <span className="text-[11px] opacity-60">{count}</span>
-                </button>
-              );
-            })}
-          </div>
-        </motion.div>
+          </motion.div>
+
 
         {/* Invoice table */}
         <motion.div variants={item}>
