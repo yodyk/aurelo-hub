@@ -139,7 +139,7 @@ export default function AcceptInvite() {
   }, [acceptInvite, status]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#FBFCFD] px-6">
+    <div className="min-h-screen flex items-center justify-center bg-background px-6">
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -152,13 +152,13 @@ export default function AcceptInvite() {
 
         {(status === "loading" || status === "accepting") && (
           <div className="space-y-4">
-            <div className="w-12 h-12 rounded-xl bg-[#3B66F0]/10 flex items-center justify-center mx-auto">
-              <Loader2 className="w-6 h-6 text-[#3B66F0] animate-spin" />
+            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto">
+              <Loader2 className="w-6 h-6 text-primary animate-spin" />
             </div>
-            <h1 className="text-xl font-semibold text-[#1c1c1c]">
+            <h1 className="text-xl font-semibold text-foreground">
               {status === "loading" ? "Loading invitation…" : "Joining workspace…"}
             </h1>
-            <p className="text-sm text-[#717182]">Please wait a moment</p>
+            <p className="text-sm text-muted-foreground">Please wait a moment</p>
           </div>
         )}
 
@@ -167,10 +167,10 @@ export default function AcceptInvite() {
             <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center mx-auto">
               <CheckCircle2 className="w-6 h-6 text-emerald-500" />
             </div>
-            <h1 className="text-xl font-semibold text-[#1c1c1c]">
+            <h1 className="text-xl font-semibold text-foreground">
               Welcome to {workspaceName}!
             </h1>
-            <p className="text-sm text-[#717182]">
+            <p className="text-sm text-muted-foreground">
               You've joined as {role === "Admin" ? "an" : "a"} <strong>{role}</strong>. Redirecting you now…
             </p>
           </div>
@@ -181,13 +181,13 @@ export default function AcceptInvite() {
             <div className="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center mx-auto">
               <XCircle className="w-6 h-6 text-red-400" />
             </div>
-            <h1 className="text-xl font-semibold text-[#1c1c1c]">
+            <h1 className="text-xl font-semibold text-foreground">
               Invitation error
             </h1>
-            <p className="text-sm text-[#717182]">{error}</p>
+            <p className="text-sm text-muted-foreground">{error}</p>
             <Link
               to="/"
-              className="inline-flex items-center gap-2 px-4 py-2 mt-2 text-sm font-medium rounded-lg bg-[#3B66F0] text-white hover:bg-[#3458D9] transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 mt-2 text-sm font-medium rounded-lg bg-primary text-white hover:bg-[color-mix(in_oklab,var(--primary)_92%,black)] transition-colors"
             >
               Go to Home
             </Link>
@@ -196,13 +196,13 @@ export default function AcceptInvite() {
 
         {status === "needs-login" && (
           <div className="space-y-5">
-            <div className="w-12 h-12 rounded-xl bg-[#3B66F0]/10 flex items-center justify-center mx-auto">
-              <UserPlus className="w-6 h-6 text-[#3B66F0]" />
+            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto">
+              <UserPlus className="w-6 h-6 text-primary" />
             </div>
-            <h1 className="text-xl font-semibold text-[#1c1c1c]">
+            <h1 className="text-xl font-semibold text-foreground">
               You've been invited
             </h1>
-            <p className="text-sm text-[#717182]">
+            <p className="text-sm text-muted-foreground">
               {role ? (
                 <>
                   Sign in or create an account to join the workspace as {role === "Admin" ? "an" : "a"} <strong>{role}</strong>.
@@ -214,13 +214,13 @@ export default function AcceptInvite() {
             <div className="flex flex-col gap-2.5 pt-2">
               <Link
                 to={`/login?redirect=/accept-invite?id=${inviteId}`}
-                className="w-full h-10 rounded-lg bg-[#3B66F0] text-white text-sm font-medium flex items-center justify-center hover:bg-[#3458D9] transition-colors"
+                className="w-full h-10 rounded-lg bg-primary text-white text-sm font-medium flex items-center justify-center hover:bg-[color-mix(in_oklab,var(--primary)_92%,black)] transition-colors"
               >
                 Sign in to accept
               </Link>
               <Link
                 to={`/signup?redirect=/accept-invite?id=${inviteId}`}
-                className="w-full h-10 rounded-lg border border-black/10 bg-white text-[#1c1c1c] text-sm font-medium flex items-center justify-center hover:bg-[#f5f5f5] transition-colors"
+                className="w-full h-10 rounded-lg border border-[var(--hairline)] bg-card text-foreground text-sm font-medium flex items-center justify-center hover:bg-[var(--surface-sunken)] transition-colors"
               >
                 Create an account
               </Link>
