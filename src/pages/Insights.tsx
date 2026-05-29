@@ -518,7 +518,7 @@ export default function Insights() {
                             );
                           })}
                           <td className="px-5 py-3 text-right text-[13px] text-foreground tabular-nums" style={{ fontWeight: 600 }}>
-                            ${row.totalRevenue.toLocaleString()}
+                            {formatMoney(row.totalRevenue)}
                           </td>
                           <td className="px-5 py-3 text-right text-[13px] text-muted-foreground tabular-nums">
                             ${row.effectiveRate}
