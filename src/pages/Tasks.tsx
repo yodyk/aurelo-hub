@@ -529,7 +529,7 @@ function QuickAdd({ onCreated }: { onCreated: () => void }) {
           {parsed.dueDate && <span className="text-foreground">due {format(parseISO(parsed.dueDate), 'MMM d')}</span>}
           {parsed.followUpAt && <span className="text-foreground">follow up {format(parseISO(parsed.followUpAt), 'MMM d')}</span>}
           {parsed.priority && <span className="text-foreground">!{parsed.priority}</span>}
-          {parsed.status && <span className="text-foreground">{STATUS_BY_VALUE[parsed.status as TaskStatus]?.label}</span>}
+          {parsed.status !== 'to_do' && <span className="text-foreground">{STATUS_BY_VALUE[parsed.status]?.label}</span>}
         </div>
       )}
     </div>
