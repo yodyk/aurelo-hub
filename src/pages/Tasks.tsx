@@ -17,6 +17,8 @@ import { TASK_STATUSES, STATUS_BY_VALUE, nextStatus, type TaskStatus } from '@/d
 import { supabase } from '@/integrations/supabase/client';
 import { DatePicker } from '@/components/ui/date-picker';
 import { toast } from '@/lib/toast';
+import { deferredDelete } from '@/lib/deferredDelete';
+
 import { EmptyState } from '@/components/primitives/EmptyState';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
