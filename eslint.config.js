@@ -5,7 +5,7 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist"] },
+  { ignores: ["dist", "supabase/functions/**"] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],
@@ -21,6 +21,24 @@ export default tseslint.config(
       ...reactHooks.configs.recommended.rules,
       "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
       "@typescript-eslint/no-unused-vars": "off",
+      // Formatter guardrail — route all numeric/temporal formatting through
+      // src/lib/format.ts so precision tiers and locale stay consistent.
+      "no-restricted-syntax": [
+        "warn",
+        {
+          selector: "MemberExpression[property.name='toFixed']",
+          message: "Use formatMoney/formatPercent/formatDuration from '@/lib/format' instead of toFixed().",
+        },
+        {
+          selector: "MemberExpression[object.name='Intl'][property.name='NumberFormat']",
+          message: "Use formatters from '@/lib/format' instead of raw Intl.NumberFormat.",
+        },
+      ],
     },
+  },
+  {
+    // The formatter module is the single source of truth — exempt it.
+    files: ["src/lib/format.ts"],
+    rules: { "no-restricted-syntax": "off" },
   },
 );
