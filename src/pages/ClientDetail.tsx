@@ -1787,19 +1787,10 @@ function ProjectsTab({ projects, client, canViewFinancials, onNavigate }: any) {
 // ═══════════════════════════════════════════════════════════════════
 // Sessions Tab
 // ═══════════════════════════════════════════════════════════════════
-function SessionsTab({ clientSessions, client: _client, canViewFinancials, selectedIds, onToggleSelect, onToggleSelectAll, onLogSession, onEditSession }: any) {
+function SessionsTab({ clientSessions, client: _client, canViewFinancials, selectedIds, onToggleSelect, onToggleSelectAll, onEditSession }: any) {
   return (
     <div>
-      <div className="flex items-center justify-end -mt-12 mb-3 relative z-10">
-        <button
-          onClick={onLogSession}
-          className="h-8 px-3 inline-flex items-center gap-1.5 rounded-md border border-[var(--hairline)] hover:bg-accent/60 transition-colors cursor-pointer text-[12.5px] text-muted-foreground hover:text-foreground"
-          style={{ fontWeight: 500 }}
-        >
-          <Plus className="w-3.5 h-3.5" />
-          Log session
-        </button>
-      </div>
+
       {clientSessions.length > 0 ? (
         <div className="overflow-x-auto border-y border-[var(--hairline)]">
           <table className="w-full min-w-[600px]">
