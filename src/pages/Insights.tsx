@@ -31,6 +31,7 @@ import * as invoiceApi from "../data/invoiceApi";
 import { formatMoney } from "@/lib/format";
 
 import { PageHeader, SegmentedControl, type SegmentOption } from "@/components/primitives/composition";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 
 const container = {
   hidden: {},
@@ -458,76 +459,74 @@ export default function Insights() {
           ) : (
             <div className="bg-card border border-border rounded-xl overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-border bg-accent/30">
-                      <th className="text-left px-5 py-3 text-[12px] text-muted-foreground sticky left-0 bg-accent/30 z-10" style={{ fontWeight: 500, minWidth: 140 }}>Client</th>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="sticky left-0 bg-card z-10" style={{ minWidth: 140 }}>Client</TableHead>
                       {heatmapMonths.map(mk => {
                         const [y, m] = mk.split('-');
                         const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
                         return (
-                          <th key={mk} className="text-right px-4 py-3 text-[11px] text-muted-foreground" style={{ fontWeight: 500, minWidth: 80 }}>
+                          <TableHead key={mk} numeric style={{ minWidth: 80 }}>
                             {months[parseInt(m) - 1]}<br /><span className="text-[10px] opacity-60">{y}</span>
-                          </th>
+                          </TableHead>
                         );
                       })}
-                      <th className="text-right px-5 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500, minWidth: 90 }}>Total</th>
-                      <th className="text-right px-5 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500, minWidth: 70 }}>$/hr</th>
-                    </tr>
-                  </thead>
-                  <tbody>
+                      <TableHead numeric style={{ minWidth: 90 }}>Total</TableHead>
+                      <TableHead numeric style={{ minWidth: 70 }}>$/hr</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {metrics.profitability.map((row) => {
                       const maxRev = Math.max(...Object.values(row.months).map(m => m.revenue), 1);
                       return (
-                        <tr
+                        <TableRow
                           key={row.clientId}
-                          className="border-b border-border last:border-0 hover:bg-accent/20 transition-colors cursor-pointer"
+                          className="cursor-pointer"
                           onClick={() => hasFullInsights && navigate(`/clients/${row.clientId}`)}
                         >
-                          <td className="px-5 py-3 text-[13px] text-foreground sticky left-0 bg-card z-10" style={{ fontWeight: 500 }}>
+                          <TableCell className="text-[13px] text-foreground sticky left-0 bg-card z-10" style={{ fontWeight: 500 }}>
                             <div className="flex items-center gap-2">
                               <div className="w-5 h-5 rounded-md bg-primary/8 flex items-center justify-center flex-shrink-0">
                                 <span className="text-[9px] text-primary" style={{ fontWeight: 600 }}>{row.clientName.charAt(0)}</span>
                               </div>
                               <span className="truncate max-w-[120px]">{row.clientName}</span>
                             </div>
-                          </td>
+                          </TableCell>
                           {heatmapMonths.map(mk => {
                             const cell = row.months[mk];
                             const rev = cell?.revenue || 0;
                             const intensity = maxRev > 0 ? Math.max(0.05, rev / maxRev) : 0;
                             return (
-                              <td key={mk} className="px-4 py-3 text-right">
+                              <TableCell key={mk} numeric>
                                 {rev > 0 ? (
-                                  <div className="inline-flex items-center justify-end">
-                                    <span
-                                      className="text-[12px] tabular-nums px-2 py-0.5 rounded"
-                                      style={{
-                                        fontWeight: 500,
-                                        background: `hsl(var(--primary) / ${intensity * 0.15})`,
-                                        color: intensity > 0.5 ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
-                                      }}
-                                    >
-                                      {formatMoney(rev)}
-                                    </span>
-                                  </div>
+                                  <span
+                                    className="inline-block text-[12px] tabular-nums px-2 py-0.5 rounded"
+                                    style={{
+                                      fontWeight: 500,
+                                      background: `hsl(var(--primary) / ${intensity * 0.15})`,
+                                      color: intensity > 0.5 ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
+                                    }}
+                                  >
+                                    {formatMoney(rev)}
+                                  </span>
                                 ) : (
                                   <span className="text-[12px] text-muted-foreground/30">—</span>
                                 )}
-                              </td>
+                              </TableCell>
                             );
                           })}
-                          <td className="px-5 py-3 text-right text-[13px] text-foreground tabular-nums" style={{ fontWeight: 600 }}>
+                          <TableCell numeric className="text-[13px] text-foreground" style={{ fontWeight: 600 }}>
                             {formatMoney(row.totalRevenue)}
-                          </td>
-                          <td className="px-5 py-3 text-right text-[13px] text-muted-foreground tabular-nums">
+                          </TableCell>
+                          <TableCell numeric className="text-[13px] text-muted-foreground">
                             ${row.effectiveRate}
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       );
                     })}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
             </div>
           )}
