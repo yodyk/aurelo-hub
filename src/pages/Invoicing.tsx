@@ -43,6 +43,7 @@ import EmailActivityLog from "../components/EmailActivityLog";
 import { friendlyPaymentTerms, PAYMENT_TERMS_OPTIONS } from "../data/paymentTermsMap";
 import { PageHeader, SegmentedControl, type SegmentOption } from "@/components/primitives/composition";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { EmptyState } from "@/components/primitives/EmptyState";
 
 // ── Constants ──────────────────────────────────────────────────────
 
@@ -497,32 +498,18 @@ export default function Invoicing() {
                 <div className="w-5 h-5 border-2 border-primary/20 border-t-primary rounded-circle animate-spin" />
               </div>
             ) : filtered.length === 0 ? (
-              <div className="py-16 text-center">
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                  <FileText className="w-5 h-5 text-primary" />
-                </div>
-                <h3 className="text-[15px] text-foreground mb-1.5" style={{ fontWeight: 600 }}>
-                  {invoices.length === 0 ? "No invoices yet" : "No matching invoices"}
-                </h3>
-                <p className="text-[13px] text-muted-foreground max-w-sm mx-auto mb-5 leading-relaxed">
-                  {invoices.length === 0
-                    ? "Create your first invoice from logged hours. Aurelo auto-populates line items from your time sessions."
-                    : "Try adjusting your search or filter."}
-                </p>
-                {invoices.length === 0 && (
-                  <button
-                    onClick={() => {
-                      setEditingInvoice(null);
-                      setShowBuilder(true);
-                    }}
-                    className="inline-flex items-center gap-2 px-4 py-2 text-[13px] rounded-lg bg-foreground text-background hover:opacity-90 transition-all"
-                    style={{ fontWeight: 500 }}
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    Create first invoice
-                  </button>
-                )}
-              </div>
+              <EmptyState
+                glyph={FileText}
+                title={invoices.length === 0 ? "No invoices yet" : "No matching invoices"}
+                body={invoices.length === 0
+                  ? "Create your first invoice from logged hours. Aurelo auto-populates line items from your time sessions."
+                  : "Try adjusting your search or filter."}
+                primaryAction={invoices.length === 0 ? {
+                  label: "Create first invoice",
+                  icon: Plus,
+                  onClick: () => { setEditingInvoice(null); setShowBuilder(true); },
+                } : undefined}
+              />
             ) : (
               <Table>
                 <TableHeader>

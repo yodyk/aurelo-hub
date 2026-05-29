@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { Plus, ChevronDown, Download, FolderKanban, Repeat, Pencil, Search, X, CheckSquare, Square, Receipt } from "lucide-react";
+import { Plus, ChevronDown, Download, FolderKanban, Repeat, Pencil, Search, X, CheckSquare, Square, Receipt, Clock } from "lucide-react";
 import { motion } from "motion/react";
 import { useData } from "../data/DataContext";
 import { LogSessionModal, EditSessionModal } from "../components/Modals";
@@ -17,6 +17,7 @@ import RecurringSessionsManager from "../components/RecurringSessionsManager";
 import { PageHeader, SegmentedControl, type SegmentOption } from "@/components/primitives/composition";
 import { useRoleAccess } from "@/data/useRoleAccess";
 import { formatMoney } from "@/lib/format";
+import { EmptyState } from "@/components/primitives/EmptyState";
 
 
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.04 } } };
@@ -476,9 +477,12 @@ export default function TimeLog() {
               ))}
 
               {groupedSessions.length === 0 && (
-                <div className="py-20 text-center type-meta text-muted-foreground">
-                  No sessions logged today. The day is still yours.
-                </div>
+                <EmptyState
+                  glyph={Clock}
+                  title="No sessions logged"
+                  body="The day is still yours. Start the timer or log a session."
+                  primaryAction={{ label: "Log session", icon: Plus, onClick: () => setShowLogModal(true) }}
+                />
               )}
             </div>
           </>
