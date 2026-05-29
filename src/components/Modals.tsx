@@ -1280,7 +1280,7 @@ export function LogSessionModal({ open, onClose, onSave, clients, preSelectedCli
                   <div className="flex items-center justify-between text-[11px] text-muted-foreground mt-1">
                     <span>Revenue earned</span>
                     <span className="tabular-nums" style={{ fontWeight: 500 }}>
-                      ${((selectedProject.revenue || 0) + revenue).toLocaleString()} of ${selectedProject.totalValue.toLocaleString()}
+                      {formatMoney((selectedProject.revenue || 0) + revenue, { showZeroDecimals: false })} of {formatMoney(selectedProject.totalValue, { showZeroDecimals: false })}
                     </span>
                   </div>
                 )}
