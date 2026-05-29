@@ -97,13 +97,14 @@ Deno.serve(async (req) => {
         });
       }
       const nextCompleted = completed !== undefined ? !!completed : !item.completed;
-      const nextStatus = nextCompleted ? 'done' : (item.status === 'done' ? 'todo' : item.status);
+      const nextStatus = nextCompleted ? 'complete' : (item.status === 'complete' ? 'to_do' : item.status);
       const { error } = await sb
         .from('checklist_items')
         .update({ status: nextStatus })
         .eq('id', item_id);
       if (error) throw error;
       result = { success: true, status: nextStatus, completed: nextCompleted };
+
 
     } else if (action === 'update_status' && item_id) {
       if (!ALLOWED_STATUSES.includes(status)) {
