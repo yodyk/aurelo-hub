@@ -392,9 +392,21 @@
   }
 
   /* Legacy aliases — preserved for in-flight migration. Do not use in new code. */
-  .type-title { @apply type-section; }
-  .type-heading { @apply type-section; }
-  .type-caption { @apply type-meta; }
+  .type-title,
+  .type-heading {
+    @apply text-foreground;
+    font-size: var(--type-section-size);
+    font-weight: var(--type-section-weight);
+    line-height: var(--type-section-leading);
+    letter-spacing: var(--type-section-tracking);
+  }
+  .type-caption {
+    @apply text-muted-foreground;
+    font-size: var(--type-meta-size);
+    font-weight: var(--type-meta-weight);
+    line-height: var(--type-meta-leading);
+    letter-spacing: var(--type-meta-tracking);
+  }
 
   /*
    * ─── 3-TIER FOREGROUND SCALE ───
