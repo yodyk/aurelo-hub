@@ -81,6 +81,18 @@
   --elev-2: 0 1px 0 rgba(15,12,10,0.04), 0 4px 12px rgba(15,12,10,0.05);
   --elev-3: 0 2px 0 rgba(15,12,10,0.04), 0 12px 32px rgba(15,12,10,0.08);
 
+  /* Spacing scale — 4pt base, calm rhythm */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
   /* Motion — Apple-style ease + spring proxies */
   --ease-emphasized: cubic-bezier(0.32, 0.72, 0, 1);
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
