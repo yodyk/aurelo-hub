@@ -390,7 +390,7 @@ export default function Insights() {
                   <BarChart data={metrics.collectionMetrics.agingBuckets} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
                     <XAxis dataKey="label" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${v.toLocaleString()}`} width={60} />
+                    <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} tickFormatter={(v) => formatMoney(v, { precision: "compact" })} width={60} />
                     <Tooltip content={<ChartTooltip />} />
                     <Bar dataKey="amount" radius={[6, 6, 0, 0]}>
                       {metrics.collectionMetrics.agingBuckets.map((_, i) => (
