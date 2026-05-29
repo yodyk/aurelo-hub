@@ -632,12 +632,13 @@ export default function ClientDetail() {
             {canViewFinancials && (
               <div className="flex items-baseline gap-2 mt-2 tabular-nums">
                 <span className="type-page" style={{ margin: 0, fontSize: 22 }}>
-                  ${effectiveRate.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                  {formatMoney(effectiveRate)}
                 </span>
                 <span className="type-meta text-muted-foreground">/hr effective</span>
                 <span className="type-meta text-muted-foreground opacity-40">·</span>
                 <span className="type-meta text-muted-foreground">
-                  ${(client.lifetimeRevenue || 0).toLocaleString()} lifetime
+                  {formatMoney(client.lifetimeRevenue || 0, { precision: "compact" })} lifetime
+
                 </span>
               </div>
             )}
