@@ -430,15 +430,11 @@ function TaskRow({
       exit={{ opacity: 0, height: 0 }}
       className="group border border-border rounded-lg bg-background/60 hover:bg-accent/20 transition-colors"
     >
-      <div className="flex items-start gap-2 p-2.5">
-        {/* Status toggle */}
-        <button
-          onClick={cycleStatus}
-          title={`Status: ${cfg.label} — click to cycle`}
-          className="flex-shrink-0 mt-0.5 cursor-pointer"
-        >
-          <StatusIcon className={`w-4 h-4 ${cfg.textClass}`} />
-        </button>
+      <div className="flex items-start gap-3 p-3">
+        {/* Prominent status pill (click to cycle, also opens menu) */}
+        <div className="flex-shrink-0 pt-0.5">
+          <StatusPill status={item.status} onSelect={setStatus} onCycle={cycleStatus} />
+        </div>
 
         {/* Main */}
         <div className="flex-1 min-w-0">
@@ -450,72 +446,84 @@ function TaskRow({
                 onChange={(e) => setTextValue(e.target.value)}
                 onBlur={handleSaveText}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleSaveText(); if (e.key === 'Escape') { setTextValue(item.text); setEditingText(false); } }}
-                className="flex-1 text-[13px] bg-transparent border-b border-border focus:outline-none focus:border-primary py-0.5"
+                className="flex-1 text-[15px] bg-transparent border-b border-border focus:outline-none focus:border-primary py-0.5"
+                style={{ fontWeight: 500 }}
               />
             ) : (
               <button
                 onClick={() => setEditingText(true)}
-                className={`flex-1 text-left text-[13px] leading-tight cursor-text ${item.status === 'done' ? 'line-through text-muted-foreground/70' : 'text-foreground'}`}
+                className={`flex-1 text-left text-[15px] leading-snug cursor-text ${item.status === 'done' ? 'line-through text-muted-foreground/70' : 'text-foreground'}`}
+                style={{ fontWeight: 500 }}
               >
                 {item.text || <span className="text-muted-foreground/60 italic">Untitled task</span>}
               </button>
             )}
 
             {item.addedBy === 'client' && (
-              <span className="text-[10px] text-muted-foreground bg-accent/60 px-1.5 py-0.5 rounded" style={{ fontWeight: 500 }}>Client</span>
+              <span className="text-[10.5px] text-muted-foreground bg-accent/60 px-1.5 py-0.5 rounded" style={{ fontWeight: 500 }}>Client</span>
             )}
             <button
               onClick={() => setExpanded(v => !v)}
-              className={`flex-shrink-0 inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded border transition-colors cursor-pointer ${
+              className={`flex-shrink-0 inline-flex items-center gap-1 text-[12px] px-2 py-1 rounded border transition-colors cursor-pointer ${
                 expanded ? 'bg-primary/10 border-primary/30 text-primary' : 'border-border text-muted-foreground hover:text-foreground hover:bg-accent/40'
               }`}
               style={{ fontWeight: 500 }}
               title={expanded ? 'Hide details' : 'Edit details'}
             >
               Details
-              <ChevronDown className={`w-3 h-3 transition-transform ${expanded ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${expanded ? 'rotate-180' : ''}`} />
             </button>
           </div>
 
-          {/* Meta row */}
-          <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
-            <StatusPill status={item.status} onSelect={setStatus} />
+          {/* Slim meta row — date, estimate, and indicators for hidden detail (no descriptions/tags) */}
+          {(item.dueDate || item.estimatedHours != null || item.description || (item.workTags && item.workTags.length > 0) || links.length > 0) && (
+            <div className="flex flex-wrap items-center gap-2 mt-2">
+              {item.dueDate && dueMeta && (
+                <span className={`inline-flex items-center gap-1 text-[11.5px] px-1.5 py-0.5 rounded ${dueMeta.className}`} style={{ fontWeight: 500 }}>
+                  <Calendar className="w-3 h-3" /> {dueMeta.label}
+                </span>
+              )}
 
-            {(item.workTags || []).map(tag => (
-              <span key={tag} className="inline-flex items-center gap-1 text-[10.5px] px-1.5 py-0.5 rounded bg-accent/50 text-foreground/80" style={{ fontWeight: 500 }}>
-                <Tag className="w-2.5 h-2.5" /> {tag}
-              </span>
-            ))}
+              {item.estimatedHours != null && (
+                <span className="inline-flex items-center gap-1 text-[11.5px] px-1.5 py-0.5 rounded bg-accent/50 text-muted-foreground" style={{ fontWeight: 500 }}>
+                  <Clock className="w-3 h-3" /> {item.estimatedHours}h
+                </span>
+              )}
 
-            {item.dueDate && dueMeta && (
-              <span className={`inline-flex items-center gap-1 text-[10.5px] px-1.5 py-0.5 rounded ${dueMeta.className}`} style={{ fontWeight: 500 }}>
-                <Calendar className="w-2.5 h-2.5" /> {dueMeta.label}
-              </span>
-            )}
+              {item.workTags && item.workTags.length > 0 && (
+                <button
+                  onClick={() => setExpanded(true)}
+                  className="inline-flex items-center gap-1 text-[11.5px] text-muted-foreground/80 hover:text-primary cursor-pointer"
+                  style={{ fontWeight: 500 }}
+                  title="View focus areas"
+                >
+                  <Tag className="w-3 h-3" /> {item.workTags.length}
+                </button>
+              )}
 
-            {item.estimatedHours != null && (
-              <span className="inline-flex items-center gap-1 text-[10.5px] px-1.5 py-0.5 rounded bg-accent/50 text-muted-foreground" style={{ fontWeight: 500 }}>
-                <Clock className="w-2.5 h-2.5" /> {item.estimatedHours}h est
-              </span>
-            )}
+              {item.description && (
+                <button
+                  onClick={() => setExpanded(true)}
+                  className="inline-flex items-center gap-1 text-[11.5px] text-muted-foreground/80 hover:text-primary cursor-pointer"
+                  style={{ fontWeight: 500 }}
+                  title="View description"
+                >
+                  <AlignLeft className="w-3 h-3" /> Notes
+                </button>
+              )}
 
-            {item.description && !expanded && (
-              <span className="inline-flex items-center gap-1 text-[10.5px] text-muted-foreground/70">
-                <AlignLeft className="w-2.5 h-2.5" /> Notes
-              </span>
-            )}
-
-            {links.length > 0 && (
-              <button
-                onClick={() => setExpanded(true)}
-                className="inline-flex items-center gap-1 text-[10.5px] px-1.5 py-0.5 rounded bg-accent/50 text-muted-foreground hover:text-primary cursor-pointer"
-                style={{ fontWeight: 500 }}
-                title="Linked notes & files"
-              >
-                <Link2 className="w-2.5 h-2.5" /> {links.length}
-              </button>
-            )}
-          </div>
+              {links.length > 0 && (
+                <button
+                  onClick={() => setExpanded(true)}
+                  className="inline-flex items-center gap-1 text-[11.5px] text-muted-foreground/80 hover:text-primary cursor-pointer"
+                  style={{ fontWeight: 500 }}
+                  title="Linked notes & files"
+                >
+                  <Link2 className="w-3 h-3" /> {links.length}
+                </button>
+              )}
+            </div>
+          )}
 
           {/* Expanded editor */}
           <AnimatePresence initial={false}>
