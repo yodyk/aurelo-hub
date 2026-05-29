@@ -354,7 +354,7 @@ export default function Today() {
         subtitle={now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
         actions={
           canViewFinancials && hasData ? (
-            <SegmentedControl
+            <SegmentedControl<"gross" | "net">
               ariaLabel="Earnings view"
               options={[
                 { value: "gross", label: "Gross" },
