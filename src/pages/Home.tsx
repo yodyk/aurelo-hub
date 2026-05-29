@@ -310,8 +310,9 @@ export default function Today() {
           id: `creep-${p.id}`,
           icon: <TrendingDown className="w-3.5 h-3.5" />,
           tone: severe ? "danger" : "warning",
-          title: `${client.name} — ${p.name} at $${Math.round(effRate)}/hr`,
-          detail: `Below your $${client.rate}/hr rate · ${p.hours}h on $${p.totalValue.toLocaleString()}`,
+          title: `${client.name} — ${p.name} at ${formatMoney(effRate, { precision: "compact" })}/hr`,
+          detail: `Below your ${formatMoney(client.rate, { precision: "compact" })}/hr rate · ${p.hours}h on ${formatMoney(p.totalValue)}`,
+
           onClick: () => navigate(`/clients/${p.clientId}`),
         });
       }
