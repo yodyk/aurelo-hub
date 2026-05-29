@@ -648,6 +648,7 @@ export default function Today() {
               <div>
                 <SectionEyebrow>Where time goes</SectionEyebrow>
                 <div className="mt-3 h-1 flex overflow-hidden">
+
                   {timeAllocation.map((cat) => (
                     <div
                       key={cat.category}
