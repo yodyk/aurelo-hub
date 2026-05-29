@@ -578,11 +578,8 @@ export default function ClientDetail() {
   };
 
   const handleDrop = (e: React.DragEvent) => { e.preventDefault(); const file = e.dataTransfer.files[0]; if (file) handleFileUpload(file); };
-  const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  };
+  const formatFileSize = (bytes: number) => formatBytes(bytes);
+
 
   // ═════════════════════════════════════════════════════════════════
   // RENDER
