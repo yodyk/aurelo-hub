@@ -250,7 +250,7 @@ function TaskCard({
   onPatch: (patch: Partial<ChecklistItem>, dbPatch: any) => void;
   onDelete: () => void;
 }) {
-  const cfg = STATUS_MAP[task.status] || STATUS_MAP.todo;
+  const cfg = STATUS_MAP[task.status] || STATUS_MAP.to_do;
   const due = dueMeta(task.dueDate);
   const StatusIcon = cfg.icon;
   const [expanded, setExpanded] = useState(false);
