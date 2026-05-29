@@ -99,48 +99,75 @@ export type Database = {
       checklist_items: {
         Row: {
           added_by: string
-          checklist_id: string
+          checklist_id: string | null
+          client_id: string | null
           completed: boolean
+          completed_at: string | null
           created_at: string
           description: string | null
           due_date: string | null
           estimated_hours: number | null
+          follow_up_at: string | null
           id: string
           priority: string | null
+          project_id: string | null
+          recurrence_id: string | null
           sort_order: number
+          source: string
           status: string
           text: string
+          waiting_note: string | null
+          waiting_on: string | null
           work_tags: string[]
+          workspace_id: string | null
         }
         Insert: {
           added_by?: string
-          checklist_id: string
+          checklist_id?: string | null
+          client_id?: string | null
           completed?: boolean
+          completed_at?: string | null
           created_at?: string
           description?: string | null
           due_date?: string | null
           estimated_hours?: number | null
+          follow_up_at?: string | null
           id?: string
           priority?: string | null
+          project_id?: string | null
+          recurrence_id?: string | null
           sort_order?: number
+          source?: string
           status?: string
           text?: string
+          waiting_note?: string | null
+          waiting_on?: string | null
           work_tags?: string[]
+          workspace_id?: string | null
         }
         Update: {
           added_by?: string
-          checklist_id?: string
+          checklist_id?: string | null
+          client_id?: string | null
           completed?: boolean
+          completed_at?: string | null
           created_at?: string
           description?: string | null
           due_date?: string | null
           estimated_hours?: number | null
+          follow_up_at?: string | null
           id?: string
           priority?: string | null
+          project_id?: string | null
+          recurrence_id?: string | null
           sort_order?: number
+          source?: string
           status?: string
           text?: string
+          waiting_note?: string | null
+          waiting_on?: string | null
           work_tags?: string[]
+          workspace_id?: string | null
         }
         Relationships: [
           {
@@ -1443,6 +1470,72 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      task_recurrences: {
+        Row: {
+          active: boolean
+          checklist_id: string | null
+          client_id: string
+          created_at: string
+          day_of_month: number | null
+          day_of_week: number | null
+          estimated_hours: number | null
+          every_n_days: number | null
+          frequency: string
+          id: string
+          last_generated_on: string | null
+          lead_days: number
+          next_due_on: string
+          notes_md: string | null
+          priority: string | null
+          project_id: string | null
+          title: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          active?: boolean
+          checklist_id?: string | null
+          client_id: string
+          created_at?: string
+          day_of_month?: number | null
+          day_of_week?: number | null
+          estimated_hours?: number | null
+          every_n_days?: number | null
+          frequency: string
+          id?: string
+          last_generated_on?: string | null
+          lead_days?: number
+          next_due_on: string
+          notes_md?: string | null
+          priority?: string | null
+          project_id?: string | null
+          title: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          active?: boolean
+          checklist_id?: string | null
+          client_id?: string
+          created_at?: string
+          day_of_month?: number | null
+          day_of_week?: number | null
+          estimated_hours?: number | null
+          every_n_days?: number | null
+          frequency?: string
+          id?: string
+          last_generated_on?: string | null
+          lead_days?: number
+          next_due_on?: string
+          notes_md?: string | null
+          priority?: string | null
+          project_id?: string | null
+          title?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: []
       }
       user_consents: {
         Row: {

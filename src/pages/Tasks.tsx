@@ -4,28 +4,29 @@ import { motion, AnimatePresence } from 'motion/react';
 import { containerVariants, itemVariants } from '@/lib/motion';
 import {
   CheckSquare, Filter, Loader2, Tag, Clock, Calendar, ChevronDown,
-  CircleDashed, CircleDot, AlertCircle, CheckCircle2, PauseCircle, AlignLeft, ExternalLink, X, Trash2,
+  AlignLeft, ExternalLink, X, Trash2,
 } from 'lucide-react';
 import { format, parseISO, isPast, isToday, differenceInCalendarDays } from 'date-fns';
 import { useAuth } from '@/data/AuthContext';
 import { useData } from '@/data/DataContext';
 import {
   loadAllTasksForWorkspace, updateChecklistItem, deleteChecklistItem,
-  type WorkspaceTask, type TaskStatus, type ChecklistItem,
+  type WorkspaceTask, type ChecklistItem,
 } from '@/data/checklistsApi';
+import { TASK_STATUSES, STATUS_BY_VALUE, nextStatus, type TaskStatus } from '@/data/taskStatus';
 import { supabase } from '@/integrations/supabase/client';
 import { DatePicker } from '@/components/ui/date-picker';
 import { toast } from '@/lib/toast';
 import { EmptyState } from '@/components/primitives/EmptyState';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
-const STATUSES: { value: TaskStatus; label: string; icon: any; dotClass: string; textClass: string; bgClass: string; borderClass: string }[] = [
-  { value: 'todo',        label: 'To Do',       icon: CircleDashed, dotClass: 'bg-muted-foreground/50', textClass: 'text-muted-foreground', bgClass: 'bg-muted/50',         borderClass: 'border-border' },
-  { value: 'in_progress', label: 'In Progress', icon: CircleDot,    dotClass: 'bg-sky-500',             textClass: 'text-sky-700 dark:text-sky-400', bgClass: 'bg-sky-500/10',       borderClass: 'border-sky-500/30' },
-  { value: 'blocked',     label: 'Blocked',     icon: AlertCircle,  dotClass: 'bg-red-500',             textClass: 'text-red-700 dark:text-red-400', bgClass: 'bg-red-500/10',       borderClass: 'border-red-500/30' },
-  { value: 'on_hold',     label: 'On Hold',     icon: PauseCircle,  dotClass: 'bg-amber-500',           textClass: 'text-amber-700 dark:text-amber-400', bgClass: 'bg-amber-500/10', borderClass: 'border-amber-500/30' },
-  { value: 'done',        label: 'Done',        icon: CheckCircle2, dotClass: 'bg-emerald-500',         textClass: 'text-emerald-700 dark:text-emerald-400', bgClass: 'bg-emerald-500/10', borderClass: 'border-emerald-500/30' },
-];
-const STATUS_MAP = Object.fromEntries(STATUSES.map(s => [s.value, s]));
+const STATUSES = TASK_STATUSES;
+const STATUS_MAP = STATUS_BY_VALUE;
+
 
 function dueMeta(due?: string | null) {
   if (!due) return null;
@@ -81,24 +82,24 @@ export default function Tasks() {
 
   const counts = useMemo(() => ({
     all: tasks.length,
-    open: tasks.filter(t => t.status !== 'done').length,
-    todo: tasks.filter(t => t.status === 'todo').length,
+    open: tasks.filter(t => t.status !== 'complete').length,
+    to_do: tasks.filter(t => t.status === 'to_do').length,
     in_progress: tasks.filter(t => t.status === 'in_progress').length,
-    blocked: tasks.filter(t => t.status === 'blocked').length,
+    in_review: tasks.filter(t => t.status === 'in_review').length,
     on_hold: tasks.filter(t => t.status === 'on_hold').length,
-    done: tasks.filter(t => t.status === 'done').length,
+    complete: tasks.filter(t => t.status === 'complete').length,
   }), [tasks]);
 
   const filtered = useMemo(() => {
     return tasks.filter(t => {
-      if (statusFilter === 'open' && t.status === 'done') return false;
+      if (statusFilter === 'open' && t.status === 'complete') return false;
       if (statusFilter !== 'all' && statusFilter !== 'open' && t.status !== statusFilter) return false;
       if (clientFilter !== 'all' && t.clientId !== clientFilter) return false;
       if (tagFilter !== 'all' && !(t.workTags || []).includes(tagFilter)) return false;
       return true;
     }).sort((a, b) => {
-      const aDone = a.status === 'done' ? 1 : 0;
-      const bDone = b.status === 'done' ? 1 : 0;
+      const aDone = a.status === 'complete' ? 1 : 0;
+      const bDone = b.status === 'complete' ? 1 : 0;
       if (aDone !== bDone) return aDone - bDone;
       const aDue = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
       const bDue = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
@@ -107,11 +108,11 @@ export default function Tasks() {
   }, [tasks, statusFilter, clientFilter, tagFilter]);
 
   const cycleStatus = async (task: WorkspaceTask) => {
-    const order: TaskStatus[] = ['todo', 'in_progress', 'blocked', 'on_hold', 'done'];
-    const next = order[(order.indexOf(task.status) + 1) % order.length];
-    setTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: next, completed: next === 'done' } : t));
+    const next = nextStatus(task.status);
+    setTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: next, completed: next === 'complete' } : t));
     try { await updateChecklistItem(task.id, { status: next }); }
     catch (err: any) {
+
       toast.error(err.message);
       setTasks(prev => prev.map(t => t.id === task.id ? task : t));
     }
@@ -150,12 +151,13 @@ export default function Tasks() {
       {/* Filters — inline, status chips left, selects right */}
       <motion.div variants={itemVariants} className="flex flex-wrap items-center gap-2 mb-5">
         <FilterChip active={statusFilter === 'open'}        onClick={() => setStatusFilter('open')}        label="Open" count={counts.open} />
-        <FilterChip active={statusFilter === 'todo'}        onClick={() => setStatusFilter('todo')}        label="To Do" count={counts.todo} />
+        <FilterChip active={statusFilter === 'to_do'}       onClick={() => setStatusFilter('to_do')}       label="To Do" count={counts.to_do} />
         <FilterChip active={statusFilter === 'in_progress'} onClick={() => setStatusFilter('in_progress')} label="In Progress" count={counts.in_progress} />
-        <FilterChip active={statusFilter === 'blocked'}     onClick={() => setStatusFilter('blocked')}     label="Blocked" count={counts.blocked} />
+        <FilterChip active={statusFilter === 'in_review'}   onClick={() => setStatusFilter('in_review')}   label="In Review" count={counts.in_review} />
         <FilterChip active={statusFilter === 'on_hold'}     onClick={() => setStatusFilter('on_hold')}     label="On Hold" count={counts.on_hold} />
-        <FilterChip active={statusFilter === 'done'}        onClick={() => setStatusFilter('done')}        label="Done" count={counts.done} />
+        <FilterChip active={statusFilter === 'complete'}    onClick={() => setStatusFilter('complete')}    label="Complete" count={counts.complete} />
         <FilterChip active={statusFilter === 'all'}         onClick={() => setStatusFilter('all')}         label="All" count={counts.all} />
+
 
         <div className="ml-auto flex flex-wrap items-center gap-2">
           <div className="flex items-center gap-1.5">
@@ -248,7 +250,7 @@ function TaskCard({
   onPatch: (patch: Partial<ChecklistItem>, dbPatch: any) => void;
   onDelete: () => void;
 }) {
-  const cfg = STATUS_MAP[task.status] || STATUS_MAP.todo;
+  const cfg = STATUS_MAP[task.status] || STATUS_MAP.to_do;
   const due = dueMeta(task.dueDate);
   const StatusIcon = cfg.icon;
   const [expanded, setExpanded] = useState(false);
@@ -295,7 +297,7 @@ function TaskCard({
                 <span className="truncate max-w-[200px]">{clientName}</span>
                 <ExternalLink className="w-2.5 h-2.5 opacity-0 group-hover:opacity-60 transition-opacity" />
               </Link>
-              <div className={`text-[15px] leading-snug ${task.status === 'done' ? 'line-through text-muted-foreground' : 'text-foreground'}`} style={{ fontWeight: 500 }}>
+              <div className={`text-[15px] leading-snug ${task.status === 'complete' ? 'line-through text-muted-foreground' : 'text-foreground'}`} style={{ fontWeight: 500 }}>
                 {task.text}
               </div>
             </div>
