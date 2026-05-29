@@ -74,7 +74,7 @@ export function SettingsSaveBar({
               onClick={onSave}
               disabled={saving}
               className="px-4 py-1.5 bg-primary text-primary-foreground text-[13px] rounded-lg hover:bg-primary/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
-              style={{ fontWeight: 500, boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}
+              style={{ fontWeight: 500, boxShadow: 'var(--elev-1)' }}
             >
               {saving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
               Save changes
@@ -117,7 +117,7 @@ export function UnsavedChangesDialog({
             exit={{ opacity: 0, scale: 0.95, y: 8 }}
             transition={{ duration: 0.2 }}
             className="bg-card border border-border rounded-2xl p-7 max-w-sm w-full mx-4"
-            style={{ boxShadow: '0 16px 48px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06)' }}
+            style={{ boxShadow: 'var(--elev-3)' }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="w-11 h-11 rounded-xl bg-destructive/10 flex items-center justify-center mx-auto mb-4">

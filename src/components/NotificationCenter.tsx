@@ -156,7 +156,7 @@ export function NotificationCenter({ workspaceId }: NotificationCenterProps) {
             exit={{ opacity: 0, y: 4, scale: 0.97 }}
             transition={{ duration: 0.15 }}
             className="absolute top-full mt-2 left-2 right-2 w-auto sm:left-auto sm:right-0 sm:w-96 max-w-[calc(100vw-1rem)] sm:max-w-96 bg-card border border-border rounded-xl overflow-hidden z-50"
-            style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04)' }}
+            style={{ boxShadow: 'var(--elev-2)' }}
           >
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-border">

@@ -167,7 +167,7 @@ export default function Projects() {
         <button
           onClick={() => setShowProjectModal(true)}
           className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-[14px] rounded-lg hover:bg-primary/90 transition-all duration-200"
-          style={{ fontWeight: 500, boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
+          style={{ fontWeight: 500, boxShadow: "var(--elev-1)" }}
         >
           <Plus className="w-4 h-4" />
           Add project
@@ -397,7 +397,7 @@ export default function Projects() {
                                     ? "var(--destructive)"
                                     : pct >= 90
                                       ? project.status === "Complete"
-                                        ? "#a1a1aa"
+                                        ? "var(--muted-foreground)"
                                         : "var(--warning)"
                                       : "linear-gradient(90deg, var(--primary), var(--chart-2))",
                               }}
@@ -448,7 +448,7 @@ export default function Projects() {
         ) : (
           <div
             className="bg-card border border-border rounded-xl p-12 text-center"
-            style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.03), 0 1px 2px rgba(0,0,0,0.02)" }}
+            style={{ boxShadow: "var(--elev-1)" }}
           >
             <div className="w-12 h-12 rounded-xl bg-accent/60 flex items-center justify-center mx-auto mb-4">
               <FolderKanban className="w-6 h-6 text-muted-foreground" />

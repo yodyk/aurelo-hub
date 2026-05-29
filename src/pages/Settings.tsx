@@ -133,7 +133,7 @@ function SectionCard({ children, className = "" }: { children: React.ReactNode; 
     <motion.div
       variants={item}
       className={`bg-card border border-border rounded-xl p-6 ${className}`}
-      style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}
+      style={{ boxShadow: "var(--elev-1)" }}
     >
       {children}
     </motion.div>
@@ -193,7 +193,7 @@ function SaveButton({
       onClick={onClick}
       disabled={saving}
       className="px-4 py-2 bg-primary text-primary-foreground text-[13px] rounded-lg hover:bg-primary/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
-      style={{ fontWeight: 500, boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
+      style={{ fontWeight: 500, boxShadow: "var(--elev-1)" }}
     >
       {label}
     </button>
@@ -208,7 +208,7 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
     >
       <div
         className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-circle bg-white transition-transform duration-200 ${checked ? "translate-x-4" : "translate-x-0"}`}
-        style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.12)" }}
+        style={{ boxShadow: "var(--elev-2)" }}
       />
     </button>
   );
@@ -1239,7 +1239,7 @@ function WorkspaceTab() {
             <div className="space-y-2">
               <div className="flex items-center justify-between py-2">
                 <span className="text-[13px] text-muted-foreground" style={{ fontWeight: 500 }}>Portal logo</span>
-                <span className="text-[12px]" style={{ fontWeight: 500, color: appLogo ? undefined : "#a3a3a3" }}>
+                <span className="text-[12px]" style={{ fontWeight: 500, color: appLogo ? undefined : "var(--foreground-subtle)" }}>
                   {appLogo ? "✓ Using app logo" : "No logo uploaded — upload one above"}
                 </span>
               </div>
@@ -1257,7 +1257,7 @@ function WorkspaceTab() {
               </div>
               <div className="flex items-center justify-between py-2 border-t border-border">
                 <span className="text-[13px] text-muted-foreground" style={{ fontWeight: 500 }}>"Powered by Aurelo"</span>
-                <span className="text-[12px]" style={{ fontWeight: 500, color: "#10b981" }}>Hidden</span>
+                <span className="text-[12px]" style={{ fontWeight: 500, color: "var(--success)" }}>Hidden</span>
               </div>
             </div>
           </div>
@@ -1893,7 +1893,7 @@ function IdentitySection() {
               exit={{ opacity: 0, scale: 0.95, y: 8 }}
               transition={{ duration: 0.2 }}
               className="bg-card border border-border rounded-2xl p-7 max-w-sm w-full mx-4 text-center"
-              style={{ boxShadow: "0 16px 48px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06)" }}
+              style={{ boxShadow: "var(--elev-3)" }}
               onClick={(e) => e.stopPropagation()}
             >
               <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
@@ -4412,7 +4412,7 @@ function DataTab() {
               exit={{ opacity: 0, scale: 0.95, y: 8 }}
               transition={{ duration: 0.2 }}
               className="bg-card border border-border rounded-2xl p-7 max-w-md w-full mx-4"
-              style={{ boxShadow: "0 16px 48px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06)" }}
+              style={{ boxShadow: "var(--elev-3)" }}
               onClick={(e) => e.stopPropagation()}
             >
               <div className="w-11 h-11 rounded-xl bg-destructive/10 flex items-center justify-center mb-4">
@@ -4487,7 +4487,7 @@ function DataTab() {
               exit={{ opacity: 0, scale: 0.95, y: 8 }}
               transition={{ duration: 0.2 }}
               className="bg-card border border-border rounded-2xl p-7 max-w-md w-full mx-4"
-              style={{ boxShadow: "0 16px 48px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06)" }}
+              style={{ boxShadow: "var(--elev-3)" }}
               onClick={(e) => e.stopPropagation()}
             >
               <div className="w-11 h-11 rounded-xl bg-destructive/10 flex items-center justify-center mb-4">

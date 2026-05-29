@@ -42,7 +42,7 @@ export default function BulkSessionActions({
           className="flex items-center gap-3 px-5 py-3 bg-card border border-border rounded-2xl"
           style={{
             boxShadow:
-              "0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06)",
+              "var(--elev-3)",
           }}
         >
           {/* Selection info */}

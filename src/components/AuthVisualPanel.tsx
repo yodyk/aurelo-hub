@@ -24,10 +24,10 @@ export function AuthVisualPanel() {
         className="absolute inset-0 mix-blend-soft-light"
         animate={{
           background: [
-            "radial-gradient(ellipse at 20% 30%, rgba(94,161,191,0.6) 0%, transparent 50%), radial-gradient(ellipse at 80% 70%, rgba(94,161,191,0.3) 0%, transparent 50%)",
-            "radial-gradient(ellipse at 60% 20%, rgba(120,190,220,0.5) 0%, transparent 50%), radial-gradient(ellipse at 30% 80%, rgba(70,140,170,0.4) 0%, transparent 50%)",
-            "radial-gradient(ellipse at 40% 60%, rgba(94,161,191,0.5) 0%, transparent 50%), radial-gradient(ellipse at 75% 30%, rgba(80,150,180,0.35) 0%, transparent 50%)",
-            "radial-gradient(ellipse at 20% 30%, rgba(94,161,191,0.6) 0%, transparent 50%), radial-gradient(ellipse at 80% 70%, rgba(94,161,191,0.3) 0%, transparent 50%)",
+            "radial-gradient(ellipse at 20% 30%, rgba(59,102,240,0.55) 0%, transparent 50%), radial-gradient(ellipse at 80% 70%, rgba(59,102,240,0.28) 0%, transparent 50%)",
+            "radial-gradient(ellipse at 60% 20%, rgba(91,155,213,0.45) 0%, transparent 50%), radial-gradient(ellipse at 30% 80%, rgba(45,75,190,0.38) 0%, transparent 50%)",
+            "radial-gradient(ellipse at 40% 60%, rgba(59,102,240,0.45) 0%, transparent 50%), radial-gradient(ellipse at 75% 30%, rgba(91,155,213,0.35) 0%, transparent 50%)",
+            "radial-gradient(ellipse at 20% 30%, rgba(59,102,240,0.55) 0%, transparent 50%), radial-gradient(ellipse at 80% 70%, rgba(59,102,240,0.28) 0%, transparent 50%)",
           ],
         }}
         transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}

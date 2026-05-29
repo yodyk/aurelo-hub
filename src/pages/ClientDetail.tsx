@@ -163,7 +163,7 @@ const TAB_PRIMARY: Record<TabId, string> = {
 function SectionCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
     <div className={`bg-card border border-border/60 rounded-xl overflow-hidden ${className}`}
-      style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02)" }}>
+      style={{ boxShadow: "var(--elev-1)" }}>
       <div className="p-5 md:p-6">{children}</div>
     </div>
   );
