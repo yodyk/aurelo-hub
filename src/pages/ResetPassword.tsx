@@ -74,7 +74,7 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="min-h-screen flex bg-[#FBFCFD]">
+    <div className="min-h-screen flex bg-background">
       <div className="flex-1 flex items-center justify-center px-6 py-12 lg:px-16">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -90,10 +90,10 @@ export default function ResetPassword() {
           {mode === "request" ? (
             <>
               <div className="mb-8">
-                <h1 className="text-[24px] text-[#1c1c1c] mb-2" style={{ fontWeight: 600, letterSpacing: "-0.01em" }}>
+                <h1 className="text-[24px] text-foreground mb-2" style={{ fontWeight: 600, letterSpacing: "-0.01em" }}>
                   Reset your password
                 </h1>
-                <p className="text-[14px] text-[#717182]">
+                <p className="text-[14px] text-muted-foreground">
                   Enter your email and we'll send you a link to reset your password.
                 </p>
               </div>
@@ -104,13 +104,13 @@ export default function ResetPassword() {
                   animate={{ opacity: 1, scale: 1 }}
                   className="text-center py-8"
                 >
-                  <div className="w-12 h-12 rounded-full bg-[#3B66F0]/10 flex items-center justify-center mx-auto mb-4">
-                    <Check className="w-6 h-6 text-[#3B66F0]" />
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                    <Check className="w-6 h-6 text-primary" />
                   </div>
-                  <h2 className="text-[18px] text-[#1c1c1c] mb-2" style={{ fontWeight: 600 }}>
+                  <h2 className="text-[18px] text-foreground mb-2" style={{ fontWeight: 600 }}>
                     Check your email
                   </h2>
-                  <p className="text-[13px] text-[#717182]">
+                  <p className="text-[13px] text-muted-foreground">
                     If an account exists for {email}, you'll receive a password reset link shortly.
                   </p>
                 </motion.div>
@@ -120,7 +120,7 @@ export default function ResetPassword() {
                     <motion.div
                       initial={{ opacity: 0, y: -4 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="px-3.5 py-2.5 rounded-lg bg-[#c27272]/6 border border-[#c27272]/15 text-[13px] text-[#c27272]"
+                      className="px-3.5 py-2.5 rounded-lg bg-destructive/[0.08] border border-destructive/20 text-[13px] text-destructive"
                       style={{ fontWeight: 500 }}
                     >
                       {error}
@@ -128,7 +128,7 @@ export default function ResetPassword() {
                   )}
 
                   <div>
-                    <label className="block text-[13px] text-[#1c1c1c] mb-1.5" style={{ fontWeight: 500 }}>
+                    <label className="block text-[13px] text-foreground mb-1.5" style={{ fontWeight: 500 }}>
                       Email address
                     </label>
                     <input
@@ -137,14 +137,14 @@ export default function ResetPassword() {
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="you@company.com"
                       autoComplete="email"
-                      className="w-full h-10 px-3 rounded-lg border border-black/10 bg-white text-[14px] text-[#1c1c1c] placeholder:text-[#b0b0b8] outline-none focus:border-[#3B66F0]/40 focus:ring-2 focus:ring-[#3B66F0]/10 transition-all"
+                      className="w-full h-10 px-3 rounded-lg border border-[var(--hairline)] bg-card text-[14px] text-foreground placeholder:text-[var(--foreground-subtle)] outline-none focus:border-primary/55 focus:ring-2 focus:ring-primary/15 transition-all"
                     />
                   </div>
 
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full h-10 rounded-lg bg-[#3B66F0] text-white text-[14px] flex items-center justify-center gap-2 hover:bg-[#3458D9] active:bg-[#2D4BBE] disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
+                    className="w-full h-10 rounded-lg bg-primary text-white text-[14px] flex items-center justify-center gap-2 hover:bg-[color-mix(in_oklab,var(--primary)_92%,black)] active:bg-[color-mix(in_oklab,var(--primary)_84%,black)] disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
                     style={{ fontWeight: 500 }}
                   >
                     {loading ? (
@@ -162,10 +162,10 @@ export default function ResetPassword() {
           ) : (
             <>
               <div className="mb-8">
-                <h1 className="text-[24px] text-[#1c1c1c] mb-2" style={{ fontWeight: 600, letterSpacing: "-0.01em" }}>
+                <h1 className="text-[24px] text-foreground mb-2" style={{ fontWeight: 600, letterSpacing: "-0.01em" }}>
                   Set a new password
                 </h1>
-                <p className="text-[14px] text-[#717182]">
+                <p className="text-[14px] text-muted-foreground">
                   Choose a new password for your account.
                 </p>
               </div>
@@ -176,13 +176,13 @@ export default function ResetPassword() {
                   animate={{ opacity: 1, scale: 1 }}
                   className="text-center py-8"
                 >
-                  <div className="w-12 h-12 rounded-full bg-[#3B66F0]/10 flex items-center justify-center mx-auto mb-4">
-                    <Check className="w-6 h-6 text-[#3B66F0]" />
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                    <Check className="w-6 h-6 text-primary" />
                   </div>
-                  <h2 className="text-[18px] text-[#1c1c1c] mb-2" style={{ fontWeight: 600 }}>
+                  <h2 className="text-[18px] text-foreground mb-2" style={{ fontWeight: 600 }}>
                     Password updated
                   </h2>
-                  <p className="text-[13px] text-[#717182]">
+                  <p className="text-[13px] text-muted-foreground">
                     Redirecting you to sign in…
                   </p>
                 </motion.div>
@@ -192,7 +192,7 @@ export default function ResetPassword() {
                     <motion.div
                       initial={{ opacity: 0, y: -4 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="px-3.5 py-2.5 rounded-lg bg-[#c27272]/6 border border-[#c27272]/15 text-[13px] text-[#c27272]"
+                      className="px-3.5 py-2.5 rounded-lg bg-destructive/[0.08] border border-destructive/20 text-[13px] text-destructive"
                       style={{ fontWeight: 500 }}
                     >
                       {error}
@@ -200,7 +200,7 @@ export default function ResetPassword() {
                   )}
 
                   <div>
-                    <label className="block text-[13px] text-[#1c1c1c] mb-1.5" style={{ fontWeight: 500 }}>
+                    <label className="block text-[13px] text-foreground mb-1.5" style={{ fontWeight: 500 }}>
                       New password
                     </label>
                     <input
@@ -209,12 +209,12 @@ export default function ResetPassword() {
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="At least 8 characters"
                       autoComplete="new-password"
-                      className="w-full h-10 px-3 rounded-lg border border-black/10 bg-white text-[14px] text-[#1c1c1c] placeholder:text-[#b0b0b8] outline-none focus:border-[#3B66F0]/40 focus:ring-2 focus:ring-[#3B66F0]/10 transition-all"
+                      className="w-full h-10 px-3 rounded-lg border border-[var(--hairline)] bg-card text-[14px] text-foreground placeholder:text-[var(--foreground-subtle)] outline-none focus:border-primary/55 focus:ring-2 focus:ring-primary/15 transition-all"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[13px] text-[#1c1c1c] mb-1.5" style={{ fontWeight: 500 }}>
+                    <label className="block text-[13px] text-foreground mb-1.5" style={{ fontWeight: 500 }}>
                       Confirm password
                     </label>
                     <input
@@ -223,14 +223,14 @@ export default function ResetPassword() {
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Re-enter your password"
                       autoComplete="new-password"
-                      className="w-full h-10 px-3 rounded-lg border border-black/10 bg-white text-[14px] text-[#1c1c1c] placeholder:text-[#b0b0b8] outline-none focus:border-[#3B66F0]/40 focus:ring-2 focus:ring-[#3B66F0]/10 transition-all"
+                      className="w-full h-10 px-3 rounded-lg border border-[var(--hairline)] bg-card text-[14px] text-foreground placeholder:text-[var(--foreground-subtle)] outline-none focus:border-primary/55 focus:ring-2 focus:ring-primary/15 transition-all"
                     />
                   </div>
 
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full h-10 rounded-lg bg-[#3B66F0] text-white text-[14px] flex items-center justify-center gap-2 hover:bg-[#3458D9] active:bg-[#2D4BBE] disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
+                    className="w-full h-10 rounded-lg bg-primary text-white text-[14px] flex items-center justify-center gap-2 hover:bg-[color-mix(in_oklab,var(--primary)_92%,black)] active:bg-[color-mix(in_oklab,var(--primary)_84%,black)] disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
                     style={{ fontWeight: 500 }}
                   >
                     {loading ? (
@@ -248,10 +248,10 @@ export default function ResetPassword() {
           )}
 
           {/* Back to login */}
-          <div className="mt-8 pt-6 border-t border-black/[0.06] text-center">
+          <div className="mt-8 pt-6 border-t border-[var(--hairline)] text-center">
             <Link
               to="/login"
-              className="inline-flex items-center gap-1.5 text-[13px] text-[#3B66F0] hover:text-[#3458D9] transition-colors"
+              className="inline-flex items-center gap-1.5 text-[13px] text-primary hover:text-[color-mix(in_oklab,var(--primary)_92%,black)] transition-colors"
               style={{ fontWeight: 500 }}
             >
               <ArrowLeft className="w-3 h-3" />

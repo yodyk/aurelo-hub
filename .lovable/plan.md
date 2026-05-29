@@ -244,3 +244,36 @@ Single-commit, value-only migration. Rollback = revert `src/index.css` and `tail
 **Result:** Shell chrome now reads as one continuous calm surface; dividers recede to ~6% opacity (light) / 4.5% (dark) per constitution. No behavior, no layout, no component-API change.
 
 **READY FOR PHASE 1H.**
+
+# PHASE 1H — Auth Surfaces Token Migration (executed)
+
+**Objective:** Move all four auth entry-point pages (Login, Signup, ResetPassword, AcceptInvite) off hardcoded hex values onto semantic tokens so they inherit the Cool Graphite + Cobalt foundation, fix dark-mode readiness, and correct semantic mis-mapping (Login was rendering errors in cobalt).
+
+**Mappings applied (verbatim → semantic):**
+- `bg-[#FBFCFD]` → `bg-background`
+- `text-[#1c1c1c]` → `text-foreground`
+- `text-[#717182]` → `text-muted-foreground`
+- `text-[#b0b0b8]` / `placeholder:text-[#b0b0b8]` → `text-[var(--foreground-subtle)]`
+- `bg-[#3B66F0]` → `bg-primary`; `bg-[#3B66F0]/10` → `bg-primary/10`
+- `text-[#3B66F0]` → `text-primary`
+- `hover:bg-[#3458D9]` → `hover:bg-[color-mix(in_oklab,var(--primary)_92%,black)]`
+- `active:bg-[#2D4BBE]` → `active:bg-[color-mix(in_oklab,var(--primary)_84%,black)]`
+- `hover:text-[#3458D9]` → `hover:text-[color-mix(in_oklab,var(--primary)_92%,black)]`
+- Focus rings: `focus:border-[#3B66F0]/40` → `focus:border-primary/55`; `focus:ring-[#3B66F0]/10` → `focus:ring-primary/15`; `focus:ring-[#3B66F0]/20` → `focus:ring-primary/20`
+- `accent-[#3B66F0]` → `accent-[hsl(var(--primary))]`
+- `border-black/10` / `border-black/[0.06]` / `bg-black/[0.06]` → `[var(--hairline)]`
+- `border-black/15` → `border-[var(--border-strong)]`
+- `bg-white` → `bg-card`; `hover:bg-[#f5f5f5]` → `hover:bg-[var(--surface-sunken)]`; `active:bg-[#eee]` → `active:bg-[var(--accent)]`
+
+**Semantic correction:**
+- Login error block was rendered in cobalt (`bg-[#3B66F0]/6 ... text-[#3B66F0]`) — now correctly uses `bg-destructive/[0.08] border-destructive/20 text-destructive`, matching Signup and ResetPassword.
+- Signup / ResetPassword error blocks migrated from rust-red hex (`#c27272`) to `destructive` tokens.
+
+**Intentionally preserved:**
+- Apple OAuth button (`bg-[#1c1c1c]`, `hover:bg-[#333]`, `active:bg-[#111]`) — Apple brand asset, must remain solid black across themes.
+- Waitlist pill on Signup — inline cobalt gradient `linear-gradient(135deg, #2D4BBE, #3B66F0)`, on-palette.
+- Google OAuth SVG glyph colors (Google brand).
+
+**Result:** 4 files migrated, 0 retired hex values remain (verified by `rg`). Auth pages now respond to dark theme (where applicable) and inherit any future token adjustments without further edits. Error semantics consistent across all auth surfaces.
+
+**READY FOR PHASE 1I.**
