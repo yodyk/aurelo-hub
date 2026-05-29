@@ -986,8 +986,9 @@ export default function Home() {
 
           {/* Time allocation */}
           <div>
-            <div className="bg-card border border-[var(--hairline)] rounded-lg p-4">
-              <div className="text-[11px] text-muted-foreground mb-3" style={{ fontWeight: 600 }}>Where your time goes</div>
+            <div className="premium-card !p-5">
+              <div className="type-eyebrow mb-4">Where your time goes</div>
+
               {timeAllocation.length > 0 ? (
                 <>
                   <div className="h-2 rounded-circle overflow-hidden flex mb-4">
