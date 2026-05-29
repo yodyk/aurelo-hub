@@ -5,7 +5,7 @@ import { Check, ChevronDown, Plus, Pencil, X, Trash2 } from 'lucide-react';
 import { useAuth, type WorkspaceInfo } from '../data/AuthContext';
 import { usePlan } from '../data/PlanContext';
 import { useData } from '../data/DataContext';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 
 interface Props {
   collapsed: boolean;

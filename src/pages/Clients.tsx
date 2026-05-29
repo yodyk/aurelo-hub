@@ -4,7 +4,7 @@ import { motion } from "motion/react";
 import { ArrowUpRight, Search, Plus, ChevronRight } from "lucide-react";
 import { useData } from "../data/DataContext";
 import { AddClientModal } from "../components/Modals";
-import { toast } from "sonner";
+import { toast } from '@/lib/toast';
 import { usePlan } from "../data/PlanContext";
 import { LimitEnforcementModal } from "../components/PlanEnforcement";
 import { useRoleAccess } from "../data/useRoleAccess";

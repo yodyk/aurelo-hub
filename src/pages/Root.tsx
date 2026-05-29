@@ -19,7 +19,7 @@ import { DemoModeBanner } from '../components/DemoModeBanner';
 import { TrialBanner } from '../components/TrialBanner';
 import { SidebarUpgradeCTA } from '../components/SidebarUpgradeCTA';
 import { WorkspaceSwitcher } from '../components/WorkspaceSwitcher';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { useTheme } from '../data/ThemeContext';
 import type { FeatureKey } from '../data/plans';
 import { useRoleAccess } from '../data/useRoleAccess';

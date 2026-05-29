@@ -13,7 +13,7 @@ import {
   Receipt,
   BookTemplate,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from '@/lib/toast';
 import * as invoiceApi from "../data/invoiceApi";
 import type { Invoice, LineItem } from "../data/invoiceApi";
 import { useAuth } from "../data/AuthContext";

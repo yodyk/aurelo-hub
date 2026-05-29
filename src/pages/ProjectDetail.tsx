@@ -32,7 +32,7 @@ import {
   CheckSquare,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { toast } from "sonner";
+import { toast } from '@/lib/toast';
 import { useData } from "../data/DataContext";
 import { usePlan } from "../data/PlanContext";
 import * as dataApi from "../data/dataApi";

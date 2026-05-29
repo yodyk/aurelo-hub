@@ -6,7 +6,7 @@ import {
   Zap, FileText, BarChart3, Palette, Globe, Shield,
   AlertTriangle, ExternalLink, RefreshCw,
 } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { usePlan } from '../data/PlanContext';
 import { useData } from '../data/DataContext';
 import { useAuth } from '../data/AuthContext';

@@ -6,7 +6,7 @@ import {
   Loader2, Globe, Zap, ChevronDown, ChevronUp, X,
   CheckCircle2, XCircle, Clock, AlertTriangle, Send,
 } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { formatDistanceToNow } from 'date-fns';
 import * as webhooksApi from '../data/webhooksApi';
 import { WEBHOOK_EVENT_TYPES, type Webhook, type WebhookDelivery } from '../data/webhooksApi';

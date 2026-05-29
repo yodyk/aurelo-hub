@@ -4,7 +4,7 @@ import { Plus, Repeat, Trash2, Pause, Play, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/data/AuthContext";
-import { toast } from "sonner";
+import { toast } from '@/lib/toast';
 
 interface RecurringRule {
   id: string;

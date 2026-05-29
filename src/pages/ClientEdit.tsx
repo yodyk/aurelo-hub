@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useBlocker } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import {
   ChevronLeft, User, FolderKanban, DollarSign, Eye, Clock, Repeat,
   MapPin, Phone, MessageSquare, Flag, ShieldAlert, Plus, Trash2,
