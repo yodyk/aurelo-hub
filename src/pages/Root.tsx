@@ -26,6 +26,7 @@ import { useRoleAccess } from '../data/useRoleAccess';
 import { checkTimerReminders, resetFired } from '../data/timerNotifications';
 import { TaskDrawerProvider } from '../data/TaskDrawerContext';
 import { TaskDrawer } from '../components/TaskDrawer';
+import { MobileBottomNav } from '../components/MobileBottomNav';
 
 const navItems: { to: string; icon: any; label: string; end?: boolean; feature?: FeatureKey; hideUnlessFeature?: boolean; requiresFinancials?: boolean }[] = [
   { to: '/', icon: LayoutDashboard, label: 'Today', end: true },
@@ -386,7 +387,7 @@ function RootLayout() {
   const mainMargin = sidebarCollapsed ? 'lg:ml-[72px]' : 'lg:ml-64';
 
   return (
-    <div className="min-h-screen flex bg-background">
+    <div className="min-h-[100dvh] flex bg-background">
       {/* Sidebar */}
       <aside className={`${sidebarWidth} border-r border-[var(--sidebar-border)] bg-sidebar hidden lg:flex flex-col fixed inset-y-0 left-0 z-30 transition-all duration-300`}>
         {/* Logo */}
@@ -585,7 +586,7 @@ function RootLayout() {
       </aside>
 
       {/* Main area */}
-      <div className={`flex-1 ${mainMargin} min-h-screen min-w-0 overflow-x-hidden transition-all duration-300`}>
+      <div className={`flex-1 ${mainMargin} min-h-[100dvh] min-w-0 overflow-x-hidden transition-all duration-300 pb-[calc(56px+env(safe-area-inset-bottom))] lg:pb-0`}>
         {/* Top Bar */}
         <header className="h-14 border-b border-[var(--hairline)] bg-background/80 backdrop-blur-md sticky top-0 z-20 flex items-center justify-between px-4 lg:px-6">
           <div className="flex items-center gap-3">
@@ -664,11 +665,11 @@ function RootLayout() {
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
-            className="fixed inset-0 z-50 bg-background flex flex-col lg:hidden touch-none"
-            initial={{ opacity: 0, y: -8 }}
+            className="fixed inset-0 z-50 bg-background flex flex-col lg:hidden"
+            initial={{ opacity: 0, y: '-100%' }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: '-100%' }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
             drag="y"
             dragConstraints={{ top: 0, bottom: 0 }}
             dragElastic={{ top: 0.4, bottom: 0 }}
@@ -864,6 +865,9 @@ function RootLayout() {
           />
         )}
       </AnimatePresence>
+
+      {/* Mobile bottom navigation — lg:hidden inside the component */}
+      <MobileBottomNav />
 
       {/* Trial Banner - remove duplicate, already in <main> above */}
     </div>
