@@ -1661,45 +1661,28 @@ function InvoiceDetail({
               Line items
             </div>
             <div className="border border-border rounded-xl overflow-hidden">
-              <table className="w-full">
-                <thead>
-                   <tr className="bg-accent/20">
-                     <th className="text-left px-3 py-2 text-[11px] text-muted-foreground" style={{ fontWeight: 500 }}>
-                       Description
-                     </th>
-                     <th
-                       className="text-right px-3 py-2 text-[11px] text-muted-foreground w-16"
-                       style={{ fontWeight: 500 }}
-                     >
-                       Hours
-                     </th>
-                     <th
-                       className="text-right px-3 py-2 text-[11px] text-muted-foreground w-20"
-                       style={{ fontWeight: 500 }}
-                     >
-                       $/hr
-                     </th>
-                     <th
-                       className="text-right px-3 py-2 text-[11px] text-muted-foreground w-24"
-                       style={{ fontWeight: 500 }}
-                     >
-                       Amount
-                     </th>
-                   </tr>
-                </thead>
-                <tbody>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Description</TableHead>
+                    <TableHead numeric className="w-16">Hours</TableHead>
+                    <TableHead numeric className="w-20">$/hr</TableHead>
+                    <TableHead numeric className="w-24">Amount</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {invoice.lineItems.map((li) => (
-                    <tr key={li.id} className="border-t border-border/50">
-                      <td className="px-3 py-2 text-[13px]">{li.description}</td>
-                      <td className="px-3 py-2 text-[13px] text-right tabular-nums">{li.quantity}</td>
-                      <td className="px-3 py-2 text-[13px] text-right tabular-nums">{formatCurrency(li.rate)}</td>
-                      <td className="px-3 py-2 text-[13px] text-right tabular-nums" style={{ fontWeight: 500 }}>
+                    <TableRow key={li.id}>
+                      <TableCell className="text-[13px]">{li.description}</TableCell>
+                      <TableCell numeric className="text-[13px]">{li.quantity}</TableCell>
+                      <TableCell numeric className="text-[13px]">{formatCurrency(li.rate)}</TableCell>
+                      <TableCell numeric className="text-[13px]" style={{ fontWeight: 500 }}>
                         {formatCurrency(li.amount)}
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
           </div>
 
