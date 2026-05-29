@@ -1012,7 +1012,7 @@ export default function Home() {
             </div>
 
             {/* Insights callout */}
-            <div className="mt-3 bg-card border border-[var(--hairline)] rounded-lg p-4 cursor-pointer hover:bg-accent/20 transition-colors group" onClick={() => (hasFullInsights ? navigate("/insights") : navigate("/settings?tab=billing"))}>
+            <div className="mt-4 premium-card !p-5 cursor-pointer lift-on-hover group" onClick={() => (hasFullInsights ? navigate("/insights") : navigate("/settings?tab=billing"))}>
               <div className="flex items-center justify-between mb-1"><span className="text-[12px]" style={{ fontWeight: 600 }}>{hasFullInsights ? "Deeper insights" : "Unlock deeper insights"}</span><ArrowRight className="w-3 h-3 text-muted-foreground group-hover:text-primary transition-colors" /></div>
               <p className="text-[11px] text-muted-foreground leading-relaxed">{hasFullInsights ? "See full client rankings, utilization trends, and revenue projections." : "Upgrade to Pro for client rankings, dependency analysis, and historical trends."}</p>
               {!hasFullInsights && <span className="inline-flex items-center gap-1 mt-1.5 px-1.5 py-0.5 text-[10px] rounded bg-primary/10 text-primary" style={{ fontWeight: 600 }}><Sparkles className="w-2.5 h-2.5" />PRO</span>}
