@@ -1201,7 +1201,7 @@ export function LogSessionModal({ open, onClose, onSave, clients, preSelectedCli
                 <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-1.5">
                   <span>Retainer after this session</span>
                   <span className="tabular-nums" style={{ fontWeight: 500 }}>
-                    {Math.max(0, (selectedClient.retainerRemaining || 0) - durationNum).toFixed(1)}h of {selectedClient.retainerTotal}h remaining
+                    {formatDuration(Math.max(0, (selectedClient.retainerRemaining || 0) - durationNum), { variant: 'display' })} of {formatDuration(selectedClient.retainerTotal, { variant: 'display' })} remaining
                   </span>
                 </div>
                 <div className="h-1.5 bg-accent/60 rounded-full overflow-hidden">
