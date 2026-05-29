@@ -402,9 +402,8 @@
     box-shadow: var(--elev-2);
   }
 
-  .page-container {
-    @apply px-4 sm:px-6 lg:px-10 py-10 w-full;
-  }
+  /* .page-container — see consolidated definition below */
+
 
   /* ── Typography utilities ── */
   .metric-large {
