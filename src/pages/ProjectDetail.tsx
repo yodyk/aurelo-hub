@@ -920,7 +920,7 @@ export default function ProjectDetail() {
                       />
                     </div>
                     <div className="text-[11px] text-muted-foreground mt-1.5 tabular-nums">
-                      ${budgetData.revenueEarned.toLocaleString()} of ${budgetData.totalValue.toLocaleString()}
+                      {formatMoney(budgetData.revenueEarned)} of {formatMoney(budgetData.totalValue)}
                     </div>
                   </div>
                   )}
