@@ -1,50 +1,46 @@
 import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router";
 import { motion } from "motion/react";
-import { ArrowUpRight, Search, Plus } from "lucide-react";
+import { ArrowUpRight, Search, Plus, ChevronRight } from "lucide-react";
 import { useData } from "../data/DataContext";
 import { AddClientModal } from "../components/Modals";
 import { toast } from "sonner";
 import { usePlan } from "../data/PlanContext";
-import { OverLimitBanner, LimitEnforcementModal } from "../components/PlanEnforcement";
+import { LimitEnforcementModal } from "../components/PlanEnforcement";
 import { useRoleAccess } from "../data/useRoleAccess";
 import ClientAssignmentManager from "../components/ClientAssignmentManager";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableHead,
-  TableRow,
-  TableCell,
-} from "../components/ui/table";
+import { PageHeader, SegmentedControl, HairlineBar, type SegmentOption } from "@/components/primitives/composition";
 
 const container = {
   hidden: {},
-  show: { transition: { staggerChildren: 0.04 } },
+  show: { transition: { staggerChildren: 0.03 } },
 };
 
 const item = {
-  hidden: { opacity: 0, y: 8 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.25, 0.1, 0.25, 1] as const } },
+  hidden: { opacity: 0, y: 6 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.28, ease: [0.32, 0.72, 0, 1] as const } },
 };
 
-const statusConfig: Record<string, { dot: string; bg: string; text: string; label: string }> = {
-  Active: { dot: "bg-emerald-500", bg: "bg-emerald-500/10", text: "text-emerald-700 dark:text-emerald-400", label: "Active" },
-  Prospect: { dot: "bg-amber-500", bg: "bg-amber-500/10", text: "text-amber-700 dark:text-amber-400", label: "Prospect" },
-  Archived: { dot: "bg-red-400", bg: "bg-red-400/10", text: "text-red-700 dark:text-red-400", label: "Archived" },
+type StatusFilter = "all" | "Active" | "Prospect" | "Archived";
+
+const statusDot: Record<string, string> = {
+  Active: "var(--primary)",
+  Prospect: "var(--warning)",
+  Archived: "var(--muted-foreground)",
 };
 
 export default function Clients() {
   const { clients, sessions, addClient, workspaceId } = useData();
-  const { wouldExceed, limit, atLimit } = usePlan();
-  const { canViewFinancials, canEditClients } = useRoleAccess();
+  const { limit } = usePlan();
+  const { canViewFinancials } = useRoleAccess();
   const [searchQuery, setSearchQuery] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [faviconUrls, setFaviconUrls] = useState<Record<string, string>>({});
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [showArchived, setShowArchived] = useState(false);
 
-  // Load client favicons from storage
   useEffect(() => {
     if (!workspaceId) return;
     supabase.storage.from("logos").list(workspaceId, { limit: 500 }).then(({ data }) => {
@@ -60,247 +56,312 @@ export default function Clients() {
     });
   }, [workspaceId]);
 
-  const filtered = clients.filter((c) =>
-    c.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const counts = useMemo(() => ({
+    all: clients.filter(c => c.status !== "Archived").length,
+    Active: clients.filter(c => c.status === "Active").length,
+    Prospect: clients.filter(c => c.status === "Prospect").length,
+    Archived: clients.filter(c => c.status === "Archived").length,
+  }), [clients]);
 
-  const sorted = [...filtered].sort((a, b) => {
-    const aArchived = a.status === "Archived" ? 1 : 0;
-    const bArchived = b.status === "Archived" ? 1 : 0;
-    if (aArchived !== bArchived) return aArchived - bArchived;
-    if (aArchived) return new Date(b.updatedAt || b.createdAt || 0).getTime() - new Date(a.updatedAt || a.createdAt || 0).getTime();
-    return 0;
-  });
+  const q = searchQuery.trim().toLowerCase();
+  const matchesSearch = (c: any) => !q || c.name.toLowerCase().includes(q) || (c.contactName || "").toLowerCase().includes(q);
 
-  const activeCount = clients.filter((c) => c.status === "Active").length;
-  const nonArchivedCount = clients.filter((c) => c.status !== "Archived").length;
+  // Main visible list (non-archived) based on status filter + search
+  const nonArchivedRows = useMemo(() => {
+    return clients
+      .filter(c => c.status !== "Archived")
+      .filter(c => statusFilter === "all" || statusFilter === "Archived" || c.status === statusFilter)
+      .filter(matchesSearch);
+  }, [clients, statusFilter, q]);
+
+  const archivedRows = useMemo(() => {
+    return clients.filter(c => c.status === "Archived").filter(matchesSearch);
+  }, [clients, q]);
+
+  // Force archived visible when filter is Archived
+  const archivedVisible = statusFilter === "Archived" ? archivedRows : (showArchived ? archivedRows : []);
+
   const totalMonthly = clients
-    .filter((c) => c.status === "Active")
+    .filter(c => c.status === "Active")
     .reduce((s: number, c: any) => s + (c.monthlyEarnings || 0), 0);
 
-  const maxClients = limit("activeClients");
-  const isOverLimit = maxClients !== null && nonArchivedCount > maxClients;
-  const isAtClientLimit = maxClients !== null && nonArchivedCount >= maxClients;
-
-  // Max monthly earnings for progress bar scaling
   const maxMonthlyEarnings = useMemo(() => {
     return Math.max(1, ...clients.filter((c) => c.status !== "Archived").map((c: any) => c.monthlyEarnings || 0));
   }, [clients]);
 
   const sessionsThisMonth = useMemo(() => {
-    const now = new Date();
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+    const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10);
     const counts: Record<string, number> = {};
     for (const s of sessions) {
-      if (s.date >= monthStart) {
-        counts[s.clientId] = (counts[s.clientId] || 0) + 1;
-      }
+      if (s.date >= monthStart) counts[s.clientId] = (counts[s.clientId] || 0) + 1;
     }
     return counts;
   }, [sessions]);
 
+  const maxClients = limit("activeClients");
+  const isAtClientLimit = maxClients !== null && counts.all >= maxClients;
+
   const handleAddClient = async (client: any) => {
-    const { notes, ...clientData } = client;
-    const saved = await addClient(clientData);
-    if (notes && saved?.id) {
-      // notes saved separately if needed
-    }
+    const { notes: _notes, ...clientData } = client;
+    await addClient(clientData);
     toast.success(`${client.name} added`);
   };
 
   const handleAddClientClick = () => {
-    if (isAtClientLimit) {
-      setShowLimitModal(true);
-    } else {
-      setShowAddModal(true);
-    }
+    if (isAtClientLimit) setShowLimitModal(true);
+    else setShowAddModal(true);
   };
+
+  const segments: SegmentOption<StatusFilter>[] = [
+    { value: "all", label: "All", count: counts.all },
+    { value: "Active", label: "Active", count: counts.Active },
+    { value: "Prospect", label: "Prospect", count: counts.Prospect },
+    { value: "Archived", label: "Archived", count: counts.Archived },
+  ];
 
   return (
     <motion.div
       data-tour="client-list"
-      className="w-full min-w-0 px-4 lg:px-8 py-8 md:py-14"
+      className="w-full min-w-0"
       variants={container}
       initial="hidden"
       animate="show"
     >
-      <motion.div variants={item} className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-[24px] md:text-[28px] tracking-tight mb-1" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
-            Clients
-          </h1>
-          <p className="text-[14px] text-muted-foreground">
-            {activeCount} active{canViewFinancials ? <> &middot; ${totalMonthly.toLocaleString()} this month</> : null}
-          </p>
-        </div>
-        <div className="flex gap-2">
+      <PageHeader
+        title="Clients"
+        subtitle={
+          <>
+            {counts.Active} active
+            {canViewFinancials && (
+              <>
+                <span className="opacity-40 mx-1.5">·</span>
+                <span className="tabular-nums">${totalMonthly.toLocaleString()}</span> this month
+              </>
+            )}
+          </>
+        }
+        actions={
+          <button
+            onClick={handleAddClientClick}
+            className="inline-flex items-center gap-1.5 h-9 px-3.5 bg-primary text-primary-foreground text-[13px] rounded-md hover:opacity-90 transition-all cursor-pointer"
+            style={{ fontWeight: 600 }}
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Add client
+          </button>
+        }
+      />
+
+      <div className="px-4 lg:px-6 py-6">
+        {/* Controls strip */}
+        <motion.div variants={item} className="flex items-center justify-between gap-3 mb-5 flex-wrap">
+          <SegmentedControl
+            options={segments}
+            value={statusFilter}
+            onChange={setStatusFilter}
+            ariaLabel="Filter by status"
+          />
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search clients..."
-              className="pl-9 pr-4 py-2 text-[14px] bg-accent/40 border border-border rounded-lg w-52 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
+              placeholder="Search clients"
+              className="pl-8 pr-3 h-9 text-[13px] bg-transparent border border-[var(--hairline)] rounded-md w-56 focus:outline-none focus:border-primary/40 transition-colors"
             />
           </div>
-          <button
-            onClick={handleAddClientClick}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-[14px] rounded-lg hover:bg-primary/90 transition-all duration-200"
-            style={{ fontWeight: 500 }}
-          >
-            <Plus className="w-4 h-4" />
-            Add client
-          </button>
-        </div>
-      </motion.div>
-
-      {isOverLimit && (
-        <motion.div variants={item} className="mb-6">
-          <OverLimitBanner
-            limitKey="activeClients"
-            currentCount={nonArchivedCount}
-            resourceLabel="clients"
-            reduceLabel="Archive clients"
-          />
         </motion.div>
-      )}
 
-      {sorted.length > 0 && (
-        <motion.div variants={item}>
-          <div className="bg-card border border-border/60 rounded-xl overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow className="hover:bg-transparent border-border/60">
-                  <TableHead className="pl-5 w-[260px]">Client</TableHead>
-                  <TableHead className="w-[100px]">Status</TableHead>
-                  <TableHead className="w-[120px]">Type</TableHead>
-                  <TableHead className="w-[100px]">Team</TableHead>
-                  {canViewFinancials && <TableHead className="w-[90px]">Rate</TableHead>}
-                  <TableHead className="w-[90px]">Sessions</TableHead>
-                  {canViewFinancials && (
-                    <TableHead className="w-[160px] pr-5">Revenue</TableHead>
-                  )}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {sorted.map((client: any, index: number) => {
-                  const sc = statusConfig[client.status] || statusConfig.Archived;
-                  const sessionCount = sessionsThisMonth[client.id] || 0;
-                  const isArchived = client.status === "Archived";
-                  const earnings = isArchived ? (client.lifetimeRevenue || 0) : (client.monthlyEarnings || 0);
-                  const progressPct = isArchived ? 0 : Math.min(100, (earnings / maxMonthlyEarnings) * 100);
-                  const faviconUrl = faviconUrls[client.id];
-
-                  return (
-                    <motion.tr
-                      key={client.id}
-                      initial={{ opacity: 0, y: 6 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.05 + index * 0.03, duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-                      className={`border-b border-border/40 last:border-0 transition-colors hover:bg-muted/30 ${isArchived ? "opacity-60 hover:opacity-90" : ""}`}
-                    >
-                      <TableCell className="pl-5 py-3.5">
-                        <Link to={`/clients/${client.id}`} className="flex items-center gap-3 group">
-                          {faviconUrl ? (
-                            <img
-                              src={faviconUrl}
-                              alt={client.name}
-                              className="w-9 h-9 rounded-circle object-cover flex-shrink-0 ring-1 ring-border/30"
-                            />
-                          ) : (
-                            <div className="w-9 h-9 rounded-circle bg-primary/8 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/12 transition-colors">
-                              <span className="text-[13px] text-primary" style={{ fontWeight: 600 }}>
-                                {client.name.charAt(0)}
-                              </span>
-                            </div>
-                          )}
-                          <div className="min-w-0">
-                            <div className="text-[14px] flex items-center gap-1.5 truncate" style={{ fontWeight: 600 }}>
-                              {client.name}
-                              <ArrowUpRight className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
-                            </div>
-                            {client.contactName && (
-                              <div className="text-[12px] text-muted-foreground truncate" style={{ fontWeight: 400 }}>
-                                {client.contactName}
-                              </div>
-                            )}
-                          </div>
-                        </Link>
-                      </TableCell>
-
-                      <TableCell className="py-3.5">
-                        <span className={`inline-flex items-center gap-1.5 text-[12px] px-2.5 py-1 rounded-md ${sc.bg} ${sc.text}`} style={{ fontWeight: 600 }}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />
-                          {sc.label}
-                        </span>
-                      </TableCell>
-
-                      <TableCell className="py-3.5">
-                        <span className="text-[13px] text-muted-foreground" style={{ fontWeight: 500 }}>
-                          {client.model}
-                        </span>
-                      </TableCell>
-
-                      <TableCell className="py-3.5">
-                        <ClientAssignmentManager clientId={client.id} compact />
-                      </TableCell>
-
-                      {canViewFinancials && (
-                        <TableCell className="py-3.5">
-                          {client.rate > 0 ? (
-                            <span className="text-[13px] text-foreground tabular-nums" style={{ fontWeight: 600 }}>
-                              ${client.rate}<span className="text-muted-foreground text-[11px]" style={{ fontWeight: 400 }}>/hr</span>
-                            </span>
-                          ) : (
-                            <span className="text-[13px] text-muted-foreground/50">—</span>
-                          )}
-                        </TableCell>
-                      )}
-
-                      <TableCell className="py-3.5">
-                        <span className="text-[13px] tabular-nums text-muted-foreground" style={{ fontWeight: 500 }}>
-                          {sessionCount}
-                        </span>
-                      </TableCell>
-
-                      {canViewFinancials && (
-                        <TableCell className="py-3.5 pr-5">
-                          <div className="flex flex-col gap-1.5">
-                            <span className={`text-[12px] tabular-nums ${isArchived ? "text-muted-foreground" : "text-foreground"}`} style={{ fontWeight: 600 }}>
-                              ${earnings.toLocaleString()}
-                              {isArchived && <span className="text-[10px] text-muted-foreground/60 ml-1" style={{ fontWeight: 400 }}>lifetime</span>}
-                            </span>
-                            {!isArchived && (
-                              <div className="w-full max-w-[100px] h-1 rounded-full bg-muted/60 overflow-hidden">
-                                <div
-                                  className="h-full rounded-full bg-primary/60 transition-all duration-500"
-                                  style={{ width: `${progressPct}%` }}
-                                />
-                              </div>
-                            )}
-                          </div>
-                        </TableCell>
-                      )}
-                    </motion.tr>
-                  );
-                })}
-              </TableBody>
-            </Table>
+        {/* Table */}
+        {nonArchivedRows.length > 0 ? (
+          <motion.div variants={item}>
+            <ClientTable
+              rows={nonArchivedRows}
+              faviconUrls={faviconUrls}
+              sessionsThisMonth={sessionsThisMonth}
+              canViewFinancials={canViewFinancials}
+              maxMonthlyEarnings={maxMonthlyEarnings}
+              archived={false}
+            />
+          </motion.div>
+        ) : (
+          <div className="py-20 text-center type-meta text-muted-foreground">
+            {q ? "No clients match that search." : "No clients yet. Aurelo gets useful the moment you add one."}
           </div>
-        </motion.div>
-      )}
+        )}
+
+        {/* Archived group */}
+        {statusFilter !== "Archived" && archivedRows.length > 0 && (
+          <div className="mt-10">
+            <button
+              onClick={() => setShowArchived(v => !v)}
+              className="flex items-center gap-1.5 type-eyebrow text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+            >
+              <ChevronRight
+                className="w-3 h-3 transition-transform"
+                style={{ transform: showArchived ? "rotate(90deg)" : "rotate(0deg)" }}
+              />
+              Archived ({archivedRows.length})
+            </button>
+            {showArchived && (
+              <div className="mt-4">
+                <ClientTable
+                  rows={archivedRows}
+                  faviconUrls={faviconUrls}
+                  sessionsThisMonth={sessionsThisMonth}
+                  canViewFinancials={canViewFinancials}
+                  maxMonthlyEarnings={maxMonthlyEarnings}
+                  archived={true}
+                />
+              </div>
+            )}
+          </div>
+        )}
+
+        {statusFilter === "Archived" && archivedVisible.length > 0 && (
+          <ClientTable
+            rows={archivedVisible}
+            faviconUrls={faviconUrls}
+            sessionsThisMonth={sessionsThisMonth}
+            canViewFinancials={canViewFinancials}
+            maxMonthlyEarnings={maxMonthlyEarnings}
+            archived={true}
+          />
+        )}
+      </div>
 
       <AddClientModal open={showAddModal} onClose={() => setShowAddModal(false)} onSave={handleAddClient} />
-
       <LimitEnforcementModal
         open={showLimitModal}
         onClose={() => setShowLimitModal(false)}
         limitKey="activeClients"
-        currentCount={nonArchivedCount}
+        currentCount={counts.all}
         resourceLabel="clients"
         actionLabel="add a new client"
       />
     </motion.div>
+  );
+}
+
+// ── Ledger-style table ──────────────────────────────────────────────
+function ClientTable({
+  rows,
+  faviconUrls,
+  sessionsThisMonth,
+  canViewFinancials,
+  maxMonthlyEarnings,
+  archived,
+}: {
+  rows: any[];
+  faviconUrls: Record<string, string>;
+  sessionsThisMonth: Record<string, number>;
+  canViewFinancials: boolean;
+  maxMonthlyEarnings: number;
+  archived: boolean;
+}) {
+  return (
+    <div>
+      {/* Eyebrow header */}
+      <div className="grid grid-cols-[1fr_90px_100px_110px_80px_140px] gap-4 px-3 py-2 border-b border-[var(--hairline)] type-eyebrow text-muted-foreground">
+        <div>Client</div>
+        <div>Status</div>
+        <div>Type</div>
+        <div>Team</div>
+        {canViewFinancials ? <div className="text-right">Rate</div> : <div />}
+        {canViewFinancials ? <div className="text-right">{archived ? "Lifetime" : "This month"}</div> : <div />}
+      </div>
+
+      <div className="divide-y divide-[var(--hairline)]">
+        {rows.map((client: any) => {
+          const sessionCount = sessionsThisMonth[client.id] || 0;
+          const earnings = archived ? (client.lifetimeRevenue || 0) : (client.monthlyEarnings || 0);
+          const progress = archived ? 0 : Math.min(1, earnings / maxMonthlyEarnings);
+          const faviconUrl = faviconUrls[client.id];
+          const dot = statusDot[client.status] || "var(--muted-foreground)";
+
+          return (
+            <Link
+              key={client.id}
+              to={`/clients/${client.id}`}
+              className={`grid grid-cols-[1fr_90px_100px_110px_80px_140px] gap-4 items-center px-3 h-14 hover:bg-accent/30 transition-colors group ${archived ? "opacity-60 hover:opacity-100" : ""}`}
+            >
+              {/* Client */}
+              <div className="flex items-center gap-3 min-w-0">
+                {faviconUrl ? (
+                  <img
+                    src={faviconUrl}
+                    alt={client.name}
+                    className="w-8 h-8 rounded-circle object-cover flex-shrink-0"
+                    style={{ boxShadow: "0 0 0 1px var(--hairline)" }}
+                  />
+                ) : (
+                  <div
+                    className="w-8 h-8 rounded-circle flex items-center justify-center flex-shrink-0"
+                    style={{ background: "color-mix(in srgb, var(--primary) 8%, transparent)" }}
+                  >
+                    <span className="text-[12px] text-primary" style={{ fontWeight: 600 }}>
+                      {client.name.charAt(0)}
+                    </span>
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <div className="text-[13.5px] flex items-center gap-1 truncate" style={{ fontWeight: 600 }}>
+                    {client.name}
+                    <ArrowUpRight className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                  </div>
+                  {client.contactName && (
+                    <div className="type-meta text-muted-foreground truncate">{client.contactName}</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Status */}
+              <div className="flex items-center gap-1.5 text-[12.5px] text-muted-foreground" style={{ fontWeight: 500 }}>
+                <span className="w-1.5 h-1.5 rounded-circle" style={{ background: dot }} />
+                {client.status}
+              </div>
+
+              {/* Type */}
+              <div className="text-[12.5px] text-muted-foreground" style={{ fontWeight: 500 }}>
+                {client.model || "—"}
+              </div>
+
+              {/* Team */}
+              <div className="min-w-0" onClick={(e) => e.preventDefault()}>
+                <ClientAssignmentManager clientId={client.id} compact />
+              </div>
+
+              {/* Rate */}
+              {canViewFinancials ? (
+                <div className="text-right">
+                  {client.rate > 0 ? (
+                    <span className="text-[12.5px] tabular-nums" style={{ fontWeight: 600 }}>
+                      ${client.rate}
+                      <span className="text-muted-foreground text-[11px] ml-0.5" style={{ fontWeight: 400 }}>/hr</span>
+                    </span>
+                  ) : (
+                    <span className="text-[12.5px] text-muted-foreground/50">—</span>
+                  )}
+                </div>
+              ) : <div />}
+
+              {/* Revenue */}
+              {canViewFinancials ? (
+                <div className="text-right">
+                  <div className="text-[12.5px] tabular-nums mb-1" style={{ fontWeight: 600 }}>
+                    ${earnings.toLocaleString()}
+                    <span className="text-muted-foreground text-[11px] ml-1" style={{ fontWeight: 400 }}>
+                      · {sessionCount}
+                    </span>
+                  </div>
+                  {!archived && <HairlineBar value={progress} threshold={false} height={2} />}
+                </div>
+              ) : <div />}
+            </Link>
+          );
+        })}
+      </div>
+    </div>
   );
 }
