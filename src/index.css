@@ -81,9 +81,25 @@
   --elev-2: 0 1px 0 rgba(15,12,10,0.04), 0 4px 12px rgba(15,12,10,0.05);
   --elev-3: 0 2px 0 rgba(15,12,10,0.04), 0 12px 32px rgba(15,12,10,0.08);
 
+  /* Spacing scale — 4pt base, calm rhythm */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
   /* Motion — Apple-style ease + spring proxies */
   --ease-emphasized: cubic-bezier(0.32, 0.72, 0, 1);
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.5, 1.6, 0.4, 1);
+  --dur-fast: 140ms;
+  --dur-base: 200ms;
+  --dur-slow: 320ms;
 }
 
 .dark {
@@ -228,34 +244,34 @@
   }
 
   h1 {
-    font-size: 28px;
+    font-size: clamp(26px, 2.6vw, 32px);
     font-weight: 600;
-    line-height: 1.15;
-    letter-spacing: -0.025em;
+    line-height: 1.12;
+    letter-spacing: -0.028em;
     @apply text-foreground;
   }
 
   h2 {
-    font-size: 20px;
+    font-size: 19px;
     font-weight: 600;
-    line-height: 1.25;
-    letter-spacing: -0.02em;
+    line-height: 1.28;
+    letter-spacing: -0.018em;
     @apply text-foreground;
   }
 
   h3 {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 600;
-    line-height: 1.35;
-    letter-spacing: -0.015em;
+    line-height: 1.4;
+    letter-spacing: -0.012em;
     @apply text-foreground;
   }
 
   h4 {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     line-height: 1.4;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.008em;
     @apply text-foreground;
   }
 
@@ -386,9 +402,8 @@
     box-shadow: var(--elev-2);
   }
 
-  .page-container {
-    @apply px-4 sm:px-6 lg:px-10 py-10 w-full;
-  }
+  /* .page-container — see consolidated definition below */
+
 
   /* ── Typography utilities ── */
   .metric-large {
@@ -505,17 +520,33 @@
 
   /* ── Page header pattern — more confident scale ── */
   .page-header {
-    font-size: clamp(22px, 2.4vw, 28px);
+    font-size: clamp(26px, 2.8vw, 32px);
     font-weight: 600;
-    line-height: 1.15;
-    letter-spacing: -0.025em;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
     @apply text-foreground;
   }
   .page-subtitle {
-    font-size: 14px;
-    line-height: 1.5;
-    @apply text-muted-foreground mt-1;
+    font-size: 14.5px;
+    line-height: 1.55;
+    @apply text-muted-foreground mt-1.5;
   }
+
+  /* ── Spacing rhythm utilities ── */
+  .stack-xs > * + * { margin-top: var(--space-2); }
+  .stack-sm > * + * { margin-top: var(--space-3); }
+  .stack-md > * + * { margin-top: var(--space-5); }
+  .stack-lg > * + * { margin-top: var(--space-8); }
+  .stack-xl > * + * { margin-top: var(--space-12); }
+
+  .section-gap   { margin-top: var(--space-10); }
+  .section-gap-lg { margin-top: var(--space-12); }
+
+  /* Standard padding rhythm for content panels */
+  .panel-pad-sm { padding: var(--space-4); }
+  .panel-pad    { padding: var(--space-5); }
+  .panel-pad-lg { padding: var(--space-6) var(--space-6); }
+
 
   /* ── Primary CTA — tactile, spring-feel press ── */
   .btn-primary {
@@ -553,8 +584,12 @@
 
   /* ── Page container — generous breathing room ── */
   .page-wrapper {
-    @apply w-full min-w-0 px-4 lg:px-10 py-8;
+    @apply w-full min-w-0 px-5 lg:px-12 py-10 lg:py-12;
   }
+  .page-container {
+    @apply px-5 sm:px-8 lg:px-12 py-10 lg:py-12 w-full;
+  }
+
 
   /* True circle — only for spinners, tiny dots, and circular avatars */
   .rounded-circle { border-radius: 9999px !important; }
