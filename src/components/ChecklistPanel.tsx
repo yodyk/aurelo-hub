@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   Plus, Trash2, Pencil, X, Check, Loader2, MoreHorizontal, Calendar, Clock,
-  Tag, AlignLeft, Filter, ChevronDown, CircleDashed, CircleDot, AlertCircle, CheckCircle2, PauseCircle,
+  Tag, AlignLeft, Filter, ChevronDown,
   Link2, FileText, Paperclip, ExternalLink,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -12,6 +12,8 @@ import {
   addChecklistItem, updateChecklistItem, deleteChecklistItem,
   type Checklist, type ChecklistItem, type TaskStatus, type NewTaskInput,
 } from '@/data/checklistsApi';
+import { TASK_STATUSES as STATUSES, STATUS_BY_VALUE, nextStatus as cycleNextStatus } from '@/data/taskStatus';
+
 import { loadNotes, type ClientNote } from '@/data/notesApi';
 import { loadFiles, getSignedUrlByPath, type StoredFile } from '@/data/storageApi';
 import {
