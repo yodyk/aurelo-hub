@@ -1,8 +1,12 @@
-// ── Checklists API — Supabase queries ───────────────────────────────
+// ── Checklists / Tasks API — Supabase queries ───────────────────────
+// One model, two presentations. Tasks may stand alone (no checklist).
 import { supabase } from '@/integrations/supabase/client';
+import { normalizeStatus, type TaskStatus } from './taskStatus';
 
-export type TaskStatus = 'todo' | 'in_progress' | 'blocked' | 'on_hold' | 'done';
-export type TaskPriority = 'low' | 'medium' | 'high';
+// Re-export for backward compatibility with existing imports.
+export type { TaskStatus } from './taskStatus';
+export type TaskPriority = 'low' | 'normal' | 'medium' | 'high';
+export type TaskSource = 'manual' | 'recurring' | 'note' | 'session' | 'invoice' | 'portal';
 
 export interface Checklist {
   id: string;
@@ -17,7 +21,10 @@ export interface Checklist {
 
 export interface ChecklistItem {
   id: string;
-  checklistId: string;
+  checklistId: string | null;       // nullable — loose tasks have no checklist
+  workspaceId?: string;
+  clientId?: string;
+  projectId?: string | null;
   text: string;
   description?: string | null;
   status: TaskStatus;
@@ -29,6 +36,14 @@ export interface ChecklistItem {
   sortOrder: number;
   addedBy: 'owner' | 'client';
   createdAt: string;
+  // New fields (PART D)
+  waitingOn?: string | null;
+  followUpAt?: string | null;
+  waitingNote?: string | null;
+  // PART C
+  recurrenceId?: string | null;
+  source?: TaskSource;
+  completedAt?: string | null;
 }
 
 function rowToChecklist(row: any, items: ChecklistItem[] = []): Checklist {
@@ -45,13 +60,17 @@ function rowToChecklist(row: any, items: ChecklistItem[] = []): Checklist {
 }
 
 function rowToItem(row: any): ChecklistItem {
+  const status = normalizeStatus(row.status);
   return {
     id: row.id,
-    checklistId: row.checklist_id,
+    checklistId: row.checklist_id ?? null,
+    workspaceId: row.workspace_id ?? undefined,
+    clientId: row.client_id ?? undefined,
+    projectId: row.project_id ?? null,
     text: row.text,
     description: row.description ?? null,
-    status: (row.status as TaskStatus) || (row.completed ? 'done' : 'todo'),
-    completed: row.completed,
+    status,
+    completed: status === 'complete',
     workTags: row.work_tags || [],
     dueDate: row.due_date ?? null,
     estimatedHours: row.estimated_hours ?? null,
@@ -59,8 +78,15 @@ function rowToItem(row: any): ChecklistItem {
     sortOrder: row.sort_order,
     addedBy: row.added_by as 'owner' | 'client',
     createdAt: row.created_at,
+    waitingOn: row.waiting_on ?? null,
+    followUpAt: row.follow_up_at ?? null,
+    waitingNote: row.waiting_note ?? null,
+    recurrenceId: row.recurrence_id ?? null,
+    source: (row.source as TaskSource) ?? 'manual',
+    completedAt: row.completed_at ?? null,
   };
 }
+
 
 export async function loadChecklists(clientId: string, projectId?: string): Promise<Checklist[]> {
   let q = supabase.from('checklists').select('*').eq('client_id', clientId);
