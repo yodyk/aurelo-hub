@@ -209,9 +209,10 @@ export default function Projects() {
             className="text-[32px] leading-none tracking-tight text-primary tabular-nums"
             style={{ fontWeight: 600 }}
           >
-            ${activeValue.toLocaleString()}
+            {formatMoney(activeValue, { precision: "compact" })}
           </div>
-          <div className="text-[12px] text-muted-foreground mt-1.5">${totalValue.toLocaleString()} total</div>
+          <div className="text-[12px] text-muted-foreground mt-1.5">{formatMoney(totalValue, { precision: "compact" })} total</div>
+
         </div>
 
         <div className="stat-card">
