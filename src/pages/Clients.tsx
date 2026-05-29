@@ -155,7 +155,7 @@ export default function Clients() {
       <div className="px-4 lg:px-6 py-6">
         {/* Controls strip */}
         <motion.div variants={item} className="flex items-center justify-between gap-3 mb-5 flex-wrap">
-          <SegmentedControl
+          <SegmentedControl<StatusFilter>
             options={segments}
             value={statusFilter}
             onChange={setStatusFilter}
