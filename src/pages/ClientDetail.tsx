@@ -54,7 +54,7 @@ import ChecklistPanel from "../components/ChecklistPanel";
 import EmailActivityLog from "../components/EmailActivityLog";
 import BulkSessionActions from "../components/BulkSessionActions";
 import { supabase } from "@/integrations/supabase/client";
-import { formatMoney, formatBytes } from "@/lib/format";
+import { formatMoney, formatBytes, formatDuration } from "@/lib/format";
 
 import * as settingsApi from "@/data/settingsApi";
 import { usePlan } from "@/data/PlanContext";
