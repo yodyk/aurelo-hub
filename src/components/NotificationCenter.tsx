@@ -82,16 +82,20 @@ export function NotificationCenter({ workspaceId }: NotificationCenterProps) {
     return unsub;
   }, [workspaceId]);
 
-  // Close on click outside
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  // Close on click outside (handles portaled mobile panel via panelRef)
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+      const t = e.target as Node;
+      if (ref.current?.contains(t)) return;
+      if (panelRef.current?.contains(t)) return;
+      setOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
+
 
   const handleMarkAllRead = useCallback(async () => {
     await markAllAsRead(workspaceId);
