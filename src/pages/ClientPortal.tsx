@@ -89,7 +89,7 @@ interface PortalTask {
   id: string;
   text: string;
   description?: string | null;
-  status: 'todo' | 'in_progress' | 'blocked' | 'done';
+  status: 'todo' | 'in_progress' | 'blocked' | 'on_hold' | 'done';
   completed: boolean;
   work_tags?: string[];
   due_date?: string | null;
