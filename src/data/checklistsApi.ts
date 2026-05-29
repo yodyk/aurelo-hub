@@ -1,7 +1,7 @@
 // ── Checklists API — Supabase queries ───────────────────────────────
 import { supabase } from '@/integrations/supabase/client';
 
-export type TaskStatus = 'todo' | 'in_progress' | 'blocked' | 'done';
+export type TaskStatus = 'todo' | 'in_progress' | 'blocked' | 'on_hold' | 'done';
 export type TaskPriority = 'low' | 'medium' | 'high';
 
 export interface Checklist {
