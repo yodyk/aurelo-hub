@@ -13,6 +13,13 @@ import {
   type Checklist, type ChecklistItem, type TaskStatus, type NewTaskInput,
 } from '@/data/checklistsApi';
 import { TASK_STATUSES as STATUSES, STATUS_BY_VALUE, nextStatus as cycleNextStatus } from '@/data/taskStatus';
+import { deferredDelete } from '@/lib/deferredDelete';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+
 
 import { loadNotes, type ClientNote } from '@/data/notesApi';
 import { loadFiles, getSignedUrlByPath, type StoredFile } from '@/data/storageApi';
@@ -302,10 +309,32 @@ function ChecklistCard({
           )}
           <div className="flex items-center gap-2">
             <span className="text-[11px] text-muted-foreground tabular-nums">{completedCount}/{totalCount}</span>
-            <button onClick={onDelete} className="p-1 rounded hover:bg-accent/60 text-muted-foreground hover:text-destructive transition-colors cursor-pointer">
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <button className="p-1 rounded hover:bg-accent/60 text-muted-foreground hover:text-destructive transition-colors cursor-pointer" title="Delete list">
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete this list?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    "{checklist.title}" and all {totalCount} of its tasks will be permanently removed. This cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={onDelete}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Delete list
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
+
         </div>
 
         {/* Tasks */}
@@ -324,6 +353,8 @@ function ChecklistCard({
                 onLinksChanged={onLinksChanged}
                 onUpdate={(patch) => updateLocal(item.id, patch)}
                 onDeleted={() => setItems(prev => prev.filter(i => i.id !== item.id))}
+                onUndoDelete={(restored) => setItems(prev => prev.some(i => i.id === restored.id) ? prev : [...prev, restored].sort((a, b) => a.sortOrder - b.sortOrder))}
+
                 onRefresh={onRefresh}
               />
             ))}
@@ -357,7 +388,7 @@ function ChecklistCard({
 // ── Task row ───────────────────────────────────────────────────────
 
 function TaskRow({
-  item, clientId, workspaceId, onUpdate, onDeleted, onRefresh, workCategoryNames,
+  item, clientId, workspaceId, onUpdate, onDeleted, onUndoDelete, onRefresh, workCategoryNames,
   links, clientNotes, clientFiles, onLinksChanged,
 }: {
   item: ChecklistItem;
@@ -370,8 +401,10 @@ function TaskRow({
   onLinksChanged: () => void;
   onUpdate: (patch: Partial<ChecklistItem>) => void;
   onDeleted: () => void;
+  onUndoDelete: (restored: ChecklistItem) => void;
   onRefresh: () => void;
 }) {
+
   const [expanded, setExpanded] = useState(false);
   const [editingText, setEditingText] = useState(false);
   const [textValue, setTextValue] = useState(item.text);
@@ -406,11 +439,19 @@ function TaskRow({
     await saveField({ text: textValue.trim() }, { text: textValue.trim() });
   };
 
-  const handleDelete = async () => {
-    onDeleted();
-    try { await deleteChecklistItem(item.id); }
-    catch (err: any) { toast.error(err.message); onRefresh(); }
+  const handleDelete = () => {
+    const snapshot = item;
+    deferredDelete({
+      label: `Task deleted — "${snapshot.text.slice(0, 40)}${snapshot.text.length > 40 ? '…' : ''}"`,
+      onOptimisticRemove: () => onDeleted(),
+      onUndo: () => onUndoDelete(snapshot),
+      onCommit: async () => {
+        try { await deleteChecklistItem(snapshot.id); }
+        catch (err: any) { onRefresh(); throw err; }
+      },
+    });
   };
+
 
   const cfg = STATUS_BY_VALUE[item.status] || STATUS_BY_VALUE.to_do;
   const StatusIcon = cfg.icon;
@@ -729,13 +770,34 @@ function TaskInlineEditor({
       />
 
       <div className="flex items-center justify-end">
-        <button
-          onClick={onDelete}
-          className="inline-flex items-center gap-1 text-[11.5px] text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
-        >
-          <Trash2 className="w-3 h-3" /> Delete task
-        </button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <button
+              className="inline-flex items-center gap-1 text-[11.5px] text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
+            >
+              <Trash2 className="w-3 h-3" /> Delete task
+            </button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete this task?</AlertDialogTitle>
+              <AlertDialogDescription>
+                "{item.text}" will be removed. You'll have a few seconds to undo.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={onDelete}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
+
     </div>
   );
 }

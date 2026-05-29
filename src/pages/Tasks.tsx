@@ -17,6 +17,8 @@ import { TASK_STATUSES, STATUS_BY_VALUE, nextStatus, type TaskStatus } from '@/d
 import { supabase } from '@/integrations/supabase/client';
 import { DatePicker } from '@/components/ui/date-picker';
 import { toast } from '@/lib/toast';
+import { deferredDelete } from '@/lib/deferredDelete';
+
 import { EmptyState } from '@/components/primitives/EmptyState';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -124,11 +126,24 @@ export default function Tasks() {
     catch (err: any) { toast.error(err.message); refresh(); }
   };
 
-  const deleteTask = async (taskId: string) => {
-    setTasks(prev => prev.filter(t => t.id !== taskId));
-    try { await deleteChecklistItem(taskId); toast.success('Task deleted'); }
-    catch (err: any) { toast.error(err.message); refresh(); }
+  const deleteTask = (taskId: string) => {
+    const snapshot = tasks;
+    const target = snapshot.find(t => t.id === taskId);
+    if (!target) return;
+    const targetIndex = snapshot.findIndex(t => t.id === taskId);
+    deferredDelete({
+      label: `Task deleted — "${target.text.slice(0, 40)}${target.text.length > 40 ? '…' : ''}"`,
+      onOptimisticRemove: () => setTasks(prev => prev.filter(t => t.id !== taskId)),
+      onUndo: () => setTasks(prev => {
+        if (prev.some(t => t.id === taskId)) return prev;
+        const next = [...prev];
+        next.splice(Math.min(targetIndex, next.length), 0, target);
+        return next;
+      }),
+      onCommit: () => deleteChecklistItem(taskId),
+    });
   };
+
 
   const sortedClients = useMemo(() => {
     return [...clients].sort((a: any, b: any) => (a.name || '').localeCompare(b.name || ''));
@@ -482,12 +497,33 @@ function TaskDetailsEditor({
         >
           Open in client <ExternalLink className="w-3 h-3" />
         </Link>
-        <button
-          onClick={onDelete}
-          className="inline-flex items-center gap-1 text-[11.5px] text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
-        >
-          <Trash2 className="w-3 h-3" /> Delete task
-        </button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <button
+              className="inline-flex items-center gap-1 text-[11.5px] text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
+            >
+              <Trash2 className="w-3 h-3" /> Delete task
+            </button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete this task?</AlertDialogTitle>
+              <AlertDialogDescription>
+                "{task.text}" will be removed. You'll have a few seconds to undo.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={onDelete}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
       </div>
     </div>
   );
