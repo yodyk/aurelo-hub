@@ -451,32 +451,18 @@ export default function Projects() {
             </div>
           </div>
         ) : (
-          <div
-            className="bg-card border border-border rounded-xl p-12 text-center"
-            style={{ boxShadow: "var(--elev-1)" }}
-          >
-            <div className="w-12 h-12 rounded-xl bg-accent/60 flex items-center justify-center mx-auto mb-4">
-              <FolderKanban className="w-6 h-6 text-muted-foreground" />
-            </div>
-            <div className="text-[16px] mb-1" style={{ fontWeight: 600 }}>
-              {searchQuery || statusFilter || clientFilter ? "No matching projects" : "No projects yet"}
-            </div>
-            <p className="text-[14px] text-muted-foreground mb-6">
-              {searchQuery || statusFilter || clientFilter
-                ? "Try adjusting your filters"
-                : "Create your first project to start tracking scope and budget"}
-            </p>
-            {!searchQuery && !statusFilter && !clientFilter && (
-              <button
-                onClick={() => setShowProjectModal(true)}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-[14px] rounded-lg hover:bg-primary/90 transition-all"
-                style={{ fontWeight: 500 }}
-              >
-                <Plus className="w-4 h-4" />
-                Add project
-              </button>
-            )}
-          </div>
+          (() => {
+            const filtered = Boolean(searchQuery || statusFilter || clientFilter);
+            return (
+              <EmptyState
+                glyph={FolderKanban}
+                title={filtered ? "No matching projects" : "No projects yet"}
+                body={filtered ? "Try adjusting your filters." : "Create your first project to start tracking scope and budget."}
+                primaryAction={filtered ? undefined : { label: "Add project", icon: Plus, onClick: () => setShowProjectModal(true) }}
+                variant="page"
+              />
+            );
+          })()
         )}
       </motion.div>
 
