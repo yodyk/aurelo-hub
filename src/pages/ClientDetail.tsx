@@ -203,6 +203,7 @@ export default function ClientDetail() {
   // Modal states
   const [showLogModal, setShowLogModal] = useState(false);
   const [showProjectModal, setShowProjectModal] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   // Files
   const [files, setFiles] = useState<any[]>([]);
