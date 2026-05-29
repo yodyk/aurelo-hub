@@ -154,7 +154,7 @@ Deno.serve(async (req) => {
           description: safeDescription,
           sort_order: nextOrder,
           added_by: 'client',
-          status: 'todo',
+          status: 'to_do',
           work_tags: safeTags,
           due_date: safeDueDate,
           estimated_hours: safeHours,
