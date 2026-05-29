@@ -332,7 +332,7 @@ export default function Signup() {
               <button
                 type="submit"
                 disabled={loading || !allValid || !consentsAccepted}
-                className="w-full h-[var(--control-xl)] rounded-lg bg-primary text-white text-[14px] flex items-center justify-center gap-2 hover:bg-[color-mix(in_oklab,var(--primary)_92%,black)] active:bg-[color-mix(in_oklab,var(--primary)_84%,black)] disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
+                className="w-full h-[var(--control-xl)] rounded-lg bg-primary text-white text-[14px] flex items-center justify-center gap-2 hover:bg-[color-mix(in_oklab,var(--primary)_92%,black)] active:bg-[color-mix(in_oklab,var(--primary)_84%,black)] disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
                 style={{ fontWeight: 500 }}
               >
                 {loading ? (
