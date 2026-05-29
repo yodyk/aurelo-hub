@@ -191,14 +191,12 @@ export default function Tasks() {
           <Loader2 className="w-4 h-4 animate-spin mr-2" /> Loading tasks…
         </div>
       ) : filtered.length === 0 ? (
-        <motion.div variants={itemVariants} className="text-center py-16 bg-card border border-border rounded-xl">
-          <CheckSquare className="w-8 h-8 text-muted-foreground/40 mx-auto mb-3" />
-          <p className="text-[14px] text-foreground mb-1" style={{ fontWeight: 500 }}>
-            {tasks.length === 0 ? 'No tasks yet' : 'No tasks match the current filters'}
-          </p>
-          <p className="text-[12px] text-muted-foreground">
-            {tasks.length === 0 ? 'Tasks added on any client will show up here.' : 'Try adjusting status, client, or focus filters.'}
-          </p>
+        <motion.div variants={itemVariants} className="bg-card border border-border rounded-xl">
+          <EmptyState
+            glyph={CheckSquare}
+            title={tasks.length === 0 ? 'No tasks yet' : 'No tasks match the current filters'}
+            body={tasks.length === 0 ? 'Tasks added on any client will show up here.' : 'Try adjusting status, client, or focus filters.'}
+          />
         </motion.div>
       ) : (
         <motion.div variants={itemVariants} className="bg-card border border-border rounded-xl overflow-hidden divide-y divide-border/60">
