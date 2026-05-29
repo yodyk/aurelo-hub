@@ -412,7 +412,7 @@ function TaskRow({
     catch (err: any) { toast.error(err.message); onRefresh(); }
   };
 
-  const cfg = STATUS_BY_VALUE[item.status] || STATUS_BY_VALUE.todo;
+  const cfg = STATUS_BY_VALUE[item.status] || STATUS_BY_VALUE.to_do;
   const StatusIcon = cfg.icon;
 
   const dueMeta = dueLabel(item.dueDate);
