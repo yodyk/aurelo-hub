@@ -773,16 +773,17 @@ export default function Home() {
         {/* ── RIGHT COLUMN (2/5 = 40%) ── */}
         <div className="lg:col-span-2 flex flex-col">
           {/* Tab switcher */}
-          <div className="flex items-center gap-1 border-b border-border mb-4">
+          <div className="flex items-center gap-1 mb-5" style={{ borderBottom: "1px solid var(--hairline)" }}>
             {([
               { id: "activity" as RightTab, label: "Activity" },
               ...(canViewFinancials ? [{ id: "clients" as RightTab, label: "Clients & Revenue" }] : []),
             ]).map((tab) => (
-              <button key={tab.id} onClick={() => setRightTab(tab.id)} className={`px-3 py-2 text-[12px] transition-all duration-200 border-b-2 -mb-px whitespace-nowrap ${rightTab === tab.id ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"}`} style={{ fontWeight: rightTab === tab.id ? 600 : 500 }}>
+              <button key={tab.id} onClick={() => setRightTab(tab.id)} className={`px-3 py-2.5 text-[12.5px] transition-all duration-200 border-b-2 -mb-px whitespace-nowrap ${rightTab === tab.id ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"}`} style={{ fontWeight: rightTab === tab.id ? 600 : 500 }}>
                 {tab.label}
               </button>
             ))}
           </div>
+
 
           {/* Tab content */}
           <div className="flex-1 min-h-0">
