@@ -3,6 +3,7 @@ import { X, Loader2, User, Globe, Mail, DollarSign, Clock, Repeat, FolderKanban,
 import { DatePicker } from '@/components/ui/date-picker';
 import { motion, AnimatePresence } from 'motion/react';
 import { useData } from '../data/DataContext';
+import { formatMoney, formatDuration } from '@/lib/format';
 
 // ── Unsaved Changes Confirmation (inline in modal) ─────────────────
 function UnsavedChangesConfirm({ onDiscard, onCancel }: { onDiscard: () => void; onCancel: () => void }) {
