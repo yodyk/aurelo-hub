@@ -135,14 +135,17 @@ function updateRetainerPlanning(customFields: any, updates: { pendingCarryoverHo
 // ── Tab definitions ─────────────────────────────────────────────────
 type TabId = "overview" | "details" | "projects" | "sessions" | "retainer" | "files" | "notes" | "checklists" | "portal" | "settings";
 
-function getTabsForClient(client: any, canViewFinancials: boolean): { id: TabId; label: string; icon: any }[] {
-  const tabs: { id: TabId; label: string; icon: any }[] = [
-    { id: "overview", label: "Overview", icon: LayoutDashboard },
-    { id: "details", label: "Details", icon: ClipboardList },
-    { id: "projects", label: "Projects", icon: FileText },
+type TabDef = { id: TabId; label: string; icon: any; group: "work" | "resources" | "manage" };
+
+function getTabsForClient(client: any, canViewFinancials: boolean): TabDef[] {
+  const tabs: TabDef[] = [
+    { id: "overview", label: "Overview", icon: LayoutDashboard, group: "work" },
+    { id: "details", label: "Details", icon: ClipboardList, group: "work" },
+    { id: "projects", label: "Projects", icon: FileText, group: "work" },
     {
       id: "sessions",
       label: "Sessions",
+      group: "work",
       icon: ({ className }: { className?: string }) => (
         <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <circle cx="12" cy="12" r="10" />
@@ -152,21 +155,23 @@ function getTabsForClient(client: any, canViewFinancials: boolean): { id: TabId;
     },
   ];
   if (canViewFinancials && client?.model === "Retainer") {
-    tabs.push({
-      id: "retainer",
-      label: "Retainer",
-      icon: RefreshCw,
-    });
+    tabs.push({ id: "retainer", label: "Retainer", icon: RefreshCw, group: "work" });
   }
   tabs.push(
-    { id: "files", label: "Files", icon: FolderOpen },
-    { id: "notes", label: "Notes", icon: StickyNote },
-    { id: "checklists", label: "Tasks", icon: CheckSquare },
-    { id: "portal", label: "Portal", icon: Link2 },
-    { id: "settings", label: "Settings", icon: SettingsIcon },
+    { id: "files", label: "Files", icon: FolderOpen, group: "resources" },
+    { id: "notes", label: "Notes", icon: StickyNote, group: "resources" },
+    { id: "checklists", label: "Tasks", icon: CheckSquare, group: "resources" },
+    { id: "portal", label: "Portal", icon: Link2, group: "manage" },
+    { id: "settings", label: "Settings", icon: SettingsIcon, group: "manage" },
   );
   return tabs;
 }
+
+const TAB_GROUP_LABELS: Record<"work" | "resources" | "manage", string> = {
+  work: "Workspace",
+  resources: "Resources",
+  manage: "Manage",
+};
 
 // ── SectionCard (reused in tabs) ────────────────────────────────────
 function SectionCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
@@ -591,126 +596,178 @@ export default function ClientDetail() {
   // ═════════════════════════════════════════════════════════════════
   return (
     <motion.div className="w-full min-w-0 page-wrapper" variants={container} initial="hidden" animate="show">
-      {/* ── Client Header ─────────────────────────────────────────── */}
-      <motion.div variants={item} className="mb-3">
-        <div className="bg-card border border-border/60 rounded-xl overflow-hidden" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-          {/* Status accent bar */}
-          <div className="h-[3px]" style={{
-            background: client.status === 'Active' ? 'var(--primary)' : client.status === 'Prospect' ? 'var(--warning)' : 'var(--muted-foreground)',
-            opacity: client.status === 'Archived' ? 0.3 : 0.7,
-          }} />
-
-          <div className="p-4 md:p-5">
-            {/* Top row: avatar + name + actions */}
-            <div className="flex items-start gap-4">
-              {/* Avatar */}
-              <div className="w-12 h-12 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0 border border-border/50"
-                style={{ background: 'color-mix(in srgb, var(--primary) 6%, transparent)' }}>
-                {clientFaviconUrl ? (
-                  <img src={clientFaviconUrl} alt={client.name} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="text-[18px] text-primary" style={{ fontWeight: 700 }}>{client.name.charAt(0)}</div>
-                )}
+      {/* ── Client Header (editorial hero, no card wrapper) ─────── */}
+      <motion.div variants={item} className="mb-8 md:mb-10">
+        <div className="flex items-start gap-5 md:gap-6">
+          {/* Avatar */}
+          <div
+            className="w-14 h-14 md:w-16 md:h-16 rounded-circle flex items-center justify-center overflow-hidden flex-shrink-0"
+            style={{
+              background: clientFaviconUrl ? "transparent" : "color-mix(in srgb, var(--primary) 8%, transparent)",
+              boxShadow: clientFaviconUrl ? "0 0 0 1px var(--hairline)" : "none",
+            }}
+          >
+            {clientFaviconUrl ? (
+              <img src={clientFaviconUrl} alt={client.name} className="w-full h-full object-cover" />
+            ) : (
+              <div className="text-[22px] md:text-[24px] text-primary" style={{ fontWeight: 600, letterSpacing: "-0.02em" }}>
+                {client.name.charAt(0)}
               </div>
+            )}
+          </div>
 
-              {/* Name + status */}
-              <div className="flex-1 min-w-0 pt-0.5">
-                <div className="flex items-center gap-2.5">
-                  <h1 className="text-[22px] md:text-[24px] truncate" style={{ fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.15 }}>{client.name}</h1>
-                  <div className={`status-badge ${statusColors[client.status]?.bg} ${statusColors[client.status]?.text}`}>
-                    <div className={`w-1.5 h-1.5 rounded-circle ${statusColors[client.status]?.dot}`} />
-                    {client.status}
-                  </div>
-                </div>
-                {/* Contact strip */}
-                {(client.contactName || client.contactEmail || client.phone) && (
-                  <div className="flex flex-wrap items-center gap-x-3.5 gap-y-0.5 mt-1 text-[13px] text-muted-foreground">
-                    {client.contactName && <span className="flex items-center gap-1.5"><User className="w-3.5 h-3.5 opacity-40" />{client.contactName}</span>}
-                    {client.contactEmail && <a href={`mailto:${client.contactEmail}`} className="flex items-center gap-1.5 hover:text-foreground transition-colors"><Mail className="w-3.5 h-3.5 opacity-40" />{client.contactEmail}</a>}
-                    {client.phone && <a href={`tel:${client.phone}`} className="flex items-center gap-1.5 hover:text-foreground transition-colors"><Phone className="w-3.5 h-3.5 opacity-40" />{client.phone}</a>}
-                  </div>
-                )}
-              </div>
-
-              {/* Actions */}
-              <div className="flex items-center gap-1.5 flex-shrink-0 pt-0.5">
-                <button
-                  onClick={() => navigate(`/clients/${clientId}/edit`)}
-                  className="px-3 py-1.5 text-[12px] border border-border/80 rounded-lg hover:bg-accent/50 transition-all flex items-center gap-1.5"
-                  style={{ fontWeight: 500 }}
-                >
-                  <Pencil className="w-3 h-3" />
-                  <span className="hidden sm:inline">Edit</span>
-                </button>
-              </div>
+          {/* Name + status + meta */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <h1 className="page-header truncate" style={{ margin: 0 }}>{client.name}</h1>
+              <span
+                className="inline-flex items-center gap-1.5 text-[11.5px] px-2 py-0.5 rounded-md"
+                style={{
+                  fontWeight: 600,
+                  letterSpacing: "0.01em",
+                  background: `color-mix(in oklab, var(--${client.status === "Active" ? "primary" : client.status === "Prospect" ? "warning" : "muted-foreground"}) 10%, transparent)`,
+                  color: `var(--${client.status === "Active" ? "primary" : client.status === "Prospect" ? "warning" : "muted-foreground"})`,
+                }}
+              >
+                <span
+                  className="w-1.5 h-1.5 rounded-circle"
+                  style={{ background: `var(--${client.status === "Active" ? "primary" : client.status === "Prospect" ? "warning" : "muted-foreground"})` }}
+                />
+                {client.status}
+              </span>
             </div>
 
-            {/* Metadata strip */}
-            <div className="flex flex-wrap items-center gap-2.5 mt-3.5 pt-3.5 border-t border-border/40">
-              <span className="text-[12px] text-muted-foreground px-2.5 py-1 bg-accent/60 rounded-md" style={{ fontWeight: 600 }}>{client.model}</span>
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 text-[12px] rounded-md" style={{ fontWeight: 600, color: priorityCfg.color, background: priorityCfg.bg }}>
-                <Flag className="w-3 h-3" /> {priorityLevel.charAt(0).toUpperCase() + priorityLevel.slice(1)}
+            {/* Contact strip */}
+            {(client.contactName || client.contactEmail || client.phone) && (
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-[13px] text-muted-foreground">
+                {client.contactName && (
+                  <span className="flex items-center gap-1.5"><User className="w-3.5 h-3.5 opacity-50" />{client.contactName}</span>
+                )}
+                {client.contactEmail && (
+                  <a href={`mailto:${client.contactEmail}`} className="flex items-center gap-1.5 hover:text-foreground transition-colors"><Mail className="w-3.5 h-3.5 opacity-50" />{client.contactEmail}</a>
+                )}
+                {client.phone && (
+                  <a href={`tel:${client.phone}`} className="flex items-center gap-1.5 hover:text-foreground transition-colors"><Phone className="w-3.5 h-3.5 opacity-50" />{client.phone}</a>
+                )}
+              </div>
+            )}
+
+            {/* Metadata: model + priority + risk + secondary refs */}
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-3 text-[12px] text-muted-foreground">
+              <span style={{ fontWeight: 500 }}>{client.model}</span>
+              <span className="opacity-40">·</span>
+              <span className="inline-flex items-center gap-1" style={{ color: priorityCfg.color, fontWeight: 500 }}>
+                <Flag className="w-3 h-3" /> {priorityLevel.charAt(0).toUpperCase() + priorityLevel.slice(1)} priority
               </span>
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 text-[12px] rounded-md" style={{ fontWeight: 600, color: riskCfg.color, background: riskCfg.bg }}>
-                <ShieldAlert className="w-3 h-3" /> {riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1)}
+              <span className="opacity-40">·</span>
+              <span className="inline-flex items-center gap-1" style={{ color: riskCfg.color, fontWeight: 500 }}>
+                <ShieldAlert className="w-3 h-3" /> {riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1)} risk
               </span>
               {client.website && (
                 <>
-                  <div className="w-px h-4 bg-border/60 hidden sm:block" />
-                  <a href={`https://${client.website}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[12px] text-primary hover:text-primary/80 transition-colors" style={{ fontWeight: 500 }}>
-                    <Globe className="w-3.5 h-3.5" />{client.website}<ExternalLink className="w-3 h-3 opacity-50" />
+                  <span className="opacity-40">·</span>
+                  <a href={`https://${client.website}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-primary hover:opacity-80 transition-opacity" style={{ fontWeight: 500 }}>
+                    <Globe className="w-3 h-3" />{client.website}
                   </a>
                 </>
               )}
               {client.address && (
                 <>
-                  <div className="w-px h-4 bg-border/60 hidden sm:block" />
-                  <span className="text-[12px] text-muted-foreground flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 opacity-40" />{client.address}</span>
+                  <span className="opacity-40">·</span>
+                  <span className="inline-flex items-center gap-1"><MapPin className="w-3 h-3 opacity-50" />{client.address}</span>
                 </>
               )}
               {client.startDate && (
                 <>
-                  <div className="w-px h-4 bg-border/60 hidden sm:block" />
-                  <span className="text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Since {format(parseISO(client.startDate), 'MMM yyyy')}</span>
+                  <span className="opacity-40">·</span>
+                  <span>Since {format(parseISO(client.startDate), "MMM yyyy")}</span>
                 </>
               )}
             </div>
           </div>
+
+          {/* Actions */}
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            <button
+              onClick={() => navigate(`/clients/${clientId}/edit`)}
+              className="px-3 h-9 text-[13px] rounded-md border border-[var(--hairline)] hover:bg-accent/60 transition-all flex items-center gap-1.5 cursor-pointer"
+              style={{ fontWeight: 500 }}
+            >
+              <Pencil className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Edit</span>
+            </button>
+          </div>
         </div>
       </motion.div>
 
+
       {/* Tab layout */}
-      <div className="flex flex-col lg:flex-row gap-3">
-        {/* Vertical tab nav — wrapped in card */}
-        <motion.nav variants={item} className="w-full lg:w-44 flex-shrink-0">
-          <div className="bg-card border border-border/60 rounded-xl overflow-hidden lg:sticky lg:top-[72px]" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-            <div className="flex lg:flex-col gap-0.5 overflow-x-auto lg:overflow-x-visible p-1.5 border-b lg:border-b-0 border-border/0">
-              {visibleTabs.map((tab) => {
-                const isActive = activeTab === tab.id;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => handleTabChange(tab.id)}
-                    className={`w-auto lg:w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] text-left transition-all duration-150 relative whitespace-nowrap ${
-                      isActive ? "bg-primary/[0.07] text-primary" : "text-muted-foreground hover:text-foreground hover:bg-accent/40"
-                    }`}
-                    style={{ fontWeight: isActive ? 600 : 450 }}
-                  >
-                    {isActive && (
-                      <motion.div
-                        layoutId="client-tab-indicator"
-                        className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-4 bg-primary rounded-r-full hidden lg:block"
-                        transition={{ type: "spring", stiffness: 350, damping: 30 }}
-                      />
-                    )}
-                    <tab.icon className={`w-3.5 h-3.5 flex-shrink-0 ${isActive ? "text-primary" : "text-muted-foreground/50"}`} />
-                    {tab.label}
-                  </button>
-                );
-              })}
-            </div>
+      <div className="flex flex-col lg:flex-row gap-6 lg:gap-10">
+        {/* Vertical tab nav — grouped, no card wrapper on desktop */}
+        <motion.nav variants={item} className="w-full lg:w-48 flex-shrink-0">
+          {/* Mobile: horizontal scroller */}
+          <div className="lg:hidden flex gap-1 overflow-x-auto pb-1 -mx-2 px-2 scrollbar-thin">
+            {visibleTabs.map((tab) => {
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => handleTabChange(tab.id)}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-[13px] whitespace-nowrap cursor-pointer transition-colors ${
+                    isActive ? "bg-[var(--surface-raised)] text-foreground shadow-[var(--elev-1)]" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                  style={{ fontWeight: isActive ? 600 : 500 }}
+                >
+                  <tab.icon className="w-3.5 h-3.5" />
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Desktop: grouped vertical nav */}
+          <div className="hidden lg:block lg:sticky lg:top-[72px] space-y-5">
+            {(["work", "resources", "manage"] as const).map((group) => {
+              const groupTabs = visibleTabs.filter((t) => t.group === group);
+              if (groupTabs.length === 0) return null;
+              return (
+                <div key={group}>
+                  <div className="type-eyebrow px-2 mb-1.5">{TAB_GROUP_LABELS[group]}</div>
+                  <div className="flex flex-col gap-0.5">
+                    {groupTabs.map((tab) => {
+                      const isActive = activeTab === tab.id;
+                      return (
+                        <button
+                          key={tab.id}
+                          onClick={() => handleTabChange(tab.id)}
+                          className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-[13px] text-left relative cursor-pointer transition-colors duration-150 ${
+                            isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                          }`}
+                          style={{
+                            fontWeight: isActive ? 600 : 500,
+                            background: isActive ? "color-mix(in oklab, var(--primary) 6%, transparent)" : "transparent",
+                          }}
+                        >
+                          {isActive && (
+                            <motion.div
+                              layoutId="client-tab-indicator"
+                              className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-4 rounded-r-full"
+                              style={{ background: "var(--primary)" }}
+                              transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                            />
+                          )}
+                          <tab.icon className={`w-3.5 h-3.5 flex-shrink-0 ${isActive ? "text-primary" : "text-muted-foreground/60"}`} />
+                          {tab.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </motion.nav>
+
 
         {/* Content */}
         <div className="flex-1 min-w-0">
@@ -891,117 +948,134 @@ function OverviewTab({
     <>
       {/* Financial metrics */}
       {canViewFinancials && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Revenue card */}
-          <div className="lg:col-span-2 bg-card border border-border/60 rounded-xl overflow-hidden" style={{ boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
-            <div className="p-4 md:p-5">
-              <div className="flex items-center justify-between mb-4">
-                <div className="text-[12px] text-muted-foreground" style={{ fontWeight: 600 }}>Financial Overview</div>
-                <div className="inline-flex gap-0 bg-accent/60 rounded-md p-0.5">
-                  {(["gross", "net"] as const).map(mode => (
-                    <button
-                      key={mode}
-                      onClick={() => setViewMode(mode)}
-                      className={`px-2.5 py-0.5 text-[11px] rounded-sm transition-all duration-200 capitalize ${
-                        viewMode === mode ? "bg-card text-foreground" : "text-muted-foreground hover:text-foreground"
-                      }`}
-                      style={{ fontWeight: 600, boxShadow: viewMode === mode ? "0 1px 3px rgba(0,0,0,0.06)" : "none" }}
-                    >
-                      {mode}
-                    </button>
-                  ))}
-                </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          {/* Revenue hero card */}
+          <div className="lg:col-span-2 premium-card !p-6 md:!p-7 flex flex-col">
+            <div className="flex items-center justify-between mb-5">
+              <div className="type-eyebrow">Financial overview</div>
+              <div className="inline-flex gap-0 p-0.5 rounded-md" style={{ background: "var(--surface-sunken)" }}>
+                {(["gross", "net"] as const).map((mode) => (
+                  <button
+                    key={mode}
+                    onClick={() => setViewMode(mode)}
+                    className={`px-2.5 py-0.5 text-[11px] rounded-sm transition-all duration-200 capitalize cursor-pointer ${
+                      viewMode === mode ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                    }`}
+                    style={{
+                      fontWeight: 600,
+                      background: viewMode === mode ? "var(--surface-raised)" : "transparent",
+                      boxShadow: viewMode === mode ? "var(--elev-1)" : "none",
+                    }}
+                  >
+                    {mode}
+                  </button>
+                ))}
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div>
-                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>This month</div>
-                  <div className="text-[22px] leading-none tracking-tighter tabular-nums" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
-                    ${viewMode === "net" ? Math.round((client.monthlyEarnings || 0) * netMultiplier).toLocaleString() : (client.monthlyEarnings || 0).toLocaleString()}
-                  </div>
-                  {revenueTrend !== 'flat' && (
-                    <div className={`flex items-center gap-0.5 mt-1 text-[11px] ${revenueTrend === 'up' ? 'text-success' : 'text-destructive'}`} style={{ fontWeight: 600 }}>
-                      {revenueTrend === 'up' ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                      {revenueTrend === 'up' ? '+' : ''}{Math.abs(Math.round(((client.monthlyEarnings || 0) - lastMonthEarnings) / Math.max(lastMonthEarnings, 1) * 100))}% vs last
-                    </div>
-                  )}
+            </div>
+
+            {/* Primary metric — This month */}
+            <div>
+              <div className="type-eyebrow mb-2">This month</div>
+              <div className="flex items-baseline gap-3 flex-wrap">
+                <div className="text-[40px] md:text-[48px] leading-none tabular-nums text-foreground" style={{ fontWeight: 600, letterSpacing: "-0.035em" }}>
+                  ${viewMode === "net" ? Math.round((client.monthlyEarnings || 0) * netMultiplier).toLocaleString() : (client.monthlyEarnings || 0).toLocaleString()}
                 </div>
-                <div>
-                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>Eff. rate</div>
-                  <div className="text-[22px] leading-none tracking-tighter tabular-nums" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
-                    ${client.trueHourlyRate ? (viewMode === "net" ? Math.round(client.trueHourlyRate * netMultiplier) : client.trueHourlyRate.toFixed(2)) : '—'}
+                {revenueTrend !== "flat" && (
+                  <div
+                    className={`flex items-center gap-1 text-[12px] ${revenueTrend === "up" ? "text-success" : "text-destructive"}`}
+                    style={{ fontWeight: 600 }}
+                  >
+                    {revenueTrend === "up" ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
+                    {revenueTrend === "up" ? "+" : ""}
+                    {Math.abs(Math.round((((client.monthlyEarnings || 0) - lastMonthEarnings) / Math.max(lastMonthEarnings, 1)) * 100))}% vs last month
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Secondary metrics — sunken strip */}
+            <div className="mt-6 rounded-lg overflow-hidden" style={{ background: "var(--surface-sunken)" }}>
+              <div className="grid grid-cols-3 divide-x" style={{ borderColor: "var(--hairline)" }}>
+                <div className="p-4">
+                  <div className="type-eyebrow mb-1.5">Effective rate</div>
+                  <div className="text-[18px] tabular-nums text-foreground" style={{ fontWeight: 600, letterSpacing: "-0.02em" }}>
+                    ${client.trueHourlyRate ? (viewMode === "net" ? Math.round(client.trueHourlyRate * netMultiplier) : client.trueHourlyRate.toFixed(2)) : "—"}
+                    <span className="text-[11px] text-muted-foreground ml-0.5" style={{ fontWeight: 400 }}>/hr</span>
                   </div>
                 </div>
-                <div>
-                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>Lifetime</div>
-                  <div className="text-[22px] leading-none tracking-tighter tabular-nums" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
+                <div className="p-4">
+                  <div className="type-eyebrow mb-1.5">Lifetime</div>
+                  <div className="text-[18px] tabular-nums text-foreground" style={{ fontWeight: 600, letterSpacing: "-0.02em" }}>
                     ${viewMode === "net" ? Math.round((client.lifetimeRevenue || 0) * netMultiplier).toLocaleString() : (client.lifetimeRevenue || 0).toLocaleString()}
                   </div>
                 </div>
-                <div>
-                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>Hours</div>
-                  <div className="text-[22px] leading-none tracking-tighter tabular-nums" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
+                <div className="p-4">
+                  <div className="type-eyebrow mb-1.5">Hours</div>
+                  <div className="text-[18px] tabular-nums text-foreground" style={{ fontWeight: 600, letterSpacing: "-0.02em" }}>
                     {client.hoursLogged || 0}
                   </div>
                 </div>
               </div>
-
-              {/* Retainer mini bar */}
-              {client.model === "Retainer" && (() => {
-                const hoursUsed = (client.retainerTotal || 0) - (client.retainerRemaining || 0);
-                const usagePct = client.retainerTotal ? Math.round((hoursUsed / client.retainerTotal) * 100) : 0;
-                return (
-                  <div className="mt-4 pt-4 border-t border-border/60">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="text-[11px] text-muted-foreground" style={{ fontWeight: 500 }}>Retainer: {hoursUsed}h / {client.retainerTotal || 0}h</div>
-                      <div className="text-[13px] tabular-nums" style={{ fontWeight: 700, color: getUsageTextColor(usagePct) }}>{usagePct}%</div>
-                    </div>
-                    <div className="h-1.5 bg-accent/60 rounded-sm overflow-hidden">
-                      <motion.div className="h-full rounded-sm" style={{ background: getUsageBarColor(usagePct) }} initial={{ width: 0 }} animate={{ width: `${usagePct}%` }} transition={{ delay: 0.3, duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }} />
-                    </div>
-                  </div>
-                );
-              })()}
             </div>
+
+            {/* Retainer mini bar */}
+            {client.model === "Retainer" && (() => {
+              const hoursUsed = (client.retainerTotal || 0) - (client.retainerRemaining || 0);
+              const usagePct = client.retainerTotal ? Math.round((hoursUsed / client.retainerTotal) * 100) : 0;
+              return (
+                <div className="mt-5 pt-5 border-t" style={{ borderColor: "var(--hairline)" }}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>
+                      Retainer · {hoursUsed}h of {client.retainerTotal || 0}h
+                    </div>
+                    <div className="text-[13px] tabular-nums" style={{ fontWeight: 700, color: getUsageTextColor(usagePct) }}>{usagePct}%</div>
+                  </div>
+                  <div className="h-1.5 rounded-sm overflow-hidden" style={{ background: "var(--surface-sunken)" }}>
+                    <motion.div className="h-full rounded-sm" style={{ background: getUsageBarColor(usagePct) }} initial={{ width: 0 }} animate={{ width: `${usagePct}%` }} transition={{ delay: 0.3, duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }} />
+                  </div>
+                </div>
+              );
+            })()}
           </div>
 
+
           {/* 7-day activity sparkline card */}
-          <div className="bg-card border border-border/60 rounded-xl overflow-hidden flex flex-col" style={{ boxShadow: "0 1px 2px rgba(0,0,0,0.03)" }}>
-            <div className="p-4 md:p-5 flex flex-col flex-1 justify-between">
-              <div>
-                <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>7-Day Activity</div>
-                <div className="text-[26px] leading-none tracking-tighter tabular-nums" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
-                  {last7Days.reduce((a, b) => a + b, 0).toFixed(1)}h
-                </div>
-                <div className="text-[10px] text-muted-foreground mt-1" style={{ fontWeight: 500 }}>total this week</div>
+          <div className="premium-card !p-6 md:!p-7 flex flex-col">
+            <div className="flex-1">
+              <div className="type-eyebrow mb-2">7-day activity</div>
+              <div className="text-[32px] md:text-[36px] leading-none tabular-nums text-foreground" style={{ fontWeight: 600, letterSpacing: "-0.03em" }}>
+                {last7Days.reduce((a, b) => a + b, 0).toFixed(1)}<span className="text-[18px] text-muted-foreground ml-1" style={{ fontWeight: 500 }}>h</span>
               </div>
-              <div className="mt-3">
-                <svg viewBox="0 0 200 44" className="w-full" style={{ height: 48 }}>
-                  <defs>
-                    <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.15" />
-                      <stop offset="100%" stopColor="var(--primary)" stopOpacity="0" />
-                    </linearGradient>
-                  </defs>
-                  <polygon points={sparkFillPoints} fill="url(#sparkGrad)" />
-                  <polyline points={sparkPoints} fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  {last7Days.map((h, i) => {
-                    const x = (i / 6) * 200;
-                    const y = 40 - (h / maxHours) * 36;
-                    return h > 0 ? <circle key={i} cx={x} cy={y} r="2.5" fill="var(--primary)" /> : null;
-                  })}
-                </svg>
-                <div className="flex justify-between text-[9px] text-muted-foreground/50 mt-1 px-0.5" style={{ fontWeight: 600 }}>
-                  {last7Days.map((_, i) => {
-                    const d = new Date();
-                    d.setDate(d.getDate() - (6 - i));
-                    return <span key={i}>{format(d, 'EEE')}</span>;
-                  })}
-                </div>
+              <div className="text-[12px] text-muted-foreground mt-1.5" style={{ fontWeight: 500 }}>total this week</div>
+            </div>
+            <div className="mt-5">
+              <svg viewBox="0 0 200 44" className="w-full" style={{ height: 48 }}>
+                <defs>
+                  <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.18" />
+                    <stop offset="100%" stopColor="var(--primary)" stopOpacity="0" />
+                  </linearGradient>
+                </defs>
+                <polygon points={sparkFillPoints} fill="url(#sparkGrad)" />
+                <polyline points={sparkPoints} fill="none" stroke="var(--primary)" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+                {last7Days.map((h, i) => {
+                  const x = (i / 6) * 200;
+                  const y = 40 - (h / maxHours) * 36;
+                  return h > 0 ? <circle key={i} cx={x} cy={y} r="2" fill="var(--primary)" /> : null;
+                })}
+              </svg>
+              <div className="flex justify-between text-[10px] text-muted-foreground/60 mt-2 px-0.5" style={{ fontWeight: 600, letterSpacing: "0.05em" }}>
+                {last7Days.map((_, i) => {
+                  const d = new Date();
+                  d.setDate(d.getDate() - (6 - i));
+                  return <span key={i}>{format(d, "EEE").toUpperCase()}</span>;
+                })}
               </div>
             </div>
           </div>
         </div>
       )}
+
 
       {/* Activity + Insights */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
