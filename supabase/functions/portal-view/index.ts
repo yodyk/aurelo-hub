@@ -164,7 +164,7 @@ Deno.serve(async (req) => {
           id: item.id,
           text: item.text,
           description: item.description ?? null,
-          status: item.status || (item.completed ? 'done' : 'todo'),
+          status: item.status || (item.completed ? 'complete' : 'to_do'),
           completed: item.completed,
           work_tags: item.work_tags || [],
           due_date: item.due_date ?? null,
