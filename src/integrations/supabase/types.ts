@@ -112,6 +112,7 @@ export type Database = {
           priority: string | null
           project_id: string | null
           recurrence_id: string | null
+          repeat: string | null
           sort_order: number
           source: string
           status: string
@@ -136,6 +137,7 @@ export type Database = {
           priority?: string | null
           project_id?: string | null
           recurrence_id?: string | null
+          repeat?: string | null
           sort_order?: number
           source?: string
           status?: string
@@ -160,6 +162,7 @@ export type Database = {
           priority?: string | null
           project_id?: string | null
           recurrence_id?: string | null
+          repeat?: string | null
           sort_order?: number
           source?: string
           status?: string

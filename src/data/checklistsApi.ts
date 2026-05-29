@@ -44,6 +44,8 @@ export interface ChecklistItem {
   recurrenceId?: string | null;
   source?: TaskSource;
   completedAt?: string | null;
+  /** Lightweight repeat (Things 3 style). Null = one-off. */
+  repeat?: 'weekly' | 'monthly' | 'quarterly' | null;
 }
 
 function rowToChecklist(row: any, items: ChecklistItem[] = []): Checklist {
@@ -84,6 +86,7 @@ function rowToItem(row: any): ChecklistItem {
     recurrenceId: row.recurrence_id ?? null,
     source: (row.source as TaskSource) ?? 'manual',
     completedAt: row.completed_at ?? null,
+    repeat: (row.repeat as ChecklistItem['repeat']) ?? null,
   };
 }
 
@@ -158,6 +161,7 @@ export interface NewTaskInput {
   waitingOn?: string | null;
   followUpAt?: string | null;
   waitingNote?: string | null;
+  repeat?: 'weekly' | 'monthly' | 'quarterly' | null;
 }
 
 export async function addChecklistItem(
@@ -212,6 +216,7 @@ export async function addLooseTask(
       waiting_on: task.waitingOn ?? null,
       follow_up_at: task.followUpAt ?? null,
       waiting_note: task.waitingNote ?? null,
+      repeat: task.repeat ?? null,
       sort_order: 0,
       added_by: opts.addedBy ?? 'owner',
       source: opts.source ?? 'manual',
@@ -235,6 +240,7 @@ export interface TaskUpdates {
   waitingOn?: string | null;
   followUpAt?: string | null;
   waitingNote?: string | null;
+  repeat?: 'weekly' | 'monthly' | 'quarterly' | null;
 }
 
 export async function updateChecklistItem(itemId: string, updates: TaskUpdates): Promise<void> {
@@ -251,6 +257,7 @@ export async function updateChecklistItem(itemId: string, updates: TaskUpdates):
   if (updates.waitingOn !== undefined) row.waiting_on = updates.waitingOn;
   if (updates.followUpAt !== undefined) row.follow_up_at = updates.followUpAt;
   if (updates.waitingNote !== undefined) row.waiting_note = updates.waitingNote;
+  if (updates.repeat !== undefined) row.repeat = updates.repeat;
   const { error } = await supabase.from('checklist_items').update(row).eq('id', itemId);
   if (error) throw new Error(`Failed to update task: ${error.message}`);
 }
@@ -315,4 +322,96 @@ export async function loadAllTasksForWorkspace(workspaceId: string): Promise<Wor
       checklistTitle: parent?.title || 'Tasks',
     };
   });
+}
+
+// ── Single-task loader (for TaskDrawer) ─────────────────────────────
+
+export async function loadTaskById(itemId: string): Promise<ChecklistItem | null> {
+  const { data, error } = await supabase
+    .from('checklist_items')
+    .select('*')
+    .eq('id', itemId)
+    .maybeSingle();
+  if (error) { console.error('[checklistsApi] loadTaskById:', error); return null; }
+  if (!data) return null;
+  return rowToItem(data);
+}
+
+// ── Lightweight recurrence — clone on completion ────────────────────
+//
+// Things-3 model. When a task with `repeat` transitions to 'complete',
+// the next occurrence is materialized client-side. No cron, no engine.
+// Idempotency: skip if an open sibling with the same text + repeat + new
+// due_date already exists.
+
+function nextDueDate(base: string | null, cadence: 'weekly' | 'monthly' | 'quarterly'): string {
+  const today = new Date();
+  const start = base ? new Date(base + 'T00:00:00') : today;
+  const d = new Date(start);
+  if (cadence === 'weekly') d.setDate(d.getDate() + 7);
+  else if (cadence === 'monthly') d.setMonth(d.getMonth() + 1);
+  else if (cadence === 'quarterly') d.setMonth(d.getMonth() + 3);
+  // If we cloned from an already-past task, jump forward to a future date.
+  while (d <= today) {
+    if (cadence === 'weekly') d.setDate(d.getDate() + 7);
+    else if (cadence === 'monthly') d.setMonth(d.getMonth() + 1);
+    else if (cadence === 'quarterly') d.setMonth(d.getMonth() + 3);
+  }
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+/**
+ * Materialize the next recurrence of a completed task. Safe to call
+ * unconditionally — it's a no-op when the task has no `repeat`.
+ *
+ * Returns the new task id when created, or null when skipped.
+ */
+export async function materializeRecurrence(task: ChecklistItem): Promise<string | null> {
+  if (!task.repeat) return null;
+  const nextDue = nextDueDate(task.dueDate ?? null, task.repeat);
+
+  // Idempotency: skip if an open sibling already exists for this cadence.
+  const { data: existing } = await supabase
+    .from('checklist_items')
+    .select('id, status, due_date, text, repeat, checklist_id, workspace_id, client_id')
+    .eq('text', task.text)
+    .eq('repeat', task.repeat)
+    .eq('due_date', nextDue)
+    .neq('status', 'complete')
+    .limit(1);
+  if (existing && existing.length > 0) return null;
+
+  const insert: any = {
+    checklist_id: task.checklistId ?? null,
+    workspace_id: task.workspaceId ?? null,
+    client_id: task.clientId ?? null,
+    project_id: task.projectId ?? null,
+    text: task.text,
+    description: task.description ?? null,
+    status: 'to_do',
+    completed: false,
+    completed_at: null,
+    work_tags: task.workTags ?? [],
+    due_date: nextDue,
+    estimated_hours: task.estimatedHours ?? null,
+    priority: task.priority ?? null,
+    waiting_on: null,
+    follow_up_at: null,
+    waiting_note: null,
+    repeat: task.repeat,
+    sort_order: task.sortOrder ?? 0,
+    added_by: task.addedBy ?? 'owner',
+    source: 'recurring',
+  };
+
+  const { data, error } = await supabase
+    .from('checklist_items')
+    .insert(insert)
+    .select('id')
+    .single();
+  if (error) { console.error('[checklistsApi] materializeRecurrence:', error); return null; }
+  return data?.id ?? null;
 }
