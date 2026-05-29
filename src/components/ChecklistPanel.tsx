@@ -324,6 +324,8 @@ function ChecklistCard({
                 onLinksChanged={onLinksChanged}
                 onUpdate={(patch) => updateLocal(item.id, patch)}
                 onDeleted={() => setItems(prev => prev.filter(i => i.id !== item.id))}
+                onUndoDelete={(restored) => setItems(prev => prev.some(i => i.id === restored.id) ? prev : [...prev, restored].sort((a, b) => a.sortOrder - b.sortOrder))}
+
                 onRefresh={onRefresh}
               />
             ))}
