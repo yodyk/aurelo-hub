@@ -1936,44 +1936,31 @@ function LockedInvoicingPreview() {
               className="bg-card border border-border rounded-xl overflow-hidden"
               style={{ boxShadow: "var(--elev-1)" }}
             >
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="text-left px-5 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>
-                      Invoice
-                    </th>
-                    <th className="text-left px-5 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>
-                      Client
-                    </th>
-                    <th className="text-left px-5 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>
-                      Amount
-                    </th>
-                    <th className="text-left px-5 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>
-                      Status
-                    </th>
-                    <th className="text-left px-5 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>
-                      Due Date
-                    </th>
-                    <th className="w-8" />
-                  </tr>
-                </thead>
-                <tbody>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Invoice</TableHead>
+                    <TableHead>Client</TableHead>
+                    <TableHead numeric>Amount</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Due Date</TableHead>
+                    <TableHead className="w-8" />
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {sampleInvoices.map((inv) => {
                     const sc = STATUS_CONFIG[inv.status];
                     const SI = sc.icon;
                     return (
-                      <tr key={inv.id} className="border-b border-border last:border-0">
-                        <td className="px-5 py-3.5 text-[13px] text-foreground" style={{ fontWeight: 500 }}>
+                      <TableRow key={inv.id}>
+                        <TableCell className="text-[13px] text-foreground" style={{ fontWeight: 500 }}>
                           #{inv.number}
-                        </td>
-                        <td className="px-5 py-3.5 text-[13px] text-muted-foreground">{inv.clientName}</td>
-                        <td
-                          className="px-5 py-3.5 text-[13px] text-foreground tabular-nums"
-                          style={{ fontWeight: 500 }}
-                        >
+                        </TableCell>
+                        <TableCell className="text-[13px] text-muted-foreground">{inv.clientName}</TableCell>
+                        <TableCell numeric className="text-[13px] text-foreground" style={{ fontWeight: 500 }}>
                           {formatCurrency(inv.amount)}
-                        </td>
-                        <td className="px-5 py-3.5">
+                        </TableCell>
+                        <TableCell>
                           <span
                             className={`inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full ${sc.bg}`}
                             style={{ fontWeight: 600, color: sc.color }}
@@ -1981,16 +1968,16 @@ function LockedInvoicingPreview() {
                             <SI className="w-3 h-3" />
                             {sc.label}
                           </span>
-                        </td>
-                        <td className="px-5 py-3.5 text-[13px] text-muted-foreground">{inv.dueDate}</td>
-                        <td className="px-3 py-3.5">
+                        </TableCell>
+                        <TableCell className="text-[13px] text-muted-foreground">{inv.dueDate}</TableCell>
+                        <TableCell>
                           <MoreHorizontal className="w-3.5 h-3.5 text-muted-foreground/50" />
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     );
                   })}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
           </div>
         </motion.div>
