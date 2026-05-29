@@ -309,10 +309,32 @@ function ChecklistCard({
           )}
           <div className="flex items-center gap-2">
             <span className="text-[11px] text-muted-foreground tabular-nums">{completedCount}/{totalCount}</span>
-            <button onClick={onDelete} className="p-1 rounded hover:bg-accent/60 text-muted-foreground hover:text-destructive transition-colors cursor-pointer">
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <button className="p-1 rounded hover:bg-accent/60 text-muted-foreground hover:text-destructive transition-colors cursor-pointer" title="Delete list">
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete this list?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    "{checklist.title}" and all {totalCount} of its tasks will be permanently removed. This cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={onDelete}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Delete list
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
+
         </div>
 
         {/* Tasks */}
