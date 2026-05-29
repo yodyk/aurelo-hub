@@ -2048,8 +2048,9 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
       <SectionCard>
         <SectionHeader>Retainer Details</SectionHeader>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
-          <MetricCard label="Monthly price" value={`$${((client.retainerTotal || 0) * (client.rate || 0)).toLocaleString()}`} />
-          <MetricCard label="Rate" value={`$${client.rate || 0}/hr`} />
+          <MetricCard label="Monthly price" value={formatMoney((client.retainerTotal || 0) * (client.rate || 0))} />
+          <MetricCard label="Rate" value={`${formatMoney(client.rate || 0)}/hr`} />
+
           <MetricCard label="Cycle length" value={`${client.retainerCycleDays || 30} days`} />
         </div>
 
