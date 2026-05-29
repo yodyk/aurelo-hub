@@ -514,7 +514,7 @@ function QuickAdd({ onCreated }: { onCreated: () => void }) {
           Add
         </button>
       </div>
-      {value && (parsed.clientId || parsed.dueDate || parsed.priority || parsed.status || parsed.followUpAt) && (
+      {value && (parsed.clientId || parsed.dueDate || parsed.priority || parsed.status !== 'to_do' || parsed.followUpAt) && (
         <div className="border-t border-border px-3 py-1.5 flex flex-wrap items-center gap-2 type-meta">
           {parsed.clientId && (
             <span className="inline-flex items-center gap-1 text-foreground">
