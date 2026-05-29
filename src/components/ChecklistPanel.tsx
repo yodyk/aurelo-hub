@@ -359,7 +359,7 @@ function ChecklistCard({
 // ── Task row ───────────────────────────────────────────────────────
 
 function TaskRow({
-  item, clientId, workspaceId, onUpdate, onDeleted, onRefresh, workCategoryNames,
+  item, clientId, workspaceId, onUpdate, onDeleted, onUndoDelete, onRefresh, workCategoryNames,
   links, clientNotes, clientFiles, onLinksChanged,
 }: {
   item: ChecklistItem;
@@ -372,8 +372,10 @@ function TaskRow({
   onLinksChanged: () => void;
   onUpdate: (patch: Partial<ChecklistItem>) => void;
   onDeleted: () => void;
+  onUndoDelete: (restored: ChecklistItem) => void;
   onRefresh: () => void;
 }) {
+
   const [expanded, setExpanded] = useState(false);
   const [editingText, setEditingText] = useState(false);
   const [textValue, setTextValue] = useState(item.text);
