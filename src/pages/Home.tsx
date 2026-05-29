@@ -644,31 +644,32 @@ export default function Home() {
               </AnimatePresence>
 
               {/* Metrics strip */}
-              <div className="rounded-lg overflow-hidden border border-border/60 mb-5">
-                <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-border/50">
-                  <div className="px-4 py-3">
-                    <div className="text-[11px] text-muted-foreground mb-1.5" style={{ fontWeight: 500 }}>Time invested</div>
+              <div className="rounded-lg overflow-hidden mb-6" style={{ background: "var(--surface-sunken)" }}>
+                <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x" style={{ borderColor: "var(--hairline)" }}>
+                  <div className="px-5 py-4">
+                    <div className="type-eyebrow mb-2">Time invested</div>
                     <div className="flex items-baseline gap-1">
-                      <span className="text-[24px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600 }}><AnimatedNumber value={Math.round(totalHoursThisMonth * 10) / 10} /></span>
-                      <span className="text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>hrs</span>
+                      <span className="text-[24px] leading-none tracking-tight tabular-nums font-semibold"><AnimatedNumber value={Math.round(totalHoursThisMonth * 10) / 10} /></span>
+                      <span className="text-[12px] text-muted-foreground font-medium">hrs</span>
                     </div>
                   </div>
-                  <div className="px-4 py-3">
-                    <div className="text-[11px] text-muted-foreground mb-1.5" style={{ fontWeight: 500 }}>Effective rate</div>
+                  <div className="px-5 py-4" style={{ borderColor: "var(--hairline)" }}>
+                    <div className="type-eyebrow mb-2">Effective rate</div>
                     <div className="flex items-baseline gap-1">
-                      <span className="text-[24px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600, color: BLUE }}>$<AnimatedNumber value={Math.round(trueHourlyRate)} /></span>
-                      <span className="text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>/hr</span>
+                      <span className="text-[24px] leading-none tracking-tight tabular-nums font-semibold" style={{ color: BLUE }}>$<AnimatedNumber value={Math.round(trueHourlyRate)} /></span>
+                      <span className="text-[12px] text-muted-foreground font-medium">/hr</span>
                     </div>
                   </div>
-                  <div className="px-4 py-3">
-                    <div className="text-[11px] text-muted-foreground mb-1.5" style={{ fontWeight: 500 }}>Billable</div>
+                  <div className="px-5 py-4">
+                    <div className="type-eyebrow mb-2">Billable</div>
                     <div className="flex items-baseline gap-1">
-                      <span className="text-[24px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600 }}><AnimatedNumber value={billablePercentage} /></span>
-                      <span className="text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>%</span>
+                      <span className="text-[24px] leading-none tracking-tight tabular-nums font-semibold"><AnimatedNumber value={billablePercentage} /></span>
+                      <span className="text-[12px] text-muted-foreground font-medium">%</span>
                     </div>
                   </div>
                 </div>
               </div>
+
 
               {/* Spacer to push chart to bottom */}
               <div className="flex-1" />
