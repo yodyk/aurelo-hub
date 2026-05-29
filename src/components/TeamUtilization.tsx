@@ -81,7 +81,7 @@ export default function TeamUtilization() {
     { key: "members", label: "Active members", value: activeMembers.length.toString(), sub: `of ${members.length} total`, icon: Users },
     { key: "utilization", label: "Billable utilization", value: `${utilizationRate}%`, sub: `${Math.round(billableHours)}h billable`, icon: TrendingUp },
     { key: "capacity", label: "Avg hours / member", value: avgHoursPerMember.toString(), sub: `of ${totalWeeklyCapacity}h capacity`, icon: Clock },
-    { key: "revenue", label: "Team revenue", value: `$${Math.round(totalRevenue).toLocaleString()}`, sub: "this period", icon: DollarSign },
+    { key: "revenue", label: "Team revenue", value: formatMoney(Math.round(totalRevenue), { precision: "compact" }), sub: "this period", icon: DollarSign },
   ];
 
   if (loading) {
