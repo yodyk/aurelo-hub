@@ -210,6 +210,10 @@
   --sidebar-accent-foreground: #E8ECF1;
   --sidebar-border: rgba(255, 255, 255, 0.05);
   --sidebar-ring: rgba(107, 143, 255, 0.50);
+
+  /* Focus halo + row hover — dark-mode tuned */
+  --focus-ring: 0 0 0 3px rgba(107, 143, 255, 0.35);
+  --row-hover: rgba(255, 255, 255, 0.04);
 }
 
 @theme inline {
