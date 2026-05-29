@@ -83,11 +83,11 @@ export default function Tasks() {
   const counts = useMemo(() => ({
     all: tasks.length,
     open: tasks.filter(t => t.status !== 'complete').length,
-    todo: tasks.filter(t => t.status === 'to_do').length,
+    to_do: tasks.filter(t => t.status === 'to_do').length,
     in_progress: tasks.filter(t => t.status === 'in_progress').length,
-    blocked: tasks.filter(t => t.status === 'on_hold').length,
+    in_review: tasks.filter(t => t.status === 'in_review').length,
     on_hold: tasks.filter(t => t.status === 'on_hold').length,
-    done: tasks.filter(t => t.status === 'complete').length,
+    complete: tasks.filter(t => t.status === 'complete').length,
   }), [tasks]);
 
   const filtered = useMemo(() => {
@@ -108,11 +108,11 @@ export default function Tasks() {
   }, [tasks, statusFilter, clientFilter, tagFilter]);
 
   const cycleStatus = async (task: WorkspaceTask) => {
-    const order: TaskStatus[] = ['to_do', 'in_progress', 'on_hold', 'on_hold', 'complete'];
-    const next = order[(order.indexOf(task.status) + 1) % order.length];
+    const next = nextStatus(task.status);
     setTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: next, completed: next === 'complete' } : t));
     try { await updateChecklistItem(task.id, { status: next }); }
     catch (err: any) {
+
       toast.error(err.message);
       setTasks(prev => prev.map(t => t.id === task.id ? task : t));
     }
