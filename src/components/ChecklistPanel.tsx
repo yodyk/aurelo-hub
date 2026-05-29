@@ -13,6 +13,13 @@ import {
   type Checklist, type ChecklistItem, type TaskStatus, type NewTaskInput,
 } from '@/data/checklistsApi';
 import { TASK_STATUSES as STATUSES, STATUS_BY_VALUE, nextStatus as cycleNextStatus } from '@/data/taskStatus';
+import { deferredDelete } from '@/lib/deferredDelete';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+
 
 import { loadNotes, type ClientNote } from '@/data/notesApi';
 import { loadFiles, getSignedUrlByPath, type StoredFile } from '@/data/storageApi';
