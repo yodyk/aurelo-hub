@@ -192,7 +192,7 @@ function Breadcrumbs() {
   if (!crumbs) return null;
 
   return (
-    <div className="border-b border-border bg-background px-4 lg:px-6 py-2 flex items-center gap-1.5">
+    <div className="border-b border-[var(--hairline)] bg-background px-4 lg:px-6 py-2 flex items-center gap-1.5">
       {crumbs.map((crumb, i) => (
         <span key={i} className="flex items-center gap-1.5">
           {i > 0 && <ChevronRight className="w-3 h-3 text-muted-foreground/50" />}
@@ -367,9 +367,9 @@ function RootLayout() {
   return (
     <div className="min-h-screen flex bg-background">
       {/* Sidebar */}
-      <aside className={`${sidebarWidth} border-r border-border bg-sidebar hidden lg:flex flex-col fixed inset-y-0 left-0 z-30 transition-all duration-300`}>
+      <aside className={`${sidebarWidth} border-r border-[var(--sidebar-border)] bg-sidebar hidden lg:flex flex-col fixed inset-y-0 left-0 z-30 transition-all duration-300`}>
         {/* Logo */}
-        <div className={`h-14 flex items-center border-b border-border ${sidebarCollapsed ? 'px-4 justify-center' : 'px-5'}`}>
+        <div className={`h-14 flex items-center border-b border-[var(--hairline)] ${sidebarCollapsed ? 'px-4 justify-center' : 'px-5'}`}>
           {sidebarCollapsed ? (
             <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
               <AureloIcon className="w-4 h-4 text-primary" />
@@ -445,7 +445,7 @@ function RootLayout() {
         <SidebarUpgradeCTA collapsed={sidebarCollapsed} />
 
         {/* Bottom section */}
-        <div className="px-3 py-4 border-t border-border">
+        <div className="px-3 py-4 border-t border-[var(--hairline)]">
           <NavLink
             to="/settings"
             data-tour="settings-link"
@@ -492,7 +492,7 @@ function RootLayout() {
                   transition={{ duration: 0.12 }}
                   className="absolute bottom-full left-0 mb-2 w-52 bg-card border border-border rounded-xl overflow-hidden z-50 shadow-elevated"
                 >
-                  <div className="px-3 py-2.5 border-b border-border">
+                  <div className="px-3 py-2.5 border-b border-[var(--hairline)]">
                     <div className="text-[13px] truncate" style={{ fontWeight: 500 }}>{displayName}</div>
                     <div className="text-[11px] text-muted-foreground truncate">{displayEmail}</div>
                   </div>
@@ -566,7 +566,7 @@ function RootLayout() {
       {/* Main area */}
       <div className={`flex-1 ${mainMargin} min-h-screen min-w-0 overflow-x-hidden transition-all duration-300`}>
         {/* Top Bar */}
-        <header className="h-14 border-b border-border bg-background/80 backdrop-blur-md sticky top-0 z-20 flex items-center justify-between px-4 lg:px-6">
+        <header className="h-14 border-b border-[var(--hairline)] bg-background/80 backdrop-blur-md sticky top-0 z-20 flex items-center justify-between px-4 lg:px-6">
           <div className="flex items-center gap-3">
             {/* Mobile: Aurelo icon */}
             <div className="lg:hidden w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -658,7 +658,7 @@ function RootLayout() {
             }}
           >
             {/* Modal header */}
-            <div className="h-14 flex items-center justify-between px-5 border-b border-border">
+            <div className="h-14 flex items-center justify-between px-5 border-b border-[var(--hairline)]">
               <AureloWordmark className="h-[18px] w-auto text-foreground" />
               <button
                 onClick={() => setMobileMenuOpen(false)}
@@ -671,7 +671,7 @@ function RootLayout() {
             {/* Workspace block */}
             <button
               onClick={() => { setMobileMenuOpen(false); navigate('/settings?tab=billing'); }}
-              className="flex items-center gap-3 px-5 py-4 border-b border-border text-left hover:bg-accent/40 transition-colors"
+              className="flex items-center gap-3 px-5 py-4 border-b border-[var(--hairline)] text-left hover:bg-accent/40 transition-colors"
             >
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
                 {wsLogoUrl ? (
@@ -723,7 +723,7 @@ function RootLayout() {
             </nav>
 
             {/* Bottom section */}
-            <div className="border-t border-border px-5 py-4 space-y-3">
+            <div className="border-t border-[var(--hairline)] px-5 py-4 space-y-3">
               {/* Settings */}
               <NavLink
                 to="/settings"
@@ -800,7 +800,7 @@ function RootLayout() {
             exit={{ opacity: 0, y: 20, scale: 0.9 }}
             transition={transitions.emphasized}
             className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-card border border-border rounded-full px-5 py-3"
-            style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06)' }}
+            style={{ boxShadow: 'var(--elev-3)' }}
           >
             <div className="w-2 h-2 rounded-circle bg-primary animate-pulse" />
             <span
