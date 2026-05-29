@@ -458,7 +458,7 @@ function QuickAdd({ onCreated }: { onCreated: () => void }) {
 
   useEffect(() => { loadAllProjects?.().catch(() => {}); }, [loadAllProjects]);
 
-  const parsed = useMemo(() => parseQuickTask(value, { clients: clients as any, projects: allProjects as any }), [value, clients, allProjects]);
+  const parsed = useMemo(() => parseQuickTask(value, clients as any, allProjects as any), [value, clients, allProjects]);
 
   const targetClientId = parsed.clientId || fallbackClientId || (clients[0]?.id ?? '');
 
