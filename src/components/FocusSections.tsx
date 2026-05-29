@@ -26,7 +26,7 @@ import {
   addLooseTask,
   type WorkspaceTask,
 } from '@/data/checklistsApi';
-import { STATUS_BY_VALUE, nextStatus, type TaskStatus } from '@/data/taskStatus';
+import { STATUS_BY_VALUE, nextStatus } from '@/data/taskStatus';
 import { SectionEyebrow } from './primitives/composition';
 import { toast } from '@/lib/toast';
 
