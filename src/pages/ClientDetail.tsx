@@ -702,37 +702,72 @@ export default function ClientDetail() {
 
 
       {/* Tab layout */}
-      <div className="flex flex-col lg:flex-row gap-3">
-        {/* Vertical tab nav — wrapped in card */}
-        <motion.nav variants={item} className="w-full lg:w-44 flex-shrink-0">
-          <div className="bg-card border border-border/60 rounded-xl overflow-hidden lg:sticky lg:top-[72px]" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-            <div className="flex lg:flex-col gap-0.5 overflow-x-auto lg:overflow-x-visible p-1.5 border-b lg:border-b-0 border-border/0">
-              {visibleTabs.map((tab) => {
-                const isActive = activeTab === tab.id;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => handleTabChange(tab.id)}
-                    className={`w-auto lg:w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] text-left transition-all duration-150 relative whitespace-nowrap ${
-                      isActive ? "bg-primary/[0.07] text-primary" : "text-muted-foreground hover:text-foreground hover:bg-accent/40"
-                    }`}
-                    style={{ fontWeight: isActive ? 600 : 450 }}
-                  >
-                    {isActive && (
-                      <motion.div
-                        layoutId="client-tab-indicator"
-                        className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-4 bg-primary rounded-r-full hidden lg:block"
-                        transition={{ type: "spring", stiffness: 350, damping: 30 }}
-                      />
-                    )}
-                    <tab.icon className={`w-3.5 h-3.5 flex-shrink-0 ${isActive ? "text-primary" : "text-muted-foreground/50"}`} />
-                    {tab.label}
-                  </button>
-                );
-              })}
-            </div>
+      <div className="flex flex-col lg:flex-row gap-6 lg:gap-10">
+        {/* Vertical tab nav — grouped, no card wrapper on desktop */}
+        <motion.nav variants={item} className="w-full lg:w-48 flex-shrink-0">
+          {/* Mobile: horizontal scroller */}
+          <div className="lg:hidden flex gap-1 overflow-x-auto pb-1 -mx-2 px-2 scrollbar-thin">
+            {visibleTabs.map((tab) => {
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => handleTabChange(tab.id)}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-[13px] whitespace-nowrap cursor-pointer transition-colors ${
+                    isActive ? "bg-[var(--surface-raised)] text-foreground shadow-[var(--elev-1)]" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                  style={{ fontWeight: isActive ? 600 : 500 }}
+                >
+                  <tab.icon className="w-3.5 h-3.5" />
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Desktop: grouped vertical nav */}
+          <div className="hidden lg:block lg:sticky lg:top-[72px] space-y-5">
+            {(["work", "resources", "manage"] as const).map((group) => {
+              const groupTabs = visibleTabs.filter((t) => t.group === group);
+              if (groupTabs.length === 0) return null;
+              return (
+                <div key={group}>
+                  <div className="type-eyebrow px-2 mb-1.5">{TAB_GROUP_LABELS[group]}</div>
+                  <div className="flex flex-col gap-0.5">
+                    {groupTabs.map((tab) => {
+                      const isActive = activeTab === tab.id;
+                      return (
+                        <button
+                          key={tab.id}
+                          onClick={() => handleTabChange(tab.id)}
+                          className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-[13px] text-left relative cursor-pointer transition-colors duration-150 ${
+                            isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                          }`}
+                          style={{
+                            fontWeight: isActive ? 600 : 500,
+                            background: isActive ? "color-mix(in oklab, var(--primary) 6%, transparent)" : "transparent",
+                          }}
+                        >
+                          {isActive && (
+                            <motion.div
+                              layoutId="client-tab-indicator"
+                              className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-4 rounded-r-full"
+                              style={{ background: "var(--primary)" }}
+                              transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                            />
+                          )}
+                          <tab.icon className={`w-3.5 h-3.5 flex-shrink-0 ${isActive ? "text-primary" : "text-muted-foreground/60"}`} />
+                          {tab.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </motion.nav>
+
 
         {/* Content */}
         <div className="flex-1 min-w-0">
