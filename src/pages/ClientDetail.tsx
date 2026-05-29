@@ -596,93 +596,110 @@ export default function ClientDetail() {
   // ═════════════════════════════════════════════════════════════════
   return (
     <motion.div className="w-full min-w-0 page-wrapper" variants={container} initial="hidden" animate="show">
-      {/* ── Client Header ─────────────────────────────────────────── */}
-      <motion.div variants={item} className="mb-3">
-        <div className="bg-card border border-border/60 rounded-xl overflow-hidden" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-          {/* Status accent bar */}
-          <div className="h-[3px]" style={{
-            background: client.status === 'Active' ? 'var(--primary)' : client.status === 'Prospect' ? 'var(--warning)' : 'var(--muted-foreground)',
-            opacity: client.status === 'Archived' ? 0.3 : 0.7,
-          }} />
-
-          <div className="p-4 md:p-5">
-            {/* Top row: avatar + name + actions */}
-            <div className="flex items-start gap-4">
-              {/* Avatar */}
-              <div className="w-12 h-12 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0 border border-border/50"
-                style={{ background: 'color-mix(in srgb, var(--primary) 6%, transparent)' }}>
-                {clientFaviconUrl ? (
-                  <img src={clientFaviconUrl} alt={client.name} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="text-[18px] text-primary" style={{ fontWeight: 700 }}>{client.name.charAt(0)}</div>
-                )}
+      {/* ── Client Header (editorial hero, no card wrapper) ─────── */}
+      <motion.div variants={item} className="mb-8 md:mb-10">
+        <div className="flex items-start gap-5 md:gap-6">
+          {/* Avatar */}
+          <div
+            className="w-14 h-14 md:w-16 md:h-16 rounded-circle flex items-center justify-center overflow-hidden flex-shrink-0"
+            style={{
+              background: clientFaviconUrl ? "transparent" : "color-mix(in srgb, var(--primary) 8%, transparent)",
+              boxShadow: clientFaviconUrl ? "0 0 0 1px var(--hairline)" : "none",
+            }}
+          >
+            {clientFaviconUrl ? (
+              <img src={clientFaviconUrl} alt={client.name} className="w-full h-full object-cover" />
+            ) : (
+              <div className="text-[22px] md:text-[24px] text-primary" style={{ fontWeight: 600, letterSpacing: "-0.02em" }}>
+                {client.name.charAt(0)}
               </div>
+            )}
+          </div>
 
-              {/* Name + status */}
-              <div className="flex-1 min-w-0 pt-0.5">
-                <div className="flex items-center gap-2.5">
-                  <h1 className="text-[22px] md:text-[24px] truncate" style={{ fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.15 }}>{client.name}</h1>
-                  <div className={`status-badge ${statusColors[client.status]?.bg} ${statusColors[client.status]?.text}`}>
-                    <div className={`w-1.5 h-1.5 rounded-circle ${statusColors[client.status]?.dot}`} />
-                    {client.status}
-                  </div>
-                </div>
-                {/* Contact strip */}
-                {(client.contactName || client.contactEmail || client.phone) && (
-                  <div className="flex flex-wrap items-center gap-x-3.5 gap-y-0.5 mt-1 text-[13px] text-muted-foreground">
-                    {client.contactName && <span className="flex items-center gap-1.5"><User className="w-3.5 h-3.5 opacity-40" />{client.contactName}</span>}
-                    {client.contactEmail && <a href={`mailto:${client.contactEmail}`} className="flex items-center gap-1.5 hover:text-foreground transition-colors"><Mail className="w-3.5 h-3.5 opacity-40" />{client.contactEmail}</a>}
-                    {client.phone && <a href={`tel:${client.phone}`} className="flex items-center gap-1.5 hover:text-foreground transition-colors"><Phone className="w-3.5 h-3.5 opacity-40" />{client.phone}</a>}
-                  </div>
-                )}
-              </div>
-
-              {/* Actions */}
-              <div className="flex items-center gap-1.5 flex-shrink-0 pt-0.5">
-                <button
-                  onClick={() => navigate(`/clients/${clientId}/edit`)}
-                  className="px-3 py-1.5 text-[12px] border border-border/80 rounded-lg hover:bg-accent/50 transition-all flex items-center gap-1.5"
-                  style={{ fontWeight: 500 }}
-                >
-                  <Pencil className="w-3 h-3" />
-                  <span className="hidden sm:inline">Edit</span>
-                </button>
-              </div>
+          {/* Name + status + meta */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <h1 className="page-header truncate" style={{ margin: 0 }}>{client.name}</h1>
+              <span
+                className="inline-flex items-center gap-1.5 text-[11.5px] px-2 py-0.5 rounded-md"
+                style={{
+                  fontWeight: 600,
+                  letterSpacing: "0.01em",
+                  background: `color-mix(in oklab, var(--${client.status === "Active" ? "primary" : client.status === "Prospect" ? "warning" : "muted-foreground"}) 10%, transparent)`,
+                  color: `var(--${client.status === "Active" ? "primary" : client.status === "Prospect" ? "warning" : "muted-foreground"})`,
+                }}
+              >
+                <span
+                  className="w-1.5 h-1.5 rounded-circle"
+                  style={{ background: `var(--${client.status === "Active" ? "primary" : client.status === "Prospect" ? "warning" : "muted-foreground"})` }}
+                />
+                {client.status}
+              </span>
             </div>
 
-            {/* Metadata strip */}
-            <div className="flex flex-wrap items-center gap-2.5 mt-3.5 pt-3.5 border-t border-border/40">
-              <span className="text-[12px] text-muted-foreground px-2.5 py-1 bg-accent/60 rounded-md" style={{ fontWeight: 600 }}>{client.model}</span>
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 text-[12px] rounded-md" style={{ fontWeight: 600, color: priorityCfg.color, background: priorityCfg.bg }}>
-                <Flag className="w-3 h-3" /> {priorityLevel.charAt(0).toUpperCase() + priorityLevel.slice(1)}
+            {/* Contact strip */}
+            {(client.contactName || client.contactEmail || client.phone) && (
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-[13px] text-muted-foreground">
+                {client.contactName && (
+                  <span className="flex items-center gap-1.5"><User className="w-3.5 h-3.5 opacity-50" />{client.contactName}</span>
+                )}
+                {client.contactEmail && (
+                  <a href={`mailto:${client.contactEmail}`} className="flex items-center gap-1.5 hover:text-foreground transition-colors"><Mail className="w-3.5 h-3.5 opacity-50" />{client.contactEmail}</a>
+                )}
+                {client.phone && (
+                  <a href={`tel:${client.phone}`} className="flex items-center gap-1.5 hover:text-foreground transition-colors"><Phone className="w-3.5 h-3.5 opacity-50" />{client.phone}</a>
+                )}
+              </div>
+            )}
+
+            {/* Metadata: model + priority + risk + secondary refs */}
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-3 text-[12px] text-muted-foreground">
+              <span style={{ fontWeight: 500 }}>{client.model}</span>
+              <span className="opacity-40">·</span>
+              <span className="inline-flex items-center gap-1" style={{ color: priorityCfg.color, fontWeight: 500 }}>
+                <Flag className="w-3 h-3" /> {priorityLevel.charAt(0).toUpperCase() + priorityLevel.slice(1)} priority
               </span>
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 text-[12px] rounded-md" style={{ fontWeight: 600, color: riskCfg.color, background: riskCfg.bg }}>
-                <ShieldAlert className="w-3 h-3" /> {riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1)}
+              <span className="opacity-40">·</span>
+              <span className="inline-flex items-center gap-1" style={{ color: riskCfg.color, fontWeight: 500 }}>
+                <ShieldAlert className="w-3 h-3" /> {riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1)} risk
               </span>
               {client.website && (
                 <>
-                  <div className="w-px h-4 bg-border/60 hidden sm:block" />
-                  <a href={`https://${client.website}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[12px] text-primary hover:text-primary/80 transition-colors" style={{ fontWeight: 500 }}>
-                    <Globe className="w-3.5 h-3.5" />{client.website}<ExternalLink className="w-3 h-3 opacity-50" />
+                  <span className="opacity-40">·</span>
+                  <a href={`https://${client.website}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-primary hover:opacity-80 transition-opacity" style={{ fontWeight: 500 }}>
+                    <Globe className="w-3 h-3" />{client.website}
                   </a>
                 </>
               )}
               {client.address && (
                 <>
-                  <div className="w-px h-4 bg-border/60 hidden sm:block" />
-                  <span className="text-[12px] text-muted-foreground flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 opacity-40" />{client.address}</span>
+                  <span className="opacity-40">·</span>
+                  <span className="inline-flex items-center gap-1"><MapPin className="w-3 h-3 opacity-50" />{client.address}</span>
                 </>
               )}
               {client.startDate && (
                 <>
-                  <div className="w-px h-4 bg-border/60 hidden sm:block" />
-                  <span className="text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Since {format(parseISO(client.startDate), 'MMM yyyy')}</span>
+                  <span className="opacity-40">·</span>
+                  <span>Since {format(parseISO(client.startDate), "MMM yyyy")}</span>
                 </>
               )}
             </div>
           </div>
+
+          {/* Actions */}
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            <button
+              onClick={() => navigate(`/clients/${clientId}/edit`)}
+              className="px-3 h-9 text-[13px] rounded-md border border-[var(--hairline)] hover:bg-accent/60 transition-all flex items-center gap-1.5 cursor-pointer"
+              style={{ fontWeight: 500 }}
+            >
+              <Pencil className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Edit</span>
+            </button>
+          </div>
         </div>
       </motion.div>
+
 
       {/* Tab layout */}
       <div className="flex flex-col lg:flex-row gap-3">
