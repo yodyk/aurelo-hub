@@ -601,7 +601,7 @@ export default function Insights() {
                           {ranking.client}
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-[14px] text-right tabular-nums" style={{ fontWeight: 500 }}>${applyViewMode(ranking.revenue).toLocaleString()}</td>
+                      <td className="px-6 py-4 text-[14px] text-right tabular-nums" style={{ fontWeight: 500 }}>{formatMoney(applyViewMode(ranking.revenue))}</td>
                       <td className="px-6 py-4 text-[14px] text-right tabular-nums text-muted-foreground">${applyViewMode(ranking.trueHourlyRate)}</td>
                       <td className="px-6 py-4 text-[14px] text-right tabular-nums text-muted-foreground">{ranking.utilization}%</td>
                       <td className="px-6 py-4">
