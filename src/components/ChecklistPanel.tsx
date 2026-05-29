@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   Plus, Trash2, Pencil, X, Check, Loader2, MoreHorizontal, Calendar, Clock,
-  Tag, AlignLeft, Filter, ChevronDown, CircleDashed, CircleDot, AlertCircle, CheckCircle2,
+  Tag, AlignLeft, Filter, ChevronDown, CircleDashed, CircleDot, AlertCircle, CheckCircle2, PauseCircle,
   Link2, FileText, Paperclip, ExternalLink,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
