@@ -79,7 +79,7 @@ export default function Onboarding() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FBFCFD]">
+    <div className="min-h-screen flex flex-col bg-background">
       {/* Top bar */}
       <div className="px-8 py-6 flex items-center justify-between">
         <AureloWordmark className="h-[20px] w-auto text-foreground opacity-70" />
@@ -93,7 +93,7 @@ export default function Onboarding() {
               <div
                 key={s}
                 className={`h-1 rounded-full transition-all duration-300 ${
-                  isActive ? "w-6 bg-[#3B66F0]" : isComplete ? "w-3 bg-[#3B66F0]/40" : "w-3 bg-black/[0.06]"
+                  isActive ? "w-6 bg-primary" : isComplete ? "w-3 bg-primary/40" : "w-3 bg-[var(--hairline)]"
                 }`}
               />
             );
@@ -109,7 +109,7 @@ export default function Onboarding() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
         >
-          <AnimatePresence mode="wait">
+          <AnimatePresence>
             {step === "select" ? (
               <motion.div
                 key="select"
@@ -120,16 +120,16 @@ export default function Onboarding() {
               >
                 {/* Heading */}
                 <div className="text-center mb-10">
-                  <div className="w-12 h-12 rounded-2xl bg-[#3B66F0]/8 flex items-center justify-center mx-auto mb-5">
-                    <AureloIcon className="w-6 h-6 text-[#3B66F0]" />
+                  <div className="w-12 h-12 rounded-2xl bg-primary/[0.08] flex items-center justify-center mx-auto mb-5">
+                    <AureloIcon className="w-6 h-6 text-primary" />
                   </div>
                   <h1
-                    className="text-[26px] text-[#1c1c1c] mb-2"
+                    className="text-[26px] text-foreground mb-2"
                     style={{ fontWeight: 600, letterSpacing: "-0.015em" }}
                   >
                     What best describes your work?
                   </h1>
-                  <p className="text-[15px] text-[#78716c] max-w-md mx-auto leading-relaxed">
+                  <p className="text-[15px] text-muted-foreground max-w-md mx-auto leading-relaxed">
                     This helps Aurelo set up your workspace with relevant work categories. You can always customize
                     later.
                   </p>
@@ -152,8 +152,8 @@ export default function Onboarding() {
                         onClick={() => setSelected(option.value)}
                         className={`relative text-left px-5 py-4 rounded-xl border-[1.5px] transition-all duration-200 group ${
                           isSelected
-                            ? "bg-white border-[#3B66F0]/40 ring-2 ring-[#3B66F0]/10"
-                            : "bg-white border-black/[0.06] hover:border-black/[0.12] hover:bg-[#FBFCFD]"
+                            ? "bg-card border-primary/55 ring-2 ring-primary/15"
+                            : "bg-card border-[var(--hairline)] hover:border-[var(--border-strong)] hover:bg-background"
                         }`}
                         style={{
                           boxShadow: isSelected ? "0 2px 8px rgba(94,161,191,0.08)" : "0 1px 3px rgba(0,0,0,0.03)",
@@ -166,7 +166,7 @@ export default function Onboarding() {
                               initial={{ scale: 0 }}
                               animate={{ scale: 1 }}
                               exit={{ scale: 0 }}
-                              className="absolute top-3 right-3 w-5 h-5 rounded-circle bg-[#3B66F0] flex items-center justify-center"
+                              className="absolute top-3 right-3 w-5 h-5 rounded-circle bg-primary flex items-center justify-center"
                             >
                               <Check className="w-3 h-3 text-white" strokeWidth={2.5} />
                             </motion.div>
@@ -176,19 +176,19 @@ export default function Onboarding() {
                         <div className="flex items-start gap-3.5">
                           <div
                             className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors ${
-                              isSelected ? "bg-[#3B66F0]/10" : "bg-stone-100 group-hover:bg-stone-200/70"
+                              isSelected ? "bg-primary/10" : "bg-[var(--accent)] group-hover:bg-[var(--secondary)]"
                             }`}
                           >
-                            <Icon className={`w-[18px] h-[18px] ${isSelected ? "text-[#3B66F0]" : "text-stone-500"}`} />
+                            <Icon className={`w-[18px] h-[18px] ${isSelected ? "text-primary" : "text-muted-foreground"}`} />
                           </div>
                           <div className="min-w-0">
                             <div
-                              className={`text-[14px] mb-0.5 ${isSelected ? "text-[#1c1c1c]" : "text-[#1c1c1c]"}`}
+                              className={`text-[14px] mb-0.5 ${isSelected ? "text-foreground" : "text-foreground"}`}
                               style={{ fontWeight: 600 }}
                             >
                               {option.label}
                             </div>
-                            <div className="text-[12px] text-[#78716c] leading-snug">{option.emoji} {option.label}</div>
+                            <div className="text-[12px] text-muted-foreground leading-snug">{option.emoji} {option.label}</div>
                           </div>
                         </div>
                       </motion.button>
@@ -201,7 +201,7 @@ export default function Onboarding() {
                   <button
                     onClick={() => selected && setStep("confirm")}
                     disabled={!selected}
-                    className="flex items-center gap-2.5 px-6 py-2.5 rounded-xl bg-[#3B66F0] text-white text-[14px] hover:bg-[#3458D9] active:bg-[#2D4BBE] disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200"
+                    className="flex items-center gap-2.5 px-6 py-2.5 rounded-xl bg-primary text-white text-[14px] hover:bg-[color-mix(in_oklab,var(--primary)_92%,black)] active:bg-[color-mix(in_oklab,var(--primary)_84%,black)] disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200"
                     style={{ fontWeight: 500 }}
                   >
                     Continue
@@ -216,7 +216,7 @@ export default function Onboarding() {
                       localStorage.setItem("aurelo_tour_active", "true");
                       navigate("/", { replace: true });
                     }}
-                    className="text-[13px] text-[#a8a29e] hover:text-[#78716c] transition-colors"
+                    className="text-[13px] text-[var(--foreground-subtle)] hover:text-muted-foreground transition-colors"
                     style={{ fontWeight: 500 }}
                   >
                     Skip for now
@@ -233,17 +233,17 @@ export default function Onboarding() {
               >
                 {/* Confirmation step — show categories */}
                 <div className="text-center mb-8">
-                  <div className="w-12 h-12 rounded-2xl bg-[#3B66F0]/8 flex items-center justify-center mx-auto mb-5">
+                  <div className="w-12 h-12 rounded-2xl bg-primary/[0.08] flex items-center justify-center mx-auto mb-5">
                     {selected &&
                       (() => {
                         const Icon = IDENTITY_ICONS[selected];
-                        return <Icon className="w-6 h-6 text-[#3B66F0]" />;
+                        return <Icon className="w-6 h-6 text-primary" />;
                       })()}
                   </div>
-                  <h2 className="text-[22px] text-[#1c1c1c] mb-2" style={{ fontWeight: 600, letterSpacing: "-0.01em" }}>
+                  <h2 className="text-[22px] text-foreground mb-2" style={{ fontWeight: 600, letterSpacing: "-0.01em" }}>
                     Your {selected} workspace
                   </h2>
-                  <p className="text-[14px] text-[#78716c] max-w-sm mx-auto leading-relaxed">
+                  <p className="text-[14px] text-muted-foreground max-w-sm mx-auto leading-relaxed">
                     We'll set up these default work categories for tracking your time. You can edit them anytime in
                     Settings.
                   </p>
@@ -251,10 +251,10 @@ export default function Onboarding() {
 
                 {/* Category preview */}
                 <div
-                  className="bg-white rounded-xl border border-black/[0.06] p-6 mb-8"
-                  style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.03)" }}
+                  className="bg-card rounded-xl border border-[var(--hairline)] p-6 mb-8"
+                  style={{ boxShadow: "var(--elev-1)" }}
                 >
-                  <div className="text-[12px] text-[#a8a29e] uppercase tracking-wider mb-4" style={{ fontWeight: 600 }}>
+                  <div className="text-[12px] text-[var(--foreground-subtle)] uppercase tracking-wider mb-4" style={{ fontWeight: 600 }}>
                     Work categories
                   </div>
                   <motion.div className="flex flex-wrap gap-2" variants={container} initial="hidden" animate="show">
@@ -264,26 +264,26 @@ export default function Onboarding() {
                         variants={item}
                         className={`flex items-center gap-2 px-3.5 py-2 rounded-lg border text-[13px] ${
                           cat.billable
-                            ? "bg-[#3B66F0]/[0.04] border-[#3B66F0]/15 text-[#1c1c1c]"
-                            : "bg-stone-50 border-stone-200/60 text-stone-500"
+                            ? "bg-primary/[0.04] border-primary/20 text-foreground"
+                            : "bg-[var(--surface-sunken)] border-[var(--hairline)] text-muted-foreground"
                         }`}
                         style={{ fontWeight: 500 }}
                       >
-                        <div className={`w-1.5 h-1.5 rounded-full ${cat.billable ? "bg-[#3B66F0]" : "bg-stone-400"}`} />
+                        <div className={`w-1.5 h-1.5 rounded-full ${cat.billable ? "bg-primary" : "bg-[var(--foreground-subtle)]"}`} />
                         {cat.name}
                         {!cat.billable && (
-                          <span className="text-[10px] text-stone-400 ml-0.5" style={{ fontWeight: 400 }}>
+                          <span className="text-[10px] text-[var(--foreground-subtle)] ml-0.5" style={{ fontWeight: 400 }}>
                             non-billable
                           </span>
                         )}
                       </motion.div>
                     ))}
                   </motion.div>
-                  <div className="mt-4 pt-3 border-t border-black/[0.04] flex items-center gap-2 text-[12px] text-[#a8a29e]">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#3B66F0]" />
+                  <div className="mt-4 pt-3 border-t border-[var(--hairline)] flex items-center gap-2 text-[12px] text-[var(--foreground-subtle)]">
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary" />
                     <span>{previewCategories.filter((c) => c.billable).length} billable</span>
-                    <span className="text-stone-300 mx-1">/</span>
-                    <div className="w-1.5 h-1.5 rounded-full bg-stone-400" />
+                    <span className="text-[var(--foreground-subtle)] mx-1">/</span>
+                    <div className="w-1.5 h-1.5 rounded-full bg-[var(--foreground-subtle)]" />
                     <span>{previewCategories.filter((c) => !c.billable).length} non-billable</span>
                   </div>
                 </div>
@@ -292,7 +292,7 @@ export default function Onboarding() {
                 <div className="flex items-center justify-center gap-3">
                   <button
                     onClick={() => setStep("select")}
-                    className="px-5 py-2.5 rounded-xl border border-black/[0.08] text-[14px] text-[#78716c] hover:text-[#1c1c1c] hover:bg-stone-50 transition-all"
+                    className="px-5 py-2.5 rounded-xl border border-[var(--hairline)] text-[14px] text-muted-foreground hover:text-foreground hover:bg-[var(--surface-sunken)] transition-all"
                     style={{ fontWeight: 500 }}
                   >
                     Back
@@ -300,7 +300,7 @@ export default function Onboarding() {
                   <button
                     onClick={handleContinue}
                     disabled={saving}
-                    className="flex items-center gap-2.5 px-6 py-2.5 rounded-xl bg-[#3B66F0] text-white text-[14px] hover:bg-[#3458D9] active:bg-[#2D4BBE] disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
+                    className="flex items-center gap-2.5 px-6 py-2.5 rounded-xl bg-primary text-white text-[14px] hover:bg-[color-mix(in_oklab,var(--primary)_92%,black)] active:bg-[color-mix(in_oklab,var(--primary)_84%,black)] disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
                     style={{ fontWeight: 500 }}
                   >
                     Set up workspace
@@ -314,7 +314,7 @@ export default function Onboarding() {
                       localStorage.setItem("aurelo_tour_active", "true");
                       navigate("/", { replace: true });
                     }}
-                    className="text-[13px] text-[#a8a29e] hover:text-[#78716c] transition-colors"
+                    className="text-[13px] text-[var(--foreground-subtle)] hover:text-muted-foreground transition-colors"
                     style={{ fontWeight: 500 }}
                   >
                     Skip for now
@@ -331,13 +331,13 @@ export default function Onboarding() {
               >
                 {/* Explore step */}
                 <div className="text-center mb-10">
-                  <div className="w-12 h-12 rounded-2xl bg-[#3B66F0]/8 flex items-center justify-center mx-auto mb-5">
-                    <Sparkles className="w-6 h-6 text-[#3B66F0]" />
+                  <div className="w-12 h-12 rounded-2xl bg-primary/[0.08] flex items-center justify-center mx-auto mb-5">
+                    <Sparkles className="w-6 h-6 text-primary" />
                   </div>
-                  <h2 className="text-[22px] text-[#1c1c1c] mb-2" style={{ fontWeight: 600, letterSpacing: "-0.01em" }}>
+                  <h2 className="text-[22px] text-foreground mb-2" style={{ fontWeight: 600, letterSpacing: "-0.01em" }}>
                     Want a quick tour?
                   </h2>
-                  <p className="text-[14px] text-[#78716c] max-w-sm mx-auto leading-relaxed">
+                  <p className="text-[14px] text-muted-foreground max-w-sm mx-auto leading-relaxed">
                     We'll load a sample design studio with real-looking clients, projects, and time entries so you can
                     see Aurelo in action.
                   </p>
@@ -348,20 +348,20 @@ export default function Onboarding() {
                   {/* Take the tour */}
                   <button
                     onClick={handleStartTour}
-                    className="relative text-left bg-white rounded-xl border-[1.5px] border-[#3B66F0]/30 p-5 hover:border-[#3B66F0]/50 hover:-translate-y-0.5 transition-all duration-200 group ring-2 ring-[#3B66F0]/8"
-                    style={{ boxShadow: "0 2px 8px rgba(94,161,191,0.08)" }}
+                    className="relative text-left bg-card rounded-xl border-[1.5px] border-primary/40 p-5 hover:border-primary/60 hover:-translate-y-0.5 transition-all duration-200 group ring-2 ring-primary/[0.08]"
+                    style={{ boxShadow: "var(--elev-1)" }}
                   >
-                    <div className="w-9 h-9 rounded-lg bg-[#3B66F0]/10 flex items-center justify-center mb-3 group-hover:bg-[#3B66F0]/15 transition-colors">
-                      <Sparkles className="w-[18px] h-[18px] text-[#3B66F0]" />
+                    <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center mb-3 group-hover:bg-primary/15 transition-colors">
+                      <Sparkles className="w-[18px] h-[18px] text-primary" />
                     </div>
-                    <div className="text-[14px] text-[#1c1c1c] mb-1" style={{ fontWeight: 600 }}>
+                    <div className="text-[14px] text-foreground mb-1" style={{ fontWeight: 600 }}>
                       Explore with a guided tour
                     </div>
-                    <div className="text-[12px] text-[#78716c] leading-snug">
+                    <div className="text-[12px] text-muted-foreground leading-snug">
                       Get a guided walkthrough of the workspace
                     </div>
                     <div
-                      className="mt-3 inline-flex items-center gap-1 text-[12px] text-[#3B66F0]"
+                      className="mt-3 inline-flex items-center gap-1 text-[12px] text-primary"
                       style={{ fontWeight: 500 }}
                     >
                       Recommended
@@ -372,20 +372,20 @@ export default function Onboarding() {
                   {/* Start fresh */}
                   <button
                     onClick={handleStartFresh}
-                    className="text-left bg-white rounded-xl border-[1.5px] border-black/[0.06] p-5 hover:border-black/[0.12] hover:-translate-y-0.5 transition-all duration-200 group"
-                    style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}
+                    className="text-left bg-card rounded-xl border-[1.5px] border-[var(--hairline)] p-5 hover:border-[var(--border-strong)] hover:-translate-y-0.5 transition-all duration-200 group"
+                    style={{ boxShadow: "var(--elev-1)" }}
                   >
-                    <div className="w-9 h-9 rounded-lg bg-stone-100 flex items-center justify-center mb-3 group-hover:bg-stone-200/70 transition-colors">
-                      <ArrowRight className="w-[18px] h-[18px] text-stone-500" />
+                    <div className="w-9 h-9 rounded-lg bg-[var(--accent)] flex items-center justify-center mb-3 group-hover:bg-[var(--secondary)] transition-colors">
+                      <ArrowRight className="w-[18px] h-[18px] text-muted-foreground" />
                     </div>
-                    <div className="text-[14px] text-[#1c1c1c] mb-1" style={{ fontWeight: 600 }}>
+                    <div className="text-[14px] text-foreground mb-1" style={{ fontWeight: 600 }}>
                       Start with a clean slate
                     </div>
-                    <div className="text-[12px] text-[#78716c] leading-snug">
+                    <div className="text-[12px] text-muted-foreground leading-snug">
                       Jump straight in and add your own clients and data
                     </div>
                     <div
-                      className="mt-3 inline-flex items-center gap-1 text-[12px] text-[#a8a29e]"
+                      className="mt-3 inline-flex items-center gap-1 text-[12px] text-[var(--foreground-subtle)]"
                       style={{ fontWeight: 500 }}
                     >
                       I know what I'm doing
