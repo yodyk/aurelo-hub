@@ -1102,7 +1102,7 @@ function OverviewTab({
               <div className="px-4 py-4">
                 <div className="type-eyebrow mb-2">Lifetime</div>
                 <div className="text-[20px] tabular-nums" style={{ fontWeight: 600, letterSpacing: '-0.02em' }}>
-                  ${lifetimeDisplay.toLocaleString()}
+                  {formatMoney(lifetimeDisplay, { precision: "compact" })}
                 </div>
               </div>
               <div className="px-4 py-4 last:pr-0">
