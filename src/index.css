@@ -625,6 +625,58 @@
   /* ── Hairline divider ── */
   .hairline { border-color: var(--hairline); }
   .hairline-strong { border-color: var(--border); }
+
+  /* ── Premium thin scrollbar — Mac-style, hover-only emphasis ── */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  .scrollbar-thin:hover::-webkit-scrollbar-thumb {
+    background: color-mix(in oklab, var(--foreground) 18%, transparent);
+    background-clip: padding-box;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in oklab, var(--foreground) 32%, transparent);
+    background-clip: padding-box;
+  }
+  .scrollbar-thin { scrollbar-width: thin; scrollbar-color: transparent transparent; }
+  .scrollbar-thin:hover { scrollbar-color: color-mix(in oklab, var(--foreground) 20%, transparent) transparent; }
+}
+
+/* ── Global premium scrollbars — applied app-wide, restrained ── */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: color-mix(in oklab, var(--foreground) 10%, transparent);
+  border-radius: 9999px;
+  border: 2.5px solid transparent;
+  background-clip: padding-box;
+  transition: background-color 0.2s var(--ease-standard);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in oklab, var(--foreground) 28%, transparent);
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-corner { background: transparent; }
+
+/* ── Smooth scrolling + tactile body feel ── */
+html { scroll-behavior: smooth; }
+
+/* ── Respect reduced motion preference ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* ── Clean native selects ──────────────────────────────────────── */
