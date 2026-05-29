@@ -382,7 +382,7 @@ function TaskRow({
   const [textValue, setTextValue] = useState(item.text);
 
   const cycleStatus = async () => {
-    const order: TaskStatus[] = ['todo', 'in_progress', 'blocked', 'done'];
+    const order: TaskStatus[] = ['todo', 'in_progress', 'blocked', 'on_hold', 'done'];
     const next = order[(order.indexOf(item.status) + 1) % order.length];
     onUpdate({ status: next });
     try {
