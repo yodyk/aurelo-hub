@@ -1760,12 +1760,13 @@ function ProjectsTab({ projects, client, canViewFinancials, onNavigate }: any) {
                   </td>
                   {canViewFinancials && (
                     <td className="px-3 py-3 text-[13px] text-right tabular-nums" style={{ fontWeight: 600 }}>
-                      ${(project.totalValue || 0).toLocaleString()}
+                      {formatMoney(project.totalValue || 0)}
                       {(() => {
                         if (!project.totalValue || project.totalValue <= 0 || !project.hours || project.hours <= 0) return null;
                         const effRate = Math.round(project.totalValue / project.hours);
                         const rateColor = effRate < (client.rate * 0.5) ? 'var(--destructive)' : effRate < client.rate ? 'var(--warning)' : 'var(--muted-foreground)';
-                        return <div className="type-meta tabular-nums mt-0.5" style={{ color: rateColor }}>${effRate}/hr effective</div>;
+                        return <div className="type-meta tabular-nums mt-0.5" style={{ color: rateColor }}>{formatMoney(effRate, { precision: "compact" })}/hr effective</div>;
+
                       })()}
                     </td>
                   )}
