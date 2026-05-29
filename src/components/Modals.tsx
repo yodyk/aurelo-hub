@@ -1231,11 +1231,11 @@ export function LogSessionModal({ open, onClose, onSave, clients, preSelectedCli
                   <div className="mb-2">
                     {(selectedProject.hours || 0) > 0 ? (
                       <div className="text-[11px] text-muted-foreground">
-                        This project: <span className="tabular-nums" style={{ fontWeight: 500, color: '#3B66F0' }}>${Math.round(selectedProject.totalValue / (selectedProject.hours || 1))}/hr</span> effective across {selectedProject.hours}h logged
+                        This project: <span className="tabular-nums" style={{ fontWeight: 500, color: '#3B66F0' }}>{formatMoney(Math.round(selectedProject.totalValue / (selectedProject.hours || 1)), { showZeroDecimals: false })}/hr</span> effective across {selectedProject.hours}h logged
                       </div>
                     ) : (
                       <div className="text-[11px] text-muted-foreground">
-                        This project: <span className="tabular-nums" style={{ fontWeight: 500 }}>${selectedProject.totalValue.toLocaleString()}</span> total — no hours logged yet
+                        This project: <span className="tabular-nums" style={{ fontWeight: 500 }}>{formatMoney(selectedProject.totalValue, { showZeroDecimals: false })}</span> total — no hours logged yet
                       </div>
                     )}
                     {durationNum > 0 && (selectedProject.hours || 0) + durationNum > 0 && (() => {
