@@ -634,15 +634,18 @@
   }
 
   /* ── Page header pattern — more confident scale ── */
+  /* Page header now consumes the same Page-altitude token as h1
+     and .type-page — one scale, one source of truth. */
   .page-header {
-    font-size: clamp(26px, 2.8vw, 32px);
-    font-weight: 600;
-    line-height: 1.1;
-    letter-spacing: -0.03em;
+    font-family: var(--font-display);
+    font-size: var(--type-page-size);
+    font-weight: var(--type-page-weight);
+    line-height: var(--type-page-leading);
+    letter-spacing: var(--type-page-tracking);
     @apply text-foreground;
   }
   .page-subtitle {
-    font-size: 14.5px;
+    font-size: var(--type-body-size);
     line-height: 1.55;
     @apply text-muted-foreground mt-1.5;
   }
