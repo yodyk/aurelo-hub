@@ -281,7 +281,7 @@ export default function Today() {
         icon: <Receipt className="w-3.5 h-3.5" />,
         tone: "danger",
         title: `${inv.clientName} — invoice ${inv.number} overdue`,
-        detail: `$${inv.total.toLocaleString()} · due ${new Date(inv.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`,
+        detail: `${formatMoney(inv.total)} · due ${formatDate(inv.dueDate, "short")}`,
         onClick: () => navigate("/invoicing"),
       });
     }
