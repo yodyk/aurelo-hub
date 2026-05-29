@@ -352,7 +352,7 @@ function ClientTable({
               {canViewFinancials ? (
                 <div className="text-right">
                   <div className="text-[12.5px] tabular-nums mb-1" style={{ fontWeight: 600 }}>
-                    ${earnings.toLocaleString()}
+                    {formatMoney(earnings)}
                     <span className="text-muted-foreground text-[11px] ml-1" style={{ fontWeight: 400 }}>
                       · {sessionCount}
                     </span>
