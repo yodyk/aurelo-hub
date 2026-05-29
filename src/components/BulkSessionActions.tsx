@@ -22,6 +22,7 @@ export default function BulkSessionActions({
   onExportSelected,
   onGenerateInvoice,
 }: BulkSessionActionsProps) {
+  const { financialDefaults } = useData();
   if (selectedCount === 0) return null;
 
   const totalHours = selectedSessions.reduce((sum, s) => sum + s.duration, 0);
@@ -56,7 +57,7 @@ export default function BulkSessionActions({
               {selectedCount} selected
             </span>
             <span className="text-[12px] text-muted-foreground tabular-nums">
-              {totalHours}h · ${totalRevenue.toLocaleString()}
+              {formatDuration(totalHours, { variant: 'compact' })} · {formatMoney(totalRevenue, { currency: financialDefaults.currency, precision: 'compact' })}
             </span>
           </div>
 
