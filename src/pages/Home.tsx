@@ -564,7 +564,7 @@ export default function Today() {
                 ) : undefined
               }
             >
-              Active work
+              Active projects
             </SectionEyebrow>
             {activeProjects.length > 0 ? (
               <ul className="mt-3 divide-y divide-border border-y border-border">
