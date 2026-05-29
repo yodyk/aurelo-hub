@@ -38,9 +38,20 @@ shadcn `Table` primitive (`@/components/ui/table`). Six tables in total:
 - ESLint formatter guardrail — `no-restricted-syntax` bans `toFixed()` and
   raw `Intl.NumberFormat` outside `src/lib/format.ts` (warn-level).
 
+## Shipped this turn — `<EmptyState>` rollout
+
+Swapped 5 internal surfaces to the `EmptyState` primitive:
+`Clients.tsx`, `Projects.tsx`, `Invoicing.tsx`, `Tasks.tsx`, `TimeLog.tsx`.
+Each now gets the standard glyph + title + body + optional primary action
+via `IconFrame`-backed tile. Copy follows the primitive's guide
+(name the absence, orient the next step, no exclamation marks).
+
+`ClientPortal.tsx` keeps its local `EmptyState` — the portal is locked to
+a hardcoded light-mode palette (`#e5e7eb`, `#1a1a2e`, `#6b7280`) and the
+primitive uses semantic tokens that would inherit dark-mode styling.
+
 ## Deferred (explicit non-goals — not bugs)
 
-- **`<EmptyState>` swaps** across 6 surfaces — per-page copy review.
 - **`<IconFrame>` swaps** across ~35 freehand icon tiles — per-site tone
   classification needed.
 - **Sidebar/header count badges → `tabular-nums`** — already inherited via
