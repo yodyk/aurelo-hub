@@ -412,8 +412,9 @@ export default function Insights() {
           <SectionLabel pro={!hasFullInsights}>Forecasting & projections</SectionLabel>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { label: "Projected monthly", value: `$${applyViewMode(metrics.forecast.projectedMonthly).toLocaleString()}`, sub: "next month est.", icon: TrendingUp },
-              { label: "Projected annual", value: `$${applyViewMode(metrics.forecast.projectedAnnual).toLocaleString()}`, sub: "annualized run rate", icon: BarChart3 },
+              { label: "Projected monthly", value: formatMoney(applyViewMode(metrics.forecast.projectedMonthly), { precision: "compact" }), sub: "next month est.", icon: TrendingUp },
+              { label: "Projected annual", value: formatMoney(applyViewMode(metrics.forecast.projectedAnnual), { precision: "compact" }), sub: "annualized run rate", icon: BarChart3 },
+
               {
                 label: "Growth rate",
                 value: `${metrics.forecast.growthRate >= 0 ? "+" : ""}${Math.round(metrics.forecast.growthRate * 100)}%`,
