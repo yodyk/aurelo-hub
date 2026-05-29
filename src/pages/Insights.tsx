@@ -307,7 +307,7 @@ export default function Insights() {
                 </defs>
                 <CartesianGrid vertical horizontal={false} stroke="var(--border)" strokeOpacity={0.35} />
                 <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: "#9a9aac", fontSize: 11, fontWeight: 500 }} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: "#9a9aac", fontSize: 11 }} tickFormatter={(v) => v >= 1000 ? `$${(v / 1000).toFixed(v >= 10000 ? 0 : 1)}k` : `$${v}`} width={52} allowDecimals={false} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: "#9a9aac", fontSize: 11 }} tickFormatter={(v) => formatMoney(v, { precision: "compact" })} width={52} allowDecimals={false} />
                 <Tooltip
                   content={({ active, payload, label }) => {
                     if (!active || !payload?.length) return null;
