@@ -926,8 +926,8 @@ function InvoiceRow({
             )}
           </AnimatePresence>
         </div>
-      </td>
-    </tr>
+      </TableCell>
+    </TableRow>
   );
 }
 
