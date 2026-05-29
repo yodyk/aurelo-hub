@@ -30,11 +30,11 @@ interface ChecklistPanelProps {
 // ── Status config ──────────────────────────────────────────────────
 
 const STATUSES: { value: TaskStatus; label: string; icon: any; dotClass: string; textClass: string; bgClass: string; borderClass: string }[] = [
-  { value: 'todo',        label: 'To Do',       icon: CircleDashed, dotClass: 'bg-muted-foreground/50', textClass: 'text-muted-foreground', bgClass: 'bg-muted/50',         borderClass: 'border-border' },
+  { value: 'to_do',        label: 'To Do',       icon: CircleDashed, dotClass: 'bg-muted-foreground/50', textClass: 'text-muted-foreground', bgClass: 'bg-muted/50',         borderClass: 'border-border' },
   { value: 'in_progress', label: 'In Progress', icon: CircleDot,    dotClass: 'bg-sky-500',             textClass: 'text-sky-700 dark:text-sky-400', bgClass: 'bg-sky-500/10',       borderClass: 'border-sky-500/30' },
-  { value: 'blocked',     label: 'Blocked',     icon: AlertCircle,  dotClass: 'bg-red-500',             textClass: 'text-red-700 dark:text-red-400', bgClass: 'bg-red-500/10',       borderClass: 'border-red-500/30' },
+  { value: 'on_hold',     label: 'Blocked',     icon: AlertCircle,  dotClass: 'bg-red-500',             textClass: 'text-red-700 dark:text-red-400', bgClass: 'bg-red-500/10',       borderClass: 'border-red-500/30' },
   { value: 'on_hold',     label: 'On Hold',     icon: PauseCircle,  dotClass: 'bg-amber-500',           textClass: 'text-amber-700 dark:text-amber-400', bgClass: 'bg-amber-500/10', borderClass: 'border-amber-500/30' },
-  { value: 'done',        label: 'Done',        icon: CheckCircle2, dotClass: 'bg-emerald-500',         textClass: 'text-emerald-700 dark:text-emerald-400', bgClass: 'bg-emerald-500/10', borderClass: 'border-emerald-500/30' },
+  { value: 'complete',        label: 'Done',        icon: CheckCircle2, dotClass: 'bg-emerald-500',         textClass: 'text-emerald-700 dark:text-emerald-400', bgClass: 'bg-emerald-500/10', borderClass: 'border-emerald-500/30' },
 ];
 
 const STATUS_BY_VALUE = Object.fromEntries(STATUSES.map(s => [s.value, s]));
@@ -102,12 +102,12 @@ export default function ChecklistPanel({ clientId, projectId, workspaceId }: Che
   const allItems = checklists.flatMap(c => c.items);
   const counts = useMemo(() => ({
     all: allItems.length,
-    open: allItems.filter(i => i.status !== 'done').length,
-    todo: allItems.filter(i => i.status === 'todo').length,
+    open: allItems.filter(i => i.status !== 'complete').length,
+    todo: allItems.filter(i => i.status === 'to_do').length,
     in_progress: allItems.filter(i => i.status === 'in_progress').length,
-    blocked: allItems.filter(i => i.status === 'blocked').length,
+    blocked: allItems.filter(i => i.status === 'on_hold').length,
     on_hold: allItems.filter(i => i.status === 'on_hold').length,
-    done: allItems.filter(i => i.status === 'done').length,
+    done: allItems.filter(i => i.status === 'complete').length,
   }), [allItems]);
 
   if (loading) {
@@ -124,11 +124,11 @@ export default function ChecklistPanel({ clientId, projectId, workspaceId }: Che
       {allItems.length > 0 && (
         <div className="flex flex-wrap items-center gap-2 pb-1">
           <FilterChip active={statusFilter === 'open'}  onClick={() => setStatusFilter('open')}  label="Open" count={counts.open} />
-          <FilterChip active={statusFilter === 'todo'}  onClick={() => setStatusFilter('todo')}  label="To Do" count={counts.todo} />
+          <FilterChip active={statusFilter === 'to_do'}  onClick={() => setStatusFilter('to_do')}  label="To Do" count={counts.todo} />
           <FilterChip active={statusFilter === 'in_progress'} onClick={() => setStatusFilter('in_progress')} label="In Progress" count={counts.in_progress} />
-          <FilterChip active={statusFilter === 'blocked'} onClick={() => setStatusFilter('blocked')} label="Blocked" count={counts.blocked} />
+          <FilterChip active={statusFilter === 'on_hold'} onClick={() => setStatusFilter('on_hold')} label="Blocked" count={counts.blocked} />
           <FilterChip active={statusFilter === 'on_hold'} onClick={() => setStatusFilter('on_hold')} label="On Hold" count={counts.on_hold} />
-          <FilterChip active={statusFilter === 'done'} onClick={() => setStatusFilter('done')} label="Done" count={counts.done} />
+          <FilterChip active={statusFilter === 'complete'} onClick={() => setStatusFilter('complete')} label="Done" count={counts.done} />
           <FilterChip active={statusFilter === 'all'}  onClick={() => setStatusFilter('all')}   label="All"  count={counts.all} />
 
           {workCategoryNames.length > 0 && (
@@ -245,13 +245,13 @@ function ChecklistCard({
   useEffect(() => { setItems(checklist.items); }, [checklist.items]);
 
   const filteredItems = items.filter(item => {
-    if (statusFilter === 'open' && item.status === 'done') return false;
+    if (statusFilter === 'open' && item.status === 'complete') return false;
     if (statusFilter !== 'all' && statusFilter !== 'open' && item.status !== statusFilter) return false;
     if (tagFilter !== 'all' && !(item.workTags || []).includes(tagFilter)) return false;
     return true;
   });
 
-  const completedCount = items.filter(i => i.status === 'done').length;
+  const completedCount = items.filter(i => i.status === 'complete').length;
   const totalCount = items.length;
   const progress = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
 
@@ -382,7 +382,7 @@ function TaskRow({
   const [textValue, setTextValue] = useState(item.text);
 
   const cycleStatus = async () => {
-    const order: TaskStatus[] = ['todo', 'in_progress', 'blocked', 'on_hold', 'done'];
+    const order: TaskStatus[] = ['to_do', 'in_progress', 'on_hold', 'on_hold', 'complete'];
     const next = order[(order.indexOf(item.status) + 1) % order.length];
     onUpdate({ status: next });
     try {
@@ -452,7 +452,7 @@ function TaskRow({
             ) : (
               <button
                 onClick={() => setEditingText(true)}
-                className={`flex-1 text-left text-[15px] leading-snug cursor-text ${item.status === 'done' ? 'line-through text-muted-foreground/70' : 'text-foreground'}`}
+                className={`flex-1 text-left text-[15px] leading-snug cursor-text ${item.status === 'complete' ? 'line-through text-muted-foreground/70' : 'text-foreground'}`}
                 style={{ fontWeight: 500 }}
               >
                 {item.text || <span className="text-muted-foreground/60 italic">Untitled task</span>}

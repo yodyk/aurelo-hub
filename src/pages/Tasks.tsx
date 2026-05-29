@@ -82,24 +82,24 @@ export default function Tasks() {
 
   const counts = useMemo(() => ({
     all: tasks.length,
-    open: tasks.filter(t => t.status !== 'done').length,
-    todo: tasks.filter(t => t.status === 'todo').length,
+    open: tasks.filter(t => t.status !== 'complete').length,
+    todo: tasks.filter(t => t.status === 'to_do').length,
     in_progress: tasks.filter(t => t.status === 'in_progress').length,
-    blocked: tasks.filter(t => t.status === 'blocked').length,
+    blocked: tasks.filter(t => t.status === 'on_hold').length,
     on_hold: tasks.filter(t => t.status === 'on_hold').length,
-    done: tasks.filter(t => t.status === 'done').length,
+    done: tasks.filter(t => t.status === 'complete').length,
   }), [tasks]);
 
   const filtered = useMemo(() => {
     return tasks.filter(t => {
-      if (statusFilter === 'open' && t.status === 'done') return false;
+      if (statusFilter === 'open' && t.status === 'complete') return false;
       if (statusFilter !== 'all' && statusFilter !== 'open' && t.status !== statusFilter) return false;
       if (clientFilter !== 'all' && t.clientId !== clientFilter) return false;
       if (tagFilter !== 'all' && !(t.workTags || []).includes(tagFilter)) return false;
       return true;
     }).sort((a, b) => {
-      const aDone = a.status === 'done' ? 1 : 0;
-      const bDone = b.status === 'done' ? 1 : 0;
+      const aDone = a.status === 'complete' ? 1 : 0;
+      const bDone = b.status === 'complete' ? 1 : 0;
       if (aDone !== bDone) return aDone - bDone;
       const aDue = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
       const bDue = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
@@ -108,9 +108,9 @@ export default function Tasks() {
   }, [tasks, statusFilter, clientFilter, tagFilter]);
 
   const cycleStatus = async (task: WorkspaceTask) => {
-    const order: TaskStatus[] = ['todo', 'in_progress', 'blocked', 'on_hold', 'done'];
+    const order: TaskStatus[] = ['to_do', 'in_progress', 'on_hold', 'on_hold', 'complete'];
     const next = order[(order.indexOf(task.status) + 1) % order.length];
-    setTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: next, completed: next === 'done' } : t));
+    setTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: next, completed: next === 'complete' } : t));
     try { await updateChecklistItem(task.id, { status: next }); }
     catch (err: any) {
       toast.error(err.message);
@@ -151,11 +151,11 @@ export default function Tasks() {
       {/* Filters — inline, status chips left, selects right */}
       <motion.div variants={itemVariants} className="flex flex-wrap items-center gap-2 mb-5">
         <FilterChip active={statusFilter === 'open'}        onClick={() => setStatusFilter('open')}        label="Open" count={counts.open} />
-        <FilterChip active={statusFilter === 'todo'}        onClick={() => setStatusFilter('todo')}        label="To Do" count={counts.todo} />
+        <FilterChip active={statusFilter === 'to_do'}        onClick={() => setStatusFilter('to_do')}        label="To Do" count={counts.todo} />
         <FilterChip active={statusFilter === 'in_progress'} onClick={() => setStatusFilter('in_progress')} label="In Progress" count={counts.in_progress} />
-        <FilterChip active={statusFilter === 'blocked'}     onClick={() => setStatusFilter('blocked')}     label="Blocked" count={counts.blocked} />
+        <FilterChip active={statusFilter === 'on_hold'}     onClick={() => setStatusFilter('on_hold')}     label="Blocked" count={counts.blocked} />
         <FilterChip active={statusFilter === 'on_hold'}     onClick={() => setStatusFilter('on_hold')}     label="On Hold" count={counts.on_hold} />
-        <FilterChip active={statusFilter === 'done'}        onClick={() => setStatusFilter('done')}        label="Done" count={counts.done} />
+        <FilterChip active={statusFilter === 'complete'}        onClick={() => setStatusFilter('complete')}        label="Done" count={counts.done} />
         <FilterChip active={statusFilter === 'all'}         onClick={() => setStatusFilter('all')}         label="All" count={counts.all} />
 
         <div className="ml-auto flex flex-wrap items-center gap-2">
@@ -296,7 +296,7 @@ function TaskCard({
                 <span className="truncate max-w-[200px]">{clientName}</span>
                 <ExternalLink className="w-2.5 h-2.5 opacity-0 group-hover:opacity-60 transition-opacity" />
               </Link>
-              <div className={`text-[15px] leading-snug ${task.status === 'done' ? 'line-through text-muted-foreground' : 'text-foreground'}`} style={{ fontWeight: 500 }}>
+              <div className={`text-[15px] leading-snug ${task.status === 'complete' ? 'line-through text-muted-foreground' : 'text-foreground'}`} style={{ fontWeight: 500 }}>
                 {task.text}
               </div>
             </div>
