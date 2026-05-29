@@ -275,12 +275,16 @@
     font-family: var(--font-sans);
   }
 
+  /* ── Phase 1D: 5-altitude typography bound to single-source tokens ──
+     h1 = Page, h2 = Section+, h3 = Section, h4 = Body strong.
+     Every element-level heading inherits the same scale as
+     .type-* utilities, so token adjustments propagate everywhere. */
   h1 {
     font-family: var(--font-display);
-    font-size: clamp(24px, 2.4vw, 28px);
-    font-weight: 620;
-    line-height: 1.12;
-    letter-spacing: -0.028em;
+    font-size: var(--type-page-size);
+    font-weight: var(--type-page-weight);
+    line-height: var(--type-page-leading);
+    letter-spacing: var(--type-page-tracking);
     @apply text-foreground;
   }
 
@@ -294,19 +298,26 @@
   }
 
   h3 {
-    font-size: 15px;
-    font-weight: 600;
-    line-height: 1.4;
-    letter-spacing: -0.012em;
+    font-family: var(--font-display);
+    font-size: var(--type-section-size);
+    font-weight: var(--type-section-weight);
+    line-height: var(--type-section-leading);
+    letter-spacing: var(--type-section-tracking);
     @apply text-foreground;
   }
 
   h4 {
-    font-size: 13px;
+    font-size: var(--type-body-size);
     font-weight: 600;
     line-height: 1.4;
     letter-spacing: -0.008em;
     @apply text-foreground;
+  }
+
+  small {
+    font-size: var(--type-meta-size);
+    line-height: var(--type-meta-leading);
+    @apply text-muted-foreground;
   }
 
   th, td, input[type="number"] {
@@ -314,20 +325,20 @@
   }
 
   label {
-    font-size: var(--text-base);
-    font-weight: var(--font-weight-medium);
+    font-size: var(--type-body-size);
+    font-weight: 500;
     line-height: 1.5;
   }
 
   button {
-    font-size: var(--text-base);
-    font-weight: var(--font-weight-medium);
+    font-size: var(--type-body-size);
+    font-weight: 500;
     line-height: 1.5;
   }
 
   input {
-    font-size: var(--text-base);
-    font-weight: var(--font-weight-normal);
+    font-size: var(--type-body-size);
+    font-weight: 400;
     line-height: 1.5;
   }
 
@@ -487,30 +498,49 @@
 
 
   /* ── Typography utilities ── */
+  /* Aligned to Display-altitude tokens. metric-large / heading-display /
+     text-heading-xl are kept as semantic aliases for legacy call-sites. */
   .metric-large {
-    @apply text-3xl font-semibold tracking-tighter tabular-nums;
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 620;
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+    @apply text-foreground tabular-nums;
+    font-variant-numeric: tabular-nums;
   }
 
   .label-muted {
-    @apply text-[11px] font-medium tracking-wide text-muted-foreground;
+    font-size: var(--type-eyebrow-size);
+    font-weight: var(--type-eyebrow-weight);
+    letter-spacing: var(--type-eyebrow-tracking);
+    @apply text-muted-foreground uppercase;
   }
 
-  .heading-display {
-    @apply text-[24px] font-semibold text-foreground;
-    letter-spacing: -0.02em;
+  .heading-display,
+  .text-heading-xl {
+    font-family: var(--font-display);
+    font-size: var(--type-page-size);
+    font-weight: var(--type-page-weight);
+    line-height: var(--type-page-leading);
+    letter-spacing: var(--type-page-tracking);
+    @apply text-foreground;
   }
 
   .heading-section {
-    @apply text-sm font-medium text-foreground;
+    font-family: var(--font-display);
+    font-size: var(--type-section-size);
+    font-weight: var(--type-section-weight);
+    line-height: var(--type-section-leading);
+    letter-spacing: var(--type-section-tracking);
+    @apply text-foreground;
   }
 
   .text-metadata {
-    @apply text-[11px] font-medium tracking-wide text-muted-foreground;
-  }
-
-  .text-heading-xl {
-    @apply text-[24px] font-semibold text-foreground;
-    letter-spacing: -0.02em;
+    font-size: var(--type-meta-size);
+    font-weight: var(--type-meta-weight);
+    letter-spacing: var(--type-meta-tracking);
+    @apply text-muted-foreground;
   }
   .text-heading-lg {
     @apply text-lg font-semibold leading-snug;
@@ -623,15 +653,18 @@
   }
 
   /* ── Page header pattern — more confident scale ── */
+  /* Page header now consumes the same Page-altitude token as h1
+     and .type-page — one scale, one source of truth. */
   .page-header {
-    font-size: clamp(26px, 2.8vw, 32px);
-    font-weight: 600;
-    line-height: 1.1;
-    letter-spacing: -0.03em;
+    font-family: var(--font-display);
+    font-size: var(--type-page-size);
+    font-weight: var(--type-page-weight);
+    line-height: var(--type-page-leading);
+    letter-spacing: var(--type-page-tracking);
     @apply text-foreground;
   }
   .page-subtitle {
-    font-size: 14.5px;
+    font-size: var(--type-body-size);
     line-height: 1.55;
     @apply text-muted-foreground mt-1.5;
   }
