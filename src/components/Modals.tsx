@@ -1191,7 +1191,7 @@ export function LogSessionModal({ open, onClose, onSave, clients, preSelectedCli
                 {billable ? 'Estimated revenue' : 'Time value'}{selectedClient.rate ? ` @ $${selectedClient.rate}/hr` : ''}
               </span>
               <span className={`tabular-nums ${billable ? 'text-primary' : 'text-muted-foreground'}`} style={{ fontWeight: 600 }}>
-                {billable ? `$${revenue.toLocaleString()}` : `$0 (non-billable)`}
+                {billable ? formatMoney(revenue) : `${formatMoney(0)} (non-billable)`}
               </span>
             </div>
 
