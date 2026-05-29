@@ -1369,7 +1369,7 @@ function InvoiceBuilder({
                 {taxRate > 0 && (
                   <div className="flex justify-between text-[13px]">
                     <span className="text-muted-foreground">
-                      Tax ({(taxRate * 100).toFixed(1)}%){taxInclusive ? " incl." : ""}
+                      Tax ({formatPercent(taxRate, { fraction: true })}){taxInclusive ? " incl." : ""}
                     </span>
                     <span className="tabular-nums" style={{ fontWeight: 500 }}>
                       {formatCurrency(taxAmount)}
