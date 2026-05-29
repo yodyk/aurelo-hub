@@ -103,11 +103,11 @@ export default function ChecklistPanel({ clientId, projectId, workspaceId }: Che
   const counts = useMemo(() => ({
     all: allItems.length,
     open: allItems.filter(i => i.status !== 'complete').length,
-    todo: allItems.filter(i => i.status === 'to_do').length,
+    to_do: allItems.filter(i => i.status === 'to_do').length,
     in_progress: allItems.filter(i => i.status === 'in_progress').length,
-    blocked: allItems.filter(i => i.status === 'on_hold').length,
+    in_review: allItems.filter(i => i.status === 'in_review').length,
     on_hold: allItems.filter(i => i.status === 'on_hold').length,
-    done: allItems.filter(i => i.status === 'complete').length,
+    complete: allItems.filter(i => i.status === 'complete').length,
   }), [allItems]);
 
   if (loading) {
@@ -123,13 +123,14 @@ export default function ChecklistPanel({ clientId, projectId, workspaceId }: Che
       {/* Filter bar */}
       {allItems.length > 0 && (
         <div className="flex flex-wrap items-center gap-2 pb-1">
-          <FilterChip active={statusFilter === 'open'}  onClick={() => setStatusFilter('open')}  label="Open" count={counts.open} />
-          <FilterChip active={statusFilter === 'to_do'}  onClick={() => setStatusFilter('to_do')}  label="To Do" count={counts.todo} />
+          <FilterChip active={statusFilter === 'open'}        onClick={() => setStatusFilter('open')}        label="Open" count={counts.open} />
+          <FilterChip active={statusFilter === 'to_do'}       onClick={() => setStatusFilter('to_do')}       label="To Do" count={counts.to_do} />
           <FilterChip active={statusFilter === 'in_progress'} onClick={() => setStatusFilter('in_progress')} label="In Progress" count={counts.in_progress} />
-          <FilterChip active={statusFilter === 'on_hold'} onClick={() => setStatusFilter('on_hold')} label="Blocked" count={counts.blocked} />
-          <FilterChip active={statusFilter === 'on_hold'} onClick={() => setStatusFilter('on_hold')} label="On Hold" count={counts.on_hold} />
-          <FilterChip active={statusFilter === 'complete'} onClick={() => setStatusFilter('complete')} label="Done" count={counts.done} />
-          <FilterChip active={statusFilter === 'all'}  onClick={() => setStatusFilter('all')}   label="All"  count={counts.all} />
+          <FilterChip active={statusFilter === 'in_review'}   onClick={() => setStatusFilter('in_review')}   label="In Review" count={counts.in_review} />
+          <FilterChip active={statusFilter === 'on_hold'}     onClick={() => setStatusFilter('on_hold')}     label="On Hold" count={counts.on_hold} />
+          <FilterChip active={statusFilter === 'complete'}    onClick={() => setStatusFilter('complete')}    label="Complete" count={counts.complete} />
+          <FilterChip active={statusFilter === 'all'}         onClick={() => setStatusFilter('all')}         label="All"  count={counts.all} />
+
 
           {workCategoryNames.length > 0 && (
             <div className="ml-auto flex items-center gap-1.5">
