@@ -1310,7 +1310,7 @@ export default function ProjectDetail() {
                               {session.date ? formatDate(session.date) : "—"}
                             </span>
                             <span className="text-[11px] tabular-nums text-muted-foreground">
-                              {session.billable ? `$${(session.revenue || 0).toLocaleString()}` : "Non-billable"}
+                              {session.billable ? formatMoney(session.revenue || 0) : "Non-billable"}
                             </span>
                           </div>
                           {session.workTags && session.workTags.length > 0 && (
