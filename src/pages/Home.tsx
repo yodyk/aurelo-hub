@@ -794,7 +794,7 @@ export default function Home() {
                   {/* Signals */}
                   <div>
                     <div className="flex items-center justify-between mb-2.5">
-                      <span className="text-[12px] text-muted-foreground" style={{ fontWeight: 600 }}>Heads up</span>
+                      <span className="type-eyebrow">Heads up</span>
                       {!hasFullInsights && <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] rounded bg-primary/10 text-primary" style={{ fontWeight: 600 }}>PRO</span>}
                     </div>
                     {!hasFullInsights ? (
@@ -824,7 +824,7 @@ export default function Home() {
                   {/* Recent work */}
                   <div>
                     <div className="flex items-center justify-between mb-2.5">
-                      <span className="text-[12px] text-muted-foreground" style={{ fontWeight: 600 }}>Recent work</span>
+                      <span className="type-eyebrow">Recent work</span>
                       <button onClick={() => navigate("/time")} className="text-[11px] text-primary hover:text-primary/80 transition-colors flex items-center gap-1" style={{ fontWeight: 500 }}>View all <ArrowRight className="w-3 h-3" /></button>
                     </div>
                     <div className="bg-card border border-border rounded-lg overflow-hidden">
@@ -860,7 +860,7 @@ export default function Home() {
                   {/* Revenue by client */}
                   <div>
                     <div className="flex items-center justify-between mb-2.5">
-                      <span className="text-[12px] text-muted-foreground" style={{ fontWeight: 600 }}>Revenue by client</span>
+                      <span className="type-eyebrow">Revenue by client</span>
                       <button onClick={() => navigate("/clients")} className="text-[11px] text-primary hover:text-primary/80 transition-colors flex items-center gap-1" style={{ fontWeight: 500 }}>All clients <ArrowRight className="w-3 h-3" /></button>
                     </div>
                     <div className="bg-card border border-border rounded-lg overflow-hidden">
@@ -893,7 +893,7 @@ export default function Home() {
 
                   {/* Retainer health */}
                   <div>
-                    <div className="mb-2.5"><span className="text-[12px] text-muted-foreground" style={{ fontWeight: 600 }}>Retainer health</span></div>
+                    <div className="mb-2.5"><span className="type-eyebrow">Retainer health</span></div>
                     {retainerHealth.length > 0 ? (
                       <div className="bg-card border border-border rounded-lg divide-y divide-border">
                         {retainerHealth.map((r) => {
