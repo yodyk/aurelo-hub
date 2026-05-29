@@ -3,7 +3,13 @@ import * as LabelPrimitive from "@radix-ui/react-label";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
-const labelVariants = cva("text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70");
+/**
+ * Premium label — small caps-feel weight, calm muted tone.
+ * Sits above inputs with tight rhythm (mb-1.5 recommended).
+ */
+const labelVariants = cva(
+  "text-[12.5px] font-medium leading-none text-foreground/85 peer-disabled:cursor-not-allowed peer-disabled:opacity-60 select-none",
+);
 
 const Label = React.forwardRef<
   React.ComponentRef<typeof LabelPrimitive.Root>,
