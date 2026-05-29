@@ -313,7 +313,7 @@ function PortalSummary({
   accent: string;
 }) {
   const openTasks = useMemo(
-    () => checklists.reduce((acc, cl) => acc + cl.items.filter(i => i.status !== 'done').length, 0),
+    () => checklists.reduce((acc, cl) => acc + cl.items.filter(i => i.status !== 'complete').length, 0),
     [checklists]
   );
 
@@ -349,7 +349,7 @@ function PortalTabs({
 }) {
   const isRetainer = client.model === 'Retainer';
   const openTaskCount = useMemo(
-    () => checklists.reduce((acc, cl) => acc + cl.items.filter(i => i.status !== 'done').length, 0),
+    () => checklists.reduce((acc, cl) => acc + cl.items.filter(i => i.status !== 'complete').length, 0),
     [checklists]
   );
 
@@ -738,10 +738,10 @@ function PortalChecklistCard({ checklist, accent, token, hideCompleted = false }
   const [items, setItems] = useState<PortalTask[]>(checklist.items);
   const [composerOpen, setComposerOpen] = useState(false);
 
-  const completedCount = items.filter(i => i.status === 'done').length;
+  const completedCount = items.filter(i => i.status === 'complete').length;
   const totalCount = items.length;
   const progress = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
-  const visibleItems = hideCompleted ? items.filter(i => i.status !== 'done') : items;
+  const visibleItems = hideCompleted ? items.filter(i => i.status !== 'complete') : items;
 
   const cycleStatus = async (item: PortalTask) => {
     const order: PortalTask['status'][] = ['todo', 'in_progress', 'blocked', 'on_hold', 'done'];
@@ -813,13 +813,13 @@ function PortalChecklistCard({ checklist, accent, token, hideCompleted = false }
                     onClick={() => cycleStatus(item)}
                     title={`Status: ${cfg.label} — tap to advance`}
                     className="flex-shrink-0 mt-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center"
-                    style={{ borderColor: cfg.dot, backgroundColor: item.status === 'done' ? cfg.dot : 'transparent' }}
+                    style={{ borderColor: cfg.dot, backgroundColor: item.status === 'complete' ? cfg.dot : 'transparent' }}
                   >
-                    {item.status === 'done' && <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />}
+                    {item.status === 'complete' && <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />}
                   </button>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start gap-2">
-                      <span className={`text-[13px] flex-1 ${item.status === 'done' ? 'line-through text-[#b1b6bf]' : 'text-[#374151]'}`}>
+                      <span className={`text-[13px] flex-1 ${item.status === 'complete' ? 'line-through text-[#b1b6bf]' : 'text-[#374151]'}`}>
                         {item.text}
                       </span>
                       {item.added_by === 'client' && (
