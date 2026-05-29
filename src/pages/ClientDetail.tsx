@@ -205,6 +205,7 @@ export default function ClientDetail() {
   const [showLogModal, setShowLogModal] = useState(false);
   const [showProjectModal, setShowProjectModal] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsSection, setSettingsSection] = useState<'details' | 'admin'>('details');
 
   // Files
   const [files, setFiles] = useState<any[]>([]);
