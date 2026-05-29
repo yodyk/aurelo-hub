@@ -777,10 +777,11 @@ export default function ProjectDetail() {
                     </span>
                   </div>
                   <div className="text-[24px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 700 }}>
-                    ${budgetData.revenueEarned.toLocaleString()}
+                    {formatMoney(budgetData.revenueEarned)}
                   </div>
                   <div className="text-[12px] text-muted-foreground mt-1 tabular-nums">
-                    of ${budgetData.totalValue.toLocaleString()} · {budgetData.budgetPct}%
+                    of {formatMoney(budgetData.totalValue)} · {budgetData.budgetPct}%
+
                   </div>
                 </div>
                 )}
