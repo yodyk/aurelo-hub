@@ -324,3 +324,27 @@ Single-commit, value-only migration. Rollback = revert `src/index.css` and `tail
 **Result:** 7 files migrated, ~145 hardcoded color references removed in one pass. Zero retired hex/stone references remain outside the brandColor data defaults (verified by `rg`). Profit gradients, retainer pacing fills, destructive Danger Zone blocks, warning amber alerts, and Insights chart blues all now follow the Cool Graphite + Cobalt foundation and respect dark mode automatically.
 
 **READY FOR PHASE 1K.**
+
+# PHASE 1K — Auxiliary Surfaces + Inline Shadow Tokenization (executed)
+
+**Objective:** Close out the Foundation epic by migrating remaining auxiliary surfaces (LegalPageLayout, AuthVisualPanel, Invoicing status maps, Projects/Settings stragglers) onto semantic tokens and replacing every inline `boxShadow: "0 … rgba(0,0,0,…)"` recipe with `var(--elev-1|2|3)` so elevation responds to theme.
+
+**Mappings applied (via `/tmp/phase1k.mjs`):**
+- **LegalPageLayout** — `bg-[#FBFCFD] dark:bg-[#1a1a19]` → `bg-background`; matching `/80` backdrop variant → `bg-background/80`; `border-black/[0.04] dark:border-white/[0.06]` → `[var(--hairline)]`; `text-[#1c1c1c] dark:text-[#e7e5e4]` → `text-foreground`; `text-[#78716c] dark:text-[#a8a29e]` → `text-muted-foreground`; `text-[#a8a29e] dark:text-[#78716c]` → `text-[var(--foreground-subtle)]`; `border-[#3B66F0]` (active TOC) → `border-primary`; hover-tier text/border colors collapsed onto `text-foreground` / `border-[var(--border-strong)]`.
+- **AuthVisualPanel** — Retired teal radial-gradient overlays (`rgba(94,161,191,…)`, `rgba(120,190,220,…)`, `rgba(70,140,170,…)`, `rgba(80,150,180,…)`) migrated to cobalt + chart-2 family (`rgba(59,102,240,…)`, `rgba(91,155,213,…)`, `rgba(45,75,190,…)`) keeping alpha curves. Auth panel now reads cobalt on the Ken Burns image instead of legacy teal.
+- **Invoicing** — `STATUS_CONFIG` stone hexes (`#78716c` draft, `#a8a29e` voided/cancelled/archived) → `var(--muted-foreground)` / `var(--foreground-subtle)`. Pipeline KPI Draft color same treatment.
+- **Projects** — `"#a1a1aa"` (Complete-state progress fill) → `"var(--muted-foreground)"`.
+- **Settings** — `"#a3a3a3"` (logo-empty placeholder) → `"var(--foreground-subtle)"`; `color: "#10b981"` (Hidden status) → `"var(--success)"`.
+- **Inline shadows** (Team, ClientDetail, Settings, Invoicing, Projects, NotificationCenter, BulkSessionActions, SettingsSaveBar): all common recipes → elevation tokens by intensity:
+  - `0 1px 3px/4px rgba(0,0,0,0.02–0.06)` family → `var(--elev-1)`
+  - `0 8px 24/32px rgba(0,0,0,0.08)` family → `var(--elev-2)`
+  - `0 8px 32px rgba(0,0,0,0.12) + 0 2px 8px …`, `0 16px 48px …`, `0 24px 48px …`, `0 20px 60px …` (modals/slide-overs) → `var(--elev-3)`
+
+**Intentionally preserved:**
+- `SettingsSaveBar` top-edge shadow `0 -4px 24px rgba(0,0,0,0.08)` — negative-Y (upward) recipe has no equivalent elevation token; left as-is.
+- `ClientPortal.tsx` hardcoded greys / `bg-white` — portal is **light-mode-locked by design** (per memory `mem://features/client-portal`); migrating it would break the intentional always-light surface.
+- All Google/Apple/Slack/etc. brand glyph hexes.
+
+**Result:** 10 files migrated. Zero retired hex/teal/stone references remain in scope (verified by `rg`). Elevation now flows from CSS variables — dark mode will inherit the heavier alpha curves defined in Phase 1A without further edits.
+
+**Foundation epic closed. Ready for Phase 2 (component-level patterns) when invoked.**
