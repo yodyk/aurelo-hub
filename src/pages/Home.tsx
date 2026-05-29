@@ -28,6 +28,8 @@ import { motion } from "motion/react";
 
 import { useData } from "../data/DataContext";
 import { useAuth } from "../data/AuthContext";
+import { formatMoney, formatPercent, formatDate } from "@/lib/format";
+
 import * as settingsApi from "../data/settingsApi";
 import * as invoiceApi from "../data/invoiceApi";
 import type { Invoice } from "../data/invoiceApi";
