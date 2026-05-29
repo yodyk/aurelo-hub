@@ -1515,7 +1515,7 @@ export function AddProjectModal({ open, onClose, onSave, clients, preSelectedCli
         <div className="flex items-center justify-between pt-3 border-t border-border">
           <div className="text-[12px] text-muted-foreground">
             {canSave
-              ? `${status}${valueNum > 0 ? ` · $${valueNum.toLocaleString()}` : ''}${hoursNum > 0 ? ` · ${hoursNum}h estimated` : ''}`
+              ? `${status}${valueNum > 0 ? ` · ${formatMoney(valueNum, { showZeroDecimals: false })}` : ''}${hoursNum > 0 ? ` · ${formatDuration(hoursNum, { variant: 'display' })} estimated` : ''}`
               : 'Enter a project name to continue'}
           </div>
           <div className="flex gap-2">
