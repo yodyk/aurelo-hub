@@ -878,11 +878,12 @@ export default function ClientDetail() {
                     </div>
                     <div className="flex justify-between py-3 text-[13.5px]">
                       <dt className="text-muted-foreground">Base rate</dt>
-                      <dd className="tabular-nums" style={{ fontWeight: 500 }}>${(client.rate || 0).toLocaleString()}/hr</dd>
+                      <dd className="tabular-nums" style={{ fontWeight: 500 }}>{formatMoney(client.rate || 0)}/hr</dd>
                     </div>
                     <div className="flex justify-between py-3 text-[13.5px]">
                       <dt className="text-muted-foreground">Effective rate</dt>
-                      <dd className="tabular-nums" style={{ fontWeight: 500 }}>${effectiveRate.toLocaleString(undefined, { maximumFractionDigits: 2 })}/hr</dd>
+                      <dd className="tabular-nums" style={{ fontWeight: 500 }}>{formatMoney(effectiveRate)}/hr</dd>
+
                     </div>
                     {client.paymentTerms && (
                       <div className="flex justify-between py-3 text-[13.5px]">
