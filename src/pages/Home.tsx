@@ -387,7 +387,11 @@ export default function Today() {
         )}
 
         {/* ── Focus surface (PART E refinement) ── */}
-        <FocusSections />
+        <div className="space-y-6">
+          <NowStrip />
+          <TodayTasksModule />
+        </div>
+
 
 
         {/* ── Needs You rail ── */}
