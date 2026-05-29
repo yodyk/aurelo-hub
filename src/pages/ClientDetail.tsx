@@ -1062,7 +1062,7 @@ function OverviewTab({
               <div className="type-meta mb-2">This month</div>
               <div className="flex items-baseline gap-3 flex-wrap">
                 <div className="type-display tabular-nums">
-                  ${monthlyDisplay.toLocaleString()}
+                  {formatMoney(monthlyDisplay, { precision: "compact" })}
                 </div>
                 {revenueTrend !== 'flat' && (
                   <div
