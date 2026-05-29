@@ -394,12 +394,12 @@ export default function Projects() {
                               style={{
                                 background:
                                   pct > 100
-                                    ? "#c27272"
+                                    ? "var(--destructive)"
                                     : pct >= 90
                                       ? project.status === "Complete"
                                         ? "#a1a1aa"
-                                        : "#C2860C"
-                                      : "linear-gradient(90deg, #3B66F0, #5bb8d4)",
+                                        : "var(--warning)"
+                                      : "linear-gradient(90deg, #3B66F0, var(--chart-2))",
                               }}
                               initial={{ width: 0 }}
                               animate={{ width: `${pct}%` }}
@@ -420,7 +420,7 @@ export default function Projects() {
                         </div>
                         {project.totalValue > 0 && project.hours > 0 ? (() => {
                           const effRate = Math.round(project.totalValue / project.hours);
-                          const rateColor = effRate < (project.clientRate * 0.5) ? '#c27272' : effRate < project.clientRate ? '#C2860C' : '#3B66F0';
+                          const rateColor = effRate < (project.clientRate * 0.5) ? 'var(--destructive)' : effRate < project.clientRate ? 'var(--warning)' : 'var(--primary)';
                           return (
                             <div className="text-[11px] tabular-nums" style={{ fontWeight: 500, color: rateColor }}>
                               ${effRate}/hr effective
