@@ -36,7 +36,8 @@ import type { Invoice } from "../data/invoiceApi";
 import { usePlan } from "../data/PlanContext";
 import { StarterUpgradeCTA } from "../components/TrialBanner";
 import { SetupChecklist } from "../components/SetupChecklist";
-import { FocusSections } from "../components/FocusSections";
+import { NowStrip } from "../components/NowStrip";
+import { TodayTasksModule } from "../components/TodayTasksModule";
 import { useRoleAccess } from "../data/useRoleAccess";
 import {
   PageHeader,
