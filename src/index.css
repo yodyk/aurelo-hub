@@ -521,17 +521,33 @@
 
   /* ── Page header pattern — more confident scale ── */
   .page-header {
-    font-size: clamp(22px, 2.4vw, 28px);
+    font-size: clamp(26px, 2.8vw, 32px);
     font-weight: 600;
-    line-height: 1.15;
-    letter-spacing: -0.025em;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
     @apply text-foreground;
   }
   .page-subtitle {
-    font-size: 14px;
-    line-height: 1.5;
-    @apply text-muted-foreground mt-1;
+    font-size: 14.5px;
+    line-height: 1.55;
+    @apply text-muted-foreground mt-1.5;
   }
+
+  /* ── Spacing rhythm utilities ── */
+  .stack-xs > * + * { margin-top: var(--space-2); }
+  .stack-sm > * + * { margin-top: var(--space-3); }
+  .stack-md > * + * { margin-top: var(--space-5); }
+  .stack-lg > * + * { margin-top: var(--space-8); }
+  .stack-xl > * + * { margin-top: var(--space-12); }
+
+  .section-gap   { margin-top: var(--space-10); }
+  .section-gap-lg { margin-top: var(--space-12); }
+
+  /* Standard padding rhythm for content panels */
+  .panel-pad-sm { padding: var(--space-4); }
+  .panel-pad    { padding: var(--space-5); }
+  .panel-pad-lg { padding: var(--space-6) var(--space-6); }
+
 
   /* ── Primary CTA — tactile, spring-feel press ── */
   .btn-primary {
