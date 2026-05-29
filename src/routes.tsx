@@ -99,14 +99,17 @@ export const router = createBrowserRouter([
       { path: "clients", element: <SuspensePage><Clients /></SuspensePage> },
       { path: "clients/:clientId", element: <SuspensePage><ClientDetail /></SuspensePage> },
       { path: "clients/:clientId/edit", element: <SuspensePage><ClientEdit /></SuspensePage> },
-      { path: "projects", element: <SuspensePage><Projects /></SuspensePage> },
+      // /projects and /tasks are relocated into /time per the altitude roadmap.
+      // Deep links to specific projects are preserved.
+      { path: "projects", element: <Navigate to="/time" replace /> },
       { path: "projects/:clientId/:projectId", element: <SuspensePage><ProjectDetail /></SuspensePage> },
       { path: "time", element: <SuspensePage><TimeLog /></SuspensePage> },
-      { path: "tasks", element: <SuspensePage><Tasks /></SuspensePage> },
+      { path: "tasks", element: <Navigate to="/time" replace /> },
       { path: "insights", element: <SuspensePage><Insights /></SuspensePage> },
       { path: "invoicing", element: <SuspensePage><Invoicing /></SuspensePage> },
       { path: "settings", element: <SuspensePage><Settings /></SuspensePage> },
-      { path: "team", element: <SuspensePage><Team /></SuspensePage> },
+      // /team relocated into Settings → Team tab.
+      { path: "team", element: <Navigate to="/settings?tab=team" replace /> },
     ],
   },
 ]);
