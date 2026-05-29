@@ -941,7 +941,7 @@ function WorkspaceTab() {
   const defaultWs = {
     name: currentWs?.name || '',
     url: '',
-    brandColor: '#2e7d9a',
+    brandColor: '#3B66F0',
     fiscalYear: 'January',
   };
 
@@ -1246,7 +1246,7 @@ function WorkspaceTab() {
               <div className="flex items-center justify-between py-2 border-t border-border">
                 <span className="text-[13px] text-muted-foreground" style={{ fontWeight: 500 }}>Portal accent color</span>
                 <span className="text-[12px] tabular-nums" style={{ fontWeight: 500, fontFamily: "ui-monospace, monospace", color: ws.brandColor }}>
-                  {ws.brandColor || "#2e7d9a"}
+                  {ws.brandColor || "#3B66F0"}
                 </span>
               </div>
               <div className="flex items-center justify-between py-2 border-t border-border">
@@ -4503,8 +4503,8 @@ function DataTab() {
 
               {/* Subscription warning */}
               {currentPlanId !== "starter" && (
-                <div className="flex items-start gap-2.5 px-3.5 py-3 rounded-lg bg-[#bfa044]/[0.06] border border-[#bfa044]/20 mb-4">
-                  <Shield className="w-4 h-4 text-[#bfa044] mt-0.5 flex-shrink-0" />
+                <div className="flex items-start gap-2.5 px-3.5 py-3 rounded-lg bg-[#C2860C]/[0.06] border border-[#C2860C]/20 mb-4">
+                  <Shield className="w-4 h-4 text-[#C2860C] mt-0.5 flex-shrink-0" />
                   <div>
                     <div className="text-[12px] text-foreground" style={{ fontWeight: 600 }}>
                       Your subscription will be downgraded

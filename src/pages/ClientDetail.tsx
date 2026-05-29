@@ -75,14 +75,14 @@ const item = {
 // ── Helpers ─────────────────────────────────────────────────────────
 function getUsageBarColor(usagePct: number): string {
   if (usagePct >= 85) return "#c27272";
-  if (usagePct >= 70) return "#bfa044";
-  return "linear-gradient(90deg, #2e7d9a, #5bb8d4)";
+  if (usagePct >= 70) return "#C2860C";
+  return "linear-gradient(90deg, #3B66F0, #5bb8d4)";
 }
 
 function getUsageTextColor(usagePct: number): string {
   if (usagePct >= 85) return "#c27272";
-  if (usagePct >= 70) return "#bfa044";
-  return "#2e7d9a";
+  if (usagePct >= 70) return "#C2860C";
+  return "#3B66F0";
 }
 
 const PRIORITY_CONFIG: Record<string, { color: string; bg: string; icon: string }> = {
@@ -2227,7 +2227,7 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
                 {history.slice(0, 12).reverse().map((h, i) => {
                   const pct = h.hours_total > 0 ? (h.hours_used / h.hours_total) * 100 : 0;
                   const barH = Math.max((pct / 100) * 72, 3);
-                  const color = pct >= 85 ? '#c27272' : pct >= 70 ? '#bfa044' : '#2e7d9a';
+                  const color = pct >= 85 ? '#c27272' : pct >= 70 ? '#C2860C' : '#3B66F0';
                   return (
                     <div key={h.id} className="flex-1 flex flex-col items-center gap-1" title={`${format(new Date(h.cycle_start + 'T00:00:00'), 'MMM d')} – ${format(new Date(h.cycle_end + 'T00:00:00'), 'MMM d')}: ${Math.round(pct)}% used`}>
                       <div className="w-full rounded-t transition-all" style={{ height: barH, backgroundColor: color, opacity: 0.6, maxWidth: 28 }} />
@@ -2460,7 +2460,7 @@ function PortalTab({ client, clientId, portalConfig, portalLoading, copied, onCo
         {portalConfig && (
           <div className="flex items-center justify-between p-3 bg-accent/20 rounded-lg">
             <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-circle ${portalConfig.active ? "bg-[#2e7d9a]" : "bg-zinc-300"}`} />
+              <div className={`w-2 h-2 rounded-circle ${portalConfig.active ? "bg-[#3B66F0]" : "bg-zinc-300"}`} />
               <span className="text-[13px]" style={{ fontWeight: 500 }}>{portalConfig.active ? "Portal is live" : "Portal is deactivated"}</span>
             </div>
             <button

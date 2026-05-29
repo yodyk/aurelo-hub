@@ -43,11 +43,11 @@ export function DemoModeBanner({ onClearDemo, onRestartTour }: DemoModeBannerPro
           {/* Demo indicator dot */}
           <div className="flex items-center gap-2">
             <div className="relative">
-              <div className="w-2 h-2 rounded-circle bg-[#2e7d9a]" />
-              <div className="absolute inset-0 w-2 h-2 rounded-circle bg-[#2e7d9a] animate-ping opacity-40" />
+              <div className="w-2 h-2 rounded-circle bg-[#3B66F0]" />
+              <div className="absolute inset-0 w-2 h-2 rounded-circle bg-[#3B66F0] animate-ping opacity-40" />
             </div>
             <span
-              className="text-[12px] text-[#2e7d9a] tracking-wide whitespace-nowrap"
+              className="text-[12px] text-[#3B66F0] tracking-wide whitespace-nowrap"
               style={{ fontWeight: 600, letterSpacing: '0.04em' }}
             >
               DEMO MODE

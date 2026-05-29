@@ -300,7 +300,7 @@ export function GuidedTour({ open, onComplete }: GuidedTourProps) {
             }}
           >
             {/* Completed progress bar */}
-            <div className="h-[2px] bg-[#2e7d9a]" />
+            <div className="h-[2px] bg-[#3B66F0]" />
 
             <div className="px-7 pt-8 pb-7 text-center">
               {/* Success icon with animation */}
@@ -308,14 +308,14 @@ export function GuidedTour({ open, onComplete }: GuidedTourProps) {
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ ...transitions.emphasized, delay: 0.15 }}
-                className="w-14 h-14 rounded-2xl bg-[#2e7d9a]/10 flex items-center justify-center mx-auto mb-5"
+                className="w-14 h-14 rounded-2xl bg-[#3B66F0]/10 flex items-center justify-center mx-auto mb-5"
               >
                 <motion.div
                   initial={{ opacity: 0, scale: 0.5 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.35, duration: 0.3 }}
                 >
-                  <Check className="w-7 h-7 text-[#2e7d9a]" strokeWidth={2.5} />
+                  <Check className="w-7 h-7 text-[#3B66F0]" strokeWidth={2.5} />
                 </motion.div>
               </motion.div>
 
@@ -394,7 +394,7 @@ export function GuidedTour({ open, onComplete }: GuidedTourProps) {
             <div className="h-[2px] bg-black/[0.04]">
               <motion.div
                 className="h-full"
-                style={{ backgroundColor: '#2e7d9a' }}
+                style={{ backgroundColor: '#3B66F0' }}
                 initial={{ width: `${((currentStep) / TOUR_STEPS.length) * 100}%` }}
                 animate={{ width: `${progress}%` }}
                 transition={{ duration: 0.4, ease: 'easeOut' }}
