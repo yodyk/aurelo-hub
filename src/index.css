@@ -342,47 +342,59 @@
 
 @layer utilities {
   /*
-   * ─── 5-LEVEL TYPOGRAPHY SCALE — confident, editorial ───
+   * ─── 5-ALTITUDE TYPOGRAPHY SCALE — Display / Page / Section / Body / Meta ───
+   * Aurelo refined roadmap. Display = marquee numbers, Page = page H1,
+   * Section = section/modal title, Body = workhorse, Meta = captions/eyebrows.
    */
   .type-display {
     @apply text-foreground tabular-nums;
-    font-size: clamp(28px, 3.2vw, 36px);
-    font-weight: 600;
-    line-height: 1.05;
-    letter-spacing: -0.035em;
+    font-size: var(--type-display-size);
+    font-weight: var(--type-display-weight);
+    line-height: var(--type-display-leading);
+    letter-spacing: var(--type-display-tracking);
+    font-variant-numeric: tabular-nums;
   }
-  .type-title {
+  .type-page {
     @apply text-foreground;
-    font-size: 20px;
-    font-weight: 600;
-    line-height: 1.25;
-    letter-spacing: -0.02em;
+    font-size: var(--type-page-size);
+    font-weight: var(--type-page-weight);
+    line-height: var(--type-page-leading);
+    letter-spacing: var(--type-page-tracking);
+    font-variant-numeric: tabular-nums;
   }
-  .type-heading {
-    @apply text-foreground tabular-nums;
-    font-size: 15px;
-    font-weight: 600;
-    line-height: 1.35;
-    letter-spacing: -0.012em;
+  .type-section {
+    @apply text-foreground;
+    font-size: var(--type-section-size);
+    font-weight: var(--type-section-weight);
+    line-height: var(--type-section-leading);
+    letter-spacing: var(--type-section-tracking);
   }
   .type-body {
-    @apply text-muted-foreground;
-    font-size: 14px;
-    line-height: 1.55;
+    @apply text-foreground;
+    font-size: var(--type-body-size);
+    font-weight: var(--type-body-weight);
+    line-height: var(--type-body-leading);
+    letter-spacing: var(--type-body-tracking);
   }
-  .type-caption {
+  .type-meta {
     @apply text-muted-foreground;
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.02em;
+    font-size: var(--type-meta-size);
+    font-weight: var(--type-meta-weight);
+    line-height: var(--type-meta-leading);
+    letter-spacing: var(--type-meta-tracking);
   }
   .type-eyebrow {
     @apply text-muted-foreground;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.08em;
+    font-size: var(--type-eyebrow-size);
+    font-weight: var(--type-eyebrow-weight);
+    letter-spacing: var(--type-eyebrow-tracking);
     text-transform: uppercase;
   }
+
+  /* Legacy aliases — preserved for in-flight migration. Do not use in new code. */
+  .type-title { @apply type-section; }
+  .type-heading { @apply type-section; }
+  .type-caption { @apply type-meta; }
 
   /*
    * ─── 3-TIER FOREGROUND SCALE ───
