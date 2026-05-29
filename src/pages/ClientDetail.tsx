@@ -2218,9 +2218,10 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
             {/* Summary insights */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
               <MetricCard label="Avg utilization" value={`${avgUtilization}%`} accent={avgUtilization < 70} />
-              <MetricCard label="Avg revenue" value={`$${avgRevenue.toLocaleString()}`} />
+              <MetricCard label="Avg revenue" value={formatMoney(avgRevenue)} />
               <MetricCard label="Cycles tracked" value={history.length} />
-              <MetricCard label="Total revenue" value={`$${history.reduce((s, h) => s + (h.revenue || 0), 0).toLocaleString()}`} />
+              <MetricCard label="Total revenue" value={formatMoney(history.reduce((s, h) => s + (h.revenue || 0), 0))} />
+
             </div>
 
             {/* Usage bar chart */}
