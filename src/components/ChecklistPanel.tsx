@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   Plus, Trash2, Pencil, X, Check, Loader2, MoreHorizontal, Calendar, Clock,
-  Tag, AlignLeft, Filter, ChevronDown, CircleDashed, CircleDot, AlertCircle, CheckCircle2,
+  Tag, AlignLeft, Filter, ChevronDown, CircleDashed, CircleDot, AlertCircle, CheckCircle2, PauseCircle,
   Link2, FileText, Paperclip, ExternalLink,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -29,11 +29,12 @@ interface ChecklistPanelProps {
 
 // ── Status config ──────────────────────────────────────────────────
 
-const STATUSES: { value: TaskStatus; label: string; icon: any; dotClass: string; textClass: string; bgClass: string }[] = [
-  { value: 'todo',        label: 'To do',      icon: CircleDashed, dotClass: 'bg-muted-foreground/40', textClass: 'text-muted-foreground', bgClass: 'bg-muted/40' },
-  { value: 'in_progress', label: 'In progress', icon: CircleDot,    dotClass: 'bg-sky-500',             textClass: 'text-sky-600',          bgClass: 'bg-sky-500/10' },
-  { value: 'blocked',     label: 'Blocked',     icon: AlertCircle,  dotClass: 'bg-amber-500',           textClass: 'text-amber-600',        bgClass: 'bg-amber-500/10' },
-  { value: 'done',        label: 'Done',        icon: CheckCircle2, dotClass: 'bg-emerald-500',         textClass: 'text-emerald-600',      bgClass: 'bg-emerald-500/10' },
+const STATUSES: { value: TaskStatus; label: string; icon: any; dotClass: string; textClass: string; bgClass: string; borderClass: string }[] = [
+  { value: 'todo',        label: 'To Do',       icon: CircleDashed, dotClass: 'bg-muted-foreground/50', textClass: 'text-muted-foreground', bgClass: 'bg-muted/50',         borderClass: 'border-border' },
+  { value: 'in_progress', label: 'In Progress', icon: CircleDot,    dotClass: 'bg-sky-500',             textClass: 'text-sky-700 dark:text-sky-400', bgClass: 'bg-sky-500/10',       borderClass: 'border-sky-500/30' },
+  { value: 'blocked',     label: 'Blocked',     icon: AlertCircle,  dotClass: 'bg-red-500',             textClass: 'text-red-700 dark:text-red-400', bgClass: 'bg-red-500/10',       borderClass: 'border-red-500/30' },
+  { value: 'on_hold',     label: 'On Hold',     icon: PauseCircle,  dotClass: 'bg-amber-500',           textClass: 'text-amber-700 dark:text-amber-400', bgClass: 'bg-amber-500/10', borderClass: 'border-amber-500/30' },
+  { value: 'done',        label: 'Done',        icon: CheckCircle2, dotClass: 'bg-emerald-500',         textClass: 'text-emerald-700 dark:text-emerald-400', bgClass: 'bg-emerald-500/10', borderClass: 'border-emerald-500/30' },
 ];
 
 const STATUS_BY_VALUE = Object.fromEntries(STATUSES.map(s => [s.value, s]));
@@ -105,6 +106,7 @@ export default function ChecklistPanel({ clientId, projectId, workspaceId }: Che
     todo: allItems.filter(i => i.status === 'todo').length,
     in_progress: allItems.filter(i => i.status === 'in_progress').length,
     blocked: allItems.filter(i => i.status === 'blocked').length,
+    on_hold: allItems.filter(i => i.status === 'on_hold').length,
     done: allItems.filter(i => i.status === 'done').length,
   }), [allItems]);
 
@@ -122,9 +124,10 @@ export default function ChecklistPanel({ clientId, projectId, workspaceId }: Che
       {allItems.length > 0 && (
         <div className="flex flex-wrap items-center gap-2 pb-1">
           <FilterChip active={statusFilter === 'open'}  onClick={() => setStatusFilter('open')}  label="Open" count={counts.open} />
-          <FilterChip active={statusFilter === 'todo'}  onClick={() => setStatusFilter('todo')}  label="To do" count={counts.todo} />
-          <FilterChip active={statusFilter === 'in_progress'} onClick={() => setStatusFilter('in_progress')} label="In progress" count={counts.in_progress} />
+          <FilterChip active={statusFilter === 'todo'}  onClick={() => setStatusFilter('todo')}  label="To Do" count={counts.todo} />
+          <FilterChip active={statusFilter === 'in_progress'} onClick={() => setStatusFilter('in_progress')} label="In Progress" count={counts.in_progress} />
           <FilterChip active={statusFilter === 'blocked'} onClick={() => setStatusFilter('blocked')} label="Blocked" count={counts.blocked} />
+          <FilterChip active={statusFilter === 'on_hold'} onClick={() => setStatusFilter('on_hold')} label="On Hold" count={counts.on_hold} />
           <FilterChip active={statusFilter === 'done'} onClick={() => setStatusFilter('done')} label="Done" count={counts.done} />
           <FilterChip active={statusFilter === 'all'}  onClick={() => setStatusFilter('all')}   label="All"  count={counts.all} />
 
@@ -379,7 +382,7 @@ function TaskRow({
   const [textValue, setTextValue] = useState(item.text);
 
   const cycleStatus = async () => {
-    const order: TaskStatus[] = ['todo', 'in_progress', 'blocked', 'done'];
+    const order: TaskStatus[] = ['todo', 'in_progress', 'blocked', 'on_hold', 'done'];
     const next = order[(order.indexOf(item.status) + 1) % order.length];
     onUpdate({ status: next });
     try {
@@ -427,15 +430,11 @@ function TaskRow({
       exit={{ opacity: 0, height: 0 }}
       className="group border border-border rounded-lg bg-background/60 hover:bg-accent/20 transition-colors"
     >
-      <div className="flex items-start gap-2 p-2.5">
-        {/* Status toggle */}
-        <button
-          onClick={cycleStatus}
-          title={`Status: ${cfg.label} — click to cycle`}
-          className="flex-shrink-0 mt-0.5 cursor-pointer"
-        >
-          <StatusIcon className={`w-4 h-4 ${cfg.textClass}`} />
-        </button>
+      <div className="flex items-start gap-3 p-3">
+        {/* Prominent status pill (click to cycle, also opens menu) */}
+        <div className="flex-shrink-0 pt-0.5">
+          <StatusPill status={item.status} onSelect={setStatus} onCycle={cycleStatus} />
+        </div>
 
         {/* Main */}
         <div className="flex-1 min-w-0">
@@ -447,72 +446,84 @@ function TaskRow({
                 onChange={(e) => setTextValue(e.target.value)}
                 onBlur={handleSaveText}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleSaveText(); if (e.key === 'Escape') { setTextValue(item.text); setEditingText(false); } }}
-                className="flex-1 text-[13px] bg-transparent border-b border-border focus:outline-none focus:border-primary py-0.5"
+                className="flex-1 text-[15px] bg-transparent border-b border-border focus:outline-none focus:border-primary py-0.5"
+                style={{ fontWeight: 500 }}
               />
             ) : (
               <button
                 onClick={() => setEditingText(true)}
-                className={`flex-1 text-left text-[13px] leading-tight cursor-text ${item.status === 'done' ? 'line-through text-muted-foreground/70' : 'text-foreground'}`}
+                className={`flex-1 text-left text-[15px] leading-snug cursor-text ${item.status === 'done' ? 'line-through text-muted-foreground/70' : 'text-foreground'}`}
+                style={{ fontWeight: 500 }}
               >
                 {item.text || <span className="text-muted-foreground/60 italic">Untitled task</span>}
               </button>
             )}
 
             {item.addedBy === 'client' && (
-              <span className="text-[10px] text-muted-foreground bg-accent/60 px-1.5 py-0.5 rounded" style={{ fontWeight: 500 }}>Client</span>
+              <span className="text-[10.5px] text-muted-foreground bg-accent/60 px-1.5 py-0.5 rounded" style={{ fontWeight: 500 }}>Client</span>
             )}
             <button
               onClick={() => setExpanded(v => !v)}
-              className={`flex-shrink-0 inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded border transition-colors cursor-pointer ${
+              className={`flex-shrink-0 inline-flex items-center gap-1 text-[12px] px-2 py-1 rounded border transition-colors cursor-pointer ${
                 expanded ? 'bg-primary/10 border-primary/30 text-primary' : 'border-border text-muted-foreground hover:text-foreground hover:bg-accent/40'
               }`}
               style={{ fontWeight: 500 }}
               title={expanded ? 'Hide details' : 'Edit details'}
             >
               Details
-              <ChevronDown className={`w-3 h-3 transition-transform ${expanded ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${expanded ? 'rotate-180' : ''}`} />
             </button>
           </div>
 
-          {/* Meta row */}
-          <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
-            <StatusPill status={item.status} onSelect={setStatus} />
+          {/* Slim meta row — date, estimate, and indicators for hidden detail (no descriptions/tags) */}
+          {(item.dueDate || item.estimatedHours != null || item.description || (item.workTags && item.workTags.length > 0) || links.length > 0) && (
+            <div className="flex flex-wrap items-center gap-2 mt-2">
+              {item.dueDate && dueMeta && (
+                <span className={`inline-flex items-center gap-1 text-[11.5px] px-1.5 py-0.5 rounded ${dueMeta.className}`} style={{ fontWeight: 500 }}>
+                  <Calendar className="w-3 h-3" /> {dueMeta.label}
+                </span>
+              )}
 
-            {(item.workTags || []).map(tag => (
-              <span key={tag} className="inline-flex items-center gap-1 text-[10.5px] px-1.5 py-0.5 rounded bg-accent/50 text-foreground/80" style={{ fontWeight: 500 }}>
-                <Tag className="w-2.5 h-2.5" /> {tag}
-              </span>
-            ))}
+              {item.estimatedHours != null && (
+                <span className="inline-flex items-center gap-1 text-[11.5px] px-1.5 py-0.5 rounded bg-accent/50 text-muted-foreground" style={{ fontWeight: 500 }}>
+                  <Clock className="w-3 h-3" /> {item.estimatedHours}h
+                </span>
+              )}
 
-            {item.dueDate && dueMeta && (
-              <span className={`inline-flex items-center gap-1 text-[10.5px] px-1.5 py-0.5 rounded ${dueMeta.className}`} style={{ fontWeight: 500 }}>
-                <Calendar className="w-2.5 h-2.5" /> {dueMeta.label}
-              </span>
-            )}
+              {item.workTags && item.workTags.length > 0 && (
+                <button
+                  onClick={() => setExpanded(true)}
+                  className="inline-flex items-center gap-1 text-[11.5px] text-muted-foreground/80 hover:text-primary cursor-pointer"
+                  style={{ fontWeight: 500 }}
+                  title="View focus areas"
+                >
+                  <Tag className="w-3 h-3" /> {item.workTags.length}
+                </button>
+              )}
 
-            {item.estimatedHours != null && (
-              <span className="inline-flex items-center gap-1 text-[10.5px] px-1.5 py-0.5 rounded bg-accent/50 text-muted-foreground" style={{ fontWeight: 500 }}>
-                <Clock className="w-2.5 h-2.5" /> {item.estimatedHours}h est
-              </span>
-            )}
+              {item.description && (
+                <button
+                  onClick={() => setExpanded(true)}
+                  className="inline-flex items-center gap-1 text-[11.5px] text-muted-foreground/80 hover:text-primary cursor-pointer"
+                  style={{ fontWeight: 500 }}
+                  title="View description"
+                >
+                  <AlignLeft className="w-3 h-3" /> Notes
+                </button>
+              )}
 
-            {item.description && !expanded && (
-              <span className="inline-flex items-center gap-1 text-[10.5px] text-muted-foreground/70">
-                <AlignLeft className="w-2.5 h-2.5" /> Notes
-              </span>
-            )}
-
-            {links.length > 0 && (
-              <button
-                onClick={() => setExpanded(true)}
-                className="inline-flex items-center gap-1 text-[10.5px] px-1.5 py-0.5 rounded bg-accent/50 text-muted-foreground hover:text-primary cursor-pointer"
-                style={{ fontWeight: 500 }}
-                title="Linked notes & files"
-              >
-                <Link2 className="w-2.5 h-2.5" /> {links.length}
-              </button>
-            )}
-          </div>
+              {links.length > 0 && (
+                <button
+                  onClick={() => setExpanded(true)}
+                  className="inline-flex items-center gap-1 text-[11.5px] text-muted-foreground/80 hover:text-primary cursor-pointer"
+                  style={{ fontWeight: 500 }}
+                  title="Linked notes & files"
+                >
+                  <Link2 className="w-3 h-3" /> {links.length}
+                </button>
+              )}
+            </div>
+          )}
 
           {/* Expanded editor */}
           <AnimatePresence initial={false}>
@@ -546,9 +557,10 @@ function TaskRow({
 
 // ── Status pill with menu ──────────────────────────────────────────
 
-function StatusPill({ status, onSelect }: { status: TaskStatus; onSelect: (s: TaskStatus) => void }) {
+function StatusPill({ status, onSelect, onCycle }: { status: TaskStatus; onSelect: (s: TaskStatus) => void; onCycle?: () => void }) {
   const [open, setOpen] = useState(false);
   const cfg = STATUS_BY_VALUE[status];
+  const StatusIcon = cfg.icon;
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -560,29 +572,40 @@ function StatusPill({ status, onSelect }: { status: TaskStatus; onSelect: (s: Ta
     return () => window.removeEventListener('mousedown', onClick);
   }, [open]);
 
+  // Click cycles; the chevron opens an explicit picker for jumping to a specific status.
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className="relative inline-flex items-center">
+      <button
+        onClick={(e) => { e.stopPropagation(); if (onCycle) onCycle(); else setOpen(v => !v); }}
+        title={onCycle ? `Status: ${cfg.label} — click to advance` : `Status: ${cfg.label}`}
+        className={`inline-flex items-center gap-1.5 text-[12px] pl-2 pr-1.5 py-1 rounded-l-md border-y border-l ${cfg.bgClass} ${cfg.textClass} ${cfg.borderClass} cursor-pointer hover:brightness-95 transition-all min-w-[100px]`}
+        style={{ fontWeight: 600, letterSpacing: '0.01em' }}
+      >
+        <StatusIcon className="w-3.5 h-3.5" />
+        <span>{cfg.label}</span>
+      </button>
       <button
         onClick={(e) => { e.stopPropagation(); setOpen(v => !v); }}
-        className={`inline-flex items-center gap-1 text-[10.5px] px-1.5 py-0.5 rounded ${cfg.bgClass} ${cfg.textClass} cursor-pointer`}
-        style={{ fontWeight: 600 }}
+        title="Set status"
+        className={`inline-flex items-center justify-center px-1 py-1 rounded-r-md border ${cfg.bgClass} ${cfg.textClass} ${cfg.borderClass} cursor-pointer hover:brightness-95 transition-all`}
       >
-        <span className={`w-1.5 h-1.5 rounded-full ${cfg.dotClass}`} />
-        {cfg.label}
-        <ChevronDown className="w-2.5 h-2.5 opacity-70" />
+        <ChevronDown className="w-3 h-3 opacity-70" />
       </button>
       {open && (
-        <div className="absolute z-20 mt-1 w-36 bg-popover border border-border rounded-lg shadow-md py-1">
-          {STATUSES.map(s => (
-            <button
-              key={s.value}
-              onClick={(e) => { e.stopPropagation(); onSelect(s.value); setOpen(false); }}
-              className={`w-full flex items-center gap-2 text-[12px] px-2.5 py-1.5 hover:bg-accent/60 cursor-pointer ${status === s.value ? 'text-primary' : 'text-foreground'}`}
-            >
-              <span className={`w-1.5 h-1.5 rounded-full ${s.dotClass}`} />
-              {s.label}
-            </button>
-          ))}
+        <div className="absolute z-20 left-0 top-full mt-1 w-40 bg-popover border border-border rounded-lg shadow-md py-1">
+          {STATUSES.map(s => {
+            const Icon = s.icon;
+            return (
+              <button
+                key={s.value}
+                onClick={(e) => { e.stopPropagation(); onSelect(s.value); setOpen(false); }}
+                className={`w-full flex items-center gap-2 text-[12.5px] px-2.5 py-1.5 hover:bg-accent/60 cursor-pointer ${status === s.value ? 'text-primary' : 'text-foreground'}`}
+              >
+                <Icon className={`w-3.5 h-3.5 ${s.textClass}`} />
+                {s.label}
+              </button>
+            );
+          })}
         </div>
       )}
     </div>

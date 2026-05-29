@@ -1,0 +1,2 @@
+ALTER TABLE public.checklist_items DROP CONSTRAINT IF EXISTS checklist_items_status_check;
+ALTER TABLE public.checklist_items ADD CONSTRAINT checklist_items_status_check CHECK (status IN ('todo','in_progress','blocked','on_hold','done'));

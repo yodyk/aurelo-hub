@@ -89,7 +89,7 @@ interface PortalTask {
   id: string;
   text: string;
   description?: string | null;
-  status: 'todo' | 'in_progress' | 'blocked' | 'done';
+  status: 'todo' | 'in_progress' | 'blocked' | 'on_hold' | 'done';
   completed: boolean;
   work_tags?: string[];
   due_date?: string | null;
@@ -711,9 +711,10 @@ function InvoiceRow({ invoice: inv, accent }: { invoice: PortalInvoice; accent: 
 // ── Portal Task List Card ───────────────────────────────────────────
 
 const PORTAL_STATUSES: { value: PortalTask['status']; label: string; dot: string; text: string; bg: string }[] = [
-  { value: 'todo',        label: 'To do',       dot: '#9ca3af', text: '#6b7280', bg: '#f3f4f6' },
-  { value: 'in_progress', label: 'In progress', dot: '#0ea5e9', text: '#0369a1', bg: '#e0f2fe' },
-  { value: 'blocked',     label: 'Blocked',     dot: '#f59e0b', text: '#b45309', bg: '#fef3c7' },
+  { value: 'todo',        label: 'To Do',       dot: '#9ca3af', text: '#6b7280', bg: '#f3f4f6' },
+  { value: 'in_progress', label: 'In Progress', dot: '#0ea5e9', text: '#0369a1', bg: '#e0f2fe' },
+  { value: 'blocked',     label: 'Blocked',     dot: '#ef4444', text: '#b91c1c', bg: '#fee2e2' },
+  { value: 'on_hold',     label: 'On Hold',     dot: '#f59e0b', text: '#b45309', bg: '#fef3c7' },
   { value: 'done',        label: 'Done',        dot: '#22c55e', text: '#15803d', bg: '#dcfce7' },
 ];
 
@@ -741,7 +742,7 @@ function PortalChecklistCard({ checklist, accent, token, hideCompleted = false }
   const visibleItems = hideCompleted ? items.filter(i => i.status !== 'done') : items;
 
   const cycleStatus = async (item: PortalTask) => {
-    const order: PortalTask['status'][] = ['todo', 'in_progress', 'blocked', 'done'];
+    const order: PortalTask['status'][] = ['todo', 'in_progress', 'blocked', 'on_hold', 'done'];
     const next = order[(order.indexOf(item.status) + 1) % order.length];
     setItems(prev => prev.map(i => i.id === item.id ? { ...i, status: next, completed: next === 'done' } : i));
     try {
