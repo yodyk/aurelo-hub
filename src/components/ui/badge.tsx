@@ -6,10 +6,15 @@ import { cn } from "@/lib/utils";
  * Premium badge — soft tinted surfaces, hairline contrast,
  * minimal shadow. Reads as metadata, not decoration.
  */
+/**
+ * Aurelo badge — metadata, not decoration.
+ * 8% tinted surface, high-contrast tinted text, no border.
+ * 12px Inter, tabular-nums for any numeric content.
+ */
 const badgeVariants = cva(
   [
-    "inline-flex items-center gap-1 rounded-md px-2 py-0.5",
-    "text-[11px] font-medium tracking-tight leading-none",
+    "inline-flex items-center gap-1 rounded-md px-2 py-[3px]",
+    "text-[12px] font-medium leading-none tabular-nums",
     "transition-colors duration-150 ease-out",
     "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
   ].join(" "),
@@ -17,17 +22,17 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-[color-mix(in_oklab,var(--primary)_10%,transparent)] text-primary border border-[color-mix(in_oklab,var(--primary)_18%,transparent)]",
+          "bg-[color-mix(in_oklab,var(--primary)_8%,transparent)] text-primary",
         secondary:
-          "bg-secondary text-secondary-foreground/90 border border-[var(--hairline)]",
+          "bg-[var(--surface-sunken)] text-foreground/80",
         destructive:
-          "bg-[color-mix(in_oklab,var(--destructive)_10%,transparent)] text-destructive border border-[color-mix(in_oklab,var(--destructive)_20%,transparent)]",
+          "bg-[color-mix(in_oklab,var(--destructive)_8%,transparent)] text-destructive",
         success:
-          "bg-[color-mix(in_oklab,var(--success)_12%,transparent)] text-success border border-[color-mix(in_oklab,var(--success)_22%,transparent)]",
+          "bg-[color-mix(in_oklab,var(--success)_10%,transparent)] text-success",
         warning:
-          "bg-[color-mix(in_oklab,var(--warning)_14%,transparent)] text-warning border border-[color-mix(in_oklab,var(--warning)_24%,transparent)]",
+          "bg-[color-mix(in_oklab,var(--warning)_12%,transparent)] text-warning",
         outline:
-          "text-foreground/85 border border-[var(--border)] bg-transparent",
+          "text-foreground/85 border border-[var(--hairline)] bg-transparent",
       },
     },
     defaultVariants: { variant: "default" },

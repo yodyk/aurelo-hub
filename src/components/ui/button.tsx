@@ -13,9 +13,9 @@ const buttonVariants = cva(
   [
     "inline-flex items-center justify-center gap-2 whitespace-nowrap",
     "rounded-md text-[13px] font-medium tracking-tight cursor-pointer select-none",
-    "transition-[transform,box-shadow,background-color,color,opacity]",
+    "transition-[transform,box-shadow,background-color,border-color,color,opacity]",
     "duration-150 ease-[cubic-bezier(0.32,0.72,0,1)]",
-    "focus-visible:outline-none",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface-base)]",
     "disabled:cursor-not-allowed disabled:opacity-40 disabled:pointer-events-none",
     "active:scale-[0.985]",
     "[&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
@@ -24,15 +24,15 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground shadow-[var(--elev-1),inset_0_1px_0_rgba(255,255,255,0.10)] hover:shadow-[var(--elev-2),inset_0_1px_0_rgba(255,255,255,0.12)] hover:opacity-95",
+          "bg-primary text-primary-foreground shadow-[var(--elev-1)] hover:bg-[color-mix(in_oklab,var(--primary)_92%,white)] hover:shadow-[var(--elev-2)]",
         destructive:
-          "bg-destructive text-destructive-foreground shadow-[var(--elev-1)] hover:shadow-[var(--elev-2)] hover:opacity-95",
+          "bg-destructive text-destructive-foreground shadow-[var(--elev-1)] hover:opacity-95 hover:shadow-[var(--elev-2)]",
         outline:
-          "bg-transparent text-foreground border border-[var(--border)] hover:border-[var(--border-strong)] hover:bg-accent/60",
+          "bg-transparent text-foreground border border-[var(--hairline)] hover:border-[var(--border-strong)] hover:bg-[var(--surface-sunken)]",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-accent",
+          "bg-[var(--surface-sunken)] text-foreground border border-[var(--hairline)] hover:bg-[var(--surface-raised)] hover:border-[var(--border-strong)]",
         ghost:
-          "bg-transparent text-muted-foreground hover:text-foreground hover:bg-accent/60",
+          "bg-transparent text-muted-foreground hover:text-foreground hover:bg-[var(--surface-sunken)]",
         link:
           "text-primary underline-offset-4 hover:underline px-0 h-auto",
       },
