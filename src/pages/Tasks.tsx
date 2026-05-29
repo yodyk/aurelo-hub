@@ -265,13 +265,16 @@ function TaskCard({
       exit={{ opacity: 0, height: 0 }}
       className="hover:bg-accent/20 transition-colors"
     >
-      <div className="flex items-start gap-3 p-3">
+      <div className="flex items-start gap-3.5 p-4">
+        {/* Prominent status pill — clickable to cycle */}
         <button
           onClick={onCycleStatus}
           title={`Status: ${cfg.label} — click to advance`}
-          className="flex-shrink-0 mt-0.5 cursor-pointer"
+          className={`flex-shrink-0 inline-flex items-center gap-1.5 text-[12px] px-2.5 py-1.5 rounded-md border ${cfg.bgClass} ${cfg.textClass} ${cfg.borderClass} cursor-pointer hover:brightness-95 transition-all min-w-[110px]`}
+          style={{ fontWeight: 600, letterSpacing: '0.01em' }}
         >
-          <StatusIcon className={`w-4 h-4 ${cfg.textClass}`} />
+          <StatusIcon className="w-3.5 h-3.5" />
+          <span>{cfg.label}</span>
         </button>
 
         <div className="flex-1 min-w-0">
@@ -280,7 +283,7 @@ function TaskCard({
             <div className="flex-1 min-w-0">
               <Link
                 to={`/clients/${task.clientId}?tab=checklists`}
-                className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-primary transition-colors mb-1 group"
+                className="inline-flex items-center gap-1.5 text-[12px] text-muted-foreground hover:text-primary transition-colors mb-1 group"
                 style={{ fontWeight: 500 }}
               >
                 {faviconUrl ? (
@@ -290,62 +293,68 @@ function TaskCard({
                     {initial}
                   </span>
                 )}
-                <span className="truncate max-w-[180px]">{clientName}</span>
+                <span className="truncate max-w-[200px]">{clientName}</span>
                 <ExternalLink className="w-2.5 h-2.5 opacity-0 group-hover:opacity-60 transition-opacity" />
               </Link>
-              <div className={`text-[13px] ${task.status === 'done' ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+              <div className={`text-[15px] leading-snug ${task.status === 'done' ? 'line-through text-muted-foreground' : 'text-foreground'}`} style={{ fontWeight: 500 }}>
                 {task.text}
               </div>
             </div>
             {task.addedBy === 'client' && (
-              <span className="text-[10px] font-medium text-muted-foreground bg-muted/40 px-1.5 py-0.5 rounded flex-shrink-0">Client</span>
+              <span className="text-[10.5px] font-medium text-muted-foreground bg-muted/40 px-1.5 py-0.5 rounded flex-shrink-0">Client</span>
             )}
             <button
               onClick={() => setExpanded(v => !v)}
-              className={`flex-shrink-0 inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded border transition-colors cursor-pointer ${
+              className={`flex-shrink-0 inline-flex items-center gap-1 text-[12px] px-2 py-1 rounded border transition-colors cursor-pointer ${
                 expanded ? 'bg-primary/10 border-primary/30 text-primary' : 'border-border text-muted-foreground hover:text-foreground hover:bg-accent/40'
               }`}
               style={{ fontWeight: 500 }}
               title={expanded ? 'Hide details' : 'Edit details'}
             >
               Details
-              <ChevronDown className={`w-3 h-3 transition-transform ${expanded ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${expanded ? 'rotate-180' : ''}`} />
             </button>
           </div>
 
-          {task.description && !expanded && (
-            <div className="flex items-start gap-1 mt-1 text-[11.5px] text-muted-foreground line-clamp-2">
-              <AlignLeft className="w-3 h-3 mt-0.5 flex-shrink-0" />
-              <span>{task.description}</span>
+          {/* Slim meta row — only due date, estimate, link/notes indicators (no description preview, no tag list) */}
+          {(due || task.estimatedHours != null || task.description || (task.workTags && task.workTags.length > 0)) && (
+            <div className="flex flex-wrap items-center gap-2 mt-2">
+              {due && (
+                <span className={`inline-flex items-center gap-1 text-[11.5px] px-1.5 py-0.5 rounded ${
+                  due.tone === 'danger' ? 'bg-red-500/10 text-red-600' :
+                  due.tone === 'warning' ? 'bg-amber-500/10 text-amber-600' :
+                  'bg-muted/50 text-muted-foreground'
+                }`} style={{ fontWeight: 500 }}>
+                  <Calendar className="w-3 h-3" /> {due.label}
+                </span>
+              )}
+              {task.estimatedHours != null && (
+                <span className="inline-flex items-center gap-1 text-[11.5px] px-1.5 py-0.5 rounded bg-muted/50 text-muted-foreground" style={{ fontWeight: 500 }}>
+                  <Clock className="w-3 h-3" /> {task.estimatedHours}h
+                </span>
+              )}
+              {task.workTags && task.workTags.length > 0 && (
+                <button
+                  onClick={() => setExpanded(true)}
+                  className="inline-flex items-center gap-1 text-[11.5px] text-muted-foreground/80 hover:text-primary cursor-pointer"
+                  style={{ fontWeight: 500 }}
+                  title="View focus areas"
+                >
+                  <Tag className="w-3 h-3" /> {task.workTags.length}
+                </button>
+              )}
+              {task.description && (
+                <button
+                  onClick={() => setExpanded(true)}
+                  className="inline-flex items-center gap-1 text-[11.5px] text-muted-foreground/80 hover:text-primary cursor-pointer"
+                  style={{ fontWeight: 500 }}
+                  title="View description"
+                >
+                  <AlignLeft className="w-3 h-3" /> Notes
+                </button>
+              )}
             </div>
           )}
-
-          {/* Meta row */}
-          <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
-            <span className={`inline-flex items-center gap-1 text-[10.5px] px-1.5 py-0.5 rounded ${cfg.bgClass} ${cfg.textClass}`} style={{ fontWeight: 600 }}>
-              <span className={`w-1.5 h-1.5 rounded-full ${cfg.dotClass}`} />
-              {cfg.label}
-            </span>
-            {(task.workTags || []).map(tag => (
-              <span key={tag} className="inline-flex items-center gap-1 text-[10.5px] px-1.5 py-0.5 rounded bg-muted/50 text-muted-foreground" style={{ fontWeight: 500 }}>
-                <Tag className="w-2.5 h-2.5" /> {tag}
-              </span>
-            ))}
-            {due && (
-              <span className={`inline-flex items-center gap-1 text-[10.5px] px-1.5 py-0.5 rounded ${
-                due.tone === 'danger' ? 'bg-red-500/10 text-red-600' :
-                due.tone === 'warning' ? 'bg-amber-500/10 text-amber-600' :
-                'bg-muted/50 text-muted-foreground'
-              }`} style={{ fontWeight: 500 }}>
-                <Calendar className="w-2.5 h-2.5" /> {due.label}
-              </span>
-            )}
-            {task.estimatedHours != null && (
-              <span className="inline-flex items-center gap-1 text-[10.5px] px-1.5 py-0.5 rounded bg-muted/50 text-muted-foreground" style={{ fontWeight: 500 }}>
-                <Clock className="w-2.5 h-2.5" /> {task.estimatedHours}h est
-              </span>
-            )}
-          </div>
 
           {/* Expanded editor */}
           <AnimatePresence initial={false}>
