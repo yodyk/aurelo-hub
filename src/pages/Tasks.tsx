@@ -149,9 +149,10 @@ export default function Tasks() {
       {/* Filters — inline, status chips left, selects right */}
       <motion.div variants={itemVariants} className="flex flex-wrap items-center gap-2 mb-5">
         <FilterChip active={statusFilter === 'open'}        onClick={() => setStatusFilter('open')}        label="Open" count={counts.open} />
-        <FilterChip active={statusFilter === 'todo'}        onClick={() => setStatusFilter('todo')}        label="To do" count={counts.todo} />
-        <FilterChip active={statusFilter === 'in_progress'} onClick={() => setStatusFilter('in_progress')} label="In progress" count={counts.in_progress} />
+        <FilterChip active={statusFilter === 'todo'}        onClick={() => setStatusFilter('todo')}        label="To Do" count={counts.todo} />
+        <FilterChip active={statusFilter === 'in_progress'} onClick={() => setStatusFilter('in_progress')} label="In Progress" count={counts.in_progress} />
         <FilterChip active={statusFilter === 'blocked'}     onClick={() => setStatusFilter('blocked')}     label="Blocked" count={counts.blocked} />
+        <FilterChip active={statusFilter === 'on_hold'}     onClick={() => setStatusFilter('on_hold')}     label="On Hold" count={counts.on_hold} />
         <FilterChip active={statusFilter === 'done'}        onClick={() => setStatusFilter('done')}        label="Done" count={counts.done} />
         <FilterChip active={statusFilter === 'all'}         onClick={() => setStatusFilter('all')}         label="All" count={counts.all} />
 
