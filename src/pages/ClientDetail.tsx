@@ -2272,7 +2272,7 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
                           <td className="text-right px-3 py-2.5 tabular-nums">{h.hours_used}h</td>
                           <td className="text-right px-3 py-2.5 tabular-nums text-muted-foreground">{h.hours_total}h</td>
                           <td className="text-right px-3 py-2.5 tabular-nums" style={{ fontWeight: 500, color: getUsageTextColor(pct) }}>{pct}%</td>
-                          <td className="text-right px-3 py-2.5 tabular-nums" style={{ fontWeight: 500 }}>${(h.revenue || 0).toLocaleString()}</td>
+                          <td className="text-right px-3 py-2.5 tabular-nums" style={{ fontWeight: 500 }}>{formatMoney(h.revenue || 0)}</td>
                         </tr>
                       );
                     })}
