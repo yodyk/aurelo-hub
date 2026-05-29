@@ -24,6 +24,8 @@ import { useTheme } from '../data/ThemeContext';
 import type { FeatureKey } from '../data/plans';
 import { useRoleAccess } from '../data/useRoleAccess';
 import { checkTimerReminders, resetFired } from '../data/timerNotifications';
+import { TaskDrawerProvider } from '../data/TaskDrawerContext';
+import { TaskDrawer } from '../components/TaskDrawer';
 
 const navItems: { to: string; icon: any; label: string; end?: boolean; feature?: FeatureKey; hideUnlessFeature?: boolean; requiresFinancials?: boolean }[] = [
   { to: '/', icon: LayoutDashboard, label: 'Today', end: true },
@@ -142,7 +144,10 @@ function PlanBridge() {
   const isOwner = workspaceRole === 'Owner';
   return (
     <PlanProvider initialPlan={initPlan} workspaceId={workspaceId} isOwner={isOwner}>
-      <RootLayout />
+      <TaskDrawerProvider>
+        <RootLayout />
+        <TaskDrawer />
+      </TaskDrawerProvider>
     </PlanProvider>
   );
 }
@@ -295,6 +300,21 @@ function RootLayout() {
       clearInterval(timerRef.current);
     }
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [timerRunning]);
+
+  // Sync with timer started elsewhere (e.g. TaskDrawer)
+  useEffect(() => {
+    const onChanged = () => {
+      const stored = localStorage.getItem('aurelo_timer_start');
+      if (stored && !timerRunning) {
+        setTimerSeconds(Math.max(0, Math.floor((Date.now() - Number(stored)) / 1000)));
+        setTimerRunning(true);
+      } else if (!stored && timerRunning) {
+        setTimerRunning(false);
+      }
+    };
+    window.addEventListener('aurelo:timer-changed', onChanged);
+    return () => window.removeEventListener('aurelo:timer-changed', onChanged);
   }, [timerRunning]);
 
   const handleStartTimer = () => {
