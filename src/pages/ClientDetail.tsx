@@ -1095,7 +1095,7 @@ function OverviewTab({
               <div className="px-4 py-4 first:pl-0">
                 <div className="type-eyebrow mb-2">Effective rate</div>
                 <div className="text-[20px] tabular-nums" style={{ fontWeight: 600, letterSpacing: '-0.02em' }}>
-                  ${effRate ? effRateDisplay.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '—'}
+                  {effRate ? formatMoney(effRateDisplay) : '—'}
                   <span className="type-meta ml-1 text-muted-foreground">/hr</span>
                 </div>
               </div>
