@@ -695,7 +695,7 @@ export default function Today() {
                           </div>
                           <div className="text-right flex-shrink-0">
                             <div className="type-body tabular-nums" style={{ fontWeight: 600 }}>
-                              ${cr.revenue.toLocaleString()}
+                              {formatMoney(cr.revenue)}
                             </div>
                             <div className="type-meta tabular-nums">{share}%</div>
                           </div>
