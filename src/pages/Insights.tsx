@@ -567,43 +567,40 @@ export default function Insights() {
           ) : (
              <div className="bg-card border border-border rounded-xl overflow-hidden">
               <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-border bg-accent/30">
-                    <th className="text-left px-6 py-3 text-[12px] text-muted-foreground w-12" style={{ fontWeight: 500 }}>#</th>
-                    <th className="text-left px-6 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Client</th>
-                    <th className="text-right px-6 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Earnings</th>
-                    <th className="text-right px-6 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Eff. rate</th>
-                    <th className="text-right px-6 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Billable time</th>
-                    <th className="text-left px-6 py-3 text-[12px] text-muted-foreground w-48" style={{ fontWeight: 500 }}>Share</th>
-                    <th className="text-center px-6 py-3 text-[12px] text-muted-foreground w-16" style={{ fontWeight: 500 }}>Trend</th>
-                  </tr>
-                </thead>
-                <tbody>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-12">#</TableHead>
+                    <TableHead>Client</TableHead>
+                    <TableHead numeric>Earnings</TableHead>
+                    <TableHead numeric>Eff. rate</TableHead>
+                    <TableHead numeric>Billable time</TableHead>
+                    <TableHead className="w-48">Share</TableHead>
+                    <TableHead className="w-16 text-center">Trend</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {sortedRankings.map((ranking, index) => (
-                    <motion.tr
+                    <TableRow
                       key={ranking.clientId}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.3 + index * 0.06 }}
-                      className="border-b border-border last:border-0 hover:bg-accent/40 transition-colors group cursor-pointer"
+                      className="cursor-pointer group"
                       onClick={() => hasFullInsights && navigate(`/clients/${ranking.clientId}`)}
                     >
-                      <td className="px-6 py-4">
+                      <TableCell>
                         <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-[13px] ${ranking.rank === 1 ? "bg-primary/8 text-primary" : "bg-accent/60 text-muted-foreground"}`} style={{ fontWeight: 600 }}>{ranking.rank}</div>
-                      </td>
-                      <td className="px-6 py-4 text-[14px]" style={{ fontWeight: 500 }}>
+                      </TableCell>
+                      <TableCell className="text-[14px]" style={{ fontWeight: 500 }}>
                         <div className="flex items-center gap-2.5">
                           <div className="w-6 h-6 rounded-md bg-primary/8 flex items-center justify-center flex-shrink-0">
                             <span className="text-[10px] text-primary" style={{ fontWeight: 600 }}>{ranking.client.charAt(0)}</span>
                           </div>
                           {ranking.client}
                         </div>
-                      </td>
-                      <td className="px-6 py-4 text-[14px] text-right tabular-nums" style={{ fontWeight: 500 }}>{formatMoney(applyViewMode(ranking.revenue))}</td>
-                      <td className="px-6 py-4 text-[14px] text-right tabular-nums text-muted-foreground">${applyViewMode(ranking.trueHourlyRate)}</td>
-                      <td className="px-6 py-4 text-[14px] text-right tabular-nums text-muted-foreground">{ranking.utilization}%</td>
-                      <td className="px-6 py-4">
+                      </TableCell>
+                      <TableCell numeric className="text-[14px]" style={{ fontWeight: 500 }}>{formatMoney(applyViewMode(ranking.revenue))}</TableCell>
+                      <TableCell numeric className="text-[14px] text-muted-foreground">${applyViewMode(ranking.trueHourlyRate)}</TableCell>
+                      <TableCell numeric className="text-[14px] text-muted-foreground">{ranking.utilization}%</TableCell>
+                      <TableCell>
                         <div className="flex items-center gap-3">
                           <div className="flex-1 h-2 bg-accent/60 rounded-circle overflow-hidden">
                             <motion.div
@@ -615,12 +612,12 @@ export default function Insights() {
                           </div>
                           <span className="text-[13px] text-primary tabular-nums w-10 text-right" style={{ fontWeight: 600 }}>{ranking.share}%</span>
                         </div>
-                      </td>
-                      <td className="px-6 py-4 text-center">{trendIcon(ranking.trend)}</td>
-                    </motion.tr>
+                      </TableCell>
+                      <TableCell className="text-center">{trendIcon(ranking.trend)}</TableCell>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
               </div>
             </div>
           )}
