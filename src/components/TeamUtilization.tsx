@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useData } from "@/data/DataContext";
 import { MemberClientAssignments } from "./ClientAssignmentManager";
 import { formatMoney } from "@/lib/format";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 
 
 interface TeamMember {
@@ -215,34 +216,28 @@ export default function TeamUtilization() {
         ) : (
           <div className="bg-card border border-border rounded-xl overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.03)]">
             <div className="overflow-x-auto">
-            <table className="w-full min-w-[700px]">
-              <thead>
-                <tr className="border-b border-border bg-accent/30">
-                  <th className="text-left px-6 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Member</th>
-                  <th className="text-left px-6 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Role</th>
-                  <th className="text-left px-6 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Clients</th>
-                  <th className="text-right px-6 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Capacity</th>
-                  <th className="text-right px-6 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Hours</th>
-                  <th className="text-right px-6 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Billable</th>
-                  <th className="text-right px-6 py-3 text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Revenue</th>
-                  <th className="text-left px-6 py-3 text-[12px] text-muted-foreground w-40" style={{ fontWeight: 500 }}>Utilization</th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table className="min-w-[700px]">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Member</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Clients</TableHead>
+                  <TableHead numeric>Capacity</TableHead>
+                  <TableHead numeric>Hours</TableHead>
+                  <TableHead numeric>Billable</TableHead>
+                  <TableHead numeric>Revenue</TableHead>
+                  <TableHead className="w-40">Utilization</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {activeMembers.map((member, idx) => {
                   const m = memberMetrics.get(member.userId || "") || { hours: 0, billableHours: 0, revenue: 0 };
                   const memberUtil = m.hours > 0 ? Math.round((m.billableHours / m.hours) * 100) : 0;
                   const capacityLabel = CAPACITY_LABELS[member.weeklyCapacity];
 
                   return (
-                    <motion.tr
-                      key={member.id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.5 + idx * 0.06 }}
-                      className="border-b border-border last:border-0 hover:bg-accent/40 transition-colors"
-                    >
-                      <td className="px-6 py-4">
+                    <TableRow key={member.id}>
+                      <TableCell>
                         <div className="flex items-center gap-3">
                           {member.avatarUrl ? (
                             <img src={member.avatarUrl} alt={member.name || member.email} className="w-8 h-8 rounded-circle object-cover flex-shrink-0" />
@@ -258,8 +253,8 @@ export default function TeamUtilization() {
                             <div className="text-[12px] text-muted-foreground">{member.email}</div>
                           </div>
                         </div>
-                      </td>
-                      <td className="px-6 py-4">
+                      </TableCell>
+                      <TableCell>
                         <span
                           className={`inline-flex items-center px-2 py-0.5 text-[11px] rounded-full ${
                             member.role === "Owner" ? "bg-primary/10 text-primary" :
@@ -270,30 +265,30 @@ export default function TeamUtilization() {
                         >
                           {member.role}
                         </span>
-                      </td>
-                      <td className="px-6 py-4">
+                      </TableCell>
+                      <TableCell>
                         {workspaceId && (
                           <MemberClientAssignments memberId={member.id} workspaceId={workspaceId} />
                         )}
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <span className="text-[13px] tabular-nums" style={{ fontWeight: 500 }}>
+                      </TableCell>
+                      <TableCell numeric>
+                        <span className="text-[13px]" style={{ fontWeight: 500 }}>
                           {member.weeklyCapacity}h/w
                         </span>
                         {capacityLabel && (
                           <span className="text-[11px] text-muted-foreground ml-1.5">· {capacityLabel}</span>
                         )}
-                      </td>
-                      <td className="px-6 py-4 text-right text-[14px] tabular-nums" style={{ fontWeight: 500 }}>
+                      </TableCell>
+                      <TableCell numeric className="text-[14px]" style={{ fontWeight: 500 }}>
                         {Math.round(m.hours * 10) / 10}h
-                      </td>
-                      <td className="px-6 py-4 text-right text-[14px] tabular-nums text-muted-foreground">
+                      </TableCell>
+                      <TableCell numeric className="text-[14px] text-muted-foreground">
                         {Math.round(m.billableHours * 10) / 10}h
-                      </td>
-                      <td className="px-6 py-4 text-right text-[14px] tabular-nums" style={{ fontWeight: 500 }}>
+                      </TableCell>
+                      <TableCell numeric className="text-[14px]" style={{ fontWeight: 500 }}>
                         {formatMoney(Math.round(m.revenue))}
-                      </td>
-                      <td className="px-6 py-4">
+                      </TableCell>
+                      <TableCell>
                         <div className="flex items-center gap-3">
                           <div className="flex-1 h-2 bg-accent/60 rounded-circle overflow-hidden">
                             <motion.div
@@ -308,12 +303,12 @@ export default function TeamUtilization() {
                             {memberUtil}%
                           </span>
                         </div>
-                      </td>
-                    </motion.tr>
+                      </TableCell>
+                    </TableRow>
                   );
                 })}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
             </div>
 
             {/* Pending members section */}
