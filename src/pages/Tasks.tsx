@@ -84,6 +84,7 @@ export default function Tasks() {
     todo: tasks.filter(t => t.status === 'todo').length,
     in_progress: tasks.filter(t => t.status === 'in_progress').length,
     blocked: tasks.filter(t => t.status === 'blocked').length,
+    on_hold: tasks.filter(t => t.status === 'on_hold').length,
     done: tasks.filter(t => t.status === 'done').length,
   }), [tasks]);
 
@@ -105,7 +106,7 @@ export default function Tasks() {
   }, [tasks, statusFilter, clientFilter, tagFilter]);
 
   const cycleStatus = async (task: WorkspaceTask) => {
-    const order: TaskStatus[] = ['todo', 'in_progress', 'blocked', 'done'];
+    const order: TaskStatus[] = ['todo', 'in_progress', 'blocked', 'on_hold', 'done'];
     const next = order[(order.indexOf(task.status) + 1) % order.length];
     setTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: next, completed: next === 'done' } : t));
     try { await updateChecklistItem(task.id, { status: next }); }
