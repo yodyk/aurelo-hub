@@ -508,7 +508,7 @@ export default function Insights() {
                                         color: intensity > 0.5 ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
                                       }}
                                     >
-                                      ${rev.toLocaleString()}
+                                      {formatMoney(rev)}
                                     </span>
                                   </div>
                                 ) : (
