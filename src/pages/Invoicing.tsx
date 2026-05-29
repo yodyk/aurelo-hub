@@ -587,7 +587,9 @@ export default function Invoicing() {
             </div>
           </div>
         </motion.div>
+        </div>
       </motion.div>
+
 
       {/* Bulk action bar */}
       <AnimatePresence>
