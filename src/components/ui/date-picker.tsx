@@ -58,7 +58,7 @@ export function DatePicker({
         <button
           type="button"
           className={cn(
-            "w-full flex items-center gap-2 px-3 py-2 text-[14px] bg-accent/30 border border-border rounded-lg text-left transition-all hover:bg-accent/50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30",
+            "w-full flex items-center gap-2 h-[var(--control)] px-3 text-[13.5px] bg-[var(--input-background)] border border-transparent rounded-md text-left transition-all hover:border-[var(--hairline)] focus:outline-none focus-visible:border-[color-mix(in_oklab,var(--primary)_55%,transparent)] focus-visible:shadow-[var(--focus-ring)]",
             !value && "text-muted-foreground",
             className
           )}
