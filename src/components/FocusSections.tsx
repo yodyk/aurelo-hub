@@ -15,7 +15,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { motion } from 'motion/react';
-import { Clock, Hourglass, Eye, Repeat, Plus, Square, ChevronRight, CircleDot } from 'lucide-react';
+import { Clock, Hourglass, Eye, Repeat, Plus, ChevronRight, CircleDot } from 'lucide-react';
 import { parseISO, isPast, isToday, differenceInCalendarDays, format } from 'date-fns';
 
 import { useAuth } from '@/data/AuthContext';
@@ -549,11 +549,7 @@ export function FocusSections() {
           </div>
         </motion.section>
       )}
-
-      {/* Silence unused import warning */}
-      <span className="hidden">
-        <Square />
-      </span>
     </div>
   );
 }
+
