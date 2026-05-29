@@ -29,11 +29,12 @@ interface ChecklistPanelProps {
 
 // ── Status config ──────────────────────────────────────────────────
 
-const STATUSES: { value: TaskStatus; label: string; icon: any; dotClass: string; textClass: string; bgClass: string }[] = [
-  { value: 'todo',        label: 'To do',      icon: CircleDashed, dotClass: 'bg-muted-foreground/40', textClass: 'text-muted-foreground', bgClass: 'bg-muted/40' },
-  { value: 'in_progress', label: 'In progress', icon: CircleDot,    dotClass: 'bg-sky-500',             textClass: 'text-sky-600',          bgClass: 'bg-sky-500/10' },
-  { value: 'blocked',     label: 'Blocked',     icon: AlertCircle,  dotClass: 'bg-amber-500',           textClass: 'text-amber-600',        bgClass: 'bg-amber-500/10' },
-  { value: 'done',        label: 'Done',        icon: CheckCircle2, dotClass: 'bg-emerald-500',         textClass: 'text-emerald-600',      bgClass: 'bg-emerald-500/10' },
+const STATUSES: { value: TaskStatus; label: string; icon: any; dotClass: string; textClass: string; bgClass: string; borderClass: string }[] = [
+  { value: 'todo',        label: 'To Do',       icon: CircleDashed, dotClass: 'bg-muted-foreground/50', textClass: 'text-muted-foreground', bgClass: 'bg-muted/50',         borderClass: 'border-border' },
+  { value: 'in_progress', label: 'In Progress', icon: CircleDot,    dotClass: 'bg-sky-500',             textClass: 'text-sky-700 dark:text-sky-400', bgClass: 'bg-sky-500/10',       borderClass: 'border-sky-500/30' },
+  { value: 'blocked',     label: 'Blocked',     icon: AlertCircle,  dotClass: 'bg-red-500',             textClass: 'text-red-700 dark:text-red-400', bgClass: 'bg-red-500/10',       borderClass: 'border-red-500/30' },
+  { value: 'on_hold',     label: 'On Hold',     icon: PauseCircle,  dotClass: 'bg-amber-500',           textClass: 'text-amber-700 dark:text-amber-400', bgClass: 'bg-amber-500/10', borderClass: 'border-amber-500/30' },
+  { value: 'done',        label: 'Done',        icon: CheckCircle2, dotClass: 'bg-emerald-500',         textClass: 'text-emerald-700 dark:text-emerald-400', bgClass: 'bg-emerald-500/10', borderClass: 'border-emerald-500/30' },
 ];
 
 const STATUS_BY_VALUE = Object.fromEntries(STATUSES.map(s => [s.value, s]));
