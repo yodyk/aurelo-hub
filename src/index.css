@@ -498,30 +498,49 @@
 
 
   /* ── Typography utilities ── */
+  /* Aligned to Display-altitude tokens. metric-large / heading-display /
+     text-heading-xl are kept as semantic aliases for legacy call-sites. */
   .metric-large {
-    @apply text-3xl font-semibold tracking-tighter tabular-nums;
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 620;
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+    @apply text-foreground tabular-nums;
+    font-variant-numeric: tabular-nums;
   }
 
   .label-muted {
-    @apply text-[11px] font-medium tracking-wide text-muted-foreground;
+    font-size: var(--type-eyebrow-size);
+    font-weight: var(--type-eyebrow-weight);
+    letter-spacing: var(--type-eyebrow-tracking);
+    @apply text-muted-foreground uppercase;
   }
 
-  .heading-display {
-    @apply text-[24px] font-semibold text-foreground;
-    letter-spacing: -0.02em;
+  .heading-display,
+  .text-heading-xl {
+    font-family: var(--font-display);
+    font-size: var(--type-page-size);
+    font-weight: var(--type-page-weight);
+    line-height: var(--type-page-leading);
+    letter-spacing: var(--type-page-tracking);
+    @apply text-foreground;
   }
 
   .heading-section {
-    @apply text-sm font-medium text-foreground;
+    font-family: var(--font-display);
+    font-size: var(--type-section-size);
+    font-weight: var(--type-section-weight);
+    line-height: var(--type-section-leading);
+    letter-spacing: var(--type-section-tracking);
+    @apply text-foreground;
   }
 
   .text-metadata {
-    @apply text-[11px] font-medium tracking-wide text-muted-foreground;
-  }
-
-  .text-heading-xl {
-    @apply text-[24px] font-semibold text-foreground;
-    letter-spacing: -0.02em;
+    font-size: var(--type-meta-size);
+    font-weight: var(--type-meta-weight);
+    letter-spacing: var(--type-meta-tracking);
+    @apply text-muted-foreground;
   }
   .text-heading-lg {
     @apply text-lg font-semibold leading-snug;
