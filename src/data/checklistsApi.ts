@@ -170,7 +170,7 @@ export async function addChecklistItem(
       checklist_id: checklistId,
       text: task.text,
       description: task.description ?? null,
-      status: task.status ?? 'todo',
+      status: task.status ?? 'to_do',
       work_tags: task.workTags ?? [],
       due_date: task.dueDate ?? null,
       estimated_hours: task.estimatedHours ?? null,
