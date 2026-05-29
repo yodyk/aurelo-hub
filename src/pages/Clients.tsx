@@ -137,7 +137,7 @@ export default function Clients() {
             {canViewFinancials && (
               <>
                 <span className="opacity-40 mx-1.5">·</span>
-                <span className="tabular-nums">${totalMonthly.toLocaleString()}</span> this month
+                <span className="tabular-nums">{formatMoney(totalMonthly, { precision: "compact" })}</span> this month
               </>
             )}
           </>
