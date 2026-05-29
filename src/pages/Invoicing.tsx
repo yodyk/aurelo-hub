@@ -1723,7 +1723,7 @@ function InvoiceDetail({
               </div>
               {invoice.taxRate > 0 && (
                 <div className="flex justify-between text-[13px]">
-                  <span className="text-muted-foreground">Tax ({(invoice.taxRate * 100).toFixed(1)}%)</span>
+                  <span className="text-muted-foreground">Tax ({formatPercent(invoice.taxRate, { fraction: true })})</span>
                   <span className="tabular-nums" style={{ fontWeight: 500 }}>
                     {formatCurrency(invoice.taxAmount)}
                   </span>
