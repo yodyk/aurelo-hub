@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router";
 import { motion } from "motion/react";
-import { ArrowUpRight, Search, Plus, ChevronRight } from "lucide-react";
+import { ArrowUpRight, Search, Plus, ChevronRight, Users } from "lucide-react";
 import { useData } from "../data/DataContext";
 import { AddClientModal } from "../components/Modals";
 import { toast } from '@/lib/toast';
@@ -11,6 +11,7 @@ import { useRoleAccess } from "../data/useRoleAccess";
 import ClientAssignmentManager from "../components/ClientAssignmentManager";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader, SegmentedControl, HairlineBar, type SegmentOption } from "@/components/primitives/composition";
+import { EmptyState } from "@/components/primitives/EmptyState";
 import { formatMoney } from "@/lib/format";
 
 
