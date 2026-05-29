@@ -69,7 +69,7 @@ export default function Tasks() {
   const { workspaceId } = useAuth();
   const { clients } = useData();
   const { open, changeCounter } = useTaskDrawer();
-  const navigate = useNavigate();
+  
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [tasks, setTasks] = useState<WorkspaceTask[]>([]);
