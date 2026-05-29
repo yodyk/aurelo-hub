@@ -111,7 +111,7 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen flex bg-[#fafaf9]">
+    <div className="min-h-screen flex bg-[#FBFCFD]">
       {/* Left — Auth Form */}
       <div className="flex-1 flex items-center justify-center px-6 py-12 lg:px-16">
         <motion.div
@@ -133,7 +133,7 @@ export default function Signup() {
               </h1>
               <span
                 className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] text-white tracking-wide"
-                style={{ fontWeight: 600, background: "linear-gradient(135deg, #1e5f75, #2e7d9a)" }}
+                style={{ fontWeight: 600, background: "linear-gradient(135deg, #2D4BBE, #3B66F0)" }}
               >
                 Waitlist
               </span>
@@ -195,8 +195,8 @@ export default function Signup() {
               animate={{ opacity: 1, scale: 1 }}
               className="text-center py-8"
             >
-              <div className="w-12 h-12 rounded-full bg-[#2e7d9a]/10 flex items-center justify-center mx-auto mb-4">
-                <Check className="w-6 h-6 text-[#2e7d9a]" />
+              <div className="w-12 h-12 rounded-full bg-[#3B66F0]/10 flex items-center justify-center mx-auto mb-4">
+                <Check className="w-6 h-6 text-[#3B66F0]" />
               </div>
               <h2 className="text-[18px] text-[#1c1c1c] mb-2" style={{ fontWeight: 600 }}>
                 Account created!
@@ -228,7 +228,7 @@ export default function Signup() {
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Jane Smith"
                   autoComplete="name"
-                  className="w-full h-10 px-3 rounded-lg border border-black/10 bg-white text-[14px] text-[#1c1c1c] placeholder:text-[#b0b0b8] outline-none focus:border-[#2e7d9a]/40 focus:ring-2 focus:ring-[#2e7d9a]/10 transition-all"
+                  className="w-full h-10 px-3 rounded-lg border border-black/10 bg-white text-[14px] text-[#1c1c1c] placeholder:text-[#b0b0b8] outline-none focus:border-[#3B66F0]/40 focus:ring-2 focus:ring-[#3B66F0]/10 transition-all"
                 />
               </div>
 
@@ -242,7 +242,7 @@ export default function Signup() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@company.com"
                   autoComplete="email"
-                  className="w-full h-10 px-3 rounded-lg border border-black/10 bg-white text-[14px] text-[#1c1c1c] placeholder:text-[#b0b0b8] outline-none focus:border-[#2e7d9a]/40 focus:ring-2 focus:ring-[#2e7d9a]/10 transition-all"
+                  className="w-full h-10 px-3 rounded-lg border border-black/10 bg-white text-[14px] text-[#1c1c1c] placeholder:text-[#b0b0b8] outline-none focus:border-[#3B66F0]/40 focus:ring-2 focus:ring-[#3B66F0]/10 transition-all"
                 />
               </div>
 
@@ -257,7 +257,7 @@ export default function Signup() {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Create a password"
                     autoComplete="new-password"
-                    className="w-full h-10 px-3 pr-10 rounded-lg border border-black/10 bg-white text-[14px] text-[#1c1c1c] placeholder:text-[#b0b0b8] outline-none focus:border-[#2e7d9a]/40 focus:ring-2 focus:ring-[#2e7d9a]/10 transition-all"
+                    className="w-full h-10 px-3 pr-10 rounded-lg border border-black/10 bg-white text-[14px] text-[#1c1c1c] placeholder:text-[#b0b0b8] outline-none focus:border-[#3B66F0]/40 focus:ring-2 focus:ring-[#3B66F0]/10 transition-all"
                   />
                   <button
                     type="button"
@@ -280,12 +280,12 @@ export default function Signup() {
                       return (
                         <div key={rule.label} className="flex items-center gap-1">
                           {passed ? (
-                            <Check className="w-3 h-3 text-[#2e7d9a]" />
+                            <Check className="w-3 h-3 text-[#3B66F0]" />
                           ) : (
                             <X className="w-3 h-3 text-[#b0b0b8]" />
                           )}
                           <span
-                            className={`text-[11px] ${passed ? "text-[#2e7d9a]" : "text-[#b0b0b8]"}`}
+                            className={`text-[11px] ${passed ? "text-[#3B66F0]" : "text-[#b0b0b8]"}`}
                             style={{ fontWeight: 500 }}
                           >
                             {rule.label}
@@ -304,11 +304,11 @@ export default function Signup() {
                     type="checkbox"
                     checked={acceptedTerms}
                     onChange={(e) => setAcceptedTerms(e.target.checked)}
-                    className="mt-0.5 w-4 h-4 rounded border-black/15 text-[#2e7d9a] focus:ring-[#2e7d9a]/20 accent-[#2e7d9a]"
+                    className="mt-0.5 w-4 h-4 rounded border-black/15 text-[#3B66F0] focus:ring-[#3B66F0]/20 accent-[#3B66F0]"
                   />
                   <span className="text-[12px] text-[#717182] leading-snug">
                     I agree to the{' '}
-                    <Link to="/terms" target="_blank" className="text-[#2e7d9a] hover:underline" style={{ fontWeight: 500 }}>
+                    <Link to="/terms" target="_blank" className="text-[#3B66F0] hover:underline" style={{ fontWeight: 500 }}>
                       Terms of Service
                     </Link>
                   </span>
@@ -318,11 +318,11 @@ export default function Signup() {
                     type="checkbox"
                     checked={acceptedPrivacy}
                     onChange={(e) => setAcceptedPrivacy(e.target.checked)}
-                    className="mt-0.5 w-4 h-4 rounded border-black/15 text-[#2e7d9a] focus:ring-[#2e7d9a]/20 accent-[#2e7d9a]"
+                    className="mt-0.5 w-4 h-4 rounded border-black/15 text-[#3B66F0] focus:ring-[#3B66F0]/20 accent-[#3B66F0]"
                   />
                   <span className="text-[12px] text-[#717182] leading-snug">
                     I agree to the{' '}
-                    <Link to="/privacy" target="_blank" className="text-[#2e7d9a] hover:underline" style={{ fontWeight: 500 }}>
+                    <Link to="/privacy" target="_blank" className="text-[#3B66F0] hover:underline" style={{ fontWeight: 500 }}>
                       Privacy Policy
                     </Link>
                   </span>
@@ -332,7 +332,7 @@ export default function Signup() {
               <button
                 type="submit"
                 disabled={loading || !allValid || !consentsAccepted}
-                className="w-full h-10 rounded-lg bg-[#2e7d9a] text-white text-[14px] flex items-center justify-center gap-2 hover:bg-[#256a83] active:bg-[#1e5f75] disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
+                className="w-full h-10 rounded-lg bg-[#3B66F0] text-white text-[14px] flex items-center justify-center gap-2 hover:bg-[#3458D9] active:bg-[#2D4BBE] disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
                 style={{ fontWeight: 500 }}
               >
                 {loading ? (
@@ -353,7 +353,7 @@ export default function Signup() {
               Already have an account?{" "}
               <Link
                 to="/login"
-                className="text-[#2e7d9a] hover:text-[#256a83] transition-colors"
+                className="text-[#3B66F0] hover:text-[#3458D9] transition-colors"
                 style={{ fontWeight: 500 }}
               >
                 Sign in

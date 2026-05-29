@@ -212,3 +212,18 @@ Single-commit, value-only migration. Rollback = revert `src/index.css` and `tail
 ---
 
 **READY FOR PHASE 1B.**
+
+# PHASE 1F — Retired-Color Purge (executed)
+
+**Objective:** Eliminate every residual retired hex value from the application surface so the Cool Graphite + Cobalt palette governs at the source. Foundation closeout before App Shell work.
+
+**Mappings applied (verbatim hex → hex, preserves hover/active shading semantics):**
+- `#2e7d9a` (retired teal primary) → `#3B66F0` (Cobalt primary)
+- `#256a83` / `#256A83` (teal hover, ~90%) → `#3458D9`
+- `#1e5f75` / `#1E5F75` (teal active, ~80%) → `#2D4BBE`
+- `#fafaf9` / `#fafaf8` / `#f7f6f3` (retired beige bg) → `#FBFCFD` (Cool Graphite background)
+- `#8c7428` / `#bfa044` (retired mustard warning) → `#C2860C` (Amber warning)
+
+**Result:** 22 files touched, 0 retired hexes remaining (verified by `rg`). Hover/active state differentiation preserved by mapping each shade independently. No structural / layout / behavior changes. Future phases will progressively migrate these arbitrary classes to semantic Tailwind tokens (`primary`, `warning`, `background`) per component.
+
+**READY FOR PHASE 1G.**

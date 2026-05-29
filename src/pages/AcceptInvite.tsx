@@ -139,7 +139,7 @@ export default function AcceptInvite() {
   }, [acceptInvite, status]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#fafaf9] px-6">
+    <div className="min-h-screen flex items-center justify-center bg-[#FBFCFD] px-6">
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -152,8 +152,8 @@ export default function AcceptInvite() {
 
         {(status === "loading" || status === "accepting") && (
           <div className="space-y-4">
-            <div className="w-12 h-12 rounded-xl bg-[#2e7d9a]/10 flex items-center justify-center mx-auto">
-              <Loader2 className="w-6 h-6 text-[#2e7d9a] animate-spin" />
+            <div className="w-12 h-12 rounded-xl bg-[#3B66F0]/10 flex items-center justify-center mx-auto">
+              <Loader2 className="w-6 h-6 text-[#3B66F0] animate-spin" />
             </div>
             <h1 className="text-xl font-semibold text-[#1c1c1c]">
               {status === "loading" ? "Loading invitation…" : "Joining workspace…"}
@@ -187,7 +187,7 @@ export default function AcceptInvite() {
             <p className="text-sm text-[#717182]">{error}</p>
             <Link
               to="/"
-              className="inline-flex items-center gap-2 px-4 py-2 mt-2 text-sm font-medium rounded-lg bg-[#2e7d9a] text-white hover:bg-[#256a83] transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 mt-2 text-sm font-medium rounded-lg bg-[#3B66F0] text-white hover:bg-[#3458D9] transition-colors"
             >
               Go to Home
             </Link>
@@ -196,8 +196,8 @@ export default function AcceptInvite() {
 
         {status === "needs-login" && (
           <div className="space-y-5">
-            <div className="w-12 h-12 rounded-xl bg-[#2e7d9a]/10 flex items-center justify-center mx-auto">
-              <UserPlus className="w-6 h-6 text-[#2e7d9a]" />
+            <div className="w-12 h-12 rounded-xl bg-[#3B66F0]/10 flex items-center justify-center mx-auto">
+              <UserPlus className="w-6 h-6 text-[#3B66F0]" />
             </div>
             <h1 className="text-xl font-semibold text-[#1c1c1c]">
               You've been invited
@@ -214,7 +214,7 @@ export default function AcceptInvite() {
             <div className="flex flex-col gap-2.5 pt-2">
               <Link
                 to={`/login?redirect=/accept-invite?id=${inviteId}`}
-                className="w-full h-10 rounded-lg bg-[#2e7d9a] text-white text-sm font-medium flex items-center justify-center hover:bg-[#256a83] transition-colors"
+                className="w-full h-10 rounded-lg bg-[#3B66F0] text-white text-sm font-medium flex items-center justify-center hover:bg-[#3458D9] transition-colors"
               >
                 Sign in to accept
               </Link>

@@ -620,7 +620,7 @@ export function EditClientModal({ open, onClose, client, onSave, workspaceId, is
                     className="h-full rounded-full transition-all duration-300"
                     style={{
                       width: `${Math.max(0, Math.min(100, ((retainerTotalNum - retainerRemainingNum) / retainerTotalNum) * 100))}%`,
-                      background: retainerUsedPct > 85 ? '#2e7d9a' : 'linear-gradient(90deg, #2e7d9a, #5bb8d4)',
+                      background: retainerUsedPct > 85 ? '#3B66F0' : 'linear-gradient(90deg, #3B66F0, #5bb8d4)',
                     }}
                   />
                 </div>
@@ -1209,8 +1209,8 @@ export function LogSessionModal({ open, onClose, onSave, clients, preSelectedCli
                     style={{
                       width: `${Math.max(0, Math.min(100, ((selectedClient.retainerTotal - Math.max(0, (selectedClient.retainerRemaining || 0) - durationNum)) / selectedClient.retainerTotal) * 100))}%`,
                       background: ((selectedClient.retainerTotal - Math.max(0, (selectedClient.retainerRemaining || 0) - durationNum)) / selectedClient.retainerTotal) > 0.85
-                        ? '#2e7d9a'
-                        : 'linear-gradient(90deg, #2e7d9a, #5bb8d4)',
+                        ? '#3B66F0'
+                        : 'linear-gradient(90deg, #3B66F0, #5bb8d4)',
                     }}
                   />
                 </div>
@@ -1230,7 +1230,7 @@ export function LogSessionModal({ open, onClose, onSave, clients, preSelectedCli
                   <div className="mb-2">
                     {(selectedProject.hours || 0) > 0 ? (
                       <div className="text-[11px] text-muted-foreground">
-                        This project: <span className="tabular-nums" style={{ fontWeight: 500, color: '#2e7d9a' }}>${Math.round(selectedProject.totalValue / (selectedProject.hours || 1))}/hr</span> effective across {selectedProject.hours}h logged
+                        This project: <span className="tabular-nums" style={{ fontWeight: 500, color: '#3B66F0' }}>${Math.round(selectedProject.totalValue / (selectedProject.hours || 1))}/hr</span> effective across {selectedProject.hours}h logged
                       </div>
                     ) : (
                       <div className="text-[11px] text-muted-foreground">
@@ -1240,7 +1240,7 @@ export function LogSessionModal({ open, onClose, onSave, clients, preSelectedCli
                     {durationNum > 0 && (selectedProject.hours || 0) + durationNum > 0 && (() => {
                       const newEffRate = Math.round(selectedProject.totalValue / ((selectedProject.hours || 0) + durationNum));
                       const cl = clients.find(c => c.id === clientId);
-                      const rateColor = cl && newEffRate < (cl.rate * 0.5) ? '#c27272' : cl && newEffRate < cl.rate ? '#bfa044' : '#2e7d9a';
+                      const rateColor = cl && newEffRate < (cl.rate * 0.5) ? '#c27272' : cl && newEffRate < cl.rate ? '#C2860C' : '#3B66F0';
                       return (
                         <div className="text-[11px] text-muted-foreground mt-0.5">
                           After this session: <span className="tabular-nums" style={{ fontWeight: 500, color: rateColor }}>${newEffRate}/hr</span>
@@ -1263,8 +1263,8 @@ export function LogSessionModal({ open, onClose, onSave, clients, preSelectedCli
                         style={{
                           width: `${Math.min(100, (((selectedProject.hours || 0) + durationNum) / selectedProject.estimatedHours) * 100)}%`,
                           background: (((selectedProject.hours || 0) + durationNum) / selectedProject.estimatedHours) > 0.9
-                            ? '#2e7d9a'
-                            : 'linear-gradient(90deg, #2e7d9a, #5bb8d4)',
+                            ? '#3B66F0'
+                            : 'linear-gradient(90deg, #3B66F0, #5bb8d4)',
                         }}
                       />
                     </div>

@@ -45,8 +45,8 @@ import { PageHeader, SegmentedControl, type SegmentOption } from "@/components/p
 
 // ── Constants ──────────────────────────────────────────────────────
 
-const BLUE = "#2e7d9a";
-const GOLD = "#bfa044";
+const BLUE = "#3B66F0";
+const GOLD = "#C2860C";
 const RED = "#c27272";
 
 const container = {
@@ -502,8 +502,8 @@ export default function Invoicing() {
               </div>
             ) : filtered.length === 0 ? (
               <div className="py-16 text-center">
-                <div className="w-12 h-12 rounded-xl bg-[#2e7d9a]/10 flex items-center justify-center mx-auto mb-4">
-                  <FileText className="w-5 h-5 text-[#2e7d9a]" />
+                <div className="w-12 h-12 rounded-xl bg-[#3B66F0]/10 flex items-center justify-center mx-auto mb-4">
+                  <FileText className="w-5 h-5 text-[#3B66F0]" />
                 </div>
                 <h3 className="text-[15px] text-foreground mb-1.5" style={{ fontWeight: 600 }}>
                   {invoices.length === 0 ? "No invoices yet" : "No matching invoices"}
@@ -1287,7 +1287,7 @@ function InvoiceBuilder({
                 {clientId && clientSessions.length > 0 && (
                   <button
                     onClick={() => setShowImport(true)}
-                    className="inline-flex items-center gap-1 text-[12px] text-[#2e7d9a] hover:text-[#2e7d9a]/80 transition-colors"
+                    className="inline-flex items-center gap-1 text-[12px] text-[#3B66F0] hover:text-[#3B66F0]/80 transition-colors"
                     style={{ fontWeight: 500 }}
                   >
                     <Import className="w-3 h-3" />
@@ -1660,9 +1660,9 @@ function InvoiceDetail({
 
           {/* Stripe integration status */}
           {invoice.stripeInvoiceId && (
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#2e7d9a]/6 border border-[#2e7d9a]/12">
-              <CreditCard className="w-3.5 h-3.5 text-[#2e7d9a]" />
-              <span className="text-[12px] text-[#2e7d9a]" style={{ fontWeight: 500 }}>
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#3B66F0]/6 border border-[#3B66F0]/12">
+              <CreditCard className="w-3.5 h-3.5 text-[#3B66F0]" />
+              <span className="text-[12px] text-[#3B66F0]" style={{ fontWeight: 500 }}>
                 Connected to Stripe
               </span>
               <span className="text-[11px] text-muted-foreground ml-auto">{invoice.stripeInvoiceId}</span>
@@ -1772,15 +1772,15 @@ function InvoiceDetail({
         {/* Payment link */}
         {invoice.stripePaymentUrl && (
           <div className="px-6 pb-2">
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#2e7d9a]/6 border border-[#2e7d9a]/12">
-              <CreditCard className="w-3.5 h-3.5 text-[#2e7d9a] flex-shrink-0" />
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#3B66F0]/6 border border-[#3B66F0]/12">
+              <CreditCard className="w-3.5 h-3.5 text-[#3B66F0] flex-shrink-0" />
               <span className="text-[12px] text-muted-foreground truncate flex-1">{invoice.stripePaymentUrl}</span>
               <button
                 onClick={() => {
                   navigator.clipboard.writeText(invoice.stripePaymentUrl!);
                   toast.success("Payment link copied!");
                 }}
-                className="text-[11px] text-[#2e7d9a] hover:underline flex-shrink-0"
+                className="text-[11px] text-[#3B66F0] hover:underline flex-shrink-0"
                 style={{ fontWeight: 500 }}
               >
                 Copy
@@ -1794,7 +1794,7 @@ function InvoiceDetail({
           {stripeConnected && (invoice.status === "draft" || invoice.status === "sent") && (
             <button
               onClick={onGetPaymentLink}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-[13px] text-[#2e7d9a] border border-[#2e7d9a]/20 rounded-lg hover:bg-[#2e7d9a]/8 transition-all"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-[13px] text-[#3B66F0] border border-[#3B66F0]/20 rounded-lg hover:bg-[#3B66F0]/8 transition-all"
               style={{ fontWeight: 500 }}
             >
               <CreditCard className="w-3.5 h-3.5" />
@@ -1804,7 +1804,7 @@ function InvoiceDetail({
           {(invoice.status === "draft" || invoice.status === "sent" || invoice.status === "overdue") && (
             <button
               onClick={onSend}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] bg-[#2e7d9a] text-white rounded-lg hover:opacity-90 transition-all"
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] bg-[#3B66F0] text-white rounded-lg hover:opacity-90 transition-all"
               style={{ fontWeight: 500 }}
             >
               <Send className="w-3.5 h-3.5" />
@@ -1814,7 +1814,7 @@ function InvoiceDetail({
           {invoice.status === "sent" && (
             <button
               onClick={onMarkPaid}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] bg-[#2e7d9a] text-white rounded-lg hover:opacity-90 transition-all"
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] bg-[#3B66F0] text-white rounded-lg hover:opacity-90 transition-all"
               style={{ fontWeight: 500 }}
             >
               <CheckCircle2 className="w-3.5 h-3.5" />
@@ -1912,8 +1912,8 @@ function LockedInvoicingPreview() {
               className="relative bg-card border border-border rounded-2xl p-8 max-w-sm text-center"
               style={{ boxShadow: "0 8px 32px rgba(0,0,0,0.08)" }}
             >
-              <div className="w-11 h-11 rounded-xl bg-[#2e7d9a]/10 flex items-center justify-center mx-auto mb-4">
-                <Lock className="w-5 h-5 text-[#2e7d9a]" />
+              <div className="w-11 h-11 rounded-xl bg-[#3B66F0]/10 flex items-center justify-center mx-auto mb-4">
+                <Lock className="w-5 h-5 text-[#3B66F0]" />
               </div>
               <h3 className="text-[16px] text-foreground mb-1.5" style={{ fontWeight: 600 }}>
                 Unlock invoicing

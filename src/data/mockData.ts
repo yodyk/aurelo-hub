@@ -189,7 +189,7 @@ export const revenueBreakdown = {
 export const workspace = {
   name: '',
   url: '',
-  brandColor: '#2e7d9a',
+  brandColor: '#3B66F0',
   userName: '',
   userEmail: '',
   userInitials: '',

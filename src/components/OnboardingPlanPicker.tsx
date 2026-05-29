@@ -37,8 +37,8 @@ const HIGHLIGHTS: Record<string, string[]> = {
 
 const ACCENT: Record<string, string> = {
   starter: '#78716c',
-  pro: '#2e7d9a',
-  studio: '#bfa044',
+  pro: '#3B66F0',
+  studio: '#C2860C',
 };
 
 interface Props {
@@ -52,8 +52,8 @@ export function OnboardingPlanPicker({ onContinue }: Props) {
     <div className="text-center">
       {/* Heading */}
       <div className="mb-6">
-        <div className="w-12 h-12 rounded-2xl bg-[#2e7d9a]/8 flex items-center justify-center mx-auto mb-5">
-          <Crown className="w-6 h-6 text-[#2e7d9a]" />
+        <div className="w-12 h-12 rounded-2xl bg-[#3B66F0]/8 flex items-center justify-center mx-auto mb-5">
+          <Crown className="w-6 h-6 text-[#3B66F0]" />
         </div>
         <h2
           className="text-[24px] text-[#1c1c1c] mb-2"
@@ -77,7 +77,7 @@ export function OnboardingPlanPicker({ onContinue }: Props) {
         </span>
         <button
           onClick={() => setInterval(interval === 'monthly' ? 'annual' : 'monthly')}
-          className={`relative w-11 h-6 rounded-full transition-colors ${interval === 'annual' ? 'bg-[#2e7d9a]' : 'bg-stone-200'}`}
+          className={`relative w-11 h-6 rounded-full transition-colors ${interval === 'annual' ? 'bg-[#3B66F0]' : 'bg-stone-200'}`}
         >
           <div
             className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform"
@@ -91,7 +91,7 @@ export function OnboardingPlanPicker({ onContinue }: Props) {
         >
           Annual
         </span>
-        <span className="text-[11px] text-[#2e7d9a] px-2 py-0.5 rounded-full bg-[#2e7d9a]/10" style={{ fontWeight: 600 }}>
+        <span className="text-[11px] text-[#3B66F0] px-2 py-0.5 rounded-full bg-[#3B66F0]/10" style={{ fontWeight: 600 }}>
           Save 2 months
         </span>
       </div>
@@ -126,7 +126,7 @@ export function OnboardingPlanPicker({ onContinue }: Props) {
               }}
               className={`relative rounded-xl border p-5 text-left flex flex-col ${
                 recommended
-                  ? 'border-[#2e7d9a]/40 ring-2 ring-[#2e7d9a]/10 bg-white'
+                  ? 'border-[#3B66F0]/40 ring-2 ring-[#3B66F0]/10 bg-white'
                   : 'border-black/[0.06] bg-white'
               }`}
               style={{
@@ -138,7 +138,7 @@ export function OnboardingPlanPicker({ onContinue }: Props) {
               {/* Recommended badge */}
               {recommended && (
                 <div
-                  className="absolute -top-2.5 left-4 px-2.5 py-0.5 rounded-full text-[10px] text-white bg-[#2e7d9a]"
+                  className="absolute -top-2.5 left-4 px-2.5 py-0.5 rounded-full text-[10px] text-white bg-[#3B66F0]"
                   style={{ fontWeight: 600, letterSpacing: '0.04em' }}
                 >
                   RECOMMENDED
@@ -167,7 +167,7 @@ export function OnboardingPlanPicker({ onContinue }: Props) {
                       <span className="text-[12px] text-[#a8a29e]">/mo</span>
                     </div>
                     {interval === 'annual' && savings > 0 && (
-                      <p className="text-[10px] text-[#2e7d9a] mt-1" style={{ fontWeight: 600 }}>
+                      <p className="text-[10px] text-[#3B66F0] mt-1" style={{ fontWeight: 600 }}>
                         Save ${savings}/yr ({monthsFree} months free)
                       </p>
                     )}

@@ -181,7 +181,7 @@ export default function ClientPortal() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#f8f9fb] flex items-center justify-center">
-        <Loader2 className="w-6 h-6 text-[#2e7d9a] animate-spin" />
+        <Loader2 className="w-6 h-6 text-[#3B66F0] animate-spin" />
       </div>
     );
   }
@@ -199,7 +199,7 @@ export default function ClientPortal() {
   }
 
   const { client, projects, sessions, invoices, checklists, showCosts, branding } = data;
-  const accent = branding.isWhiteLabel && branding.brandColor ? branding.brandColor : "#2e7d9a";
+  const accent = branding.isWhiteLabel && branding.brandColor ? branding.brandColor : "#3B66F0";
 
   const totalInvoiced = invoices.reduce((sum, inv) => sum + inv.total, 0);
   const paidInvoices = invoices.filter(i => i.status.toLowerCase() === "paid");
