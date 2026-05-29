@@ -490,13 +490,11 @@ export default function Invoicing() {
           </motion.div>
 
 
-        {/* Invoice table */}
+        {/* Invoice ledger */}
         <motion.div variants={item}>
-          <div
-            className="bg-card border border-border rounded-xl overflow-hidden"
-            style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}
-          >
+          <div className="border-t border-border">
             <div className="overflow-x-auto">
+
             {loading ? (
               <div className="flex items-center justify-center py-16">
                 <div className="w-5 h-5 border-2 border-primary/20 border-t-primary rounded-circle animate-spin" />
