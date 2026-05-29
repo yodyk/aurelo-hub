@@ -477,9 +477,12 @@ export default function TimeLog() {
               ))}
 
               {groupedSessions.length === 0 && (
-                <div className="py-20 text-center type-meta text-muted-foreground">
-                  No sessions logged today. The day is still yours.
-                </div>
+                <EmptyState
+                  glyph={Clock}
+                  title="No sessions logged"
+                  body="The day is still yours. Start the timer or log a session."
+                  primaryAction={{ label: "Log session", icon: Plus, onClick: () => setShowLogModal(true) }}
+                />
               )}
             </div>
           </>
