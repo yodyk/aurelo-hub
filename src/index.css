@@ -134,6 +134,18 @@
   --type-eyebrow-size: 10.5px;
   --type-eyebrow-weight: 600;
   --type-eyebrow-tracking: 0.09em;
+
+  /* Control heights — one ladder for buttons, inputs, triggers, chips */
+  --control-sm: 28px;
+  --control: 32px;
+  --control-lg: 36px;
+  --control-xl: 40px;
+
+  /* Focus halo — single token applied identically across all controls */
+  --focus-ring: 0 0 0 3px rgba(59, 102, 240, 0.30);
+
+  /* Table row hover — softer than accent token to reduce noise */
+  --row-hover: rgba(15, 23, 35, 0.035);
 }
 
 .dark {
