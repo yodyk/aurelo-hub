@@ -28,6 +28,7 @@ import { usePlan } from "../data/PlanContext";
 import { PLANS } from "../data/plans";
 import { computeInsightsMetrics, type InsightsMetrics } from "../data/insightsMetrics";
 import * as invoiceApi from "../data/invoiceApi";
+import { PageHeader, SegmentedControl, type SegmentOption } from "@/components/primitives/composition";
 
 const container = {
   hidden: {},
