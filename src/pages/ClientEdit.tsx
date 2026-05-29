@@ -12,6 +12,8 @@ import { usePlan } from '@/data/PlanContext';
 import { useRoleAccess } from '@/data/useRoleAccess';
 import { supabase } from '@/integrations/supabase/client';
 import { SettingsSaveBar, UnsavedChangesDialog } from '@/components/SettingsSaveBar';
+import { formatMoney } from '@/lib/format';
+
 import * as settingsApi from '@/data/settingsApi';
 
 // ── Types ───────────────────────────────────────────────────────────
