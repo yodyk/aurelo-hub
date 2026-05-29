@@ -4,84 +4,141 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ──────────────────────────────────────────────────────────────
+ * Foundation tokens — Monarch-calm + Apple HIG
+ * Layered neutral surfaces, restrained teal accent, soft borders,
+ * subtle elevation. Hex/oklch literals are intentional (overridden
+ * via @theme inline below — do not switch to bare HSL).
+ * ────────────────────────────────────────────────────────────── */
 :root {
   --font-size: 16px;
-  --background: #f5f5f4;
-  --foreground: oklch(0.145 0 0);
+
+  /* Surfaces — paper → card → raised, layered grayscale */
+  --background: #f7f6f3;          /* warm paper, calmer than #f5f5f4 */
+  --surface-sunken: #f0efeb;      /* recessed wells (search bars, code) */
+  --surface-raised: #ffffff;      /* cards, sheets */
+  --surface-overlay: #ffffff;     /* popovers, dialogs */
+
+  --foreground: oklch(0.16 0 0);
+  --foreground-muted: #57534e;
+  --foreground-subtle: #8a847e;
+
   --card: #ffffff;
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.16 0 0);
+  --popover: #ffffff;
+  --popover-foreground: oklch(0.16 0 0);
+
+  /* Accent — teal, used sparingly */
   --primary: #2e7d9a;
   --primary-foreground: #ffffff;
-  --secondary: oklch(0.95 0.0058 264.53);
-  --secondary-foreground: #030213;
-  --muted: #ececf0;
-  --muted-foreground: #636371;
-  --accent: #e9ebef;
-  --accent-foreground: #030213;
+  --primary-soft: rgba(46, 125, 154, 0.08);
+  --primary-glow: rgba(46, 125, 154, 0.18);
+
+  --secondary: #efeeea;
+  --secondary-foreground: #1f1d1b;
+  --muted: #efeeea;
+  --muted-foreground: #6b6660;
+  --accent: #e9e7e2;
+  --accent-foreground: #1f1d1b;
+
   --destructive: #c01636;
   --destructive-foreground: #ffffff;
   --success: #2f7d4f;
   --success-foreground: #1a3d2a;
   --warning: #8c7428;
   --warning-foreground: #4d4018;
-  --border: rgba(0, 0, 0, 0.06);
+
+  /* Borders — hairlines, near-invisible by default */
+  --border: rgba(15, 12, 10, 0.06);
+  --border-strong: rgba(15, 12, 10, 0.10);
+  --hairline: rgba(15, 12, 10, 0.04);
+
   --input: transparent;
-  --input-background: #f3f3f5;
+  --input-background: #f1efea;
   --switch-background: #cbced4;
   --font-weight-medium: 500;
   --font-weight-normal: 400;
-  --ring: oklch(0.708 0 0);
+  --ring: rgba(46, 125, 154, 0.45);
+
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
   --radius: 0.25rem;
-  --sidebar: #fafaf9;
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: #030213;
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: rgba(0, 0, 0, 0.06);
-  --sidebar-ring: oklch(0.708 0 0);
+
+  --sidebar: #f3f1ec;             /* sits between bg and card — distinct chrome */
+  --sidebar-foreground: oklch(0.16 0 0);
+  --sidebar-primary: #1f1d1b;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e9e7e2;
+  --sidebar-accent-foreground: #1f1d1b;
+  --sidebar-border: rgba(15, 12, 10, 0.05);
+  --sidebar-ring: rgba(46, 125, 154, 0.45);
+
+  /* Elevation — soft, layered, never harsh */
+  --elev-1: 0 1px 0 rgba(15,12,10,0.04), 0 1px 2px rgba(15,12,10,0.03);
+  --elev-2: 0 1px 0 rgba(15,12,10,0.04), 0 4px 12px rgba(15,12,10,0.05);
+  --elev-3: 0 2px 0 rgba(15,12,10,0.04), 0 12px 32px rgba(15,12,10,0.08);
+
+  /* Motion — Apple-style ease + spring proxies */
+  --ease-emphasized: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .dark {
-  --background: #161615;
-  --foreground: #e7e5e4;
-  --card: #1e1e1d;
-  --card-foreground: #e7e5e4;
-  --popover: #1e1e1d;
-  --popover-foreground: #e7e5e4;
+  /* Cinematic, near-black neutrals — not pitch black, not warm-brown */
+  --background: #0e0f10;
+  --surface-sunken: #0a0b0c;
+  --surface-raised: #181a1c;
+  --surface-overlay: #1c1e21;
+
+  --foreground: #ececea;
+  --foreground-muted: #a8a39b;
+  --foreground-subtle: #6e6962;
+
+  --card: #16181a;
+  --card-foreground: #ececea;
+  --popover: #1c1e21;
+  --popover-foreground: #ececea;
+
   --primary: #5bb8d4;
-  --primary-foreground: #0a1e26;
-  --secondary: #2a2a29;
-  --secondary-foreground: #e7e5e4;
-  --muted: #2a2a29;
-  --muted-foreground: #b5b0aa;
-  --accent: #2a2a29;
-  --accent-foreground: #e7e5e4;
+  --primary-foreground: #07181f;
+  --primary-soft: rgba(91, 184, 212, 0.10);
+  --primary-glow: rgba(91, 184, 212, 0.22);
+
+  --secondary: #232628;
+  --secondary-foreground: #ececea;
+  --muted: #1f2123;
+  --muted-foreground: #9a958d;
+  --accent: #24272a;
+  --accent-foreground: #ececea;
+
   --destructive: #e0686e;
   --destructive-foreground: #1a0506;
   --success: #6dc491;
   --success-foreground: #0e2818;
   --warning: #d4b84e;
   --warning-foreground: #1f1a08;
-  --border: rgba(255, 255, 255, 0.07);
+
+  --border: rgba(255, 255, 255, 0.06);
+  --border-strong: rgba(255, 255, 255, 0.10);
+  --hairline: rgba(255, 255, 255, 0.035);
+
   --input: transparent;
-  --input-background: #2a2a29;
-  --switch-background: #57534e;
-  --ring: #5bb8d4;
-  --font-weight-medium: 500;
-  --font-weight-normal: 400;
+  --input-background: #1f2123;
+  --switch-background: #45433f;
+  --ring: rgba(91, 184, 212, 0.50);
+
   --chart-1: #5bb8d4;
   --chart-2: #7fc8df;
   --chart-3: #b5b0aa;
   --chart-4: #78716c;
   --chart-5: #57534e;
+
+  --elev-1: 0 1px 0 rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3);
+  --elev-2: 0 1px 0 rgba(0,0,0,0.4), 0 6px 16px rgba(0,0,0,0.35);
+  --elev-3: 0 2px 0 rgba(0,0,0,0.4), 0 18px 40px rgba(0,0,0,0.5);
   --sidebar: #1a1a19;
   --sidebar-foreground: #e7e5e4;
   --sidebar-primary: #5bb8d4;
