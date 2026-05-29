@@ -586,13 +586,7 @@ export default function ClientDetail() {
   // ═════════════════════════════════════════════════════════════════
   return (
     <motion.div className="w-full min-w-0 page-wrapper" variants={container} initial="hidden" animate="show">
-      {/* Breadcrumb */}
-      <motion.div variants={item} className="mb-3">
-        <Link to="/clients" className="type-meta text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1">
-          <ChevronLeft className="w-3 h-3" />
-          Clients
-        </Link>
-      </motion.div>
+      {/* Breadcrumb is provided by the global shell — no local back link needed */}
 
       {/* ── Editorial masthead ────────────────────────────────────── */}
       <motion.div variants={item} className="mb-6 md:mb-8">
@@ -751,17 +745,36 @@ export default function ClientDetail() {
             {activeTab === "work" && (
               <>
                 <section>
-                  <div className="type-eyebrow mb-4">Projects</div>
+                  <div className="flex items-baseline justify-between mb-4">
+                    <div className="type-eyebrow">Projects <span className="text-muted-foreground/60 ml-1">({projects.length})</span></div>
+                    <button
+                      onClick={() => setShowProjectModal(true)}
+                      className="h-8 px-3 inline-flex items-center gap-1.5 rounded-md border border-[var(--hairline)] hover:bg-accent/60 transition-colors cursor-pointer text-[12.5px] text-muted-foreground hover:text-foreground"
+                      style={{ fontWeight: 500 }}
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      Add project
+                    </button>
+                  </div>
                   <ProjectsTab
                     projects={projects}
                     client={client}
                     canViewFinancials={canViewFinancials}
-                    onAddProject={() => setShowProjectModal(true)}
                     onNavigate={(pId: string) => navigate(`/projects/${clientId}/${pId}`)}
                   />
                 </section>
                 <section>
-                  <div className="type-eyebrow mb-4">Sessions</div>
+                  <div className="flex items-baseline justify-between mb-4">
+                    <div className="type-eyebrow">Sessions <span className="text-muted-foreground/60 ml-1">({clientSessions.length})</span></div>
+                    <button
+                      onClick={() => setShowLogModal(true)}
+                      className="h-8 px-3 inline-flex items-center gap-1.5 rounded-md border border-[var(--hairline)] hover:bg-accent/60 transition-colors cursor-pointer text-[12.5px] text-muted-foreground hover:text-foreground"
+                      style={{ fontWeight: 500 }}
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      Log session
+                    </button>
+                  </div>
                   <SessionsTab
                     clientSessions={clientSessions}
                     client={client}
@@ -769,7 +782,6 @@ export default function ClientDetail() {
                     selectedIds={selectedIds}
                     onToggleSelect={toggleSelect}
                     onToggleSelectAll={toggleSelectAll}
-                    onLogSession={() => setShowLogModal(true)}
                     onEditSession={setEditingSession}
                   />
                 </section>
@@ -1714,19 +1726,10 @@ function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (
 // ═══════════════════════════════════════════════════════════════════
 // Projects Tab
 // ═══════════════════════════════════════════════════════════════════
-function ProjectsTab({ projects, client, canViewFinancials, onAddProject, onNavigate }: any) {
+function ProjectsTab({ projects, client, canViewFinancials, onNavigate }: any) {
   return (
     <div>
-      <div className="flex items-center justify-end -mt-12 mb-3 relative z-10">
-        <button
-          onClick={onAddProject}
-          className="h-8 px-3 inline-flex items-center gap-1.5 rounded-md border border-[var(--hairline)] hover:bg-accent/60 transition-colors cursor-pointer text-[12.5px] text-muted-foreground hover:text-foreground"
-          style={{ fontWeight: 500 }}
-        >
-          <Plus className="w-3.5 h-3.5" />
-          Add project
-        </button>
-      </div>
+
       {projects.length > 0 ? (
         <div className="overflow-x-auto border-y border-[var(--hairline)]">
           <table className="w-full min-w-[600px]">
@@ -1784,19 +1787,10 @@ function ProjectsTab({ projects, client, canViewFinancials, onAddProject, onNavi
 // ═══════════════════════════════════════════════════════════════════
 // Sessions Tab
 // ═══════════════════════════════════════════════════════════════════
-function SessionsTab({ clientSessions, client: _client, canViewFinancials, selectedIds, onToggleSelect, onToggleSelectAll, onLogSession, onEditSession }: any) {
+function SessionsTab({ clientSessions, client: _client, canViewFinancials, selectedIds, onToggleSelect, onToggleSelectAll, onEditSession }: any) {
   return (
     <div>
-      <div className="flex items-center justify-end -mt-12 mb-3 relative z-10">
-        <button
-          onClick={onLogSession}
-          className="h-8 px-3 inline-flex items-center gap-1.5 rounded-md border border-[var(--hairline)] hover:bg-accent/60 transition-colors cursor-pointer text-[12.5px] text-muted-foreground hover:text-foreground"
-          style={{ fontWeight: 500 }}
-        >
-          <Plus className="w-3.5 h-3.5" />
-          Log session
-        </button>
-      </div>
+
       {clientSessions.length > 0 ? (
         <div className="overflow-x-auto border-y border-[var(--hairline)]">
           <table className="w-full min-w-[600px]">
