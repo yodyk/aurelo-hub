@@ -388,7 +388,7 @@ export default function TimeLog() {
                       {canViewFinancials && (
                         <>
                           <span className="opacity-40 mx-1.5">·</span>
-                          ${group.totalRevenue.toLocaleString()}
+                          {formatMoney(group.totalRevenue)}
                         </>
                       )}
                     </div>
