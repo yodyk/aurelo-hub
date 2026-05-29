@@ -389,11 +389,11 @@ export default function Today() {
 
 
 
-        {/* ── Needs You rail ── */}
+        {/* ── Needs Attention rail ── */}
         {signals.length > 0 && (
           <motion.section variants={item}>
             <SectionEyebrow trailing={`${signals.length} item${signals.length === 1 ? "" : "s"}`}>
-              Needs you
+              Needs attention
             </SectionEyebrow>
             <ul className="mt-3 divide-y divide-border border-y border-border">
               {signals.map((sig) => {
@@ -500,10 +500,10 @@ export default function Today() {
           </SectionEyebrow>
 
           <div className="mt-3">
-            <HairlineBar value={weekHours / weeklyTarget} threshold={false} height={2} />
+            <HairlineBar value={weekHours / weeklyTarget} threshold={false} height={4} />
           </div>
 
-          <div className="mt-5 flex items-end gap-3">
+          <div className="mt-5 flex items-end gap-3 border-b border-border">
             {weekDays.map((d) => {
               const maxH = Math.max(...weekDays.map((x) => x.hours), 1);
               const ratio = d.hours > 0 ? Math.max(d.hours / maxH, 0.05) : 0;
@@ -513,7 +513,7 @@ export default function Today() {
                   ? "var(--primary)"
                   : "color-mix(in oklab, var(--primary) 40%, transparent)";
               return (
-                <div key={d.label} className="flex-1 flex flex-col items-center gap-2">
+                <div key={d.label} className="flex-1 flex flex-col items-center gap-0">
                   <div className="relative w-full flex items-end justify-center" style={{ height: 56 }}>
                     {d.hours > 0 && (
                       <span className="absolute -top-1 type-meta tabular-nums">{Math.round(d.hours * 10) / 10}h</span>
@@ -523,15 +523,21 @@ export default function Today() {
                       style={{ height: `${ratio * 44}px`, background: barColor, minHeight: d.hours === 0 ? 1 : 4 }}
                     />
                   </div>
-                  <span
-                    className={`type-meta ${d.isToday ? "text-foreground" : ""}`}
-                    style={{ fontWeight: d.isToday ? 600 : 400 }}
-                  >
-                    {d.label}
-                  </span>
                 </div>
               );
             })}
+          </div>
+          <div className="mt-2 flex items-end gap-3">
+            {weekDays.map((d) => (
+              <div key={d.label} className="flex-1 flex justify-center">
+                <span
+                  className={`type-meta ${d.isToday ? "text-foreground" : ""}`}
+                  style={{ fontWeight: d.isToday ? 600 : 400 }}
+                >
+                  {d.label}
+                </span>
+              </div>
+            ))}
           </div>
         </motion.section>
 
@@ -558,7 +564,7 @@ export default function Today() {
                 ) : undefined
               }
             >
-              Active work
+              Active projects
             </SectionEyebrow>
             {activeProjects.length > 0 ? (
               <ul className="mt-3 divide-y divide-border border-y border-border">
@@ -642,6 +648,7 @@ export default function Today() {
               <div>
                 <SectionEyebrow>Where time goes</SectionEyebrow>
                 <div className="mt-3 h-1 flex overflow-hidden">
+
                   {timeAllocation.map((cat) => (
                     <div
                       key={cat.category}
