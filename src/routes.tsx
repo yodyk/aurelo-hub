@@ -8,14 +8,14 @@ const Home = lazy(() => import("./pages/Home"));
 const Clients = lazy(() => import("./pages/Clients"));
 const ClientDetail = lazy(() => import("./pages/ClientDetail"));
 const ClientEdit = lazy(() => import("./pages/ClientEdit"));
-const Projects = lazy(() => import("./pages/Projects")); // deprecated top-level; kept for fallback
+// Projects (top-level), Tasks, and Team are relocated per the altitude roadmap.
+// Their routes now redirect to /time and /settings?tab=team respectively.
+// ProjectDetail is preserved for deep-link sharing.
 const ProjectDetail = lazy(() => import("./pages/ProjectDetail"));
 const TimeLog = lazy(() => import("./pages/TimeLog"));
 const Insights = lazy(() => import("./pages/Insights"));
 const Invoicing = lazy(() => import("./pages/Invoicing"));
-const Tasks = lazy(() => import("./pages/Tasks")); // deprecated top-level
 const Settings = lazy(() => import("./pages/Settings"));
-const Team = lazy(() => import("./pages/Team")); // deprecated top-level
 const Login = lazy(() => import("./pages/Login"));
 const Signup = lazy(() => import("./pages/Signup"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
