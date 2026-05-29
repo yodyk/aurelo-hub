@@ -1822,7 +1822,7 @@ export function EditSessionModal({ open, onClose, session, onSave, onDelete, cli
                 {billable ? 'Estimated revenue' : 'Time value'}{selectedClient.rate ? ` @ $${selectedClient.rate}/hr` : ''}
               </span>
               <span className={`tabular-nums ${billable ? 'text-primary' : 'text-muted-foreground'}`} style={{ fontWeight: 600 }}>
-                {billable ? `$${revenue.toLocaleString()}` : `$0 (non-billable)`}
+                {billable ? formatMoney(revenue) : `${formatMoney(0)} (non-billable)`}
               </span>
             </div>
           </div>
