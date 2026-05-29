@@ -277,3 +277,28 @@ Single-commit, value-only migration. Rollback = revert `src/index.css` and `tail
 **Result:** 4 files migrated, 0 retired hex values remain (verified by `rg`). Auth pages now respond to dark theme (where applicable) and inherit any future token adjustments without further edits. Error semantics consistent across all auth surfaces.
 
 **READY FOR PHASE 1I.**
+
+# PHASE 1I — Onboarding Surface Token Migration (executed)
+
+**Objective:** Complete the auth-funnel migration by moving the Onboarding shell (`src/pages/Onboarding.tsx`) and the in-funnel `OnboardingPlanPicker` component off hardcoded hex + stone-palette Tailwind classes onto semantic tokens. Same calibration as Phase 1H, extended to the stone-* neutrals and inline shadow recipes.
+
+**Mappings applied (verbatim → semantic):**
+- Page bg: `bg-[#FBFCFD]` → `bg-background`
+- Text: `text-[#1c1c1c]`/`text-[#44403c]` → `text-foreground`; `text-[#78716c]` → `text-muted-foreground`; `text-[#a8a29e]` → `text-[var(--foreground-subtle)]`
+- Stone palette: `bg-stone-50` → `bg-[var(--surface-sunken)]`; `bg-stone-100` → `bg-[var(--accent)]`; `bg-stone-200` → `bg-[var(--border-strong)]`; `stone-400/500` → subtle/muted; `border-stone-200/60` → `border-[var(--hairline)]`
+- Primary tints/borders/rings: all `[#3B66F0]/n` → `primary/n` (with `/8` → `/[0.08]`, `/40` → `/55`, `/30` → `/40`, `/50` → `/60`, `/15` → `/20`)
+- Solid primary + hover/active mapped through `color-mix(in_oklab,var(--primary)_92%,black)` recipe consistent with Phase 1H
+- Hairlines: `border-black/[0.04|0.06|0.08]` → `[var(--hairline)]`; `border-black/[0.12]` → `[var(--border-strong)]`; `bg-black/[0.06]` → `bg-[var(--hairline)]`
+- Surfaces: `bg-white` → `bg-card`
+- Inline shadows: `rgba(94,161,191,0.08)` (retired teal) and `rgba(0,0,0,0.03)` recipes → `var(--elev-1)`; `rgba(94,161,191,0.1)` → `var(--elev-2)`
+
+**Component-specific (`OnboardingPlanPicker`):**
+- `ACCENT` map now reads CSS variables instead of frozen hex: `starter → var(--foreground-muted)`, `pro → var(--primary)`, `studio → var(--warning)`. Inline `style={{ color, backgroundColor }}` on Check icons and plan CTA buttons now follow the live token, including dark-mode shift.
+- `dangerouslySetInnerHTML` regex highlight changed from frozen `color:#1c1c1c` to `color:var(--foreground)`.
+
+**Bonus fix (memory-aligned):**
+- Removed `mode="wait"` from the `<AnimatePresence>` wrapping onboarding step transitions. Core memory: "Do NOT use `mode='wait'` on `AnimatePresence` (causes React.lazy deadlock)." Step-to-step transitions remain visually smooth because each motion child uses opacity + y enter/exit on its own keyed wrapper.
+
+**Result:** 2 files migrated, 0 retired hexes or stone-* utilities remaining in onboarding scope (verified by `rg`). Onboarding now inherits the Cool Graphite + Cobalt foundation and is dark-mode-ready alongside the rest of the auth funnel. The plan-picker accent map auto-tracks token edits.
+
+**READY FOR PHASE 1J.**
