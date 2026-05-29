@@ -399,7 +399,7 @@ export default function Projects() {
                                       ? project.status === "Complete"
                                         ? "#a1a1aa"
                                         : "var(--warning)"
-                                      : "linear-gradient(90deg, #3B66F0, var(--chart-2))",
+                                      : "linear-gradient(90deg, var(--primary), var(--chart-2))",
                               }}
                               initial={{ width: 0 }}
                               animate={{ width: `${pct}%` }}

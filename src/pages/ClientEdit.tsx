@@ -736,7 +736,7 @@ export default function ClientEdit() {
                       className="h-full rounded-circle transition-all duration-300"
                       style={{
                         width: `${Math.max(0, Math.min(100, ((retainerTotalNum - retainerRemainingNum) / retainerTotalNum) * 100))}%`,
-                        background: retainerUsedPct > 85 ? 'var(--destructive)' : retainerUsedPct > 70 ? 'var(--warning)' : 'linear-gradient(90deg, #3B66F0, var(--chart-2))',
+                        background: retainerUsedPct > 85 ? 'var(--destructive)' : retainerUsedPct > 70 ? 'var(--warning)' : 'linear-gradient(90deg, var(--primary), var(--chart-2))',
                       }}
                     />
                   </div>

@@ -76,7 +76,7 @@ const item = {
 function getUsageBarColor(usagePct: number): string {
   if (usagePct >= 85) return "var(--destructive)";
   if (usagePct >= 70) return "var(--warning)";
-  return "linear-gradient(90deg, #3B66F0, var(--chart-2))";
+  return "linear-gradient(90deg, var(--primary), var(--chart-2))";
 }
 
 function getUsageTextColor(usagePct: number): string {
