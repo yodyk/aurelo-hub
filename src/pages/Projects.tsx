@@ -8,6 +8,7 @@ import { toast } from '@/lib/toast';
 import { usePlan } from "../data/PlanContext";
 import { LimitEnforcementModal } from "../components/PlanEnforcement";
 import { formatMoney } from "@/lib/format";
+import { EmptyState } from "@/components/primitives/EmptyState";
 
 
 const container = {
