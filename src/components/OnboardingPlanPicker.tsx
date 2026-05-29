@@ -36,9 +36,9 @@ const HIGHLIGHTS: Record<string, string[]> = {
 };
 
 const ACCENT: Record<string, string> = {
-  starter: '#78716c',
-  pro: '#3B66F0',
-  studio: '#C2860C',
+  starter: 'var(--foreground-muted)',
+  pro: 'var(--primary)',
+  studio: 'var(--warning)',
 };
 
 interface Props {
@@ -52,16 +52,16 @@ export function OnboardingPlanPicker({ onContinue }: Props) {
     <div className="text-center">
       {/* Heading */}
       <div className="mb-6">
-        <div className="w-12 h-12 rounded-2xl bg-[#3B66F0]/8 flex items-center justify-center mx-auto mb-5">
-          <Crown className="w-6 h-6 text-[#3B66F0]" />
+        <div className="w-12 h-12 rounded-2xl bg-primary/[0.08] flex items-center justify-center mx-auto mb-5">
+          <Crown className="w-6 h-6 text-primary" />
         </div>
         <h2
-          className="text-[24px] text-[#1c1c1c] mb-2"
+          className="text-[24px] text-foreground mb-2"
           style={{ fontWeight: 600, letterSpacing: '-0.015em' }}
         >
           Choose your plan
         </h2>
-        <p className="text-[14px] text-[#78716c] max-w-md mx-auto leading-relaxed">
+        <p className="text-[14px] text-muted-foreground max-w-md mx-auto leading-relaxed">
           Upgrade anytime, or stay on Starter — it's free forever.
         </p>
       </div>
@@ -69,7 +69,7 @@ export function OnboardingPlanPicker({ onContinue }: Props) {
       {/* Interval toggle */}
       <div className="flex items-center justify-center gap-3 mb-6">
         <span
-          className={`text-[13px] cursor-pointer transition-colors ${interval === 'monthly' ? 'text-[#1c1c1c]' : 'text-[#a8a29e]'}`}
+          className={`text-[13px] cursor-pointer transition-colors ${interval === 'monthly' ? 'text-foreground' : 'text-[var(--foreground-subtle)]'}`}
           style={{ fontWeight: interval === 'monthly' ? 600 : 400 }}
           onClick={() => setInterval('monthly')}
         >
@@ -77,21 +77,21 @@ export function OnboardingPlanPicker({ onContinue }: Props) {
         </span>
         <button
           onClick={() => setInterval(interval === 'monthly' ? 'annual' : 'monthly')}
-          className={`relative w-11 h-6 rounded-full transition-colors ${interval === 'annual' ? 'bg-[#3B66F0]' : 'bg-stone-200'}`}
+          className={`relative w-11 h-6 rounded-full transition-colors ${interval === 'annual' ? 'bg-primary' : 'bg-[var(--border-strong)]'}`}
         >
           <div
-            className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform"
+            className="absolute top-0.5 w-5 h-5 rounded-full bg-card shadow transition-transform"
             style={{ transform: interval === 'annual' ? 'translateX(22px)' : 'translateX(2px)' }}
           />
         </button>
         <span
-          className={`text-[13px] cursor-pointer transition-colors ${interval === 'annual' ? 'text-[#1c1c1c]' : 'text-[#a8a29e]'}`}
+          className={`text-[13px] cursor-pointer transition-colors ${interval === 'annual' ? 'text-foreground' : 'text-[var(--foreground-subtle)]'}`}
           style={{ fontWeight: interval === 'annual' ? 600 : 400 }}
           onClick={() => setInterval('annual')}
         >
           Annual
         </span>
-        <span className="text-[11px] text-[#3B66F0] px-2 py-0.5 rounded-full bg-[#3B66F0]/10" style={{ fontWeight: 600 }}>
+        <span className="text-[11px] text-primary px-2 py-0.5 rounded-full bg-primary/10" style={{ fontWeight: 600 }}>
           Save 2 months
         </span>
       </div>
@@ -126,8 +126,8 @@ export function OnboardingPlanPicker({ onContinue }: Props) {
               }}
               className={`relative rounded-xl border p-5 text-left flex flex-col ${
                 recommended
-                  ? 'border-[#3B66F0]/40 ring-2 ring-[#3B66F0]/10 bg-white'
-                  : 'border-black/[0.06] bg-white'
+                  ? 'border-primary/55 ring-2 ring-primary/15 bg-card'
+                  : 'border-[var(--hairline)] bg-card'
               }`}
               style={{
                 boxShadow: recommended
@@ -138,7 +138,7 @@ export function OnboardingPlanPicker({ onContinue }: Props) {
               {/* Recommended badge */}
               {recommended && (
                 <div
-                  className="absolute -top-2.5 left-4 px-2.5 py-0.5 rounded-full text-[10px] text-white bg-[#3B66F0]"
+                  className="absolute -top-2.5 left-4 px-2.5 py-0.5 rounded-full text-[10px] text-white bg-primary"
                   style={{ fontWeight: 600, letterSpacing: '0.04em' }}
                 >
                   RECOMMENDED
@@ -147,32 +147,32 @@ export function OnboardingPlanPicker({ onContinue }: Props) {
 
               {/* Plan name + price */}
               <div className="mb-4 pt-1">
-                <h3 className="text-[16px] text-[#1c1c1c]" style={{ fontWeight: 600 }}>
+                <h3 className="text-[16px] text-foreground" style={{ fontWeight: 600 }}>
                   {plan.name}
                 </h3>
-                <p className="text-[11px] text-[#a8a29e] mt-0.5">{plan.tagline}</p>
+                <p className="text-[11px] text-[var(--foreground-subtle)] mt-0.5">{plan.tagline}</p>
               </div>
 
               <div className="mb-4">
                 {displayPrice === 0 ? (
-                  <div className="text-[24px] text-[#1c1c1c]" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
+                  <div className="text-[24px] text-foreground" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
                     Free
                   </div>
                 ) : (
                   <>
                     <div className="flex items-baseline gap-1">
-                      <span className="text-[24px] text-[#1c1c1c]" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
+                      <span className="text-[24px] text-foreground" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
                         ${displayPrice}
                       </span>
-                      <span className="text-[12px] text-[#a8a29e]">/mo</span>
+                      <span className="text-[12px] text-[var(--foreground-subtle)]">/mo</span>
                     </div>
                     {interval === 'annual' && savings > 0 && (
-                      <p className="text-[10px] text-[#3B66F0] mt-1" style={{ fontWeight: 600 }}>
+                      <p className="text-[10px] text-primary mt-1" style={{ fontWeight: 600 }}>
                         Save ${savings}/yr ({monthsFree} months free)
                       </p>
                     )}
                     {interval === 'annual' && (
-                      <p className="text-[10px] text-[#a8a29e] mt-0.5">
+                      <p className="text-[10px] text-[var(--foreground-subtle)] mt-0.5">
                         Billed as ${plan.annualPrice}/year
                       </p>
                     )}
@@ -185,8 +185,8 @@ export function OnboardingPlanPicker({ onContinue }: Props) {
                 {HIGHLIGHTS[id]?.map((feat) => (
                   <li key={feat} className="flex items-start gap-2">
                     <Check className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" style={{ color: accent }} />
-                    <span className="text-[12px] text-[#44403c] leading-snug"
-                      dangerouslySetInnerHTML={{ __html: feat.replace(/([\d]+|Unlimited|Everything in Pro|Basic|Full|Standard|Priority|Batch)/g, '<strong style="font-weight:600;color:#1c1c1c">$1</strong>') }}
+                    <span className="text-[12px] text-foreground leading-snug"
+                      dangerouslySetInnerHTML={{ __html: feat.replace(/([\d]+|Unlimited|Everything in Pro|Basic|Full|Standard|Priority|Batch)/g, '<strong style="font-weight:600;color:var(--foreground)">$1</strong>') }}
                     />
                   </li>
                 ))}
@@ -196,7 +196,7 @@ export function OnboardingPlanPicker({ onContinue }: Props) {
               {isStarter ? (
                 <button
                   onClick={onContinue}
-                  className="w-full py-2.5 rounded-lg text-[13px] border border-black/[0.06] text-[#a8a29e] bg-stone-50 cursor-default"
+                  className="w-full py-2.5 rounded-lg text-[13px] border border-[var(--hairline)] text-[var(--foreground-subtle)] bg-[var(--surface-sunken)] cursor-default"
                   style={{ fontWeight: 500 }}
                 >
                   Stay on Starter
@@ -222,7 +222,7 @@ export function OnboardingPlanPicker({ onContinue }: Props) {
       {/* Skip */}
       <button
         onClick={onContinue}
-        className="text-[13px] text-[#a8a29e] hover:text-[#78716c] transition-colors"
+        className="text-[13px] text-[var(--foreground-subtle)] hover:text-muted-foreground transition-colors"
         style={{ fontWeight: 500 }}
       >
         Skip, I'll decide later
