@@ -1,7 +1,9 @@
 import { transitions } from '@/lib/motion';
 import { motion, AnimatePresence } from "motion/react";
 import { Trash2, Download, FileText, X } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
+import { formatMoney, formatDuration } from "@/lib/format";
+import { useData } from "@/data/DataContext";
 
 interface BulkSessionActionsProps {
   selectedCount: number;
