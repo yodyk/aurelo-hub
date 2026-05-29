@@ -155,6 +155,9 @@ export interface NewTaskInput {
   dueDate?: string | null;
   estimatedHours?: number | null;
   priority?: TaskPriority | null;
+  waitingOn?: string | null;
+  followUpAt?: string | null;
+  waitingNote?: string | null;
 }
 
 export async function addChecklistItem(
@@ -184,6 +187,41 @@ export async function addChecklistItem(
   return rowToItem(data);
 }
 
+/** Add a "loose" task — no checklist parent. Requires workspaceId + clientId. */
+export async function addLooseTask(
+  workspaceId: string,
+  clientId: string,
+  input: NewTaskInput | string,
+  opts: { projectId?: string | null; source?: TaskSource; addedBy?: 'owner' | 'client' } = {},
+): Promise<ChecklistItem> {
+  const task: NewTaskInput = typeof input === 'string' ? { text: input } : input;
+  const { data, error } = await supabase
+    .from('checklist_items')
+    .insert({
+      checklist_id: null,
+      workspace_id: workspaceId,
+      client_id: clientId,
+      project_id: opts.projectId ?? null,
+      text: task.text,
+      description: task.description ?? null,
+      status: task.status ?? 'to_do',
+      work_tags: task.workTags ?? [],
+      due_date: task.dueDate ?? null,
+      estimated_hours: task.estimatedHours ?? null,
+      priority: task.priority ?? null,
+      waiting_on: task.waitingOn ?? null,
+      follow_up_at: task.followUpAt ?? null,
+      waiting_note: task.waitingNote ?? null,
+      sort_order: 0,
+      added_by: opts.addedBy ?? 'owner',
+      source: opts.source ?? 'manual',
+    })
+    .select()
+    .single();
+  if (error) throw new Error(`Failed to add task: ${error.message}`);
+  return rowToItem(data);
+}
+
 export interface TaskUpdates {
   text?: string;
   description?: string | null;
@@ -194,6 +232,9 @@ export interface TaskUpdates {
   estimatedHours?: number | null;
   priority?: TaskPriority | null;
   sortOrder?: number;
+  waitingOn?: string | null;
+  followUpAt?: string | null;
+  waitingNote?: string | null;
 }
 
 export async function updateChecklistItem(itemId: string, updates: TaskUpdates): Promise<void> {
@@ -207,6 +248,9 @@ export async function updateChecklistItem(itemId: string, updates: TaskUpdates):
   if (updates.estimatedHours !== undefined) row.estimated_hours = updates.estimatedHours;
   if (updates.priority !== undefined) row.priority = updates.priority;
   if (updates.sortOrder !== undefined) row.sort_order = updates.sortOrder;
+  if (updates.waitingOn !== undefined) row.waiting_on = updates.waitingOn;
+  if (updates.followUpAt !== undefined) row.follow_up_at = updates.followUpAt;
+  if (updates.waitingNote !== undefined) row.waiting_note = updates.waitingNote;
   const { error } = await supabase.from('checklist_items').update(row).eq('id', itemId);
   if (error) throw new Error(`Failed to update task: ${error.message}`);
 }
@@ -225,28 +269,49 @@ export interface WorkspaceTask extends ChecklistItem {
 }
 
 export async function loadAllTasksForWorkspace(workspaceId: string): Promise<WorkspaceTask[]> {
+  // Load checklists for parent title lookup
   const { data: cls, error: clsErr } = await supabase
     .from('checklists')
     .select('id, client_id, project_id, title')
     .eq('workspace_id', workspaceId);
-  if (clsErr) { console.error('[checklistsApi] loadAllTasks checklists:', clsErr); return []; }
-  if (!cls || cls.length === 0) return [];
+  if (clsErr) console.error('[checklistsApi] loadAllTasks checklists:', clsErr);
+  const checklists = cls || [];
+  const byChecklistId = new Map<string, any>(checklists.map((c: any) => [c.id, c]));
+  const checklistIds = checklists.map((c: any) => c.id);
 
-  const ids = cls.map((c: any) => c.id);
-  const { data: items, error: itemsErr } = await supabase
-    .from('checklist_items')
-    .select('*')
-    .in('checklist_id', ids)
-    .order('sort_order', { ascending: true });
-  if (itemsErr) { console.error('[checklistsApi] loadAllTasks items:', itemsErr); return []; }
+  // Fetch BOTH: items in those checklists AND loose items (workspace_id set, checklist_id null)
+  const queries: any[] = [];
+  if (checklistIds.length > 0) {
+    queries.push(
+      supabase
+        .from('checklist_items')
+        .select('*')
+        .in('checklist_id', checklistIds)
+        .order('sort_order', { ascending: true })
+    );
+  }
+  queries.push(
+    supabase
+      .from('checklist_items')
+      .select('*')
+      .eq('workspace_id', workspaceId)
+      .is('checklist_id', null)
+      .order('created_at', { ascending: false })
+  );
 
-  const byId = new Map<string, any>(cls.map((c: any) => [c.id, c]));
-  return (items || []).map((row: any) => {
-    const parent = byId.get(row.checklist_id);
+  const results = await Promise.all(queries);
+  const allRows: any[] = [];
+  for (const r of results) {
+    if (r.error) { console.error('[checklistsApi] loadAllTasks items:', r.error); continue; }
+    if (r.data) allRows.push(...r.data);
+  }
+
+  return allRows.map((row: any) => {
+    const parent = row.checklist_id ? byChecklistId.get(row.checklist_id) : null;
     return {
       ...rowToItem(row),
-      clientId: parent?.client_id,
-      projectId: parent?.project_id ?? null,
+      clientId: parent?.client_id ?? row.client_id,
+      projectId: parent?.project_id ?? row.project_id ?? null,
       checklistTitle: parent?.title || 'Tasks',
     };
   });

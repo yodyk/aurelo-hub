@@ -36,6 +36,7 @@ import type { Invoice } from "../data/invoiceApi";
 import { usePlan } from "../data/PlanContext";
 import { StarterUpgradeCTA } from "../components/TrialBanner";
 import { SetupChecklist } from "../components/SetupChecklist";
+import { FocusSections } from "../components/FocusSections";
 import { useRoleAccess } from "../data/useRoleAccess";
 import {
   PageHeader,
@@ -353,7 +354,7 @@ export default function Today() {
     <motion.div variants={container} initial="hidden" animate="show">
       <PageHeader
         eyebrow={workspaceName || undefined}
-        title="Today"
+        title="Focus"
         subtitle={now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
         actions={
           canViewFinancials && hasData ? (
@@ -383,6 +384,10 @@ export default function Today() {
             </div>
           </motion.div>
         )}
+
+        {/* ── Focus surface (PART E refinement) ── */}
+        <FocusSections />
+
 
         {/* ── Needs You rail ── */}
         {signals.length > 0 && (
