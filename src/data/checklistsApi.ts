@@ -44,6 +44,8 @@ export interface ChecklistItem {
   recurrenceId?: string | null;
   source?: TaskSource;
   completedAt?: string | null;
+  /** Lightweight repeat (Things 3 style). Null = one-off. */
+  repeat?: 'weekly' | 'monthly' | 'quarterly' | null;
 }
 
 function rowToChecklist(row: any, items: ChecklistItem[] = []): Checklist {
@@ -84,6 +86,7 @@ function rowToItem(row: any): ChecklistItem {
     recurrenceId: row.recurrence_id ?? null,
     source: (row.source as TaskSource) ?? 'manual',
     completedAt: row.completed_at ?? null,
+    repeat: (row.repeat as ChecklistItem['repeat']) ?? null,
   };
 }
 
@@ -158,6 +161,7 @@ export interface NewTaskInput {
   waitingOn?: string | null;
   followUpAt?: string | null;
   waitingNote?: string | null;
+  repeat?: 'weekly' | 'monthly' | 'quarterly' | null;
 }
 
 export async function addChecklistItem(
@@ -212,6 +216,7 @@ export async function addLooseTask(
       waiting_on: task.waitingOn ?? null,
       follow_up_at: task.followUpAt ?? null,
       waiting_note: task.waitingNote ?? null,
+      repeat: task.repeat ?? null,
       sort_order: 0,
       added_by: opts.addedBy ?? 'owner',
       source: opts.source ?? 'manual',
@@ -235,6 +240,7 @@ export interface TaskUpdates {
   waitingOn?: string | null;
   followUpAt?: string | null;
   waitingNote?: string | null;
+  repeat?: 'weekly' | 'monthly' | 'quarterly' | null;
 }
 
 export async function updateChecklistItem(itemId: string, updates: TaskUpdates): Promise<void> {
@@ -251,6 +257,7 @@ export async function updateChecklistItem(itemId: string, updates: TaskUpdates):
   if (updates.waitingOn !== undefined) row.waiting_on = updates.waitingOn;
   if (updates.followUpAt !== undefined) row.follow_up_at = updates.followUpAt;
   if (updates.waitingNote !== undefined) row.waiting_note = updates.waitingNote;
+  if (updates.repeat !== undefined) row.repeat = updates.repeat;
   const { error } = await supabase.from('checklist_items').update(row).eq('id', itemId);
   if (error) throw new Error(`Failed to update task: ${error.message}`);
 }
