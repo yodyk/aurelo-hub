@@ -745,9 +745,10 @@ function PortalChecklistCard({ checklist, accent, token, hideCompleted = false }
   const visibleItems = hideCompleted ? items.filter(i => i.status !== 'complete') : items;
 
   const cycleStatus = async (item: PortalTask) => {
-    const order: PortalTask['status'][] = ['todo', 'in_progress', 'blocked', 'on_hold', 'done'];
+    const order: PortalTask['status'][] = ['to_do', 'in_progress', 'in_review', 'on_hold', 'complete'];
     const next = order[(order.indexOf(item.status) + 1) % order.length];
-    setItems(prev => prev.map(i => i.id === item.id ? { ...i, status: next, completed: next === 'done' } : i));
+    setItems(prev => prev.map(i => i.id === item.id ? { ...i, status: next, completed: next === 'complete' } : i));
+
     try {
       await fetch(`${SUPABASE_URL}/functions/v1/portal-checklist`, {
         method: 'POST',
