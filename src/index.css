@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Inter+Tight:wght@500;600;700&display=swap");
 
 @import "tailwindcss";
 
@@ -13,73 +13,78 @@
 :root {
   --font-size: 16px;
 
-  /* Surfaces — paper → card → raised, layered grayscale */
-  --background: #f7f6f3;          /* warm paper, calmer than #f5f5f4 */
-  --surface-sunken: #f0efeb;      /* recessed wells (search bars, code) */
-  --surface-raised: #ffffff;      /* cards, sheets */
-  --surface-overlay: #ffffff;     /* popovers, dialogs */
+  /* Type families — Inter (body) + Inter Tight (display proxy for Inter Display) */
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Inter Tight', 'Inter', system-ui, sans-serif;
 
-  --foreground: oklch(0.16 0 0);
-  --foreground-muted: #57534e;
-  --foreground-subtle: #8a847e;
+  /* Surfaces — Cool Graphite paper, layered cool-neutral grayscale */
+  --background: #FBFCFD;          /* cool paper, faintest blue cast */
+  --surface-sunken: #F4F6F8;      /* recessed wells, sidebar chrome */
+  --surface-raised: #FFFFFF;      /* cards, sheets */
+  --surface-overlay: #FFFFFF;     /* popovers, dialogs */
 
-  --card: #ffffff;
-  --card-foreground: oklch(0.16 0 0);
-  --popover: #ffffff;
-  --popover-foreground: oklch(0.16 0 0);
+  --foreground: #0F1419;          /* graphite, not black */
+  --foreground-muted: #5B6470;
+  --foreground-subtle: #8A93A0;
 
-  /* Accent — teal, used sparingly */
-  --primary: #2e7d9a;
-  --primary-foreground: #ffffff;
-  --primary-soft: rgba(46, 125, 154, 0.08);
-  --primary-glow: rgba(46, 125, 154, 0.18);
+  --card: #FFFFFF;
+  --card-foreground: #0F1419;
+  --popover: #FFFFFF;
+  --popover-foreground: #0F1419;
 
-  --secondary: #efeeea;
-  --secondary-foreground: #1f1d1b;
-  --muted: #efeeea;
-  --muted-foreground: #6b6660;
-  --accent: #e9e7e2;
-  --accent-foreground: #1f1d1b;
+  /* Accent — Aurelo Cobalt, used sparingly */
+  --primary: #3B66F0;
+  --primary-foreground: #FFFFFF;
+  --primary-soft: rgba(59, 102, 240, 0.08);
+  --primary-glow: rgba(59, 102, 240, 0.18);
 
-  --destructive: #c01636;
-  --destructive-foreground: #ffffff;
-  --success: #2f7d4f;
-  --success-foreground: #1a3d2a;
-  --warning: #8c7428;
-  --warning-foreground: #4d4018;
+  --secondary: #EEF1F4;
+  --secondary-foreground: #0F1419;
+  --muted: #EEF1F4;
+  --muted-foreground: #5B6470;
+  --accent: #E8ECF1;
+  --accent-foreground: #0F1419;
 
-  /* Borders — hairlines, near-invisible by default */
-  --border: rgba(15, 12, 10, 0.06);
-  --border-strong: rgba(15, 12, 10, 0.10);
-  --hairline: rgba(15, 12, 10, 0.04);
+  --destructive: #C8324A;
+  --destructive-foreground: #FFFFFF;
+  --success: #1F8A5B;
+  --success-foreground: #0E2818;
+  --warning: #C2860C;             /* amber, replaces mustard */
+  --warning-foreground: #3A2705;
+
+  /* Borders — hairlines on cool ink */
+  --border: rgba(15, 23, 35, 0.08);
+  --border-strong: rgba(15, 23, 35, 0.14);
+  --hairline: rgba(15, 23, 35, 0.06);
 
   --input: transparent;
-  --input-background: #f1efea;
-  --switch-background: #cbced4;
+  --input-background: #F1F4F7;
+  --switch-background: #C6CCD4;
   --font-weight-medium: 500;
   --font-weight-normal: 400;
-  --ring: rgba(46, 125, 154, 0.45);
+  --ring: rgba(59, 102, 240, 0.45);
 
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
+  /* Chart palette — harmonized to cobalt, one warm anchor */
+  --chart-1: #3B66F0;             /* cobalt */
+  --chart-2: #5B9BD5;             /* cool steel blue */
+  --chart-3: #7A6FE0;             /* lavender */
+  --chart-4: #3FA68A;             /* sage */
+  --chart-5: #D38B4A;             /* warm clay (contrast anchor) */
   --radius: 0.25rem;
 
-  --sidebar: #f3f1ec;             /* sits between bg and card — distinct chrome */
-  --sidebar-foreground: oklch(0.16 0 0);
-  --sidebar-primary: #1f1d1b;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #e9e7e2;
-  --sidebar-accent-foreground: #1f1d1b;
-  --sidebar-border: rgba(15, 12, 10, 0.05);
-  --sidebar-ring: rgba(46, 125, 154, 0.45);
+  --sidebar: #F4F6F8;             /* sunken chrome between bg and card */
+  --sidebar-foreground: #0F1419;
+  --sidebar-primary: #0F1419;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #E8ECF1;
+  --sidebar-accent-foreground: #0F1419;
+  --sidebar-border: rgba(15, 23, 35, 0.06);
+  --sidebar-ring: rgba(59, 102, 240, 0.45);
 
-  /* Elevation — soft, layered, never harsh */
-  --elev-1: 0 1px 0 rgba(15,12,10,0.04), 0 1px 2px rgba(15,12,10,0.03);
-  --elev-2: 0 1px 0 rgba(15,12,10,0.04), 0 4px 12px rgba(15,12,10,0.05);
-  --elev-3: 0 2px 0 rgba(15,12,10,0.04), 0 12px 32px rgba(15,12,10,0.08);
+  /* Elevation — hairline-led, never harsh */
+  --elev-1: 0 1px 0 rgba(15,23,35,0.04), 0 1px 2px rgba(15,23,35,0.04);
+  --elev-2: 0 1px 0 rgba(15,23,35,0.04), 0 6px 16px rgba(15,23,35,0.06);
+  --elev-3: 0 2px 0 rgba(15,23,35,0.05), 0 18px 40px rgba(15,23,35,0.12);
 
   /* Spacing scale — 4pt base, calm rhythm */
   --space-1: 4px;
@@ -93,106 +98,106 @@
   --space-12: 48px;
   --space-16: 64px;
 
-  /* Motion — Apple-style ease + spring proxies */
+  /* Motion — calm, precise; no spring overshoot */
   --ease-emphasized: cubic-bezier(0.32, 0.72, 0, 1);
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
-  --ease-spring: cubic-bezier(0.5, 1.6, 0.4, 1);
   --dur-fast: 140ms;
   --dur-base: 200ms;
   --dur-slow: 320ms;
 
-  /* Typography altitudes — 5-level hierarchy (Aurelo refined roadmap) */
+  /* Typography altitudes — 5-level hierarchy on Inter / Inter Tight */
   --type-display-size: 40px;
-  --type-display-weight: 680;
+  --type-display-weight: 640;
   --type-display-tracking: -0.035em;
   --type-display-leading: 1.05;
 
   --type-page-size: 26px;
-  --type-page-weight: 700;
-  --type-page-tracking: -0.03em;
+  --type-page-weight: 620;
+  --type-page-tracking: -0.028em;
   --type-page-leading: 1.15;
 
-  --type-section-size: 17px;
-  --type-section-weight: 650;
-  --type-section-tracking: -0.018em;
+  --type-section-size: 16px;
+  --type-section-weight: 600;
+  --type-section-tracking: -0.012em;
   --type-section-leading: 1.3;
 
   --type-body-size: 13.5px;
-  --type-body-weight: 500;
+  --type-body-weight: 460;
   --type-body-tracking: -0.005em;
   --type-body-leading: 1.45;
 
-  --type-meta-size: 11.5px;
-  --type-meta-weight: 600;
+  --type-meta-size: 12px;
+  --type-meta-weight: 500;
   --type-meta-tracking: 0;
   --type-meta-leading: 1.4;
 
   --type-eyebrow-size: 10.5px;
   --type-eyebrow-weight: 600;
-  --type-eyebrow-tracking: 0.08em;
+  --type-eyebrow-tracking: 0.09em;
 }
 
 .dark {
-  /* Cinematic, near-black neutrals — not pitch black, not warm-brown */
-  --background: #0e0f10;
-  --surface-sunken: #0a0b0c;
-  --surface-raised: #181a1c;
-  --surface-overlay: #1c1e21;
+  /* Cool graphite night — deep blue-black, never warm */
+  --background: #0B0E12;
+  --surface-sunken: #070A0D;
+  --surface-raised: #161A20;
+  --surface-overlay: #1A1F26;
 
-  --foreground: #ececea;
-  --foreground-muted: #a8a39b;
-  --foreground-subtle: #6e6962;
+  --foreground: #E8ECF1;
+  --foreground-muted: #9AA3AF;
+  --foreground-subtle: #6B7480;
 
-  --card: #16181a;
-  --card-foreground: #ececea;
-  --popover: #1c1e21;
-  --popover-foreground: #ececea;
+  --card: #14181E;
+  --card-foreground: #E8ECF1;
+  --popover: #1A1F26;
+  --popover-foreground: #E8ECF1;
 
-  --primary: #5bb8d4;
-  --primary-foreground: #07181f;
-  --primary-soft: rgba(91, 184, 212, 0.10);
-  --primary-glow: rgba(91, 184, 212, 0.22);
+  --primary: #6B8FFF;             /* lifted cobalt for AA on dark */
+  --primary-foreground: #08101F;
+  --primary-soft: rgba(107, 143, 255, 0.12);
+  --primary-glow: rgba(107, 143, 255, 0.24);
 
-  --secondary: #232628;
-  --secondary-foreground: #ececea;
-  --muted: #1f2123;
-  --muted-foreground: #9a958d;
-  --accent: #24272a;
-  --accent-foreground: #ececea;
+  --secondary: #1E232A;
+  --secondary-foreground: #E8ECF1;
+  --muted: #1A1F26;
+  --muted-foreground: #9AA3AF;
+  --accent: #1E232A;
+  --accent-foreground: #E8ECF1;
 
-  --destructive: #e0686e;
-  --destructive-foreground: #1a0506;
-  --success: #6dc491;
-  --success-foreground: #0e2818;
-  --warning: #d4b84e;
-  --warning-foreground: #1f1a08;
+  --destructive: #E07686;
+  --destructive-foreground: #1A0306;
+  --success: #5BC992;
+  --success-foreground: #082216;
+  --warning: #E6B547;
+  --warning-foreground: #1F1705;
 
-  --border: rgba(255, 255, 255, 0.06);
-  --border-strong: rgba(255, 255, 255, 0.10);
-  --hairline: rgba(255, 255, 255, 0.035);
+  --border: rgba(255, 255, 255, 0.07);
+  --border-strong: rgba(255, 255, 255, 0.12);
+  --hairline: rgba(255, 255, 255, 0.045);
 
   --input: transparent;
-  --input-background: #1f2123;
-  --switch-background: #45433f;
-  --ring: rgba(91, 184, 212, 0.50);
+  --input-background: #1A1F26;
+  --switch-background: #3A4150;
+  --ring: rgba(107, 143, 255, 0.50);
 
-  --chart-1: #5bb8d4;
-  --chart-2: #7fc8df;
-  --chart-3: #b5b0aa;
-  --chart-4: #78716c;
-  --chart-5: #57534e;
+  /* Chart palette — lifted L for dark surfaces */
+  --chart-1: #6B8FFF;
+  --chart-2: #82B4E8;
+  --chart-3: #9A8FF0;
+  --chart-4: #5BC0A4;
+  --chart-5: #E0A668;
 
-  --elev-1: 0 1px 0 rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3);
-  --elev-2: 0 1px 0 rgba(0,0,0,0.4), 0 6px 16px rgba(0,0,0,0.35);
-  --elev-3: 0 2px 0 rgba(0,0,0,0.4), 0 18px 40px rgba(0,0,0,0.5);
-  --sidebar: #131517;
-  --sidebar-foreground: #ececea;
-  --sidebar-primary: #ececea;
-  --sidebar-primary-foreground: #0e0f10;
-  --sidebar-accent: #1f2123;
-  --sidebar-accent-foreground: #ececea;
+  --elev-1: 0 1px 0 rgba(0,0,0,0.35), 0 1px 2px rgba(0,0,0,0.3);
+  --elev-2: 0 1px 0 rgba(0,0,0,0.45), 0 6px 16px rgba(0,0,0,0.4);
+  --elev-3: 0 2px 0 rgba(0,0,0,0.55), 0 18px 40px rgba(0,0,0,0.55);
+  --sidebar: #10141A;
+  --sidebar-foreground: #E8ECF1;
+  --sidebar-primary: #E8ECF1;
+  --sidebar-primary-foreground: #0B0E12;
+  --sidebar-accent: #1E232A;
+  --sidebar-accent-foreground: #E8ECF1;
   --sidebar-border: rgba(255, 255, 255, 0.05);
-  --sidebar-ring: rgba(91, 184, 212, 0.50);
+  --sidebar-ring: rgba(107, 143, 255, 0.50);
 }
 
 @theme inline {
@@ -241,6 +246,8 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --font-sans: var(--font-sans);
+  --font-display: var(--font-display);
 }
 
 @layer base {
@@ -260,29 +267,26 @@
     @apply bg-background text-foreground;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-    letter-spacing: -0.015em;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11", "ss01", "tnum", "case";
   }
 
   html {
     font-size: var(--font-size);
-    font-family:
-      "Inter",
-      system-ui,
-      -apple-system,
-      sans-serif;
+    font-family: var(--font-sans);
   }
 
   h1 {
-    font-size: clamp(26px, 2.6vw, 32px);
-    font-weight: 600;
+    font-family: var(--font-display);
+    font-size: clamp(24px, 2.4vw, 28px);
+    font-weight: 620;
     line-height: 1.12;
     letter-spacing: -0.028em;
     @apply text-foreground;
   }
 
   h2 {
-    font-size: 19px;
+    font-family: var(--font-display);
+    font-size: 18px;
     font-weight: 600;
     line-height: 1.28;
     letter-spacing: -0.018em;
@@ -303,6 +307,10 @@
     line-height: 1.4;
     letter-spacing: -0.008em;
     @apply text-foreground;
+  }
+
+  th, td, input[type="number"] {
+    font-variant-numeric: tabular-nums;
   }
 
   label {
@@ -348,6 +356,7 @@
    */
   .type-display {
     @apply text-foreground tabular-nums;
+    font-family: var(--font-display);
     font-size: var(--type-display-size);
     font-weight: var(--type-display-weight);
     line-height: var(--type-display-leading);
@@ -356,10 +365,28 @@
   }
   .type-page {
     @apply text-foreground;
+    font-family: var(--font-display);
     font-size: var(--type-page-size);
     font-weight: var(--type-page-weight);
     line-height: var(--type-page-leading);
     letter-spacing: var(--type-page-tracking);
+    font-variant-numeric: tabular-nums;
+  }
+  .type-num {
+    @apply text-foreground;
+    font-family: var(--font-sans);
+    font-size: 13.5px;
+    font-weight: 500;
+    line-height: 1.45;
+    font-variant-numeric: tabular-nums;
+  }
+  .type-num-lg {
+    @apply text-foreground;
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
     font-variant-numeric: tabular-nums;
   }
   .type-section {
