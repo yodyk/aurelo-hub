@@ -586,7 +586,11 @@ function RootLayout() {
       </aside>
 
       {/* Main area */}
-      <div className={`flex-1 ${mainMargin} min-h-[100dvh] min-w-0 overflow-x-hidden transition-all duration-300 pb-[calc(56px+env(safe-area-inset-bottom))] lg:pb-0`}>
+      <div
+        className={`flex-1 ${mainMargin} min-h-[100dvh] min-w-0 overflow-x-hidden transition-all duration-300 lg:pb-0`}
+        style={{ paddingBottom: `calc(${timerRunning ? 104 : 56}px + env(safe-area-inset-bottom))` }}
+      >
+
         {/* Top Bar */}
         <header className="h-14 border-b border-[var(--hairline)] bg-background/80 backdrop-blur-md sticky top-0 z-20 flex items-center justify-between px-4 lg:px-6">
           <div className="flex items-center gap-3">
