@@ -47,6 +47,7 @@ import {
   GripVertical,
   Lock,
   ArrowRight,
+  ArrowLeft,
   Search,
   Timer,
 } from "lucide-react";
@@ -361,26 +362,65 @@ export default function Settings() {
     setPendingTab(null);
   }, []);
 
+  // Mobile stack-and-push: track whether user has drilled into a panel.
+  // On mobile, the list is shown by default; tapping a row pushes the panel.
+  // The URL ?tab= param is the source of truth for "is a panel open on mobile".
+  const mobilePanelOpen = !!searchParams.get("tab");
+  const handleMobileBack = useCallback(() => {
+    if (isDirty) {
+      setPendingTab("profile" as TabId); // signal "leave current"
+      setShowUnsavedDialog(true);
+      return;
+    }
+    setSearchParams({}, { replace: true });
+    setActiveTab("profile" as TabId);
+  }, [isDirty, setSearchParams]);
+
+  const currentTabMeta = visibleTabs.find((t) => t.id === activeTab);
+
   return (
     <motion.div className="w-full min-w-0 max-w-6xl mx-auto px-6 lg:px-12 py-8 md:py-14" variants={container} initial="hidden" animate="show">
-      <motion.div variants={item} className="mb-8">
+      {/* Header — hidden on mobile when a panel is pushed in */}
+      <motion.div
+        variants={item}
+        className={`mb-8 ${mobilePanelOpen ? "hidden lg:block" : ""}`}
+      >
         <h1 className="text-[24px] md:text-[28px] tracking-tight mb-1" style={{ fontWeight: 700, letterSpacing: "-0.03em" }}>
           Settings
         </h1>
         <p className="text-[14px] text-muted-foreground">Manage your workspace, billing, team, and preferences</p>
       </motion.div>
 
-      <div className="flex flex-col md:flex-row gap-8">
-        {/* Vertical tab nav — hidden on mobile, horizontal scroll on mobile */}
-        <motion.nav variants={item} className="w-full md:w-52 flex-shrink-0">
-          <div className="md:sticky md:top-[80px] flex md:flex-col gap-0.5 overflow-x-auto md:overflow-x-visible pb-2 md:pb-0 border-b md:border-b-0 border-border -mx-6 px-6 md:mx-0 md:px-0">
+      {/* Mobile push header — appears when drilled into a panel */}
+      {mobilePanelOpen && currentTabMeta && (
+        <div className="lg:hidden -mt-2 mb-5 flex items-center gap-3">
+          <button
+            onClick={handleMobileBack}
+            className="-ml-2 p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/60 transition-colors"
+            aria-label="Back to settings"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div className="min-w-0">
+            <h1 className="text-[20px] tracking-tight truncate" style={{ fontWeight: 700, letterSpacing: "-0.02em" }}>
+              {currentTabMeta.label}
+            </h1>
+            <p className="text-[12px] text-muted-foreground truncate">{currentTabMeta.description}</p>
+          </div>
+        </div>
+      )}
+
+      <div className="flex flex-col lg:flex-row gap-8">
+        {/* Desktop vertical tab nav — hidden on mobile entirely */}
+        <motion.nav variants={item} className="hidden lg:block w-52 flex-shrink-0">
+          <div className="sticky top-[80px] flex flex-col gap-0.5">
             {visibleTabs.map((tab) => {
               const isActive = activeTab === tab.id;
               return (
                 <button
                   key={tab.id}
                   onClick={() => handleTabChange(tab.id)}
-                  className={`w-auto md:w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] text-left transition-all duration-200 relative whitespace-nowrap ${
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] text-left transition-all duration-200 relative whitespace-nowrap ${
                     isActive
                       ? "bg-primary/8 text-primary"
                       : "text-muted-foreground hover:text-foreground hover:bg-accent/60"
@@ -390,7 +430,7 @@ export default function Settings() {
                   {isActive && (
                     <motion.div
                       layoutId="settings-tab-indicator"
-                      className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full hidden md:block"
+                      className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full"
                       transition={transitions.emphasized}
                     />
                   )}
@@ -407,8 +447,31 @@ export default function Settings() {
           </div>
         </motion.nav>
 
-        {/* Content */}
-        <div className="flex-1 min-w-0">
+        {/* Mobile menu list — shown only when no panel pushed in */}
+        {!mobilePanelOpen && (
+          <motion.nav variants={item} className="lg:hidden -mx-6">
+            <ul className="divide-y divide-[var(--hairline)] border-y border-[var(--hairline)]">
+              {visibleTabs.map((tab) => (
+                <li key={tab.id}>
+                  <button
+                    onClick={() => handleTabChange(tab.id)}
+                    className="w-full flex items-center gap-3 px-6 py-4 text-left active:bg-accent/60 transition-colors"
+                  >
+                    <tab.icon className="w-[18px] h-[18px] flex-shrink-0 text-muted-foreground" />
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[15px] text-foreground" style={{ fontWeight: 500 }}>{tab.label}</div>
+                      <div className="text-[12px] text-muted-foreground truncate">{tab.description}</div>
+                    </div>
+                    <ChevronRight className="w-4 h-4 flex-shrink-0 text-muted-foreground/60" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </motion.nav>
+        )}
+
+        {/* Content — hidden on mobile when list is showing */}
+        <div className={`flex-1 min-w-0 ${!mobilePanelOpen ? "hidden lg:block" : ""}`}>
           <SettingsSaveContext.Provider value={saveContextValue}>
             <AnimatePresence mode="wait">
               <motion.div
