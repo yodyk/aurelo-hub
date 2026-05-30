@@ -47,6 +47,7 @@ import {
   GripVertical,
   Lock,
   ArrowRight,
+  ArrowLeft,
   Search,
   Timer,
 } from "lucide-react";
