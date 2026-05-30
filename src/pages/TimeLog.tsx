@@ -295,16 +295,15 @@ export default function TimeLog() {
 
         {topTab === "sessions" && (
           <>
-            {/* Filter row */}
             <motion.div variants={item} className="flex flex-wrap items-center gap-2 mb-5">
-              <div className="relative">
+              <div className="relative flex-1 lg:flex-none min-w-0">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search sessions"
-                  className="pl-8 pr-7 h-9 w-56 bg-transparent border border-[var(--hairline)] rounded-md text-[13px] placeholder:text-muted-foreground focus:outline-none focus:border-primary/40 transition-colors"
+                  className="pl-8 pr-7 h-9 w-full lg:w-56 bg-transparent border border-[var(--hairline)] rounded-md text-[13px] placeholder:text-muted-foreground focus:outline-none focus:border-primary/40 transition-colors"
                 />
                 {searchQuery && (
                   <button
@@ -316,47 +315,123 @@ export default function TimeLog() {
                 )}
               </div>
 
-              <FilterSelect
-                value={dateRange}
-                onChange={setDateRange}
-                options={["This Month", "Last 7 days", "Last 30 days", "This Quarter", "This Year", "All time"]}
-              />
+              {/* Mobile: single Filters button → bottom sheet */}
+              <button
+                onClick={() => setFilterSheetOpen(true)}
+                className="lg:hidden inline-flex items-center gap-1.5 h-9 px-3 border border-[var(--hairline)] rounded-md text-[13px] cursor-pointer"
+                style={{ fontWeight: 500 }}
+              >
+                <SlidersHorizontal className="w-3.5 h-3.5" />
+                Filters
+                {(selectedClient || billableFilter !== "all" || dateRange !== "This Month") && (
+                  <span className="inline-block w-1.5 h-1.5 rounded-circle bg-primary ml-0.5" />
+                )}
+              </button>
 
-              <FilterSelect
-                value={selectedClient || ""}
-                onChange={(v) => setSelectedClient(v || null)}
-                options={[
-                  { value: "", label: "All clients" },
-                  ...clients
-                    .filter((c: any) => c.status === "Active" || c.status === "Prospect")
-                    .map((c: any) => ({ value: c.id, label: c.name })),
-                ]}
-              />
+              {/* Desktop: inline chips */}
+              <div className="hidden lg:flex items-center gap-2">
+                <FilterSelect
+                  value={dateRange}
+                  onChange={setDateRange}
+                  options={["This Month", "Last 7 days", "Last 30 days", "This Quarter", "This Year", "All time"]}
+                />
 
-              <SegmentedControl<"all" | "billable" | "non">
-                options={[
-                  { value: "all", label: "All" },
-                  { value: "billable", label: "Billable" },
-                  { value: "non", label: "Non-bill." },
-                ]}
-                value={billableFilter}
-                onChange={setBillableFilter}
-                ariaLabel="Billable filter"
-              />
+                <FilterSelect
+                  value={selectedClient || ""}
+                  onChange={(v) => setSelectedClient(v || null)}
+                  options={[
+                    { value: "", label: "All clients" },
+                    ...clients
+                      .filter((c: any) => c.status === "Active" || c.status === "Prospect")
+                      .map((c: any) => ({ value: c.id, label: c.name })),
+                  ]}
+                />
 
-              {(searchQuery || selectedClient || billableFilter !== "all" || dateRange !== "This Month") && (
-                <button
-                  onClick={() => {
-                    setSearchQuery(""); setSelectedClient(null);
-                    setBillableFilter("all"); setDateRange("This Month");
-                  }}
-                  className="h-9 px-3 text-[12.5px] text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-                  style={{ fontWeight: 500 }}
-                >
-                  Clear
-                </button>
-              )}
+                <SegmentedControl<"all" | "billable" | "non">
+                  options={[
+                    { value: "all", label: "All" },
+                    { value: "billable", label: "Billable" },
+                    { value: "non", label: "Non-bill." },
+                  ]}
+                  value={billableFilter}
+                  onChange={setBillableFilter}
+                  ariaLabel="Billable filter"
+                />
+
+                {(searchQuery || selectedClient || billableFilter !== "all" || dateRange !== "This Month") && (
+                  <button
+                    onClick={() => {
+                      setSearchQuery(""); setSelectedClient(null);
+                      setBillableFilter("all"); setDateRange("This Month");
+                    }}
+                    className="h-9 px-3 text-[12.5px] text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                    style={{ fontWeight: 500 }}
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
             </motion.div>
+
+            <BottomSheet open={filterSheetOpen} onClose={() => setFilterSheetOpen(false)} title="Filter sessions">
+              <div className="px-5 py-4 space-y-5">
+                <div>
+                  <div className="type-eyebrow mb-2">Date range</div>
+                  <FilterSelect
+                    value={dateRange}
+                    onChange={setDateRange}
+                    options={["This Month", "Last 7 days", "Last 30 days", "This Quarter", "This Year", "All time"]}
+                  />
+                </div>
+                <div>
+                  <div className="type-eyebrow mb-2">Client</div>
+                  <FilterSelect
+                    value={selectedClient || ""}
+                    onChange={(v) => setSelectedClient(v || null)}
+                    options={[
+                      { value: "", label: "All clients" },
+                      ...clients
+                        .filter((c: any) => c.status === "Active" || c.status === "Prospect")
+                        .map((c: any) => ({ value: c.id, label: c.name })),
+                    ]}
+                  />
+                </div>
+                <div>
+                  <div className="type-eyebrow mb-2">Billable</div>
+                  <SegmentedControl<"all" | "billable" | "non">
+                    options={[
+                      { value: "all", label: "All" },
+                      { value: "billable", label: "Billable" },
+                      { value: "non", label: "Non-bill." },
+                    ]}
+                    value={billableFilter}
+                    onChange={setBillableFilter}
+                    ariaLabel="Billable filter"
+                  />
+                </div>
+                <div className="flex items-center gap-2 pt-2">
+                  <button
+                    onClick={() => {
+                      setSelectedClient(null);
+                      setBillableFilter("all");
+                      setDateRange("This Month");
+                    }}
+                    className="flex-1 h-10 border border-[var(--hairline)] rounded-md text-[13px] cursor-pointer"
+                    style={{ fontWeight: 500 }}
+                  >
+                    Reset
+                  </button>
+                  <button
+                    onClick={() => setFilterSheetOpen(false)}
+                    className="flex-1 h-10 bg-primary text-primary-foreground rounded-md text-[13px] cursor-pointer"
+                    style={{ fontWeight: 600 }}
+                  >
+                    Apply
+                  </button>
+                </div>
+              </div>
+            </BottomSheet>
+
 
             {/* Select-all bar */}
             {filteredSessions.length > 0 && (
