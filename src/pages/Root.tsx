@@ -27,6 +27,8 @@ import { checkTimerReminders, resetFired } from '../data/timerNotifications';
 import { TaskDrawerProvider } from '../data/TaskDrawerContext';
 import { TaskDrawer } from '../components/TaskDrawer';
 import { MobileBottomNav } from '../components/MobileBottomNav';
+import { MobileTimerBar } from '../components/MobileTimerBar';
+import { useIsMobile } from '../lib/useIsMobile';
 
 const navItems: { to: string; icon: any; label: string; end?: boolean; feature?: FeatureKey; hideUnlessFeature?: boolean; requiresFinancials?: boolean }[] = [
   { to: '/', icon: LayoutDashboard, label: 'Today', end: true },
@@ -222,6 +224,7 @@ function RootLayout() {
   const { clients, addSession, initAvatar, initLogos, initSettings } = useData();
   const { user, signOut, workspaceId } = useAuth();
   const { theme, setTheme, resolvedTheme } = useTheme();
+  const isMobile = useIsMobile();
   const { can, planId } = usePlan();
   const { canViewFinancials } = useRoleAccess();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -586,7 +589,12 @@ function RootLayout() {
       </aside>
 
       {/* Main area */}
-      <div className={`flex-1 ${mainMargin} min-h-[100dvh] min-w-0 overflow-x-hidden transition-all duration-300 pb-[calc(56px+env(safe-area-inset-bottom))] lg:pb-0`}>
+      <div
+        className={`flex-1 ${mainMargin} min-h-[100dvh] min-w-0 overflow-x-hidden transition-all duration-300`}
+        style={{ paddingBottom: isMobile ? `calc(${timerRunning ? 104 : 56}px + env(safe-area-inset-bottom))` : 0 }}
+      >
+
+
         {/* Top Bar */}
         <header className="h-14 border-b border-[var(--hairline)] bg-background/80 backdrop-blur-md sticky top-0 z-20 flex items-center justify-between px-4 lg:px-6">
           <div className="flex items-center gap-3">
@@ -867,6 +875,7 @@ function RootLayout() {
       </AnimatePresence>
 
       {/* Mobile bottom navigation — lg:hidden inside the component */}
+      <MobileTimerBar onStop={handleStopTimer} />
       <MobileBottomNav />
 
       {/* Trial Banner - remove duplicate, already in <main> above */}

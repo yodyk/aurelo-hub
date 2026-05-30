@@ -268,8 +268,8 @@ function ClientTable({
 }) {
   return (
     <div>
-      {/* Eyebrow header */}
-      <div className="grid grid-cols-[1fr_90px_100px_110px_80px_140px] gap-4 px-3 py-2 border-b border-[var(--hairline)] type-eyebrow text-muted-foreground">
+      {/* Eyebrow header — desktop only */}
+      <div className="hidden lg:grid grid-cols-[1fr_90px_100px_110px_80px_140px] gap-4 px-3 py-2 border-b border-[var(--hairline)] type-eyebrow text-muted-foreground">
         <div>Client</div>
         <div>Status</div>
         <div>Type</div>
@@ -277,6 +277,9 @@ function ClientTable({
         {canViewFinancials ? <div className="text-right">Rate</div> : <div />}
         {canViewFinancials ? <div className="text-right">{archived ? "Lifetime" : "This month"}</div> : <div />}
       </div>
+      {/* Hairline divider on mobile to anchor the list */}
+      <div className="lg:hidden border-b border-[var(--hairline)]" />
+
 
       <div className="divide-y divide-[var(--hairline)]">
         {rows.map((client: any) => {
@@ -290,82 +293,122 @@ function ClientTable({
             <Link
               key={client.id}
               to={`/clients/${client.id}`}
-              className={`grid grid-cols-[1fr_90px_100px_110px_80px_140px] gap-4 items-center px-3 h-14 hover:bg-accent/30 transition-colors group ${archived ? "opacity-60 hover:opacity-100" : ""}`}
+              className={`block hover:bg-accent/30 transition-colors group ${archived ? "opacity-60 hover:opacity-100" : ""}`}
             >
-              {/* Client */}
-              <div className="flex items-center gap-3 min-w-0">
+              {/* Desktop grid row */}
+              <div className="hidden lg:grid grid-cols-[1fr_90px_100px_110px_80px_140px] gap-4 items-center px-3 h-14">
+                <div className="flex items-center gap-3 min-w-0">
+                  {faviconUrl ? (
+                    <img
+                      src={faviconUrl}
+                      alt={client.name}
+                      className="w-8 h-8 rounded-circle object-cover flex-shrink-0"
+                      style={{ boxShadow: "0 0 0 1px var(--hairline)" }}
+                    />
+                  ) : (
+                    <div
+                      className="w-8 h-8 rounded-circle flex items-center justify-center flex-shrink-0"
+                      style={{ background: "color-mix(in srgb, var(--primary) 8%, transparent)" }}
+                    >
+                      <span className="text-[12px] text-primary" style={{ fontWeight: 600 }}>
+                        {client.name.charAt(0)}
+                      </span>
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <div className="text-[13.5px] flex items-center gap-1 truncate" style={{ fontWeight: 600 }}>
+                      {client.name}
+                      <ArrowUpRight className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                    </div>
+                    {client.contactName && (
+                      <div className="type-meta text-muted-foreground truncate">{client.contactName}</div>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 text-[12.5px] text-muted-foreground" style={{ fontWeight: 500 }}>
+                  <span className="w-1.5 h-1.5 rounded-circle" style={{ background: dot }} />
+                  {client.status}
+                </div>
+                <div className="text-[12.5px] text-muted-foreground" style={{ fontWeight: 500 }}>
+                  {client.model || "—"}
+                </div>
+                <div className="min-w-0" onClick={(e) => e.preventDefault()}>
+                  <ClientAssignmentManager clientId={client.id} compact />
+                </div>
+                {canViewFinancials ? (
+                  <div className="text-right">
+                    {client.rate > 0 ? (
+                      <span className="text-[12.5px] tabular-nums" style={{ fontWeight: 600 }}>
+                        ${client.rate}
+                        <span className="text-muted-foreground text-[11px] ml-0.5" style={{ fontWeight: 400 }}>/hr</span>
+                      </span>
+                    ) : (
+                      <span className="text-[12.5px] text-muted-foreground/50">—</span>
+                    )}
+                  </div>
+                ) : <div />}
+                {canViewFinancials ? (
+                  <div className="text-right">
+                    <div className="text-[12.5px] tabular-nums mb-1" style={{ fontWeight: 600 }}>
+                      {formatMoney(earnings)}
+                      <span className="text-muted-foreground text-[11px] ml-1" style={{ fontWeight: 400 }}>
+                        · {sessionCount}
+                      </span>
+                    </div>
+                    {!archived && <HairlineBar value={progress} threshold={false} height={2} />}
+                  </div>
+                ) : <div />}
+              </div>
+
+              {/* Mobile stacked row */}
+              <div className="lg:hidden flex items-center gap-3 px-3 py-3.5 min-w-0">
                 {faviconUrl ? (
                   <img
                     src={faviconUrl}
                     alt={client.name}
-                    className="w-8 h-8 rounded-circle object-cover flex-shrink-0"
+                    className="w-10 h-10 rounded-circle object-cover flex-shrink-0"
                     style={{ boxShadow: "0 0 0 1px var(--hairline)" }}
                   />
                 ) : (
                   <div
-                    className="w-8 h-8 rounded-circle flex items-center justify-center flex-shrink-0"
+                    className="w-10 h-10 rounded-circle flex items-center justify-center flex-shrink-0"
                     style={{ background: "color-mix(in srgb, var(--primary) 8%, transparent)" }}
                   >
-                    <span className="text-[12px] text-primary" style={{ fontWeight: 600 }}>
+                    <span className="text-[14px] text-primary" style={{ fontWeight: 600 }}>
                       {client.name.charAt(0)}
                     </span>
                   </div>
                 )}
-                <div className="min-w-0">
-                  <div className="text-[13.5px] flex items-center gap-1 truncate" style={{ fontWeight: 600 }}>
-                    {client.name}
-                    <ArrowUpRight className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="text-[14px] truncate" style={{ fontWeight: 600 }}>{client.name}</div>
+                    <span className="w-1.5 h-1.5 rounded-circle flex-shrink-0" style={{ background: dot }} />
                   </div>
-                  {client.contactName && (
-                    <div className="type-meta text-muted-foreground truncate">{client.contactName}</div>
-                  )}
-                </div>
-              </div>
-
-              {/* Status */}
-              <div className="flex items-center gap-1.5 text-[12.5px] text-muted-foreground" style={{ fontWeight: 500 }}>
-                <span className="w-1.5 h-1.5 rounded-circle" style={{ background: dot }} />
-                {client.status}
-              </div>
-
-              {/* Type */}
-              <div className="text-[12.5px] text-muted-foreground" style={{ fontWeight: 500 }}>
-                {client.model || "—"}
-              </div>
-
-              {/* Team */}
-              <div className="min-w-0" onClick={(e) => e.preventDefault()}>
-                <ClientAssignmentManager clientId={client.id} compact />
-              </div>
-
-              {/* Rate */}
-              {canViewFinancials ? (
-                <div className="text-right">
-                  {client.rate > 0 ? (
-                    <span className="text-[12.5px] tabular-nums" style={{ fontWeight: 600 }}>
-                      ${client.rate}
-                      <span className="text-muted-foreground text-[11px] ml-0.5" style={{ fontWeight: 400 }}>/hr</span>
-                    </span>
-                  ) : (
-                    <span className="text-[12.5px] text-muted-foreground/50">—</span>
-                  )}
-                </div>
-              ) : <div />}
-
-              {/* Revenue */}
-              {canViewFinancials ? (
-                <div className="text-right">
-                  <div className="text-[12.5px] tabular-nums mb-1" style={{ fontWeight: 600 }}>
-                    {formatMoney(earnings)}
-                    <span className="text-muted-foreground text-[11px] ml-1" style={{ fontWeight: 400 }}>
-                      · {sessionCount}
-                    </span>
+                  <div className="type-meta text-muted-foreground truncate mt-0.5">
+                    {client.model || client.status}
+                    {canViewFinancials && client.rate > 0 && (
+                      <>
+                        <span className="opacity-40 mx-1.5">·</span>
+                        <span className="tabular-nums">${client.rate}/hr</span>
+                      </>
+                    )}
                   </div>
-                  {!archived && <HairlineBar value={progress} threshold={false} height={2} />}
                 </div>
-              ) : <div />}
+                {canViewFinancials && (
+                  <div className="text-right flex-shrink-0">
+                    <div className="text-[13px] tabular-nums" style={{ fontWeight: 600 }}>
+                      {formatMoney(earnings, { precision: "compact" })}
+                    </div>
+                    <div className="type-meta text-muted-foreground tabular-nums mt-0.5">
+                      {sessionCount} {sessionCount === 1 ? "session" : "sessions"}
+                    </div>
+                  </div>
+                )}
+                <ChevronRight className="w-4 h-4 text-muted-foreground/50 flex-shrink-0" />
+              </div>
             </Link>
           );
+
         })}
       </div>
     </div>

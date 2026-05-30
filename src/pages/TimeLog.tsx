@@ -401,7 +401,7 @@ export default function TimeLog() {
                       return (
                         <div
                           key={session.id}
-                          className={`flex items-center gap-3 px-3 py-2.5 hover:bg-accent/20 transition-colors group ${isSelected ? "bg-primary/[0.04]" : ""}`}
+                          className={`flex flex-wrap lg:flex-nowrap items-center gap-x-3 gap-y-1 px-3 py-2.5 hover:bg-accent/20 transition-colors group ${isSelected ? "bg-primary/[0.04]" : ""}`}
                         >
                           <button
                             onClick={(e) => { e.stopPropagation(); toggleSelect(session.id); }}
@@ -411,19 +411,26 @@ export default function TimeLog() {
                             {isSelected ? (
                               <CheckSquare className="w-3.5 h-3.5 text-primary" />
                             ) : (
-                              <Square className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                              <Square className="w-3.5 h-3.5 text-muted-foreground lg:opacity-0 group-hover:opacity-100 transition-opacity" />
                             )}
                           </button>
 
                           <button
                             onClick={() => session.clientId && navigate(`/clients/${session.clientId}`)}
-                            className="text-[13px] truncate w-32 text-left text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                            className="text-[13px] truncate w-auto max-w-[40%] lg:w-32 text-left text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                             style={{ fontWeight: 500 }}
                           >
                             {session.client}
                           </button>
 
-                          <div className="flex-1 text-[13px] text-muted-foreground truncate min-w-0">
+                          {/* Hours + revenue — on mobile, anchor to the right of the top row */}
+                          <div className="ml-auto lg:hidden flex items-center gap-3 tabular-nums text-[13px]" style={{ fontWeight: 500 }}>
+                            <span>{session.duration}h</span>
+                            {canViewFinancials && <span style={{ fontWeight: 600 }}>${session.revenue}</span>}
+                          </div>
+
+                          {/* Description — full width on mobile (second row) */}
+                          <div className="basis-full lg:basis-auto lg:flex-1 text-[13px] text-muted-foreground truncate min-w-0 pl-7 lg:pl-0">
                             {session.task}
                           </div>
 
@@ -453,18 +460,19 @@ export default function TimeLog() {
                             </span>
                           )}
 
-                          <div className="text-right tabular-nums w-14 text-[13px]" style={{ fontWeight: 500 }}>
+                          {/* Desktop hours + revenue */}
+                          <div className="hidden lg:block text-right tabular-nums w-14 text-[13px]" style={{ fontWeight: 500 }}>
                             {session.duration}h
                           </div>
                           {canViewFinancials && (
-                            <div className="text-right tabular-nums w-20 text-[13px]" style={{ fontWeight: 600 }}>
+                            <div className="hidden lg:block text-right tabular-nums w-20 text-[13px]" style={{ fontWeight: 600 }}>
                               ${session.revenue}
                             </div>
                           )}
 
                           <button
                             onClick={(e) => { e.stopPropagation(); setEditingSession(session); }}
-                            className="flex-shrink-0 w-7 h-7 inline-flex items-center justify-center rounded opacity-0 group-hover:opacity-100 hover:bg-accent/60 text-muted-foreground hover:text-foreground transition-all cursor-pointer"
+                            className="hidden lg:inline-flex flex-shrink-0 w-7 h-7 items-center justify-center rounded opacity-0 group-hover:opacity-100 hover:bg-accent/60 text-muted-foreground hover:text-foreground transition-all cursor-pointer"
                             aria-label="Edit session"
                           >
                             <Pencil className="w-3 h-3" />
@@ -472,6 +480,7 @@ export default function TimeLog() {
                         </div>
                       );
                     })}
+
                   </div>
                 </div>
               ))}

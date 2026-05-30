@@ -610,8 +610,8 @@ export default function ClientDetail() {
 
           {/* Name + sub-line */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="type-display truncate" style={{ margin: 0 }}>{client.name}</h1>
+            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+              <h1 className="type-display truncate text-[22px] sm:text-inherit" style={{ margin: 0 }}>{client.name}</h1>
               <span
                 className="inline-flex items-center gap-1.5 text-[11.5px] px-2 py-0.5 rounded-md"
                 style={{
@@ -630,7 +630,7 @@ export default function ClientDetail() {
 
             {/* Editorial sub-line — rate + lifetime in Page numerals */}
             {canViewFinancials && (
-              <div className="flex items-baseline gap-2 mt-2 tabular-nums">
+              <div className="flex items-baseline gap-2 mt-2 tabular-nums flex-wrap">
                 <span className="type-page" style={{ margin: 0, fontSize: 22 }}>
                   {formatMoney(effectiveRate)}
                 </span>
@@ -655,7 +655,7 @@ export default function ClientDetail() {
             </button>
             <button
               onClick={() => setShowLogModal(true)}
-              className="h-9 px-3 inline-flex items-center gap-1.5 rounded-md border border-[var(--hairline)] hover:bg-accent/60 transition-all cursor-pointer text-[13px] text-muted-foreground hover:text-foreground"
+              className="hidden sm:inline-flex h-9 px-3 items-center gap-1.5 rounded-md border border-[var(--hairline)] hover:bg-accent/60 transition-all cursor-pointer text-[13px] text-muted-foreground hover:text-foreground"
               style={{ fontWeight: 500 }}
             >
               <Plus className="w-3.5 h-3.5" />
@@ -673,9 +673,12 @@ export default function ClientDetail() {
               style={{ fontWeight: 600 }}
             >
               {activeTab === "portal" && copied ? <Check className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
-              {activeTab === "portal" && copied ? "Copied" : TAB_PRIMARY[activeTab]}
+              <span className="hidden xs:inline sm:inline">
+                {activeTab === "portal" && copied ? "Copied" : TAB_PRIMARY[activeTab]}
+              </span>
             </button>
           </div>
+
         </div>
       </motion.div>
 
