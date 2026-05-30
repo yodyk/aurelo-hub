@@ -875,6 +875,7 @@ function RootLayout() {
       </AnimatePresence>
 
       {/* Mobile bottom navigation — lg:hidden inside the component */}
+      <MobileTimerBar onStop={handleStopTimer} />
       <MobileBottomNav />
 
       {/* Trial Banner - remove duplicate, already in <main> above */}
