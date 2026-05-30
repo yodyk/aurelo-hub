@@ -224,6 +224,7 @@ function RootLayout() {
   const { clients, addSession, initAvatar, initLogos, initSettings } = useData();
   const { user, signOut, workspaceId } = useAuth();
   const { theme, setTheme, resolvedTheme } = useTheme();
+  const isMobile = useIsMobile();
   const { can, planId } = usePlan();
   const { canViewFinancials } = useRoleAccess();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
