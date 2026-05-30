@@ -27,6 +27,8 @@ import { checkTimerReminders, resetFired } from '../data/timerNotifications';
 import { TaskDrawerProvider } from '../data/TaskDrawerContext';
 import { TaskDrawer } from '../components/TaskDrawer';
 import { MobileBottomNav } from '../components/MobileBottomNav';
+import { MobileTimerBar } from '../components/MobileTimerBar';
+import { useIsMobile } from '../lib/useIsMobile';
 
 const navItems: { to: string; icon: any; label: string; end?: boolean; feature?: FeatureKey; hideUnlessFeature?: boolean; requiresFinancials?: boolean }[] = [
   { to: '/', icon: LayoutDashboard, label: 'Today', end: true },
