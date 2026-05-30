@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { Plus, ChevronDown, Download, FolderKanban, Repeat, Pencil, Search, X, CheckSquare, Square, Receipt, Clock } from "lucide-react";
+import { Plus, ChevronDown, Download, FolderKanban, Repeat, Pencil, Search, X, CheckSquare, Square, Receipt, Clock, SlidersHorizontal } from "lucide-react";
+import { BottomSheet } from "@/components/primitives/BottomSheet";
 import { motion } from "motion/react";
 import { useData } from "../data/DataContext";
 import { LogSessionModal, EditSessionModal } from "../components/Modals";
