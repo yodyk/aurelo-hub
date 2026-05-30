@@ -581,7 +581,7 @@ export default function Invoicing() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2 mb-0.5">
                           <span className="text-[14px] text-foreground truncate" style={{ fontWeight: 600 }}>
-                            {invoice_clientName(inv)}
+                            {inv.clientName}
                           </span>
                           <span className="text-[14px] text-foreground tabular-nums flex-shrink-0" style={{ fontWeight: 600 }}>
                             {formatCurrency(inv.total, inv.currency)}
