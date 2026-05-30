@@ -268,8 +268,8 @@ function ClientTable({
 }) {
   return (
     <div>
-      {/* Eyebrow header */}
-      <div className="grid grid-cols-[1fr_90px_100px_110px_80px_140px] gap-4 px-3 py-2 border-b border-[var(--hairline)] type-eyebrow text-muted-foreground">
+      {/* Eyebrow header — desktop only */}
+      <div className="hidden lg:grid grid-cols-[1fr_90px_100px_110px_80px_140px] gap-4 px-3 py-2 border-b border-[var(--hairline)] type-eyebrow text-muted-foreground">
         <div>Client</div>
         <div>Status</div>
         <div>Type</div>
@@ -277,6 +277,9 @@ function ClientTable({
         {canViewFinancials ? <div className="text-right">Rate</div> : <div />}
         {canViewFinancials ? <div className="text-right">{archived ? "Lifetime" : "This month"}</div> : <div />}
       </div>
+      {/* Hairline divider on mobile to anchor the list */}
+      <div className="lg:hidden border-b border-[var(--hairline)]" />
+
 
       <div className="divide-y divide-[var(--hairline)]">
         {rows.map((client: any) => {
