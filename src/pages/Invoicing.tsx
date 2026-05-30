@@ -511,7 +511,9 @@ export default function Invoicing() {
                 } : undefined}
               />
             ) : (
-              <Table>
+              <>
+              {/* Desktop table */}
+              <Table className="hidden lg:table">
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-10">
@@ -555,6 +557,63 @@ export default function Invoicing() {
                   ))}
                 </TableBody>
               </Table>
+
+              {/* Mobile stacked rows */}
+              <ul className="lg:hidden divide-y divide-[var(--hairline)]">
+                {filtered.map((inv) => {
+                  const sc = STATUS_CONFIG[inv.status];
+                  const StatusIcon = sc.icon;
+                  const dueDays = inv.dueDate ? daysUntil(inv.dueDate) : null;
+                  const isSelected = selectedIds.has(inv.id);
+                  return (
+                    <li
+                      key={inv.id}
+                      onClick={() => setViewingInvoice(inv)}
+                      className={`flex items-center gap-3 py-3.5 px-1 cursor-pointer active:bg-accent/40 transition-colors ${isSelected ? 'bg-accent/30' : ''}`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleSelect(inv.id)}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-4 h-4 rounded accent-primary cursor-pointer flex-shrink-0"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2 mb-0.5">
+                          <span className="text-[14px] text-foreground truncate" style={{ fontWeight: 600 }}>
+                            {inv.clientName}
+                          </span>
+                          <span className="text-[14px] text-foreground tabular-nums flex-shrink-0" style={{ fontWeight: 600 }}>
+                            {formatCurrency(inv.total, inv.currency)}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="text-[11px] text-primary tabular-nums" style={{ fontWeight: 500 }}>
+                              #{inv.number}
+                            </span>
+                            <span
+                              className={`inline-flex items-center gap-1 text-[10.5px] px-1.5 py-0.5 rounded-full ${sc.bg}`}
+                              style={{ fontWeight: 600, color: sc.color }}
+                            >
+                              <StatusIcon className="w-2.5 h-2.5" />
+                              {sc.label}
+                            </span>
+                          </div>
+                          <span className="text-[11px] text-muted-foreground tabular-nums flex-shrink-0">
+                            {inv.dueDate ? (
+                              inv.status === 'sent' && dueDays !== null && dueDays < 0
+                                ? <span className="text-destructive" style={{ fontWeight: 500 }}>{Math.abs(dueDays)}d overdue</span>
+                                : `Due ${shortDate(inv.dueDate)}`
+                            ) : '—'}
+                          </span>
+                        </div>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+              </>
             )}
             </div>
           </div>
