@@ -48,6 +48,7 @@ export default function TimeLog() {
   const [editingSession, setEditingSession] = useState<any>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
 
   useEffect(() => {
     if (can("clientInvoicing")) invoiceApi.loadInvoices().then(setInvoices).catch(() => {});
