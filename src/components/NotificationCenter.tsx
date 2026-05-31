@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { createPortal } from 'react-dom';
 import { Bell, X, Clock, FileText, Users, TrendingUp, UserPlus, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router';
 import { useIsMobile } from '@/lib/useIsMobile';
+import { BottomSheet } from './primitives/BottomSheet';
 import {
   type Notification,
   type NotificationPreference,
