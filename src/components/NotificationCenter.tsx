@@ -142,20 +142,57 @@ export function NotificationCenter({ workspaceId }: NotificationCenterProps) {
     }
   };
 
-  const isMobile = useIsMobile();
+  const panelInner = (
+    <>
+      {/* Header */}
+      <div className={isMobile
+        ? 'flex items-center justify-end px-4 py-2 border-b border-[var(--hairline)]'
+        : 'flex items-center justify-between px-4 py-3 border-b border-border'}
+      >
+        {!isMobile && (
+          <div className="flex items-center gap-2">
+            <span className="text-[13px]" style={{ fontWeight: 600 }}>Notifications</span>
+            {unreadCount > 0 && (
+              <span className="px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-[10px]" style={{ fontWeight: 600 }}>
+                {unreadCount} new
+              </span>
+            )}
+          </div>
+        )}
+        <div className="flex items-center gap-3">
+          {unreadCount > 0 && (
+            <button
+              onClick={handleMarkAllRead}
+              className="flex items-center gap-1 text-[12px] text-primary hover:text-primary/80 transition-colors"
+              style={{ fontWeight: 500 }}
+            >
+              <Check className="w-3 h-3" />
+              Mark all read
+            </button>
+          )}
+          {visibleNotifs.length > 0 && (
+            <button
+              onClick={handleClearAll}
+              className="flex items-center gap-1 text-[12px] text-muted-foreground hover:text-foreground transition-colors"
+              style={{ fontWeight: 500 }}
+            >
+              <X className="w-3 h-3" />
+              Clear all
+            </button>
+          )}
+        </div>
+      </div>
+    </>
+  );
 
-  const panel = (
+  const desktopPanel = (
     <motion.div
       ref={panelRef}
       initial={{ opacity: 0, y: 4, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 4, scale: 0.97 }}
       transition={{ duration: 0.15 }}
-      className={
-        isMobile
-          ? 'fixed left-2 right-2 top-[60px] bg-card border border-border rounded-xl overflow-hidden z-[60]'
-          : 'absolute top-full mt-2 right-0 w-96 max-w-[calc(100vw-1rem)] bg-card border border-border rounded-xl overflow-hidden z-50'
-      }
+      className="absolute top-full mt-2 right-0 w-96 max-w-[calc(100vw-1rem)] bg-card border border-border rounded-xl overflow-hidden z-50"
       style={{ boxShadow: 'var(--elev-2)' }}
     >
       {/* Header */}
