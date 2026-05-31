@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
       sb.from('projects').select('*').eq('client_id', client_id).eq('workspace_id', workspace_id).order('created_at', { ascending: false }),
       sb.from('sessions').select('*').eq('client_id', client_id).eq('workspace_id', workspace_id).order('date', { ascending: false }).limit(100),
       sb.from('invoices').select('*').eq('client_id', client_id).eq('workspace_id', workspace_id).order('created_at', { ascending: false }),
-      sb.from('workspaces').select('name, plan_id').eq('id', workspace_id).single(),
+      sb.from('workspaces').select('name, plan_id, owner_email').eq('id', workspace_id).single(),
       sb.from('workspace_settings').select('data').eq('workspace_id', workspace_id).eq('section', 'workspace').maybeSingle(),
       sb.from('checklists').select('*').eq('client_id', client_id).eq('workspace_id', workspace_id).order('created_at', { ascending: true }),
     ]);
