@@ -1,27 +1,27 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { containerVariants, itemVariants } from "@/lib/motion";
-import { useParams } from "react-router";
+import { useParams, useSearchParams } from "react-router";
 import AureloLogo from "@/components/AureloLogo";
 import {
   Clock,
   FileText,
   FolderOpen,
-  DollarSign,
-  Activity,
   Loader2,
   AlertTriangle,
   CheckCircle2,
-  Timer,
   CheckSquare,
-  Square,
   Plus,
-  ChevronDown,
-  ChevronRight,
   Tag,
   Check,
+  Inbox,
+  Receipt,
+  Mail,
+  Activity as ActivityIcon,
+  Link2,
 } from "lucide-react";
 import { format } from "date-fns";
+import { formatMoney, formatDuration, formatDate as formatDateFn } from "@/lib/format";
 
 // ── Types ───────────────────────────────────────────────────────────
 
@@ -62,18 +62,6 @@ interface PortalProject {
   budget_type?: string;
 }
 
-interface PortalSession {
-  id: string;
-  date: string;
-  duration: number;
-  task?: string;
-  notes?: string;
-  work_tags?: string[];
-  billable: boolean;
-  project_id?: string;
-  revenue?: number;
-}
-
 interface PortalInvoice {
   id: string;
   number: string;
@@ -106,12 +94,30 @@ interface PortalChecklist {
   items: PortalTask[];
 }
 
+interface ActivityEvent {
+  id: string;
+  type: string;
+  title: string;
+  at: string;
+}
+
+interface WaitingItem {
+  id: string;
+  kind: 'invoice.pay' | 'task.action' | string;
+  title: string;
+  amount?: number;
+  currency?: string;
+  due_date?: string | null;
+}
+
 interface PortalData {
   client: PortalClient;
   projects: PortalProject[];
-  sessions: PortalSession[];
   invoices: PortalInvoice[];
   checklists: PortalChecklist[];
+  activity: ActivityEvent[];
+  waitingOnYou: WaitingItem[];
+  workspaceOwner: { name: string | null; email: string | null };
   showCosts: boolean;
   branding: PortalBranding;
 }
@@ -120,47 +126,71 @@ interface PortalData {
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
-import { formatMoney, formatDuration, formatDate as formatDateFn } from "@/lib/format";
+const fmt$ = (amount: number, currency = "USD") =>
+  formatMoney(amount, { currency, precision: "compact" });
+const fmtHours = (h: number) =>
+  formatDuration(h, { variant: "display" }).replace(' hrs', 'h');
+const fmtDate = (d?: string | null) => formatDateFn(d, "medium");
 
-function fmt$(amount: number, currency = "USD") {
-  return formatMoney(amount, { currency, precision: "compact" });
+function dueLabel(due?: string | null) {
+  if (!due) return null;
+  try {
+    const d = new Date(due);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const diff = Math.floor((d.getTime() - today.getTime()) / 86400000);
+    if (diff === 0) return "Due today";
+    if (diff < 0) return `${Math.abs(diff)}d overdue`;
+    if (diff <= 3) return `Due in ${diff}d`;
+    return `Due ${format(d, 'MMM d')}`;
+  } catch { return null; }
 }
 
-function fmtHours(h: number) {
-  return formatDuration(h, { variant: "display" }).replace(' hrs', 'h');
+function relTime(iso: string) {
+  try {
+    const d = new Date(iso);
+    const diff = (Date.now() - d.getTime()) / 1000;
+    if (diff < 60) return 'Just now';
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+    if (diff < 86400 * 7) return `${Math.floor(diff / 86400)}d ago`;
+    return format(d, 'MMM d');
+  } catch { return ''; }
 }
 
-function fmtDate(d?: string | null) {
-  return formatDateFn(d, "medium");
-}
-
-
-function statusColor(status: string) {
+function statusBadge(status: string) {
   const s = status.toLowerCase();
-  if (s === "paid") return "text-emerald-600 bg-emerald-50";
-  if (s === "sent" || s === "issued") return "text-sky-600 bg-sky-50";
-  if (s === "overdue") return "text-red-500 bg-red-50";
-  if (s === "draft") return "text-muted-foreground bg-muted/30";
-  if (s === "in progress") return "text-sky-600 bg-sky-50";
-  if (s === "completed") return "text-emerald-600 bg-emerald-50";
-  return "text-muted-foreground bg-muted/30";
+  if (s === "paid") return { color: "#15803d", bg: "#dcfce7" };
+  if (s === "sent" || s === "issued") return { color: "#0369a1", bg: "#e0f2fe" };
+  if (s === "overdue") return { color: "#b91c1c", bg: "#fee2e2" };
+  if (s === "draft") return { color: "#6b7280", bg: "#f3f4f6" };
+  if (s === "in progress" || s === "active") return { color: "#0369a1", bg: "#e0f2fe" };
+  if (s === "completed" || s === "complete") return { color: "#15803d", bg: "#dcfce7" };
+  if (s === "on hold" || s === "paused") return { color: "#b45309", bg: "#fef3c7" };
+  return { color: "#6b7280", bg: "#f3f4f6" };
 }
 
-function statusDot(status: string) {
-  const s = status.toLowerCase();
-  if (s === "active") return "bg-emerald-500";
-  if (s === "paused" || s === "on hold") return "bg-amber-400";
-  return "bg-muted-foreground/40";
+function activityIcon(type: string) {
+  if (type.startsWith('invoice')) return Receipt;
+  if (type.startsWith('task')) return CheckCircle2;
+  if (type.startsWith('resource')) return Link2;
+  if (type.startsWith('update')) return ActivityIcon;
+  return ActivityIcon;
 }
 
 // ── Portal Page ─────────────────────────────────────────────────────
 
+type PortalTabId = 'home' | 'resources' | 'tasks' | 'billing';
+
 export default function ClientPortal() {
   const { token } = useParams();
+  const [searchParams] = useSearchParams();
   const [data, setData] = useState<PortalData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [tab, setTab] = useState<PortalTabId>('home');
 
+  // Force light mode for portal
   useEffect(() => {
     const root = document.documentElement;
     const wasDark = root.classList.contains("dark");
@@ -180,115 +210,195 @@ export default function ClientPortal() {
       .finally(() => setLoading(false));
   }, [token]);
 
+  // Deep-link focus highlight
+  const focus = searchParams.get('focus');
+  useEffect(() => {
+    if (!data || !focus) return;
+    const t = setTimeout(() => {
+      const el = document.getElementById(`focus-${focus}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.add('portal-focus-ring');
+        setTimeout(() => el.classList.remove('portal-focus-ring'), 1400);
+      }
+    }, 200);
+    return () => clearTimeout(t);
+  }, [data, focus]);
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f8f9fb] flex items-center justify-center">
-        <Loader2 className="w-6 h-6 text-[#3B66F0] animate-spin" />
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--portal-bg)' }}>
+        <Loader2 className="w-6 h-6 animate-spin" style={{ color: 'var(--portal-accent)' }} />
       </div>
     );
   }
 
   if (error || !data) {
     return (
-      <div className="min-h-screen bg-[#f8f9fb] flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--portal-bg)' }}>
         <div className="text-center max-w-md px-6">
           <AlertTriangle className="w-10 h-10 text-red-400 mx-auto mb-3" />
-          <h2 className="text-lg font-semibold text-[#1a1a2e] mb-1">Portal unavailable</h2>
-          <p className="text-sm text-[#6b7280]">{error || "This portal link is invalid or has been deactivated."}</p>
+          <h2 className="text-lg font-display font-semibold" style={{ color: 'var(--portal-ink)' }}>Portal unavailable</h2>
+          <p className="text-sm mt-1" style={{ color: 'var(--portal-muted)' }}>
+            {error || "This portal link is invalid or has been deactivated."}
+          </p>
         </div>
       </div>
     );
   }
 
-  const { client, projects, sessions, invoices, checklists, showCosts, branding } = data;
+  const { client, projects, invoices, checklists, activity, waitingOnYou, workspaceOwner, showCosts, branding } = data;
   const accent = branding.isWhiteLabel && branding.brandColor ? branding.brandColor : "#3B66F0";
+  const isRetainer = client.model === 'Retainer' && (client.retainerTotal ?? 0) > 0;
 
-  const totalInvoiced = invoices.reduce((sum, inv) => sum + inv.total, 0);
-  const paidInvoices = invoices.filter(i => i.status.toLowerCase() === "paid");
-  const outstandingInvoices = invoices.filter(i => ["sent", "issued", "overdue"].includes(i.status.toLowerCase()));
+  const tabs: { id: PortalTabId; label: string; count?: number }[] = [
+    { id: 'home', label: 'Home', count: waitingOnYou.length || undefined },
+    { id: 'resources', label: 'Resources' },
+    { id: 'tasks', label: 'Tasks', count: checklists.reduce((a, c) => a + c.items.filter(i => i.status !== 'complete').length, 0) || undefined },
+    { id: 'billing', label: 'Billing', count: invoices.filter(i => ['sent','issued','overdue'].includes(i.status.toLowerCase())).length || undefined },
+  ];
 
   return (
-    <div className="min-h-screen bg-[#f8f9fb] text-[#1a1a2e]">
-      {/* Header */}
-      <header className="bg-white border-b border-[#e5e7eb] px-6 lg:px-10 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {branding.isWhiteLabel && branding.logoUrl ? (
-              <img src={branding.logoUrl} alt={branding.workspaceName || ""} className="h-7 w-auto max-w-[180px] object-contain" />
-            ) : (
-              <AureloLogo className="h-5" />
-            )}
-          </div>
-          <span className="text-[11px] font-semibold tracking-wide uppercase px-3 py-1.5 rounded-full" style={{ backgroundColor: `${accent}12`, color: accent }}>
-            Client Portal
-          </span>
-        </div>
-      </header>
+    <div
+      className="portal-light min-h-screen"
+      style={{
+        // Scoped tokens: light-locked, hairline-driven, accent injected per-workspace
+        ['--portal-bg' as any]: '#f7f7f9',
+        ['--portal-surface' as any]: '#ffffff',
+        ['--portal-ink' as any]: '#0f1115',
+        ['--portal-muted' as any]: '#6b7280',
+        ['--portal-subtle' as any]: '#9ca3af',
+        ['--portal-hairline' as any]: '#e7e8ec',
+        ['--portal-soft' as any]: '#f1f2f5',
+        ['--portal-accent' as any]: accent,
+        backgroundColor: 'var(--portal-bg)',
+        color: 'var(--portal-ink)',
+      } as any}
+    >
+      <style>{`
+        .portal-focus-ring { box-shadow: 0 0 0 2px var(--portal-accent), 0 0 0 6px color-mix(in srgb, var(--portal-accent) 18%, transparent); transition: box-shadow .25s ease; }
+      `}</style>
 
-      <div className="max-w-7xl mx-auto px-6 lg:px-10 py-8 lg:py-12">
+      <PortalHeader branding={branding} accent={accent} />
+
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-10 py-6 lg:py-10">
         <motion.div initial="hidden" animate="show" variants={containerVariants}>
-          {/* Client hero */}
-          <motion.div variants={itemVariants} className="mb-8">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex items-center gap-4">
-                {branding.clientFaviconUrl ? (
-                  <img src={branding.clientFaviconUrl} alt={client.name} className="h-14 w-14 rounded-2xl object-cover shadow-sm" />
-                ) : (
-                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm" style={{ background: `linear-gradient(135deg, ${accent}20, ${accent}08)` }}>
-                    <span className="text-2xl font-bold" style={{ color: accent }}>{client.name.charAt(0)}</span>
-                  </div>
-                )}
-                <div>
-                  <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-[#1a1a2e]">{client.name}</h1>
-                  <div className="flex items-center gap-3 mt-1.5">
-                    <div className="flex items-center gap-1.5">
-                      <div className={`w-2 h-2 rounded-circle ${statusDot(client.status)}`} />
-                      <span className="text-sm text-[#6b7280]">{client.status}</span>
-                    </div>
-                    <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-[#f3f4f6] text-[#6b7280]">{client.model}</span>
-                  </div>
+          {/* Client identity strip */}
+          <motion.div variants={itemVariants} className="mb-6 lg:mb-8">
+            <div className="flex items-center gap-3">
+              {branding.clientFaviconUrl ? (
+                <img src={branding.clientFaviconUrl} alt={client.name} className="h-10 w-10 rounded object-cover" />
+              ) : (
+                <div
+                  className="h-10 w-10 rounded flex items-center justify-center font-display font-semibold text-base"
+                  style={{ backgroundColor: `color-mix(in srgb, ${accent} 12%, transparent)`, color: accent }}
+                >
+                  {client.name.charAt(0)}
+                </div>
+              )}
+              <div className="min-w-0 flex-1">
+                <h1 className="text-xl lg:text-2xl font-display font-semibold tracking-tight truncate" style={{ color: 'var(--portal-ink)' }}>
+                  {client.name}
+                </h1>
+                <div className="flex items-center gap-2 mt-0.5 text-[12px]" style={{ color: 'var(--portal-muted)' }}>
+                  <span
+                    className="inline-block w-1.5 h-1.5 rounded-circle"
+                    style={{ backgroundColor: client.status?.toLowerCase() === 'active' ? '#22c55e' : '#9ca3af' }}
+                  />
+                  <span>{client.status}</span>
+                  <span style={{ color: 'var(--portal-subtle)' }}>·</span>
+                  <span>{client.model}</span>
                 </div>
               </div>
               {branding.clientLogoUrl && (
-                <img src={branding.clientLogoUrl} alt={client.name} className="h-12 w-auto max-w-[180px] object-contain hidden md:block" />
+                <img src={branding.clientLogoUrl} alt="" className="h-8 w-auto max-w-[140px] object-contain hidden md:block opacity-90" />
               )}
             </div>
             {client.portalGreeting && (
-              <p className="mt-4 text-[15px] text-[#6b7280] max-w-2xl leading-relaxed">{client.portalGreeting}</p>
+              <p className="mt-4 text-[14px] leading-relaxed max-w-2xl" style={{ color: 'var(--portal-muted)' }}>
+                {client.portalGreeting}
+              </p>
             )}
           </motion.div>
 
-          {/* Summary stats row */}
-          <PortalSummary
-            client={client}
-            projects={projects}
-            sessions={sessions}
-            checklists={checklists}
-            totalInvoiced={totalInvoiced}
-            showCosts={showCosts}
-            accent={accent}
-          />
+          {/* Tabs */}
+          <motion.div variants={itemVariants} className="mb-6">
+            <div className="inline-flex items-center gap-1 p-0.5 rounded border" style={{ borderColor: 'var(--portal-hairline)', backgroundColor: 'var(--portal-surface)' }}>
+              {tabs.map(t => {
+                const active = tab === t.id;
+                return (
+                  <button
+                    key={t.id}
+                    onClick={() => setTab(t.id)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12.5px] rounded transition-colors cursor-pointer"
+                    style={{
+                      fontWeight: active ? 600 : 500,
+                      color: active ? '#fff' : 'var(--portal-muted)',
+                      backgroundColor: active ? accent : 'transparent',
+                    }}
+                  >
+                    {t.label}
+                    {t.count != null && (
+                      <span
+                        className="text-[10.5px] px-1.5 py-0.5 rounded tabular-nums"
+                        style={{
+                          backgroundColor: active ? 'rgba(255,255,255,0.18)' : 'var(--portal-soft)',
+                          color: active ? '#fff' : 'var(--portal-subtle)',
+                        }}
+                      >
+                        {t.count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </motion.div>
 
-          {/* Tabbed content */}
-          <PortalTabs
-            client={client}
-            projects={projects}
-            sessions={sessions}
-            invoices={invoices}
-            checklists={checklists}
-            showCosts={showCosts}
-            accent={accent}
-            token={token!}
-          />
+          <AnimatePresence>
+            <motion.div
+              key={tab}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.18 }}
+            >
+              {tab === 'home' && (
+                <div className="space-y-6">
+                  <WaitingOnYou items={waitingOnYou} accent={accent} onTabChange={setTab} />
+                  <RecentActivity events={activity} accent={accent} />
+                  <Engagements projects={projects} accent={accent} />
+                  {isRetainer && (
+                    <RetainerCard total={client.retainerTotal!} remaining={client.retainerRemaining || 0} accent={accent} />
+                  )}
+                  <ContactCard owner={workspaceOwner} accent={accent} />
+                </div>
+              )}
+
+              {tab === 'resources' && <ResourcesStub accent={accent} />}
+
+              {tab === 'tasks' && (
+                <TasksTab checklists={checklists} accent={accent} token={token!} />
+              )}
+
+              {tab === 'billing' && (
+                <BillingTab
+                  invoices={invoices}
+                  showCosts={showCosts}
+                  accent={accent}
+                  isRetainer={isRetainer}
+                  retainerTotal={client.retainerTotal}
+                  retainerRemaining={client.retainerRemaining}
+                />
+              )}
+            </motion.div>
+          </AnimatePresence>
         </motion.div>
 
-
-        {/* Footer */}
         {!branding.isWhiteLabel && (
-          <div className="mt-20 pb-8 text-center">
-            <p className="text-[11px] text-[#d1d5db]">
+          <div className="mt-16 pb-8 text-center">
+            <p className="text-[11px]" style={{ color: 'var(--portal-subtle)' }}>
               Powered by{" "}
-              <a href="https://getaurelo.com" target="_blank" rel="noopener noreferrer" className="hover:text-[#9ca3af] transition-colors">
+              <a href="https://getaurelo.com" target="_blank" rel="noopener noreferrer" className="hover:underline">
                 Aurelo
               </a>
             </p>
@@ -299,418 +409,403 @@ export default function ClientPortal() {
   );
 }
 
-// ── Summary stats (with Open Tasks) ────────────────────────────────
+// ── Header ──────────────────────────────────────────────────────────
 
-function PortalSummary({
-  client, projects, sessions, checklists, totalInvoiced, showCosts, accent,
-}: {
-  client: PortalClient;
-  projects: PortalProject[];
-  sessions: PortalSession[];
-  checklists: PortalChecklist[];
-  totalInvoiced: number;
-  showCosts: boolean;
-  accent: string;
-}) {
-  const openTasks = useMemo(
-    () => checklists.reduce((acc, cl) => acc + cl.items.filter(i => i.status !== 'complete').length, 0),
-    [checklists]
-  );
-
+function PortalHeader({ branding, accent }: { branding: PortalBranding; accent: string }) {
   return (
-    <motion.div variants={itemVariants} className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-      <StatCard icon={Clock} label="Hours Logged" value={fmtHours(client.hoursLogged || 0)} accent={accent} />
-      <StatCard icon={CheckSquare} label="Open Tasks" value={String(openTasks)} accent={accent} />
-      <StatCard icon={FolderOpen} label="Active Projects" value={String(projects.filter(p => p.status.toLowerCase() === "in progress").length)} accent={accent} />
-      {showCosts ? (
-        <StatCard icon={DollarSign} label="This Month" value={fmt$(client.monthlyEarnings || 0)} accent={accent} />
-      ) : (
-        <StatCard icon={Activity} label="Total Sessions" value={String(sessions.length)} accent={accent} />
-      )}
-    </motion.div>
+    <header
+      className="border-b px-4 sm:px-6 lg:px-10 py-3.5"
+      style={{
+        backgroundColor: 'var(--portal-surface)',
+        borderColor: 'var(--portal-hairline)',
+      }}
+    >
+      <div className="max-w-5xl mx-auto flex items-center justify-between">
+        <div className="flex items-center gap-3 min-w-0">
+          {branding.isWhiteLabel && branding.logoUrl ? (
+            <img src={branding.logoUrl} alt={branding.workspaceName || ""} className="h-6 w-auto max-w-[160px] object-contain" />
+          ) : (
+            <AureloLogo className="h-4" />
+          )}
+        </div>
+        <span
+          className="text-[10.5px] font-semibold tracking-wide uppercase px-2.5 py-1 rounded"
+          style={{ backgroundColor: `color-mix(in srgb, ${accent} 10%, transparent)`, color: accent }}
+        >
+          Client Portal
+        </span>
+      </div>
+    </header>
   );
 }
 
-// ── Tabbed content ─────────────────────────────────────────────────
+// ── Waiting on you ──────────────────────────────────────────────────
 
-type PortalTabId = 'retainer' | 'activity' | 'tasks' | 'projects';
-
-function PortalTabs({
-  client, projects, sessions, invoices, checklists, showCosts, accent, token,
-}: {
-  client: PortalClient;
-  projects: PortalProject[];
-  sessions: PortalSession[];
-  invoices: PortalInvoice[];
-  checklists: PortalChecklist[];
-  showCosts: boolean;
-  accent: string;
-  token: string;
-}) {
-  const isRetainer = client.model === 'Retainer';
-  const openTaskCount = useMemo(
-    () => checklists.reduce((acc, cl) => acc + cl.items.filter(i => i.status !== 'complete').length, 0),
-    [checklists]
-  );
-
-  const tabs: { id: PortalTabId; label: string; count?: number }[] = [
-    { id: 'retainer', label: isRetainer ? 'Retainer' : 'Summary' },
-    { id: 'activity', label: 'Recent Activity', count: sessions.length || undefined },
-    { id: 'tasks',    label: 'Tasks',           count: openTaskCount || undefined },
-    { id: 'projects', label: 'Projects',        count: projects.length || undefined },
-  ];
-
-  const [active, setActive] = useState<PortalTabId>('retainer');
-  const [hideCompleted, setHideCompleted] = useState(true);
+function WaitingOnYou({ items, accent, onTabChange }: { items: WaitingItem[]; accent: string; onTabChange: (t: PortalTabId) => void }) {
+  if (items.length === 0) {
+    return (
+      <section>
+        <SectionTitle icon={Inbox} title="Waiting on you" accent={accent} />
+        <div
+          className="rounded border p-6 text-center"
+          style={{ borderColor: 'var(--portal-hairline)', backgroundColor: 'var(--portal-surface)' }}
+        >
+          <CheckCircle2 className="w-6 h-6 mx-auto mb-2" style={{ color: '#22c55e' }} />
+          <p className="text-[13.5px] font-display font-semibold" style={{ color: 'var(--portal-ink)' }}>You're all caught up</p>
+          <p className="text-[12px] mt-1" style={{ color: 'var(--portal-muted)' }}>Nothing needs your attention right now.</p>
+        </div>
+      </section>
+    );
+  }
 
   return (
-    <motion.div variants={itemVariants}>
-      {/* Tab bar */}
-      <div className="border-b border-[#e5e7eb] mb-6 flex items-end gap-1 overflow-x-auto">
-        {tabs.map(t => {
-          const isActive = active === t.id;
-          return (
-            <button
-              key={t.id}
-              onClick={() => setActive(t.id)}
-              className="relative inline-flex items-center gap-1.5 px-3.5 py-2.5 text-[13px] whitespace-nowrap transition-colors cursor-pointer"
-              style={{
-                fontWeight: isActive ? 600 : 500,
-                color: isActive ? accent : '#6b7280',
-              }}
+    <section>
+      <SectionTitle icon={Inbox} title="Waiting on you" count={items.length} accent={accent} />
+      <div
+        className="rounded border divide-y"
+        style={{ borderColor: 'var(--portal-hairline)', backgroundColor: 'var(--portal-surface)' }}
+      >
+        {items.map(item => (
+          <div
+            key={item.id}
+            id={item.kind === 'invoice.pay' ? `focus-invoice:${item.id.replace('pay-', '')}` : `focus-task:${item.id.replace('task-', '')}`}
+            className="flex items-center gap-3 p-4"
+          >
+            <div
+              className="w-8 h-8 rounded flex items-center justify-center flex-shrink-0"
+              style={{ backgroundColor: `color-mix(in srgb, ${accent} 10%, transparent)` }}
             >
-              {t.label}
-              {t.count != null && (
-                <span
-                  className="text-[10.5px] font-medium px-1.5 py-0.5 rounded-full tabular-nums"
-                  style={{
-                    backgroundColor: isActive ? `${accent}14` : '#f3f4f6',
-                    color: isActive ? accent : '#9ca3af',
-                  }}
-                >
-                  {t.count}
-                </span>
+              {item.kind === 'invoice.pay' ? (
+                <Receipt className="w-4 h-4" style={{ color: accent }} />
+              ) : (
+                <CheckSquare className="w-4 h-4" style={{ color: accent }} />
               )}
-              {isActive && (
-                <span className="absolute left-2 right-2 -bottom-px h-[2px] rounded-full" style={{ backgroundColor: accent }} />
-              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[13.5px] font-display font-semibold truncate" style={{ color: 'var(--portal-ink)' }}>
+                {item.title}
+              </div>
+              <div className="text-[11.5px] mt-0.5 flex items-center gap-2" style={{ color: 'var(--portal-muted)' }}>
+                {item.amount != null && (
+                  <span className="tabular-nums">{fmt$(item.amount, item.currency || 'USD')}</span>
+                )}
+                {item.due_date && <span>· {dueLabel(item.due_date)}</span>}
+              </div>
+            </div>
+            <button
+              onClick={() => onTabChange(item.kind === 'invoice.pay' ? 'billing' : 'tasks')}
+              className="text-[12px] font-semibold px-3 py-1.5 rounded text-white cursor-pointer"
+              style={{ backgroundColor: accent }}
+            >
+              {item.kind === 'invoice.pay' ? 'Pay' : 'Open'}
             </button>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// ── Recent Activity ─────────────────────────────────────────────────
+
+function RecentActivity({ events, accent }: { events: ActivityEvent[]; accent: string }) {
+  if (events.length === 0) return null;
+  return (
+    <section>
+      <SectionTitle icon={ActivityIcon} title="Recent activity" accent={accent} />
+      <div
+        className="rounded border divide-y"
+        style={{ borderColor: 'var(--portal-hairline)', backgroundColor: 'var(--portal-surface)' }}
+      >
+        {events.slice(0, 8).map(ev => {
+          const Icon = activityIcon(ev.type);
+          return (
+            <div key={ev.id} className="flex items-center gap-3 px-4 py-3">
+              <Icon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--portal-subtle)' }} />
+              <div className="flex-1 min-w-0 text-[13px] truncate" style={{ color: 'var(--portal-ink)' }}>
+                {ev.title}
+              </div>
+              <span className="text-[11px] tabular-nums" style={{ color: 'var(--portal-subtle)' }}>{relTime(ev.at)}</span>
+            </div>
           );
         })}
       </div>
-
-      {/* Tab body */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={active}
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -4 }}
-          transition={{ duration: 0.18 }}
-        >
-          {active === 'retainer' && (
-            <div className="space-y-5">
-              {isRetainer && client.retainerTotal != null && client.retainerTotal > 0 ? (
-                <RetainerBar total={client.retainerTotal} remaining={client.retainerRemaining || 0} />
-              ) : (
-                <div className="bg-white border border-[#e5e7eb] rounded-2xl p-6 text-center">
-                  <p className="text-[14px] text-[#1a1a2e]" style={{ fontWeight: 600 }}>{client.model} engagement</p>
-                  <p className="text-[12.5px] text-[#6b7280] mt-1">
-                    This engagement isn't on a retainer model — see Recent Activity or Projects for progress details.
-                  </p>
-                </div>
-              )}
-
-              {invoices.length > 0 && showCosts && (
-                <div>
-                  <SectionHeader icon={FileText} title="Invoices" count={invoices.length} accent={accent} />
-                  <div className="space-y-2 mt-3">
-                    {invoices.map(inv => <InvoiceRow key={inv.id} invoice={inv} accent={accent} />)}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {active === 'activity' && (
-            <div>
-              {sessions.length === 0 ? (
-                <EmptyState icon={Timer} title="No sessions yet" body="Time entries for this engagement will appear here." />
-              ) : (
-                <div className="space-y-2">
-                  {sessions.slice(0, 30).map(s => (
-                    <SessionAccordion key={s.id} session={s} projects={projects} showCosts={showCosts} accent={accent} />
-                  ))}
-                  {sessions.length > 30 && (
-                    <p className="text-[12px] text-[#9ca3af] text-center py-2">Showing 30 of {sessions.length} sessions</p>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-
-          {active === 'tasks' && (
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-[12px] text-[#6b7280]">
-                  {openTaskCount} open · {checklists.reduce((a, c) => a + c.items.length, 0)} total
-                </span>
-                <label className="inline-flex items-center gap-2 text-[12px] text-[#374151] cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={hideCompleted}
-                    onChange={(e) => setHideCompleted(e.target.checked)}
-                    className="accent-current"
-                    style={{ accentColor: accent }}
-                  />
-                  Hide completed
-                </label>
-              </div>
-              {checklists.length === 0 ? (
-                <EmptyState icon={CheckSquare} title="No tasks yet" body="Tasks will appear here when added." />
-              ) : (
-                <div className="space-y-3">
-                  {checklists.map(cl => (
-                    <PortalChecklistCard key={cl.id} checklist={cl} accent={accent} token={token} hideCompleted={hideCompleted} />
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {active === 'projects' && (
-            <div>
-              {projects.length === 0 ? (
-                <EmptyState icon={FolderOpen} title="No projects yet" body="Projects added for this engagement will appear here." />
-              ) : (
-                <div className="space-y-3">
-                  {projects.map(p => <ProjectCard key={p.id} project={p} showCosts={showCosts} accent={accent} />)}
-                </div>
-              )}
-            </div>
-          )}
-        </motion.div>
-      </AnimatePresence>
-    </motion.div>
+    </section>
   );
 }
 
-function EmptyState({ icon: Icon, title, body }: { icon: any; title: string; body: string }) {
+// ── Engagements (simplified projects) ───────────────────────────────
+
+function Engagements({ projects, accent }: { projects: PortalProject[]; accent: string }) {
+  if (projects.length === 0) return null;
+  const visible = projects.filter(p => p.status.toLowerCase() !== 'archived').slice(0, 6);
+  if (visible.length === 0) return null;
   return (
-    <div className="bg-white border border-[#e5e7eb] rounded-2xl p-10 text-center">
-      <Icon className="w-7 h-7 text-[#d1d5db] mx-auto mb-3" />
-      <p className="text-[14px] text-[#1a1a2e]" style={{ fontWeight: 600 }}>{title}</p>
-      <p className="text-[12.5px] text-[#6b7280] mt-1">{body}</p>
-    </div>
-  );
-}
-
-// ── Sub-components ──────────────────────────────────────────────────
-
-
-function StatCard({ icon: Icon, label, value, accent }: { icon: any; label: string; value: string; accent: string }) {
-  return (
-    <div className="bg-white rounded-2xl border border-[#e5e7eb] p-4 lg:p-5">
-      <div className="flex items-center gap-2 mb-1.5">
-        <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${accent}10` }}>
-          <Icon className="w-3.5 h-3.5" style={{ color: accent }} />
-        </div>
-      </div>
-      <div className="text-xl lg:text-2xl font-bold text-[#1a1a2e] tabular-nums">{value}</div>
-      <div className="text-[11px] font-medium text-[#9ca3af] mt-0.5 uppercase tracking-wide">{label}</div>
-    </div>
-  );
-}
-
-function SectionHeader({ icon: Icon, title, count, accent }: { icon: any; title: string; count?: number; accent: string }) {
-  return (
-    <div className="flex items-center gap-2.5">
-      <Icon className="w-4 h-4" style={{ color: accent }} />
-      <h2 className="text-[16px] font-semibold text-[#1a1a2e]">{title}</h2>
-      {count != null && (
-        <span className="text-[11px] font-medium text-[#9ca3af] bg-[#f3f4f6] px-2 py-0.5 rounded-full">{count}</span>
-      )}
-    </div>
-  );
-}
-
-function RetainerBar({ total, remaining }: { total: number; remaining: number }) {
-  const used = total - remaining;
-  const pct = Math.min(100, Math.round((used / total) * 100));
-  const barColor = pct >= 90 ? "#ef4444" : pct >= 70 ? "#f59e0b" : "#22c55e";
-
-  return (
-    <div className="bg-white p-5 rounded-2xl border border-[#e5e7eb]">
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-sm font-semibold text-[#1a1a2e]">Retainer Usage</span>
-        <span className="text-sm font-bold tabular-nums" style={{ color: barColor }}>{pct}%</span>
-      </div>
-      <div className="h-3 rounded-circle overflow-hidden bg-[#f3f4f6]">
-        <div className="h-full rounded-circle transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: barColor }} />
-      </div>
-      <div className="flex justify-between mt-2.5">
-        <span className="text-[12px] text-[#9ca3af]">{fmtHours(used)} used</span>
-        <span className="text-[12px] text-[#9ca3af]">{fmtHours(remaining)} remaining of {fmtHours(total)}</span>
-      </div>
-    </div>
-  );
-}
-
-function ProjectCard({ project: p, showCosts, accent }: { project: PortalProject; showCosts: boolean; accent: string }) {
-  const progress = p.estimated_hours && p.hours ? Math.min(100, Math.round((p.hours / p.estimated_hours) * 100)) : null;
-
-  return (
-    <div className="bg-white p-5 rounded-2xl border border-[#e5e7eb] hover:shadow-sm transition-shadow">
-      <div className="flex items-start justify-between mb-2">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-[15px] font-semibold text-[#1a1a2e]">{p.name}</span>
-            <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${statusColor(p.status)}`}>
-              {p.status}
-            </span>
-          </div>
-          {p.description && (
-            <p className="text-[13px] mt-1.5 text-[#6b7280] line-clamp-2 leading-relaxed">{p.description}</p>
-          )}
-        </div>
-        {showCosts && p.total_value != null && p.total_value > 0 && (
-          <span className="text-[15px] font-bold tabular-nums ml-4 flex-shrink-0" style={{ color: accent }}>{fmt$(p.total_value)}</span>
-        )}
-      </div>
-
-      <div className="flex items-center gap-4 mt-3 text-[12px] text-[#9ca3af]">
-        {p.hours != null && (
-          <span className="flex items-center gap-1">
-            <Clock className="w-3 h-3" />
-            {fmtHours(p.hours)}{p.estimated_hours ? ` / ${fmtHours(p.estimated_hours)}` : ""}
-          </span>
-        )}
-        {p.start_date && (
-          <span>{fmtDate(p.start_date)}{p.end_date ? ` → ${fmtDate(p.end_date)}` : ""}</span>
-        )}
-      </div>
-
-      {progress !== null && (
-        <div className="mt-3">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[11px] text-[#9ca3af]">Progress</span>
-            <span className="text-[11px] font-medium tabular-nums" style={{ color: accent }}>{progress}%</span>
-          </div>
-          <div className="h-1.5 rounded-circle overflow-hidden bg-[#f3f4f6]">
-            <div className="h-full rounded-circle transition-all" style={{ width: `${progress}%`, backgroundColor: accent }} />
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function SessionAccordion({ session: s, projects, showCosts, accent }: { session: PortalSession; projects: PortalProject[]; showCosts: boolean; accent: string }) {
-  const [open, setOpen] = useState(false);
-  const projectName = useMemo(() => {
-    if (!s.project_id) return null;
-    return projects.find(p => p.id === s.project_id)?.name || null;
-  }, [s.project_id, projects]);
-
-  const hasDetails = !!(s.task || s.notes || (s.work_tags && s.work_tags.length > 0));
-
-  return (
-    <div className="bg-white rounded-xl border border-[#e5e7eb] overflow-hidden hover:shadow-sm transition-shadow">
-      <button
-        onClick={() => hasDetails && setOpen(o => !o)}
-        className={`w-full flex items-center gap-3 p-3.5 text-left ${hasDetails ? "cursor-pointer" : "cursor-default"}`}
+    <section>
+      <SectionTitle icon={FolderOpen} title="Engagements" count={visible.length} accent={accent} />
+      <div
+        className="rounded border divide-y"
+        style={{ borderColor: 'var(--portal-hairline)', backgroundColor: 'var(--portal-surface)' }}
       >
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="text-[13px] font-medium text-[#1a1a2e]">{fmtDate(s.date)}</span>
-            {projectName && (
-              <span className="text-[11px] text-[#9ca3af] truncate">· {projectName}</span>
-            )}
-          </div>
-          {s.task && (
-            <p className="text-[12px] text-[#6b7280] mt-0.5 truncate">{s.task}</p>
-          )}
-        </div>
-        <div className="flex items-center gap-2.5 flex-shrink-0">
-          <span className="text-[13px] font-semibold tabular-nums text-[#1a1a2e]">{fmtHours(s.duration)}</span>
-          {showCosts && s.revenue != null && (
-            <span className="text-[12px] font-medium tabular-nums" style={{ color: accent }}>{fmt$(s.revenue)}</span>
-          )}
-          {hasDetails && (
-            <ChevronDown className={`w-3.5 h-3.5 text-[#9ca3af] transition-transform ${open ? "rotate-180" : ""}`} />
-          )}
-        </div>
-      </button>
-      <AnimatePresence>
-        {open && hasDetails && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="overflow-hidden"
-          >
-            <div className="px-3.5 pb-3.5 pt-0 border-t border-[#f3f4f6]">
-              <div className="pt-3 space-y-2">
-                {s.notes && (
-                  <div>
-                    <span className="text-[11px] font-semibold uppercase tracking-wider text-[#9ca3af]">Notes</span>
-                    <p className="text-[13px] text-[#4b5563] leading-relaxed mt-1 whitespace-pre-wrap">{s.notes}</p>
-                  </div>
-                )}
-                {s.work_tags && s.work_tags.length > 0 && (
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <Tag className="w-3 h-3 text-[#9ca3af]" />
-                    {s.work_tags.map(tag => (
-                      <span key={tag} className="text-[11px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: `${accent}12`, color: accent }}>
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
+        {visible.map(p => {
+          const b = statusBadge(p.status);
+          return (
+            <div key={p.id} className="flex items-center gap-3 px-4 py-3">
+              <div className="flex-1 min-w-0">
+                <div className="text-[13.5px] font-display font-semibold truncate" style={{ color: 'var(--portal-ink)' }}>{p.name}</div>
+                {p.description && (
+                  <div className="text-[11.5px] mt-0.5 line-clamp-1" style={{ color: 'var(--portal-muted)' }}>{p.description}</div>
                 )}
               </div>
+              <span
+                className="text-[10.5px] font-semibold px-2 py-0.5 rounded tabular-nums"
+                style={{ color: b.color, backgroundColor: b.bg }}
+              >
+                {p.status}
+              </span>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+// ── Retainer Card ───────────────────────────────────────────────────
+
+function RetainerCard({ total, remaining, accent }: { total: number; remaining: number; accent: string }) {
+  const used = Math.max(0, total - remaining);
+  const pct = Math.min(100, Math.round((used / total) * 100));
+  const barColor = pct >= 90 ? "#ef4444" : pct >= 70 ? "#f59e0b" : accent;
+  return (
+    <section>
+      <SectionTitle icon={Clock} title="Retainer" accent={accent} />
+      <div
+        className="rounded border p-5"
+        style={{ borderColor: 'var(--portal-hairline)', backgroundColor: 'var(--portal-surface)' }}
+      >
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-[12.5px] font-display font-semibold" style={{ color: 'var(--portal-ink)' }}>
+            {fmtHours(used)} used of {fmtHours(total)}
+          </span>
+          <span className="text-[13px] font-display font-semibold tabular-nums" style={{ color: barColor }}>{pct}%</span>
+        </div>
+        <div className="h-1.5 rounded-circle overflow-hidden" style={{ backgroundColor: 'var(--portal-soft)' }}>
+          <div className="h-full rounded-circle transition-all" style={{ width: `${pct}%`, backgroundColor: barColor }} />
+        </div>
+        <div className="mt-2 text-[11.5px]" style={{ color: 'var(--portal-muted)' }}>
+          {fmtHours(remaining)} remaining this cycle
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ── Contact Card ────────────────────────────────────────────────────
+
+function ContactCard({ owner, accent }: { owner: { name: string | null; email: string | null }; accent: string }) {
+  if (!owner.email) return null;
+  return (
+    <section>
+      <SectionTitle icon={Mail} title="Your contact" accent={accent} />
+      <div
+        className="rounded border p-4 flex items-center gap-3"
+        style={{ borderColor: 'var(--portal-hairline)', backgroundColor: 'var(--portal-surface)' }}
+      >
+        <div
+          className="w-9 h-9 rounded flex items-center justify-center"
+          style={{ backgroundColor: `color-mix(in srgb, ${accent} 10%, transparent)`, color: accent }}
+        >
+          <Mail className="w-4 h-4" />
+        </div>
+        <div className="flex-1 min-w-0">
+          {owner.name && <div className="text-[13px] font-display font-semibold truncate" style={{ color: 'var(--portal-ink)' }}>{owner.name}</div>}
+          <a
+            href={`mailto:${owner.email}`}
+            className="text-[12px] hover:underline truncate block"
+            style={{ color: 'var(--portal-muted)' }}
+          >
+            {owner.email}
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ── Resources Stub ──────────────────────────────────────────────────
+
+function ResourcesStub({ accent }: { accent: string }) {
+  return (
+    <div
+      className="rounded border p-10 text-center"
+      style={{ borderColor: 'var(--portal-hairline)', backgroundColor: 'var(--portal-surface)' }}
+    >
+      <Link2 className="w-7 h-7 mx-auto mb-3" style={{ color: 'var(--portal-subtle)' }} />
+      <p className="text-[14px] font-display font-semibold" style={{ color: 'var(--portal-ink)' }}>Shared resources coming soon</p>
+      <p className="text-[12.5px] mt-1.5 max-w-md mx-auto" style={{ color: 'var(--portal-muted)' }}>
+        Drive folders, Figma files, Loom walkthroughs, Notion docs — everything your project lives in, organized in one place.
+      </p>
+    </div>
+  );
+}
+
+// ── Tasks Tab ───────────────────────────────────────────────────────
+
+function TasksTab({ checklists, accent, token }: { checklists: PortalChecklist[]; accent: string; token: string }) {
+  const [hideCompleted, setHideCompleted] = useState(true);
+  if (checklists.length === 0) {
+    return (
+      <div
+        className="rounded border p-10 text-center"
+        style={{ borderColor: 'var(--portal-hairline)', backgroundColor: 'var(--portal-surface)' }}
+      >
+        <CheckSquare className="w-7 h-7 mx-auto mb-3" style={{ color: 'var(--portal-subtle)' }} />
+        <p className="text-[14px] font-display font-semibold" style={{ color: 'var(--portal-ink)' }}>No shared tasks yet</p>
+        <p className="text-[12.5px] mt-1" style={{ color: 'var(--portal-muted)' }}>Tasks shared with you will appear here.</p>
+      </div>
+    );
+  }
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-end">
+        <label className="inline-flex items-center gap-2 text-[12px] cursor-pointer select-none" style={{ color: 'var(--portal-muted)' }}>
+          <input
+            type="checkbox"
+            checked={hideCompleted}
+            onChange={(e) => setHideCompleted(e.target.checked)}
+            style={{ accentColor: accent }}
+          />
+          Hide completed
+        </label>
+      </div>
+      {checklists.map(cl => (
+        <PortalChecklistCard key={cl.id} checklist={cl} accent={accent} token={token} hideCompleted={hideCompleted} />
+      ))}
+    </div>
+  );
+}
+
+// ── Billing Tab ─────────────────────────────────────────────────────
+
+function BillingTab({
+  invoices, showCosts, accent, isRetainer, retainerTotal, retainerRemaining,
+}: {
+  invoices: PortalInvoice[];
+  showCosts: boolean;
+  accent: string;
+  isRetainer: boolean;
+  retainerTotal?: number;
+  retainerRemaining?: number;
+}) {
+  if (!showCosts) {
+    return (
+      <div
+        className="rounded border p-10 text-center"
+        style={{ borderColor: 'var(--portal-hairline)', backgroundColor: 'var(--portal-surface)' }}
+      >
+        <Receipt className="w-7 h-7 mx-auto mb-3" style={{ color: 'var(--portal-subtle)' }} />
+        <p className="text-[14px] font-display font-semibold" style={{ color: 'var(--portal-ink)' }}>Billing is private</p>
+        <p className="text-[12.5px] mt-1" style={{ color: 'var(--portal-muted)' }}>Invoices aren't shared on this portal.</p>
+      </div>
+    );
+  }
+
+  const outstanding = invoices.filter(i => ['sent','issued','overdue'].includes(i.status.toLowerCase()));
+  const paid = invoices.filter(i => i.status.toLowerCase() === 'paid');
+  const other = invoices.filter(i => !['sent','issued','overdue','paid'].includes(i.status.toLowerCase()));
+
+  return (
+    <div className="space-y-6">
+      {isRetainer && retainerTotal != null && (
+        <RetainerCard total={retainerTotal} remaining={retainerRemaining || 0} accent={accent} />
+      )}
+      {outstanding.length > 0 && (
+        <section>
+          <SectionTitle icon={Receipt} title="Outstanding" count={outstanding.length} accent={accent} />
+          <div
+            className="rounded border divide-y"
+            style={{ borderColor: 'var(--portal-hairline)', backgroundColor: 'var(--portal-surface)' }}
+          >
+            {outstanding.map(inv => <InvoiceRow key={inv.id} invoice={inv} accent={accent} />)}
+          </div>
+        </section>
+      )}
+      {paid.length > 0 && (
+        <section>
+          <SectionTitle icon={CheckCircle2} title="Paid" count={paid.length} accent={accent} />
+          <div
+            className="rounded border divide-y"
+            style={{ borderColor: 'var(--portal-hairline)', backgroundColor: 'var(--portal-surface)' }}
+          >
+            {paid.map(inv => <InvoiceRow key={inv.id} invoice={inv} accent={accent} />)}
+          </div>
+        </section>
+      )}
+      {other.length > 0 && (
+        <section>
+          <SectionTitle icon={FileText} title="Other" count={other.length} accent={accent} />
+          <div
+            className="rounded border divide-y"
+            style={{ borderColor: 'var(--portal-hairline)', backgroundColor: 'var(--portal-surface)' }}
+          >
+            {other.map(inv => <InvoiceRow key={inv.id} invoice={inv} accent={accent} />)}
+          </div>
+        </section>
+      )}
+      {invoices.length === 0 && (
+        <div
+          className="rounded border p-10 text-center"
+          style={{ borderColor: 'var(--portal-hairline)', backgroundColor: 'var(--portal-surface)' }}
+        >
+          <Receipt className="w-7 h-7 mx-auto mb-3" style={{ color: 'var(--portal-subtle)' }} />
+          <p className="text-[14px] font-display font-semibold" style={{ color: 'var(--portal-ink)' }}>No invoices yet</p>
+        </div>
+      )}
     </div>
   );
 }
 
 function InvoiceRow({ invoice: inv, accent }: { invoice: PortalInvoice; accent: string }) {
-  const isPaid = inv.status.toLowerCase() === "paid";
+  const b = statusBadge(inv.status);
+  const isPaid = inv.status.toLowerCase() === 'paid';
   return (
-    <div className="flex items-center justify-between p-4 rounded-xl bg-white border border-[#e5e7eb] hover:shadow-sm transition-shadow">
-      <div className="flex items-center gap-3">
-        <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: isPaid ? "#ecfdf5" : `${accent}10` }}>
-          {isPaid ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <FileText className="w-4 h-4" style={{ color: accent }} />}
+    <div id={`focus-invoice:${inv.id}`} className="flex items-center gap-3 px-4 py-3">
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <span className="text-[13.5px] font-display font-semibold" style={{ color: 'var(--portal-ink)' }}>{inv.number}</span>
+          <span className="text-[10.5px] font-semibold px-2 py-0.5 rounded" style={{ color: b.color, backgroundColor: b.bg }}>{inv.status}</span>
         </div>
-        <div>
-          <span className="text-[14px] font-semibold text-[#1a1a2e]">{inv.number}</span>
-          <div className="flex items-center gap-2 mt-0.5">
-            <span className={`text-[11px] font-medium px-1.5 py-0.5 rounded-full ${statusColor(inv.status)}`}>
-              {inv.status}
-            </span>
-            {inv.issued_date && (
-              <span className="text-[11px] text-[#9ca3af]">Issued {fmtDate(inv.issued_date)}</span>
-            )}
-          </div>
+        <div className="text-[11.5px] mt-0.5" style={{ color: 'var(--portal-muted)' }}>
+          {inv.issued_date && <>Issued {fmtDate(inv.issued_date)}</>}
+          {inv.due_date && !isPaid && <> · Due {fmtDate(inv.due_date)}</>}
+          {inv.paid_date && isPaid && <> · Paid {fmtDate(inv.paid_date)}</>}
         </div>
       </div>
-      <div className="text-right">
-        <div className="text-[15px] font-bold tabular-nums text-[#1a1a2e]">{fmt$(inv.total, inv.currency)}</div>
-        {inv.due_date && !isPaid && (
-          <span className="text-[11px] text-[#9ca3af]">Due {fmtDate(inv.due_date)}</span>
-        )}
-        {inv.paid_date && isPaid && (
-          <span className="text-[11px] text-emerald-500">Paid {fmtDate(inv.paid_date)}</span>
-        )}
+      <div className="text-[14px] font-display font-semibold tabular-nums" style={{ color: 'var(--portal-ink)' }}>
+        {fmt$(inv.total, inv.currency)}
       </div>
     </div>
   );
 }
 
-// ── Portal Task List Card ───────────────────────────────────────────
+// ── Section Title ───────────────────────────────────────────────────
+
+function SectionTitle({ icon: Icon, title, count, accent }: { icon: any; title: string; count?: number; accent: string }) {
+  return (
+    <div className="flex items-center gap-2 mb-2.5">
+      <Icon className="w-3.5 h-3.5" style={{ color: accent }} />
+      <h2 className="text-[11.5px] font-semibold uppercase tracking-wider" style={{ color: 'var(--portal-muted)' }}>{title}</h2>
+      {count != null && (
+        <span className="text-[10.5px] tabular-nums px-1.5 py-0.5 rounded" style={{ backgroundColor: 'var(--portal-soft)', color: 'var(--portal-subtle)' }}>
+          {count}
+        </span>
+      )}
+    </div>
+  );
+}
+
+// ── Portal Task List Card (preserved from prior version) ────────────
 
 const PORTAL_STATUSES: { value: PortalTask['status']; label: string; dot: string; text: string; bg: string }[] = [
   { value: 'to_do',       label: 'To Do',       dot: '#9ca3af', text: '#6b7280', bg: '#f3f4f6' },
@@ -720,19 +815,16 @@ const PORTAL_STATUSES: { value: PortalTask['status']; label: string; dot: string
   { value: 'complete',    label: 'Complete',    dot: '#22c55e', text: '#15803d', bg: '#dcfce7' },
 ];
 
-
-function portalDueLabel(due?: string | null) {
-  if (!due) return null;
-  try {
-    const d = new Date(due);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const diff = Math.floor((d.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-    if (diff === 0) return { label: 'Due today', color: '#b45309', bg: '#fef3c7' };
-    if (diff < 0) return { label: `${Math.abs(diff)}d overdue`, color: '#b91c1c', bg: '#fee2e2' };
-    if (diff <= 3) return { label: `Due in ${diff}d`, color: '#b45309', bg: '#fef3c7' };
-    return { label: format(d, 'MMM d'), color: '#6b7280', bg: '#f3f4f6' };
-  } catch { return null; }
+function portalDueChip(due?: string | null) {
+  const label = dueLabel(due);
+  if (!label) return null;
+  const d = new Date(due!);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const diff = Math.floor((d.getTime() - today.getTime()) / 86400000);
+  if (diff < 0) return { label, color: '#b91c1c', bg: '#fee2e2' };
+  if (diff <= 3) return { label, color: '#b45309', bg: '#fef3c7' };
+  return { label, color: '#6b7280', bg: '#f3f4f6' };
 }
 
 function PortalChecklistCard({ checklist, accent, token, hideCompleted = false }: { checklist: PortalChecklist; accent: string; token: string; hideCompleted?: boolean }) {
@@ -748,7 +840,6 @@ function PortalChecklistCard({ checklist, accent, token, hideCompleted = false }
     const order: PortalTask['status'][] = ['to_do', 'in_progress', 'in_review', 'on_hold', 'complete'];
     const next = order[(order.indexOf(item.status) + 1) % order.length];
     setItems(prev => prev.map(i => i.id === item.id ? { ...i, status: next, completed: next === 'complete' } : i));
-
     try {
       await fetch(`${SUPABASE_URL}/functions/v1/portal-checklist`, {
         method: 'POST',
@@ -785,62 +876,60 @@ function PortalChecklistCard({ checklist, accent, token, hideCompleted = false }
         }]);
         setComposerOpen(false);
       }
-    } catch {
-      /* silent */
-    }
+    } catch { /* silent */ }
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-[#e5e7eb] overflow-hidden">
-      <div className="h-1.5 bg-[#f3f4f6]">
-        <div className="h-full transition-all duration-300 rounded-r-full" style={{ width: `${progress}%`, backgroundColor: progress === 100 ? "#22c55e" : accent }} />
+    <div className="rounded border overflow-hidden" style={{ borderColor: 'var(--portal-hairline)', backgroundColor: 'var(--portal-surface)' }}>
+      <div className="h-1" style={{ backgroundColor: 'var(--portal-soft)' }}>
+        <div className="h-full transition-all duration-300" style={{ width: `${progress}%`, backgroundColor: progress === 100 ? "#22c55e" : accent }} />
       </div>
 
-      <div className="p-4 lg:p-5">
+      <div className="p-4">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-[14px] font-semibold text-[#1a1a2e]">{checklist.title}</span>
-          <span className="text-[12px] font-medium tabular-nums" style={{ color: progress === 100 ? "#22c55e" : "#9ca3af" }}>
+          <span className="text-[13.5px] font-display font-semibold" style={{ color: 'var(--portal-ink)' }}>{checklist.title}</span>
+          <span className="text-[11.5px] tabular-nums" style={{ color: progress === 100 ? "#22c55e" : 'var(--portal-subtle)' }}>
             {completedCount}/{totalCount}
           </span>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           {visibleItems.map(item => {
             const cfg = PORTAL_STATUSES.find(s => s.value === item.status) || PORTAL_STATUSES[0];
-            const due = portalDueLabel(item.due_date);
+            const due = portalDueChip(item.due_date);
             return (
-              <div key={item.id} className="border border-[#eef0f3] rounded-xl p-2.5 hover:bg-[#fafbfc] transition-colors">
+              <div key={item.id} className="border rounded p-2.5 transition-colors" style={{ borderColor: 'var(--portal-hairline)' }}>
                 <div className="flex items-start gap-2.5">
                   <button
                     onClick={() => cycleStatus(item)}
                     title={`Status: ${cfg.label} — tap to advance`}
-                    className="flex-shrink-0 mt-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center"
+                    className="flex-shrink-0 mt-0.5 w-4 h-4 rounded-circle border-2 flex items-center justify-center cursor-pointer"
                     style={{ borderColor: cfg.dot, backgroundColor: item.status === 'complete' ? cfg.dot : 'transparent' }}
                   >
                     {item.status === 'complete' && <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />}
                   </button>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start gap-2">
-                      <span className={`text-[13px] flex-1 ${item.status === 'complete' ? 'line-through text-[#b1b6bf]' : 'text-[#374151]'}`}>
+                      <span className={`text-[13px] flex-1 ${item.status === 'complete' ? 'line-through' : ''}`} style={{ color: item.status === 'complete' ? 'var(--portal-subtle)' : 'var(--portal-ink)' }}>
                         {item.text}
                       </span>
                       {item.added_by === 'client' && (
-                        <span className="text-[10px] font-medium text-[#9ca3af] bg-[#f3f4f6] px-1.5 py-0.5 rounded">You</span>
+                        <span className="text-[10px] font-medium px-1.5 py-0.5 rounded" style={{ backgroundColor: 'var(--portal-soft)', color: 'var(--portal-subtle)' }}>You</span>
                       )}
                     </div>
                     {item.description && (
-                      <div className="text-[12px] text-[#6b7280] mt-1 whitespace-pre-wrap">{item.description}</div>
+                      <div className="text-[12px] mt-1 whitespace-pre-wrap" style={{ color: 'var(--portal-muted)' }}>{item.description}</div>
                     )}
                     <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
                       <span
                         className="inline-flex items-center gap-1 text-[10.5px] px-1.5 py-0.5 rounded"
                         style={{ backgroundColor: cfg.bg, color: cfg.text, fontWeight: 600 }}
                       >
-                        <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: cfg.dot }} />
+                        <span className="w-1.5 h-1.5 rounded-circle" style={{ backgroundColor: cfg.dot }} />
                         {cfg.label}
                       </span>
                       {(item.work_tags || []).map(tag => (
-                        <span key={tag} className="inline-flex items-center gap-1 text-[10.5px] px-1.5 py-0.5 rounded bg-[#f3f4f6] text-[#4b5563]" style={{ fontWeight: 500 }}>
+                        <span key={tag} className="inline-flex items-center gap-1 text-[10.5px] px-1.5 py-0.5 rounded" style={{ backgroundColor: 'var(--portal-soft)', color: 'var(--portal-muted)', fontWeight: 500 }}>
                           <Tag className="w-2.5 h-2.5" /> {tag}
                         </span>
                       ))}
@@ -850,7 +939,7 @@ function PortalChecklistCard({ checklist, accent, token, hideCompleted = false }
                         </span>
                       )}
                       {item.estimated_hours != null && (
-                        <span className="inline-flex items-center gap-1 text-[10.5px] px-1.5 py-0.5 rounded bg-[#f3f4f6] text-[#6b7280]" style={{ fontWeight: 500 }}>
+                        <span className="inline-flex items-center gap-1 text-[10.5px] px-1.5 py-0.5 rounded" style={{ backgroundColor: 'var(--portal-soft)', color: 'var(--portal-muted)', fontWeight: 500 }}>
                           <Clock className="w-2.5 h-2.5" /> {item.estimated_hours}h est
                         </span>
                       )}
@@ -861,20 +950,20 @@ function PortalChecklistCard({ checklist, accent, token, hideCompleted = false }
             );
           })}
           {visibleItems.length === 0 && (
-            <div className="text-center py-4 text-[12px] text-[#9ca3af]">
+            <div className="text-center py-4 text-[12px]" style={{ color: 'var(--portal-subtle)' }}>
               {items.length === 0 ? 'No tasks yet.' : 'All tasks completed.'}
             </div>
           )}
         </div>
 
-        <div className="mt-3 pt-3 border-t border-[#f3f4f6]">
+        <div className="mt-3 pt-3 border-t" style={{ borderColor: 'var(--portal-hairline)' }}>
           {composerOpen ? (
             <PortalComposer accent={accent} onCancel={() => setComposerOpen(false)} onSubmit={handleAdd} />
           ) : (
             <button
               onClick={() => setComposerOpen(true)}
-              className="inline-flex items-center gap-1.5 text-[12px] text-[#6b7280] hover:text-[#1a1a2e] transition-colors"
-              style={{ fontWeight: 500 }}
+              className="inline-flex items-center gap-1.5 text-[12px] cursor-pointer"
+              style={{ fontWeight: 500, color: 'var(--portal-muted)' }}
             >
               <Plus className="w-3.5 h-3.5" /> Add task
             </button>
@@ -914,7 +1003,8 @@ function PortalComposer({
         value={text}
         onChange={(e) => setText(e.target.value)}
         placeholder="Task title…"
-        className="w-full text-[13px] bg-white border border-[#e5e7eb] rounded-md px-2.5 py-1.5 focus:outline-none focus:border-[#9ca3af] text-[#374151]"
+        className="w-full text-[13px] border rounded px-2.5 py-1.5 focus:outline-none"
+        style={{ borderColor: 'var(--portal-hairline)', backgroundColor: 'var(--portal-surface)', color: 'var(--portal-ink)' }}
         onKeyDown={(e) => { if (e.key === 'Enter' && !showDetails) submit(); if (e.key === 'Escape') onCancel(); }}
       />
       {showDetails && (
@@ -923,7 +1013,8 @@ function PortalComposer({
             type="date"
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
-            className="text-[13px] bg-white border border-[#e5e7eb] rounded-md px-2.5 py-1.5 focus:outline-none focus:border-[#9ca3af] text-[#374151]"
+            className="text-[13px] border rounded px-2.5 py-1.5 focus:outline-none"
+            style={{ borderColor: 'var(--portal-hairline)', backgroundColor: 'var(--portal-surface)', color: 'var(--portal-ink)' }}
           />
           <input
             type="number"
@@ -932,24 +1023,25 @@ function PortalComposer({
             value={hours}
             onChange={(e) => setHours(e.target.value)}
             placeholder="Estimated hours"
-            className="text-[13px] bg-white border border-[#e5e7eb] rounded-md px-2.5 py-1.5 focus:outline-none focus:border-[#9ca3af] text-[#374151] tabular-nums"
+            className="text-[13px] border rounded px-2.5 py-1.5 focus:outline-none tabular-nums"
+            style={{ borderColor: 'var(--portal-hairline)', backgroundColor: 'var(--portal-surface)', color: 'var(--portal-ink)' }}
           />
         </div>
       )}
       <div className="flex items-center justify-between">
         <button
           onClick={() => setShowDetails(v => !v)}
-          className="text-[11.5px] text-[#6b7280] hover:text-[#1a1a2e]"
-          style={{ fontWeight: 500 }}
+          className="text-[11.5px] cursor-pointer"
+          style={{ fontWeight: 500, color: 'var(--portal-muted)' }}
         >
           {showDetails ? '− Hide details' : '+ Due date & estimate'}
         </button>
         <div className="flex items-center gap-1.5">
-          <button onClick={onCancel} className="text-[12px] px-2.5 py-1 text-[#6b7280] hover:text-[#1a1a2e]">Cancel</button>
+          <button onClick={onCancel} className="text-[12px] px-2.5 py-1 cursor-pointer" style={{ color: 'var(--portal-muted)' }}>Cancel</button>
           <button
             onClick={submit}
             disabled={!text.trim()}
-            className="text-[12px] font-semibold px-3 py-1.5 rounded-md text-white disabled:opacity-40"
+            className="text-[12px] font-semibold px-3 py-1.5 rounded text-white disabled:opacity-40"
             style={{ backgroundColor: accent }}
           >
             Add
