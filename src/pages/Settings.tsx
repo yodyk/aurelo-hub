@@ -345,7 +345,7 @@ export default function Settings() {
     setShowUnsavedDialog(false);
     if (pendingTab) {
       setActiveTab(pendingTab);
-      setSearchParams(pendingTab === "profile" ? {} : { tab: pendingTab }, { replace: true });
+      setSearchParams({ tab: pendingTab }, { replace: true });
       setPendingTab(null);
     }
   }, [handleSave, pendingTab, setSearchParams]);
