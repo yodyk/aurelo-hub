@@ -166,12 +166,14 @@ Deno.serve(async (req) => {
           description: item.description ?? null,
           status: item.status || (item.completed ? 'complete' : 'to_do'),
           completed: item.completed,
+          completed_at: item.completed_at ?? null,
           work_tags: item.work_tags || [],
           due_date: item.due_date ?? null,
           estimated_hours: item.estimated_hours ?? null,
           priority: item.priority ?? null,
           sort_order: item.sort_order,
           added_by: item.added_by,
+          assigned_to_client: item.assigned_to_client === true,
         });
       });
 
