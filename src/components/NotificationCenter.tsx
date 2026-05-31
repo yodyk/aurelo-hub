@@ -83,9 +83,11 @@ export function NotificationCenter({ workspaceId }: NotificationCenterProps) {
   }, [workspaceId]);
 
   const panelRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
 
-  // Close on click outside (handles portaled mobile panel via panelRef)
+  // Close on click outside (desktop only — mobile uses BottomSheet with its own backdrop).
   useEffect(() => {
+    if (isMobile) return;
     const handler = (e: MouseEvent) => {
       const t = e.target as Node;
       if (ref.current?.contains(t)) return;
@@ -94,7 +96,7 @@ export function NotificationCenter({ workspaceId }: NotificationCenterProps) {
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
-  }, []);
+  }, [isMobile]);
 
 
   const handleMarkAllRead = useCallback(async () => {
