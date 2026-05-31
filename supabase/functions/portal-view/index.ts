@@ -183,6 +183,72 @@ Deno.serve(async (req) => {
       }));
     }
 
+    // Derived: semantic activity feed (relationship events, not timer events)
+    type ActivityEvent = { id: string; type: string; title: string; at: string; href?: string };
+    const activity: ActivityEvent[] = [];
+    for (const inv of (invoicesRes.data || [])) {
+      if (inv.issued_date || inv.created_at) {
+        activity.push({
+          id: `inv-sent-${inv.id}`,
+          type: 'invoice.sent',
+          title: `Invoice ${inv.number} sent`,
+          at: inv.issued_date || inv.created_at,
+        });
+      }
+      if (inv.paid_date) {
+        activity.push({
+          id: `inv-paid-${inv.id}`,
+          type: 'invoice.paid',
+          title: `Invoice ${inv.number} paid`,
+          at: inv.paid_date,
+        });
+      }
+    }
+    for (const cl of checklists) {
+      for (const it of cl.items as any[]) {
+        if (it.status === 'complete' && it.completed_at) {
+          activity.push({
+            id: `task-${it.id}`,
+            type: 'task.completed',
+            title: `Task completed: ${it.text}`,
+            at: it.completed_at,
+          });
+        }
+      }
+    }
+    activity.sort((a, b) => (a.at < b.at ? 1 : -1));
+    const activityCapped = activity.slice(0, 20);
+
+    // Derived: waiting-on-you
+    type WaitingItem = { id: string; kind: string; title: string; href?: string; amount?: number; currency?: string; due_date?: string | null };
+    const waitingOnYou: WaitingItem[] = [];
+    if (showCosts) {
+      for (const inv of invoices) {
+        if (['sent', 'issued', 'overdue'].includes(String(inv.status).toLowerCase())) {
+          waitingOnYou.push({
+            id: `pay-${inv.id}`,
+            kind: 'invoice.pay',
+            title: `Pay invoice ${inv.number}`,
+            amount: inv.total,
+            currency: inv.currency,
+            due_date: inv.due_date ?? null,
+          });
+        }
+      }
+    }
+    for (const cl of checklists) {
+      for (const it of cl.items as any[]) {
+        if (it.added_by === 'owner' && it.status !== 'complete' && (it.assigned_to_client === true)) {
+          waitingOnYou.push({
+            id: `task-${it.id}`,
+            kind: 'task.action',
+            title: it.text,
+            due_date: it.due_date ?? null,
+          });
+        }
+      }
+    }
+
     const portalData = {
       client: {
         name: client.name,
@@ -205,6 +271,12 @@ Deno.serve(async (req) => {
       sessions,
       invoices,
       checklists,
+      activity: activityCapped,
+      waitingOnYou,
+      workspaceOwner: {
+        name: workspace?.name || null,
+        email: (workspace as any)?.owner_email || null,
+      },
       showCosts,
       branding: {
         isWhiteLabel,
