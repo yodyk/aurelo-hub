@@ -325,16 +325,19 @@ export default function Settings() {
   // Sync URL when tab changes via click
   const handleTabChange = useCallback(
     (tab: TabId) => {
-      if (tab === activeTab) return;
+      // Note: always write ?tab= (even for "profile") so mobile stack-and-push
+      // navigation can detect that a panel is pushed in. Without this, tapping
+      // "Profile" on mobile is a no-op because mobilePanelOpen stays false.
+      if (tab === activeTab && !!searchParams.get("tab")) return;
       if (isDirty) {
         setPendingTab(tab);
         setShowUnsavedDialog(true);
         return;
       }
       setActiveTab(tab);
-      setSearchParams(tab === "profile" ? {} : { tab }, { replace: true });
+      setSearchParams({ tab }, { replace: true });
     },
-    [setSearchParams, isDirty, activeTab],
+    [setSearchParams, isDirty, activeTab, searchParams],
   );
 
   const handleDialogSave = useCallback(async () => {
