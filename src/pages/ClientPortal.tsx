@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { containerVariants, itemVariants } from "@/lib/motion";
 import { useParams, useSearchParams } from "react-router";
@@ -12,11 +12,9 @@ import {
   CheckCircle2,
   CheckSquare,
   Plus,
-  ChevronRight,
   Tag,
   Check,
   Inbox,
-  ExternalLink,
   Receipt,
   Mail,
   Activity as ActivityIcon,
