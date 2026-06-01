@@ -700,6 +700,8 @@ function NoteCard({
               title={note.sharedWithClient ? 'Hide from client portal' : 'Share with client portal'}
             >
               {note.sharedWithClient ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+            </button>
+
 
             {/* More menu */}
             <div className="relative" ref={menuRef}>
