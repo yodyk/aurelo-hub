@@ -287,7 +287,7 @@ export default function ClientPortal() {
     );
   }
 
-  const { client, projects, invoices, checklists, resources, activity, waitingOnYou, portalUpdate, workspaceOwner, showCosts, branding } = data;
+  const { client, projects, invoices, checklists, resources, questions, activity, waitingOnYou, portalUpdate, workspaceOwner, showCosts, branding } = data;
   const accent = branding.isWhiteLabel && branding.brandColor ? branding.brandColor : "#3B66F0";
   const isRetainer = client.model === 'Retainer' && (client.retainerTotal ?? 0) > 0;
 
