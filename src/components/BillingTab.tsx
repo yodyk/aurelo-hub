@@ -320,7 +320,8 @@ export default function BillingTab() {
     'Just testing — not ready to commit yet',
   ];
 
-  const isOwner = true;
+  const { workspaceRole } = useAuth();
+  const isOwner = workspaceRole === 'Owner';
 
   const activeClients = clients.filter((c: any) => c.status !== 'Archived').length;
   const totalClients = clients.length;

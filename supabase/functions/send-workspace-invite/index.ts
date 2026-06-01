@@ -141,6 +141,21 @@ Deno.serve(async (req) => {
       .maybeSingle();
     if (invErr || !invite) throw new Error("Invite not found");
 
+    // Verify caller is Owner/Admin of this invite's workspace
+    const { data: callerMember } = await supabase
+      .from("workspace_members")
+      .select("role")
+      .eq("user_id", userData.user.id)
+      .eq("workspace_id", invite.workspace_id)
+      .eq("status", "active")
+      .maybeSingle();
+    if (!callerMember || !["Owner", "Admin"].includes(callerMember.role)) {
+      return new Response(
+        JSON.stringify({ error: "Forbidden" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
     // Get workspace info
     const { data: workspace } = await supabase
       .from("workspaces")

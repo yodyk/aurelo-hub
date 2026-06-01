@@ -20,7 +20,8 @@ serve(async (req) => {
 
   const supabaseClient = createClient(
     Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_ANON_KEY")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    { auth: { persistSession: false } },
   );
 
   try {
@@ -35,6 +36,22 @@ serve(async (req) => {
     const user = data.user;
     if (!user?.email) throw new Error("User not authenticated");
     logStep("User authenticated", { email: user.email });
+
+    // Verify the caller is an Owner or Admin of at least one workspace
+    const { data: memberships } = await supabaseClient
+      .from("workspace_members")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("status", "active");
+    const isPrivileged = (memberships || []).some(
+      (m: { role: string }) => m.role === "Owner" || m.role === "Admin",
+    );
+    if (!isPrivileged) {
+      return new Response(
+        JSON.stringify({ error: "Only workspace owners or admins can manage billing" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
 
     const { priceId } = await req.json();
     if (!priceId) throw new Error("priceId is required");
