@@ -550,6 +550,31 @@ function WaitingOnYou({ items, accent, onTabChange, token }: { items: WaitingIte
 
 // ── Recent Activity ─────────────────────────────────────────────────
 
+function ThisWeekCard({ update, accent }: { update: PortalUpdatePayload; accent: string }) {
+  const blocks: { label: string; body: string }[] = [];
+  if (update.thisWeek) blocks.push({ label: 'This week', body: update.thisWeek });
+  if (update.nextWeek) blocks.push({ label: 'Next week', body: update.nextWeek });
+  if (update.waitingOnYou) blocks.push({ label: 'Waiting on you', body: update.waitingOnYou });
+  if (blocks.length === 0) return null;
+  return (
+    <section>
+      <SectionTitle icon={ActivityIcon} title="This week" accent={accent} />
+      <div
+        className="rounded border p-5 space-y-4"
+        style={{ borderColor: 'var(--portal-hairline)', backgroundColor: 'var(--portal-surface)' }}
+      >
+        {blocks.map(b => (
+          <div key={b.label}>
+            <div className="text-[10.5px] uppercase tracking-wide font-semibold mb-1" style={{ color: accent, letterSpacing: '0.08em' }}>{b.label}</div>
+            <div className="text-[13px] leading-relaxed whitespace-pre-wrap" style={{ color: 'var(--portal-ink)' }}>{b.body}</div>
+          </div>
+        ))}
+        <div className="text-[11px] pt-1" style={{ color: 'var(--portal-subtle)' }}>Posted {relTime(update.postedAt)}</div>
+      </div>
+    </section>
+  );
+}
+
 function RecentActivity({ events, accent }: { events: ActivityEvent[]; accent: string }) {
   if (events.length === 0) return null;
   return (
