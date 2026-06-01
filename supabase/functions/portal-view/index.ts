@@ -58,6 +58,8 @@ Deno.serve(async (req) => {
       notesRes,
       portalUpdateRes,
       milestonesRes,
+      resourcesRes,
+      approvalsRes,
     ] = await Promise.all([
       sb.from('clients').select('*').eq('id', client_id).single(),
       sb.from('projects').select('*').eq('client_id', client_id).eq('workspace_id', workspace_id).order('created_at', { ascending: false }),
@@ -73,6 +75,10 @@ Deno.serve(async (req) => {
       sb.from('portal_updates').select('*').eq('client_id', client_id).eq('workspace_id', workspace_id).order('posted_at', { ascending: false }).limit(1).maybeSingle(),
       // P3: all milestones for this client's projects (filtered by project_id below)
       sb.from('project_milestones').select('*').eq('workspace_id', workspace_id).order('sort_order', { ascending: true }),
+      // P4: shared resources (link-first deliverables)
+      sb.from('shared_resources').select('*').eq('client_id', client_id).eq('workspace_id', workspace_id).order('sort_order', { ascending: true }).order('created_at', { ascending: false }),
+      // P4: latest approval decisions
+      sb.from('resource_approvals').select('*').eq('client_id', client_id).eq('workspace_id', workspace_id).order('decided_at', { ascending: false }),
     ]);
 
     if (clientRes.error || !clientRes.data) {
