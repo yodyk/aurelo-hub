@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { containerVariants, itemVariants } from "@/lib/motion";
 import { useParams, useSearchParams } from "react-router";
@@ -227,6 +227,7 @@ export default function ClientPortal() {
   const [searchParams] = useSearchParams();
   const [data, setData] = useState<PortalData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<PortalTabId>('home');
 
@@ -238,17 +239,59 @@ export default function ClientPortal() {
     return () => { if (wasDark) root.classList.add("dark"); };
   }, []);
 
-  useEffect(() => {
+  const load = useCallback(async (mode: 'initial' | 'refresh' = 'initial') => {
     if (!token) { setError("No portal token"); setLoading(false); return; }
-    fetch(`${SUPABASE_URL}/functions/v1/portal-view?token=${encodeURIComponent(token)}`)
-      .then(r => r.json())
-      .then(json => {
-        if (json.error) throw new Error(json.error);
-        setData(json.data);
-      })
-      .catch(e => setError(e.message || "Failed to load portal"))
-      .finally(() => setLoading(false));
+    if (mode === 'refresh') setRefreshing(true);
+    try {
+      const r = await fetch(`${SUPABASE_URL}/functions/v1/portal-view?token=${encodeURIComponent(token)}`);
+      const json = await r.json();
+      if (json.error) throw new Error(json.error);
+      setData(json.data);
+      setError(null);
+    } catch (e: any) {
+      setError(e?.message || "Failed to load portal");
+    } finally {
+      if (mode === 'refresh') setRefreshing(false);
+      setLoading(false);
+    }
   }, [token]);
+
+  useEffect(() => { load('initial'); }, [load]);
+
+  // Pull-to-refresh (mobile)
+  const pullRef = useRef<{ startY: number; active: boolean; pulled: number }>({ startY: 0, active: false, pulled: 0 });
+  const [pullDist, setPullDist] = useState(0);
+  useEffect(() => {
+    const THRESHOLD = 70;
+    const onTouchStart = (e: TouchEvent) => {
+      if (window.scrollY > 0) return;
+      pullRef.current = { startY: e.touches[0].clientY, active: true, pulled: 0 };
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      if (!pullRef.current.active) return;
+      const dy = e.touches[0].clientY - pullRef.current.startY;
+      if (dy > 0 && window.scrollY === 0) {
+        const eased = Math.min(dy * 0.5, 90);
+        pullRef.current.pulled = eased;
+        setPullDist(eased);
+      }
+    };
+    const onTouchEnd = () => {
+      if (!pullRef.current.active) return;
+      const pulled = pullRef.current.pulled;
+      pullRef.current.active = false;
+      setPullDist(0);
+      if (pulled >= THRESHOLD && !refreshing) load('refresh');
+    };
+    window.addEventListener('touchstart', onTouchStart, { passive: true });
+    window.addEventListener('touchmove', onTouchMove, { passive: true });
+    window.addEventListener('touchend', onTouchEnd);
+    return () => {
+      window.removeEventListener('touchstart', onTouchStart);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onTouchEnd);
+    };
+  }, [load, refreshing]);
 
   // Deep-link focus highlight
   const focus = searchParams.get('focus');
@@ -266,11 +309,7 @@ export default function ClientPortal() {
   }, [data, focus]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--portal-bg)' }}>
-        <Loader2 className="w-6 h-6 animate-spin" style={{ color: 'var(--portal-accent)' }} />
-      </div>
-    );
+    return <PortalSkeleton />;
   }
 
   if (error || !data) {
@@ -318,7 +357,29 @@ export default function ClientPortal() {
     >
       <style>{`
         .portal-focus-ring { box-shadow: 0 0 0 2px var(--portal-accent), 0 0 0 6px color-mix(in srgb, var(--portal-accent) 18%, transparent); transition: box-shadow .25s ease; }
+        @keyframes portalShimmer { 0% { background-position: -200px 0 } 100% { background-position: calc(200px + 100%) 0 } }
+        .portal-skel { background: linear-gradient(90deg, var(--portal-soft) 0%, #ececf0 50%, var(--portal-soft) 100%); background-size: 200px 100%; animation: portalShimmer 1.2s ease-in-out infinite; border-radius: 4px; }
       `}</style>
+
+      {/* Pull-to-refresh indicator (mobile) */}
+      {(pullDist > 0 || refreshing) && (
+        <div
+          className="md:hidden flex items-center justify-center pointer-events-none"
+          style={{
+            height: refreshing ? 48 : pullDist,
+            transition: refreshing ? 'height .2s ease' : undefined,
+            color: 'var(--portal-accent)',
+          }}
+        >
+          <Loader2
+            className={refreshing ? 'w-4 h-4 animate-spin' : 'w-4 h-4'}
+            style={{
+              opacity: refreshing ? 1 : Math.min(pullDist / 70, 1),
+              transform: refreshing ? undefined : `rotate(${pullDist * 4}deg)`,
+            }}
+          />
+        </div>
+      )}
 
       <PortalHeader branding={branding} accent={accent} />
 
@@ -622,7 +683,11 @@ function ThisWeekCard({ update, accent }: { update: PortalUpdatePayload; accent:
 }
 
 function RecentActivity({ events, accent }: { events: ActivityEvent[]; accent: string }) {
+  const [expanded, setExpanded] = useState(false);
   if (events.length === 0) return null;
+  const INITIAL = 6;
+  const visible = expanded ? events.slice(0, 20) : events.slice(0, INITIAL);
+  const hasMore = !expanded && events.length > INITIAL;
   return (
     <section>
       <SectionTitle icon={ActivityIcon} title="Recent activity" accent={accent} />
@@ -630,7 +695,7 @@ function RecentActivity({ events, accent }: { events: ActivityEvent[]; accent: s
         className="rounded border divide-y"
         style={{ borderColor: 'var(--portal-hairline)', backgroundColor: 'var(--portal-surface)' }}
       >
-        {events.slice(0, 8).map(ev => {
+        {visible.map(ev => {
           const Icon = activityIcon(ev.type);
           return (
             <div key={ev.id} className="flex items-center gap-3 px-4 py-3">
@@ -642,6 +707,15 @@ function RecentActivity({ events, accent }: { events: ActivityEvent[]; accent: s
             </div>
           );
         })}
+        {hasMore && (
+          <button
+            onClick={() => setExpanded(true)}
+            className="w-full px-4 py-2.5 text-[12px] font-semibold cursor-pointer hover:bg-[var(--portal-soft)] transition-colors"
+            style={{ color: accent }}
+          >
+            Show {Math.min(events.length, 20) - INITIAL} more
+          </button>
+        )}
       </div>
     </section>
   );
@@ -1580,6 +1654,63 @@ function PortalComposer({
             Add
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Skeleton loader (matches surface system) ────────────────────────
+
+function PortalSkeleton() {
+  return (
+    <div
+      className="portal-light min-h-screen"
+      style={{
+        ['--portal-bg' as any]: '#f7f7f9',
+        ['--portal-surface' as any]: '#ffffff',
+        ['--portal-hairline' as any]: '#e7e8ec',
+        ['--portal-soft' as any]: '#f1f2f5',
+        backgroundColor: 'var(--portal-bg)',
+      } as any}
+    >
+      <style>{`
+        @keyframes portalShimmer { 0% { background-position: -200px 0 } 100% { background-position: calc(200px + 100%) 0 } }
+        .portal-skel { background: linear-gradient(90deg, #f1f2f5 0%, #ececf0 50%, #f1f2f5 100%); background-size: 200px 100%; animation: portalShimmer 1.2s ease-in-out infinite; border-radius: 4px; }
+      `}</style>
+      <div className="border-b" style={{ borderColor: 'var(--portal-hairline)', backgroundColor: 'var(--portal-surface)' }}>
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-10 h-14 flex items-center">
+          <div className="portal-skel h-5 w-32" />
+        </div>
+      </div>
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-10 py-6 lg:py-10 space-y-6">
+        {/* Identity */}
+        <div className="flex items-center gap-3">
+          <div className="portal-skel h-10 w-10" />
+          <div className="space-y-2">
+            <div className="portal-skel h-5 w-44" />
+            <div className="portal-skel h-3 w-28" />
+          </div>
+        </div>
+        {/* Tabs */}
+        <div className="flex gap-2">
+          <div className="portal-skel h-8 w-20" />
+          <div className="portal-skel h-8 w-24" />
+          <div className="portal-skel h-8 w-20" />
+          <div className="portal-skel h-8 w-24" />
+        </div>
+        {/* Cards */}
+        {[0, 1, 2].map(i => (
+          <div
+            key={i}
+            className="rounded border p-5 space-y-3"
+            style={{ borderColor: 'var(--portal-hairline)', backgroundColor: 'var(--portal-surface)' }}
+          >
+            <div className="portal-skel h-4 w-32" />
+            <div className="portal-skel h-3 w-full" />
+            <div className="portal-skel h-3 w-5/6" />
+            <div className="portal-skel h-3 w-3/4" />
+          </div>
+        ))}
       </div>
     </div>
   );
