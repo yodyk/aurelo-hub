@@ -144,9 +144,13 @@ export async function createChecklist(
   return rowToChecklist(data, []);
 }
 
-export async function updateChecklist(checklistId: string, updates: { title?: string }): Promise<void> {
+export async function updateChecklist(
+  checklistId: string,
+  updates: { title?: string; sharedWithClient?: boolean },
+): Promise<void> {
   const row: Record<string, any> = { updated_at: new Date().toISOString() };
   if (updates.title !== undefined) row.title = updates.title;
+  if (updates.sharedWithClient !== undefined) row.shared_with_client = updates.sharedWithClient;
   const { error } = await supabase.from('checklists').update(row).eq('id', checklistId);
   if (error) throw new Error(`Failed to update list: ${error.message}`);
 }
