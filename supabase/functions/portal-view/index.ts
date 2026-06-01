@@ -328,6 +328,15 @@ Deno.serve(async (req) => {
       checklists,
       activity: activityCapped,
       waitingOnYou,
+      portalUpdate: portalUpdate
+        ? {
+            id: portalUpdate.id,
+            thisWeek: portalUpdate.this_week ?? null,
+            nextWeek: portalUpdate.next_week ?? null,
+            waitingOnYou: portalUpdate.waiting_on_you ?? null,
+            postedAt: portalUpdate.posted_at,
+          }
+        : null,
       workspaceOwner: {
         name: workspace?.name || null,
         email: (workspace as any)?.owner_email || null,
