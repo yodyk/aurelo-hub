@@ -420,7 +420,7 @@ function ChecklistCard({
 
 function TaskRow({
   item, clientId, workspaceId, onUpdate, onDeleted, onUndoDelete, onRefresh, workCategoryNames,
-  links, clientNotes, clientFiles, onLinksChanged,
+  links, clientNotes, clientFiles, onLinksChanged, parentShared = false,
 }: {
   item: ChecklistItem;
   clientId: string;
@@ -434,6 +434,7 @@ function TaskRow({
   onDeleted: () => void;
   onUndoDelete: (restored: ChecklistItem) => void;
   onRefresh: () => void;
+  parentShared?: boolean;
 }) {
 
   const [expanded, setExpanded] = useState(false);
