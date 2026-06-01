@@ -391,7 +391,8 @@ Deno.serve(async (req) => {
       sessions,
       invoices,
       checklists,
-      activity: activityCapped,
+      resources,
+      activity: activityCappedFinal,
       waitingOnYou,
       portalUpdate: portalUpdate
         ? {
