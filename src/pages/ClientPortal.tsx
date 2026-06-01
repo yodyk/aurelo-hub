@@ -104,7 +104,7 @@ interface ActivityEvent {
 
 interface WaitingItem {
   id: string;
-  kind: 'invoice.pay' | 'task.action' | string;
+  kind: 'invoice.pay' | 'task.action' | 'resource.approve' | string;
   title: string;
   amount?: number;
   currency?: string;
@@ -119,11 +119,26 @@ interface PortalUpdatePayload {
   postedAt: string;
 }
 
+interface PortalResource {
+  id: string;
+  kind: 'link' | 'file';
+  provider: string | null;
+  url: string | null;
+  title: string;
+  description: string | null;
+  status: 'shared' | 'for_review' | 'approved' | 'final';
+  needs_approval: boolean;
+  project_id: string | null;
+  created_at: string;
+  last_decision: { decision: 'approved' | 'changes_requested' | 'rejected'; comment: string | null; at: string } | null;
+}
+
 interface PortalData {
   client: PortalClient;
   projects: PortalProject[];
   invoices: PortalInvoice[];
   checklists: PortalChecklist[];
+  resources: PortalResource[];
   activity: ActivityEvent[];
   waitingOnYou: WaitingItem[];
   portalUpdate: PortalUpdatePayload | null;
@@ -257,13 +272,14 @@ export default function ClientPortal() {
     );
   }
 
-  const { client, projects, invoices, checklists, activity, waitingOnYou, portalUpdate, workspaceOwner, showCosts, branding } = data;
+  const { client, projects, invoices, checklists, resources, activity, waitingOnYou, portalUpdate, workspaceOwner, showCosts, branding } = data;
   const accent = branding.isWhiteLabel && branding.brandColor ? branding.brandColor : "#3B66F0";
   const isRetainer = client.model === 'Retainer' && (client.retainerTotal ?? 0) > 0;
 
+  const pendingResources = resources.filter(r => r.needs_approval).length;
   const tabs: { id: PortalTabId; label: string; count?: number }[] = [
     { id: 'home', label: 'Home', count: waitingOnYou.length || undefined },
-    { id: 'resources', label: 'Resources' },
+    { id: 'resources', label: 'Resources', count: pendingResources || resources.length || undefined },
     { id: 'tasks', label: 'Tasks', count: checklists.reduce((a, c) => a + c.items.filter(i => i.status !== 'complete').length, 0) || undefined },
     { id: 'billing', label: 'Billing', count: invoices.filter(i => ['sent','issued','overdue'].includes(i.status.toLowerCase())).length || undefined },
   ];
@@ -385,7 +401,7 @@ export default function ClientPortal() {
                 </div>
               )}
 
-              {tab === 'resources' && <ResourcesStub accent={accent} />}
+              {tab === 'resources' && <ResourcesTab resources={resources} accent={accent} token={token!} />}
 
               {tab === 'tasks' && (
                 <TasksTab checklists={checklists} accent={accent} token={token!} />
@@ -474,6 +490,8 @@ function WaitingOnYou({ items, accent, onTabChange, token }: { items: WaitingIte
       } finally {
         setPaying(null);
       }
+    } else if (item.kind === 'resource.approve') {
+      onTabChange('resources');
     } else {
       onTabChange('tasks');
     }
@@ -517,6 +535,8 @@ function WaitingOnYou({ items, accent, onTabChange, token }: { items: WaitingIte
               >
                 {item.kind === 'invoice.pay' ? (
                   <Receipt className="w-4 h-4" style={{ color: accent }} />
+                ) : item.kind === 'resource.approve' ? (
+                  <Link2 className="w-4 h-4" style={{ color: accent }} />
                 ) : (
                   <CheckSquare className="w-4 h-4" style={{ color: accent }} />
                 )}
@@ -538,7 +558,7 @@ function WaitingOnYou({ items, accent, onTabChange, token }: { items: WaitingIte
                 className="text-[12px] font-semibold px-3 py-1.5 rounded text-white cursor-pointer disabled:opacity-60"
                 style={{ backgroundColor: accent }}
               >
-                {isPaying ? 'Opening…' : item.kind === 'invoice.pay' ? 'Pay' : 'Open'}
+                {isPaying ? 'Opening…' : item.kind === 'invoice.pay' ? 'Pay' : item.kind === 'resource.approve' ? 'Review' : 'Open'}
               </button>
             </div>
           );
@@ -705,19 +725,244 @@ function ContactCard({ owner, accent }: { owner: { name: string | null; email: s
   );
 }
 
-// ── Resources Stub ──────────────────────────────────────────────────
+// ── Resources Tab ───────────────────────────────────────────────────
 
-function ResourcesStub({ accent }: { accent: string }) {
+const RESOURCE_STATUS_LABEL: Record<string, string> = {
+  shared: 'Shared',
+  for_review: 'For review',
+  approved: 'Approved',
+  final: 'Final',
+};
+
+function providerInitial(provider: string | null): string {
+  if (!provider) return 'L';
+  if (provider === 'google_drive') return 'G';
+  if (provider === 'onedrive') return 'O';
+  return provider.charAt(0).toUpperCase();
+}
+
+function providerName(p: string | null): string {
+  switch (p) {
+    case 'google_drive': return 'Google Drive';
+    case 'dropbox': return 'Dropbox';
+    case 'onedrive': return 'OneDrive';
+    case 'figma': return 'Figma';
+    case 'loom': return 'Loom';
+    case 'vimeo': return 'Vimeo';
+    case 'youtube': return 'YouTube';
+    case 'notion': return 'Notion';
+    case 'airtable': return 'Airtable';
+    case 'miro': return 'Miro';
+    case 'canva': return 'Canva';
+    case 'url': return 'Link';
+    default: return 'Link';
+  }
+}
+
+function ResourcesTab({ resources, accent, token }: { resources: PortalResource[]; accent: string; token: string }) {
+  const [decidingId, setDecidingId] = useState<string | null>(null);
+  const [list, setList] = useState<PortalResource[]>(resources);
+  useEffect(() => setList(resources), [resources]);
+
+  if (list.length === 0) {
+    return (
+      <div
+        className="rounded border p-10 text-center"
+        style={{ borderColor: 'var(--portal-hairline)', backgroundColor: 'var(--portal-surface)' }}
+      >
+        <Link2 className="w-7 h-7 mx-auto mb-3" style={{ color: 'var(--portal-subtle)' }} />
+        <p className="text-[14px] font-display font-semibold" style={{ color: 'var(--portal-ink)' }}>No resources shared yet</p>
+        <p className="text-[12.5px] mt-1.5 max-w-md mx-auto" style={{ color: 'var(--portal-muted)' }}>
+          Drive folders, Figma files, Loom walkthroughs, Notion docs — everything your project lives in will appear here.
+        </p>
+      </div>
+    );
+  }
+
+  const groups: { key: string; label: string; items: PortalResource[] }[] = [
+    { key: 'for_review', label: 'For review', items: list.filter(r => r.needs_approval) },
+    { key: 'approved', label: 'Approved', items: list.filter(r => !r.needs_approval && r.status === 'approved') },
+    { key: 'final', label: 'Final', items: list.filter(r => !r.needs_approval && r.status === 'final') },
+    { key: 'shared', label: 'Shared', items: list.filter(r => !r.needs_approval && r.status !== 'approved' && r.status !== 'final') },
+  ].filter(g => g.items.length > 0);
+
+  async function decide(resourceId: string, decision: 'approved' | 'changes_requested' | 'rejected', comment?: string) {
+    setDecidingId(resourceId);
+    try {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/portal-resource-decision`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, resource_id: resourceId, decision, comment: comment ?? null }),
+      });
+      const j = await res.json();
+      if (!res.ok || j.error) throw new Error(j.error || 'Failed');
+      setList(prev => prev.map(r => r.id === resourceId
+        ? {
+            ...r,
+            needs_approval: decision === 'changes_requested',
+            status: decision === 'approved' ? 'approved' : decision === 'rejected' ? 'shared' : 'for_review',
+            last_decision: { decision, comment: comment ?? null, at: new Date().toISOString() },
+          }
+        : r));
+    } catch (e) {
+      alert((e as Error).message || 'Could not submit decision.');
+    } finally {
+      setDecidingId(null);
+    }
+  }
+
   return (
-    <div
-      className="rounded border p-10 text-center"
-      style={{ borderColor: 'var(--portal-hairline)', backgroundColor: 'var(--portal-surface)' }}
-    >
-      <Link2 className="w-7 h-7 mx-auto mb-3" style={{ color: 'var(--portal-subtle)' }} />
-      <p className="text-[14px] font-display font-semibold" style={{ color: 'var(--portal-ink)' }}>Shared resources coming soon</p>
-      <p className="text-[12.5px] mt-1.5 max-w-md mx-auto" style={{ color: 'var(--portal-muted)' }}>
-        Drive folders, Figma files, Loom walkthroughs, Notion docs — everything your project lives in, organized in one place.
-      </p>
+    <div className="space-y-6">
+      {groups.map(g => (
+        <section key={g.key}>
+          <SectionTitle icon={Link2} title={g.label} count={g.items.length} accent={accent} />
+          <div className="rounded border divide-y" style={{ borderColor: 'var(--portal-hairline)', backgroundColor: 'var(--portal-surface)' }}>
+            {g.items.map(r => (
+              <ResourceRow key={r.id} resource={r} accent={accent} deciding={decidingId === r.id} onDecide={decide} />
+            ))}
+          </div>
+        </section>
+      ))}
+    </div>
+  );
+}
+
+function ResourceRow({
+  resource, accent, deciding, onDecide,
+}: {
+  resource: PortalResource;
+  accent: string;
+  deciding: boolean;
+  onDecide: (id: string, decision: 'approved' | 'changes_requested' | 'rejected', comment?: string) => void;
+}) {
+  const [showChanges, setShowChanges] = useState(false);
+  const [comment, setComment] = useState('');
+
+  return (
+    <div className="p-4">
+      <div className="flex items-start gap-3">
+        <div
+          className="w-9 h-9 rounded flex items-center justify-center flex-shrink-0 font-display font-semibold text-[12px]"
+          style={{ backgroundColor: `color-mix(in srgb, ${accent} 12%, transparent)`, color: accent }}
+          aria-hidden
+        >
+          {providerInitial(resource.provider)}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            {resource.url ? (
+              <a
+                href={resource.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[13.5px] font-display font-semibold hover:underline truncate"
+                style={{ color: 'var(--portal-ink)' }}
+              >
+                {resource.title}
+              </a>
+            ) : (
+              <span className="text-[13.5px] font-display font-semibold truncate" style={{ color: 'var(--portal-ink)' }}>
+                {resource.title}
+              </span>
+            )}
+            <span
+              className="text-[10.5px] font-semibold tracking-wide uppercase px-1.5 py-0.5 rounded"
+              style={{
+                backgroundColor: resource.needs_approval
+                  ? '#fef3c7'
+                  : resource.status === 'approved' || resource.status === 'final'
+                    ? '#dcfce7'
+                    : 'var(--portal-soft)',
+                color: resource.needs_approval
+                  ? '#b45309'
+                  : resource.status === 'approved' || resource.status === 'final'
+                    ? '#15803d'
+                    : 'var(--portal-muted)',
+              }}
+            >
+              {resource.needs_approval ? 'For review' : RESOURCE_STATUS_LABEL[resource.status] || resource.status}
+            </span>
+          </div>
+          <div className="mt-0.5 text-[11.5px]" style={{ color: 'var(--portal-muted)' }}>
+            {providerName(resource.provider)} · Added {fmtDate(resource.created_at)}
+          </div>
+          {resource.description && (
+            <p className="mt-1.5 text-[12.5px] leading-relaxed" style={{ color: 'var(--portal-muted)' }}>
+              {resource.description}
+            </p>
+          )}
+          {resource.last_decision && !resource.needs_approval && (
+            <div className="mt-2 text-[11.5px]" style={{ color: 'var(--portal-muted)' }}>
+              {resource.last_decision.decision === 'approved' && 'You approved this'}
+              {resource.last_decision.decision === 'rejected' && 'You rejected this'}
+              {resource.last_decision.decision === 'changes_requested' && 'Changes requested'}
+              {resource.last_decision.comment && <> — “{resource.last_decision.comment}”</>}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {resource.needs_approval && (
+        <div className="mt-3 pl-12">
+          {!showChanges ? (
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => onDecide(resource.id, 'approved')}
+                disabled={deciding}
+                className="text-[12px] font-semibold px-3 py-1.5 rounded text-white cursor-pointer disabled:opacity-60"
+                style={{ backgroundColor: accent }}
+              >
+                Approve
+              </button>
+              <button
+                onClick={() => setShowChanges(true)}
+                disabled={deciding}
+                className="text-[12px] font-semibold px-3 py-1.5 rounded border cursor-pointer disabled:opacity-60"
+                style={{ borderColor: 'var(--portal-hairline)', color: 'var(--portal-ink)', backgroundColor: 'var(--portal-surface)' }}
+              >
+                Request changes
+              </button>
+              <button
+                onClick={() => onDecide(resource.id, 'rejected')}
+                disabled={deciding}
+                className="text-[12px] font-semibold px-3 py-1.5 rounded cursor-pointer disabled:opacity-60"
+                style={{ color: '#b91c1c', backgroundColor: 'transparent' }}
+              >
+                Reject
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <textarea
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                rows={3}
+                placeholder="What needs to change?"
+                className="w-full rounded border px-2.5 py-2 text-[12.5px] outline-none"
+                style={{ borderColor: 'var(--portal-hairline)', backgroundColor: 'var(--portal-surface)', color: 'var(--portal-ink)' }}
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={() => onDecide(resource.id, 'changes_requested', comment.trim() || undefined)}
+                  disabled={deciding || !comment.trim()}
+                  className="text-[12px] font-semibold px-3 py-1.5 rounded text-white cursor-pointer disabled:opacity-60"
+                  style={{ backgroundColor: accent }}
+                >
+                  Send request
+                </button>
+                <button
+                  onClick={() => { setShowChanges(false); setComment(''); }}
+                  disabled={deciding}
+                  className="text-[12px] font-semibold px-3 py-1.5 rounded cursor-pointer"
+                  style={{ color: 'var(--portal-muted)' }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

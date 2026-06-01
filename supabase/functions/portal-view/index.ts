@@ -58,6 +58,8 @@ Deno.serve(async (req) => {
       notesRes,
       portalUpdateRes,
       milestonesRes,
+      resourcesRes,
+      approvalsRes,
     ] = await Promise.all([
       sb.from('clients').select('*').eq('id', client_id).single(),
       sb.from('projects').select('*').eq('client_id', client_id).eq('workspace_id', workspace_id).order('created_at', { ascending: false }),
@@ -73,6 +75,10 @@ Deno.serve(async (req) => {
       sb.from('portal_updates').select('*').eq('client_id', client_id).eq('workspace_id', workspace_id).order('posted_at', { ascending: false }).limit(1).maybeSingle(),
       // P3: all milestones for this client's projects (filtered by project_id below)
       sb.from('project_milestones').select('*').eq('workspace_id', workspace_id).order('sort_order', { ascending: true }),
+      // P4: shared resources (link-first deliverables)
+      sb.from('shared_resources').select('*').eq('client_id', client_id).eq('workspace_id', workspace_id).order('sort_order', { ascending: true }).order('created_at', { ascending: false }),
+      // P4: latest approval decisions
+      sb.from('resource_approvals').select('*').eq('client_id', client_id).eq('workspace_id', workspace_id).order('decided_at', { ascending: false }),
     ]);
 
     if (clientRes.error || !clientRes.data) {
@@ -271,8 +277,57 @@ Deno.serve(async (req) => {
         at: portalUpdate.posted_at,
       });
     }
+    // P4: latest approval per resource
+    const latestApprovalByResource: Record<string, any> = {};
+    for (const a of (approvalsRes.data || [])) {
+      if (!latestApprovalByResource[a.resource_id]) {
+        latestApprovalByResource[a.resource_id] = a;
+      }
+    }
+
+    // P4: resources payload + activity events
+    const resources = (resourcesRes.data || []).map((r: any) => {
+      const last = latestApprovalByResource[r.id];
+      return {
+        id: r.id,
+        kind: r.kind,
+        provider: r.provider ?? null,
+        url: r.url ?? null,
+        title: r.title,
+        description: r.description ?? null,
+        status: r.status,
+        needs_approval: r.needs_approval === true,
+        project_id: r.project_id ?? null,
+        created_at: r.created_at,
+        last_decision: last
+          ? { decision: last.decision, comment: last.comment ?? null, at: last.decided_at }
+          : null,
+      };
+    });
+    for (const r of (resourcesRes.data || [])) {
+      activity.push({
+        id: `res-added-${r.id}`,
+        type: 'resource.added',
+        title: `Resource shared: ${r.title}`,
+        at: r.created_at,
+      });
+    }
+    for (const a of (approvalsRes.data || [])) {
+      const r = (resourcesRes.data || []).find((x: any) => x.id === a.resource_id);
+      const label = r ? r.title : 'resource';
+      const t =
+        a.decision === 'approved' ? `Approved: ${label}` :
+        a.decision === 'changes_requested' ? `Changes requested: ${label}` :
+        `Rejected: ${label}`;
+      activity.push({
+        id: `res-decision-${a.id}`,
+        type: a.decision === 'approved' ? 'resource.approved' : a.decision === 'changes_requested' ? 'resource.changes_requested' : 'resource.rejected',
+        title: t,
+        at: a.decided_at,
+      });
+    }
     activity.sort((a, b) => (a.at < b.at ? 1 : -1));
-    const activityCapped = activity.slice(0, 20);
+    const activityCappedFinal = activity.slice(0, 20);
 
     // Derived: waiting-on-you
     type WaitingItem = { id: string; kind: string; title: string; href?: string; amount?: number; currency?: string; due_date?: string | null };
@@ -303,6 +358,16 @@ Deno.serve(async (req) => {
         }
       }
     }
+    // P4: resources awaiting approval
+    for (const r of (resourcesRes.data || [])) {
+      if (r.needs_approval === true) {
+        waitingOnYou.push({
+          id: `approve-${r.id}`,
+          kind: 'resource.approve',
+          title: `Review: ${r.title}`,
+        });
+      }
+    }
 
     const portalData = {
       client: {
@@ -326,7 +391,8 @@ Deno.serve(async (req) => {
       sessions,
       invoices,
       checklists,
-      activity: activityCapped,
+      resources,
+      activity: activityCappedFinal,
       waitingOnYou,
       portalUpdate: portalUpdate
         ? {

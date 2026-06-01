@@ -11,6 +11,8 @@ project_id = "oqrqypuulgeqzjcgqruw"
     verify_jwt = false
   [functions.portal-view]
     verify_jwt = false
+  [functions.portal-resource-decision]
+    verify_jwt = false
   [functions.check-subscription]
     verify_jwt = false
   [functions.create-checkout]
