@@ -2458,6 +2458,10 @@ function PortalTab({ client, clientId, workspaceId, portalConfig, portalLoading,
     <SectionCard>
       <SectionHeader>Client Portal</SectionHeader>
       <div className="space-y-5">
+        {workspaceId && clientId && (
+          <WeeklyUpdateComposer workspaceId={workspaceId} clientId={clientId} />
+        )}
+
         <div className="text-[13px] text-muted-foreground">
           Share a private read-only portal with this client. They'll see project progress, time logged, and{" "}
           {client.showPortalCosts !== false ? "billing totals" : "activity only (costs hidden)"}.
