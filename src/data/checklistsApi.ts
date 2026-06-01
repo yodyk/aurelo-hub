@@ -92,6 +92,7 @@ function rowToItem(row: any): ChecklistItem {
     source: (row.source as TaskSource) ?? 'manual',
     completedAt: row.completed_at ?? null,
     repeat: (row.repeat as ChecklistItem['repeat']) ?? null,
+    assignedToClient: row.assigned_to_client === true,
   };
 }
 
