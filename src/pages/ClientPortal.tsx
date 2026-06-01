@@ -104,7 +104,7 @@ interface ActivityEvent {
 
 interface WaitingItem {
   id: string;
-  kind: 'invoice.pay' | 'task.action' | string;
+  kind: 'invoice.pay' | 'task.action' | 'resource.approve' | string;
   title: string;
   amount?: number;
   currency?: string;
@@ -119,11 +119,26 @@ interface PortalUpdatePayload {
   postedAt: string;
 }
 
+interface PortalResource {
+  id: string;
+  kind: 'link' | 'file';
+  provider: string | null;
+  url: string | null;
+  title: string;
+  description: string | null;
+  status: 'shared' | 'for_review' | 'approved' | 'final';
+  needs_approval: boolean;
+  project_id: string | null;
+  created_at: string;
+  last_decision: { decision: 'approved' | 'changes_requested' | 'rejected'; comment: string | null; at: string } | null;
+}
+
 interface PortalData {
   client: PortalClient;
   projects: PortalProject[];
   invoices: PortalInvoice[];
   checklists: PortalChecklist[];
+  resources: PortalResource[];
   activity: ActivityEvent[];
   waitingOnYou: WaitingItem[];
   portalUpdate: PortalUpdatePayload | null;
