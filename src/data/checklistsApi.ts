@@ -48,6 +48,8 @@ export interface ChecklistItem {
   completedAt?: string | null;
   /** Lightweight repeat (Things 3 style). Null = one-off. */
   repeat?: 'weekly' | 'monthly' | 'quarterly' | null;
+  /** When true and on a shared checklist, surfaces in client portal "Waiting on you". */
+  assignedToClient?: boolean;
 }
 
 function rowToChecklist(row: any, items: ChecklistItem[] = []): Checklist {
@@ -59,6 +61,7 @@ function rowToChecklist(row: any, items: ChecklistItem[] = []): Checklist {
     title: row.title,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    sharedWithClient: row.shared_with_client === true,
     items,
   };
 }
