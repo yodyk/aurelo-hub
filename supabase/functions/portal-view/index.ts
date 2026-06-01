@@ -55,6 +55,9 @@ Deno.serve(async (req) => {
       workspaceRes,
       brandingRes,
       checklistsRes,
+      notesRes,
+      portalUpdateRes,
+      milestonesRes,
     ] = await Promise.all([
       sb.from('clients').select('*').eq('id', client_id).single(),
       sb.from('projects').select('*').eq('client_id', client_id).eq('workspace_id', workspace_id).order('created_at', { ascending: false }),
@@ -62,7 +65,14 @@ Deno.serve(async (req) => {
       sb.from('invoices').select('*').eq('client_id', client_id).eq('workspace_id', workspace_id).order('created_at', { ascending: false }),
       sb.from('workspaces').select('name, plan_id, owner_email').eq('id', workspace_id).single(),
       sb.from('workspace_settings').select('data').eq('workspace_id', workspace_id).eq('section', 'workspace').maybeSingle(),
-      sb.from('checklists').select('*').eq('client_id', client_id).eq('workspace_id', workspace_id).order('created_at', { ascending: true }),
+      // P3: only return checklists explicitly shared with the client
+      sb.from('checklists').select('*').eq('client_id', client_id).eq('workspace_id', workspace_id).eq('shared_with_client', true).order('created_at', { ascending: true }),
+      // P3: shared notes — for activity feed only (note.shared events)
+      sb.from('notes').select('*').eq('client_id', client_id).eq('workspace_id', workspace_id).eq('shared_with_client', true).order('updated_at', { ascending: false }).limit(20),
+      // P3: latest weekly update
+      sb.from('portal_updates').select('*').eq('client_id', client_id).eq('workspace_id', workspace_id).order('posted_at', { ascending: false }).limit(1).maybeSingle(),
+      // P3: all milestones for this client's projects (filtered by project_id below)
+      sb.from('project_milestones').select('*').eq('workspace_id', workspace_id).order('sort_order', { ascending: true }),
     ]);
 
     if (clientRes.error || !clientRes.data) {
