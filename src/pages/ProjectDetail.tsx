@@ -328,7 +328,6 @@ export default function ProjectDetail() {
     };
   }, [project, budgetData, allProjectsFlat]);
 
-  const milestones: { id: string; text: string; completed: boolean }[] = project?.milestones || [];
   const externalLinks: ExternalLink[] = project?.externalLinks || [];
 
   // ── Handlers ─────────────────────────────────────────────────────
