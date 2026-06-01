@@ -759,7 +759,7 @@ function BillingTab({
             className="rounded border divide-y"
             style={{ borderColor: 'var(--portal-hairline)', backgroundColor: 'var(--portal-surface)' }}
           >
-            {outstanding.map(inv => <InvoiceRow key={inv.id} invoice={inv} accent={accent} />)}
+            {outstanding.map(inv => <InvoiceRow key={inv.id} invoice={inv} accent={accent} token={token} payable />)}
           </div>
         </section>
       )}
