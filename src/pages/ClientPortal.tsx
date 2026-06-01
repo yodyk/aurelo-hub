@@ -326,7 +326,14 @@ export default function ClientPortal() {
     );
   }
 
-  const { client, projects, invoices, checklists, resources, questions, activity, waitingOnYou, portalUpdate, workspaceOwner, showCosts, branding } = data;
+  const { client, portalUpdate, workspaceOwner, showCosts, branding } = data;
+  const projects = data.projects ?? [];
+  const invoices = data.invoices ?? [];
+  const checklists = data.checklists ?? [];
+  const resources = data.resources ?? [];
+  const questions = data.questions ?? [];
+  const activity = data.activity ?? [];
+  const waitingOnYou = data.waitingOnYou ?? [];
   const accent = branding.isWhiteLabel && branding.brandColor ? branding.brandColor : "#3B66F0";
   const isRetainer = client.model === 'Retainer' && (client.retainerTotal ?? 0) > 0;
 
