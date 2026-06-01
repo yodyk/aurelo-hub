@@ -428,6 +428,16 @@ Deno.serve(async (req) => {
       invoices,
       checklists,
       resources,
+      questions: questions.map((q: any) => ({
+        id: q.id,
+        askedBy: q.asked_by,
+        question: q.question,
+        answer: q.answer ?? null,
+        status: q.status,
+        askedAt: q.asked_at,
+        answeredAt: q.answered_at ?? null,
+        answeredBy: q.answered_by ?? null,
+      })),
       activity: activityCappedFinal,
       waitingOnYou,
       portalUpdate: portalUpdate
