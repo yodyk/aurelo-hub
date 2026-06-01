@@ -328,6 +328,18 @@ function ChecklistCard({
           )}
           <div className="flex items-center gap-2">
             <span className="text-[11px] text-muted-foreground tabular-nums">{completedCount}/{totalCount}</span>
+            <button
+              onClick={handleToggleShared}
+              disabled={sharingBusy}
+              title={shared ? 'Visible in client portal — click to hide' : 'Hidden from client portal — click to share'}
+              className={`inline-flex items-center gap-1 px-1.5 py-1 rounded transition-colors cursor-pointer ${shared ? 'text-primary hover:bg-primary/10' : 'text-muted-foreground hover:bg-accent/60'}`}
+              style={{ opacity: sharingBusy ? 0.5 : 1 }}
+            >
+              {shared ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+              <span className="text-[10.5px] hidden sm:inline" style={{ fontWeight: 500 }}>
+                {shared ? 'Shared' : 'Private'}
+              </span>
+            </button>
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <button className="p-1 rounded hover:bg-accent/60 text-muted-foreground hover:text-destructive transition-colors cursor-pointer" title="Delete list">
