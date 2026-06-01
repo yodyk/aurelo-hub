@@ -214,6 +214,7 @@ function activityIcon(type: string) {
   if (type.startsWith('task')) return CheckCircle2;
   if (type.startsWith('resource')) return Link2;
   if (type.startsWith('update')) return ActivityIcon;
+  if (type.startsWith('question')) return MessageCircle;
   return ActivityIcon;
 }
 
