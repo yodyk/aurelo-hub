@@ -39,6 +39,13 @@ import * as dataApi from "../data/dataApi";
 import ClientNotes from "../components/ClientNotes";
 import ChecklistPanel from "../components/ChecklistPanel";
 import { useRoleAccess } from "@/data/useRoleAccess";
+import {
+  loadMilestones,
+  createMilestone,
+  updateMilestone,
+  deleteMilestone,
+  type ProjectMilestone,
+} from "@/data/portalContentApi";
 
 // ── Constants ──────────────────────────────────────────────────────
 
@@ -164,7 +171,8 @@ export default function ProjectDetail() {
   const [showStatusMenu, setShowStatusMenu] = useState(false);
   const statusRef = useRef<HTMLDivElement>(null);
 
-  // Milestones
+  // Milestones (synced to client portal via project_milestones table)
+  const [milestones, setMilestones] = useState<ProjectMilestone[]>([]);
   const [newMilestone, setNewMilestone] = useState("");
   const [addingMilestone, setAddingMilestone] = useState(false);
 
@@ -201,6 +209,18 @@ export default function ProjectDetail() {
       mounted = false;
     };
   }, [clientId, projectId, workspaceId, loadProjectsForClient, loadAllProjects]);
+
+  // Load milestones (synced to client portal)
+  useEffect(() => {
+    if (!workspaceId || !projectId) return;
+    let mounted = true;
+    loadMilestones(projectId).then((rows) => {
+      if (mounted) setMilestones(rows);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, [projectId, workspaceId]);
 
   // Close status menu on outside click
   useEffect(() => {
@@ -320,7 +340,6 @@ export default function ProjectDetail() {
     };
   }, [project, budgetData, allProjectsFlat]);
 
-  const milestones: { id: string; text: string; completed: boolean }[] = project?.milestones || [];
   const externalLinks: ExternalLink[] = project?.externalLinks || [];
 
   // ── Handlers ─────────────────────────────────────────────────────
@@ -357,23 +376,44 @@ export default function ProjectDetail() {
   };
 
   const handleAddMilestone = async () => {
-    if (!newMilestone.trim()) return;
-    const updated = [...milestones, { id: Date.now().toString(), text: newMilestone.trim(), completed: false }];
-    await handleUpdateProject({ milestones: updated });
-    setNewMilestone("");
-    setAddingMilestone(false);
-    toast.success("Milestone added");
+    if (!newMilestone.trim() || !workspaceId || !projectId) return;
+    try {
+      const created = await createMilestone(workspaceId, projectId, {
+        title: newMilestone.trim(),
+        sortOrder: milestones.length,
+      });
+      setMilestones((prev) => [...prev, created]);
+      setNewMilestone("");
+      setAddingMilestone(false);
+      toast.success("Milestone added");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to add milestone");
+    }
   };
 
   const handleToggleMilestone = async (id: string) => {
-    const updated = milestones.map((m) => (m.id === id ? { ...m, completed: !m.completed } : m));
-    await handleUpdateProject({ milestones: updated });
+    const m = milestones.find((x) => x.id === id);
+    if (!m) return;
+    const nextStatus = m.status === "complete" ? "upcoming" : "complete";
+    setMilestones((prev) => prev.map((x) => (x.id === id ? { ...x, status: nextStatus } : x)));
+    try {
+      await updateMilestone(id, { status: nextStatus });
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update milestone");
+      setMilestones((prev) => prev.map((x) => (x.id === id ? { ...x, status: m.status } : x)));
+    }
   };
 
   const handleDeleteMilestone = async (id: string) => {
-    const updated = milestones.filter((m) => m.id !== id);
-    await handleUpdateProject({ milestones: updated });
-    toast.success("Milestone removed");
+    const prev = milestones;
+    setMilestones((curr) => curr.filter((m) => m.id !== id));
+    try {
+      await deleteMilestone(id);
+      toast.success("Milestone removed");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to remove milestone");
+      setMilestones(prev);
+    }
   };
 
   const handleAddLink = async () => {
@@ -450,7 +490,7 @@ export default function ProjectDetail() {
   }
 
   const sc = statusColors[project.status] || statusColors["In Progress"];
-  const completedMilestones = milestones.filter((m) => m.completed).length;
+  const completedMilestones = milestones.filter((m) => m.status === "complete").length;
   const milestonePct = milestones.length > 0 ? Math.round((completedMilestones / milestones.length) * 100) : 0;
 
   // ── Render ───────────────────────────────────────────────────────
@@ -1161,6 +1201,12 @@ export default function ProjectDetail() {
                         ({completedMilestones}/{milestones.length})
                       </span>
                     )}
+                    <span
+                      className="text-[10px] uppercase tracking-wider text-muted-foreground/70"
+                      style={{ fontWeight: 600, letterSpacing: "0.08em" }}
+                    >
+                      · Shown on portal
+                    </span>
                   </div>
                   <button
                     onClick={() => setAddingMilestone(true)}
@@ -1214,32 +1260,44 @@ export default function ProjectDetail() {
                         </button>
                       </div>
                     )}
-                    {milestones.map((m, i) => (
-                      <div
-                        key={m.id}
-                        className={`flex items-center gap-3 py-2.5 group ${i < milestones.length - 1 ? "border-b border-border/50" : ""}`}
-                      >
-                        <button onClick={() => handleToggleMilestone(m.id)} className="flex-shrink-0">
-                          {m.completed ? (
-                            <Check className="w-4 h-4 text-primary" />
-                          ) : (
-                            <Circle className="w-4 h-4 text-muted-foreground/40 hover:text-muted-foreground transition-colors" />
+                    {milestones.map((m, i) => {
+                      const done = m.status === "complete";
+                      const due = m.dueDate
+                        ? new Date(m.dueDate + "T00:00:00").toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                          })
+                        : null;
+                      return (
+                        <div
+                          key={m.id}
+                          className={`flex items-center gap-3 py-2.5 group ${i < milestones.length - 1 ? "border-b border-border/50" : ""}`}
+                        >
+                          <button onClick={() => handleToggleMilestone(m.id)} className="flex-shrink-0 cursor-pointer">
+                            {done ? (
+                              <Check className="w-4 h-4 text-primary" />
+                            ) : (
+                              <Circle className="w-4 h-4 text-muted-foreground/40 hover:text-muted-foreground transition-colors" />
+                            )}
+                          </button>
+                          <span
+                            className={`text-[13px] flex-1 ${done ? "text-muted-foreground line-through" : ""}`}
+                            style={{ fontWeight: 500 }}
+                          >
+                            {m.title}
+                          </span>
+                          {due && (
+                            <span className="text-[11px] text-muted-foreground tabular-nums">{due}</span>
                           )}
-                        </button>
-                        <span
-                          className={`text-[13px] flex-1 ${m.completed ? "text-muted-foreground line-through" : ""}`}
-                          style={{ fontWeight: 500 }}
-                        >
-                          {m.text}
-                        </span>
-                        <button
-                          onClick={() => handleDeleteMilestone(m.id)}
-                          className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-accent/60 text-muted-foreground hover:text-destructive transition-all"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ))}
+                          <button
+                            onClick={() => handleDeleteMilestone(m.id)}
+                            className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-accent/60 text-muted-foreground hover:text-destructive transition-all cursor-pointer"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      );
+                    })}
                     {addingMilestone && (
                       <div className="flex items-center gap-2 py-2">
                         <Circle className="w-4 h-4 text-muted-foreground/30 flex-shrink-0" />
