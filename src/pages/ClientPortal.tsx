@@ -111,6 +111,14 @@ interface WaitingItem {
   due_date?: string | null;
 }
 
+interface PortalUpdatePayload {
+  id: string;
+  thisWeek: string | null;
+  nextWeek: string | null;
+  waitingOnYou: string | null;
+  postedAt: string;
+}
+
 interface PortalData {
   client: PortalClient;
   projects: PortalProject[];
@@ -118,6 +126,7 @@ interface PortalData {
   checklists: PortalChecklist[];
   activity: ActivityEvent[];
   waitingOnYou: WaitingItem[];
+  portalUpdate: PortalUpdatePayload | null;
   workspaceOwner: { name: string | null; email: string | null };
   showCosts: boolean;
   branding: PortalBranding;
