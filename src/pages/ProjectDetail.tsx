@@ -210,6 +210,18 @@ export default function ProjectDetail() {
     };
   }, [clientId, projectId, workspaceId, loadProjectsForClient, loadAllProjects]);
 
+  // Load milestones (synced to client portal)
+  useEffect(() => {
+    if (!workspaceId || !projectId) return;
+    let mounted = true;
+    loadMilestones(projectId).then((rows) => {
+      if (mounted) setMilestones(rows);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, [projectId, workspaceId]);
+
   // Close status menu on outside click
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
