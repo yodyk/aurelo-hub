@@ -2467,6 +2467,10 @@ function PortalTab({ client, clientId, workspaceId, portalConfig, portalLoading,
           <SharedResourcesPanel workspaceId={workspaceId} clientId={clientId} />
         )}
 
+        {workspaceId && clientId && (
+          <PortalQuestionsPanel workspaceId={workspaceId} clientId={clientId} />
+        )}
+
         <div className="text-[13px] text-muted-foreground">
           Share a private read-only portal with this client. They'll see project progress, time logged, and{" "}
           {client.showPortalCosts !== false ? "billing totals" : "activity only (costs hidden)"}.
