@@ -73,6 +73,7 @@ export async function updateNote(_clientId: string, noteId: string, updates: Par
   if (updates.projectName !== undefined) row.project_name = updates.projectName;
   if (updates.isPinned !== undefined) row.is_pinned = updates.isPinned;
   if (updates.isResolved !== undefined) row.is_resolved = updates.isResolved;
+  if (updates.sharedWithClient !== undefined) row.shared_with_client = updates.sharedWithClient;
 
   const { error } = await supabase.from('notes').update(row).eq('id', noteId);
   if (error) throw new Error(`Failed to update note: ${error.message}`);
