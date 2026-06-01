@@ -394,6 +394,17 @@ Deno.serve(async (req) => {
       }
     }
 
+    // P5: open owner→client questions belong in waiting-on-you
+    for (const q of questions) {
+      if (q.asked_by === 'owner' && q.status === 'open') {
+        waitingOnYou.push({
+          id: `question-${q.id}`,
+          kind: 'question.answer',
+          title: String(q.question).slice(0, 140),
+        });
+      }
+    }
+
     const portalData = {
       client: {
         name: client.name,
