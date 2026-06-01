@@ -8,7 +8,8 @@ import {
   closePortalQuestion,
   deletePortalQuestion,
 } from "@/data/portalQuestionsApi";
-import { showError } from "@/lib/toast";
+import { toast } from "@/lib/toast";
+const showError = (m: string) => toast.error(m);
 
 function relTime(iso: string) {
   try {
