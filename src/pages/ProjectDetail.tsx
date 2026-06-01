@@ -1201,6 +1201,12 @@ export default function ProjectDetail() {
                         ({completedMilestones}/{milestones.length})
                       </span>
                     )}
+                    <span
+                      className="text-[10px] uppercase tracking-wider text-muted-foreground/70"
+                      style={{ fontWeight: 600, letterSpacing: "0.08em" }}
+                    >
+                      · Shown on portal
+                    </span>
                   </div>
                   <button
                     onClick={() => setAddingMilestone(true)}
