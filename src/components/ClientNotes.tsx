@@ -655,6 +655,14 @@ function NoteCard({
               </span>
             )}
 
+            {/* Shared-with-client indicator */}
+            {note.sharedWithClient && (
+              <span className="inline-flex items-center gap-0.5 text-[11px] px-1.5 py-0.5 rounded bg-primary/10 text-primary" style={{ fontWeight: 500 }} title="Visible in client portal">
+                <Eye className="w-3 h-3" />
+                Shared
+              </span>
+            )}
+
             {/* Project link */}
             {note.projectName && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-accent/60 text-[11px] rounded-md text-muted-foreground" style={{ fontWeight: 500 }}>
