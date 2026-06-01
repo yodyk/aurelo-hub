@@ -1087,6 +1087,57 @@ export type Database = {
           },
         ]
       }
+      portal_questions: {
+        Row: {
+          answer: string | null
+          answered_at: string | null
+          answered_by: string | null
+          asked_at: string
+          asked_by: string
+          asked_by_user_id: string | null
+          client_id: string
+          created_at: string
+          id: string
+          project_id: string | null
+          question: string
+          status: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          answer?: string | null
+          answered_at?: string | null
+          answered_by?: string | null
+          asked_at?: string
+          asked_by: string
+          asked_by_user_id?: string | null
+          client_id: string
+          created_at?: string
+          id?: string
+          project_id?: string | null
+          question: string
+          status?: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          answer?: string | null
+          answered_at?: string | null
+          answered_by?: string | null
+          asked_at?: string
+          asked_by?: string
+          asked_by_user_id?: string | null
+          client_id?: string
+          created_at?: string
+          id?: string
+          project_id?: string | null
+          question?: string
+          status?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: []
+      }
       portal_tokens: {
         Row: {
           active: boolean
