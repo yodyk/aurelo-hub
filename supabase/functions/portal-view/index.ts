@@ -252,6 +252,25 @@ Deno.serve(async (req) => {
         }
       }
     }
+    // P3: note.shared events (from notes flagged shared_with_client)
+    for (const n of (notesRes.data || [])) {
+      activity.push({
+        id: `note-${n.id}`,
+        type: 'note.shared',
+        title: n.content ? `Note shared: ${String(n.content).replace(/<[^>]+>/g, '').slice(0, 80)}` : 'Note shared',
+        at: n.updated_at || n.created_at,
+      });
+    }
+    // P3: update.posted event for the latest weekly update
+    const portalUpdate = portalUpdateRes?.data || null;
+    if (portalUpdate) {
+      activity.push({
+        id: `update-${portalUpdate.id}`,
+        type: 'update.posted',
+        title: 'Weekly update posted',
+        at: portalUpdate.posted_at,
+      });
+    }
     activity.sort((a, b) => (a.at < b.at ? 1 : -1));
     const activityCapped = activity.slice(0, 20);
 
