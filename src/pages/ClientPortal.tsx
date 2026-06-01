@@ -19,6 +19,8 @@ import {
   Mail,
   Activity as ActivityIcon,
   Link2,
+  MessageCircle,
+  Send,
 } from "lucide-react";
 import { format } from "date-fns";
 import { formatMoney, formatDuration, formatDate as formatDateFn } from "@/lib/format";
@@ -104,7 +106,7 @@ interface ActivityEvent {
 
 interface WaitingItem {
   id: string;
-  kind: 'invoice.pay' | 'task.action' | 'resource.approve' | string;
+  kind: 'invoice.pay' | 'task.action' | 'resource.approve' | 'question.answer' | string;
   title: string;
   amount?: number;
   currency?: string;
@@ -133,12 +135,24 @@ interface PortalResource {
   last_decision: { decision: 'approved' | 'changes_requested' | 'rejected'; comment: string | null; at: string } | null;
 }
 
+interface PortalQuestion {
+  id: string;
+  askedBy: 'owner' | 'client';
+  question: string;
+  answer: string | null;
+  status: 'open' | 'answered' | 'closed';
+  askedAt: string;
+  answeredAt: string | null;
+  answeredBy: string | null;
+}
+
 interface PortalData {
   client: PortalClient;
   projects: PortalProject[];
   invoices: PortalInvoice[];
   checklists: PortalChecklist[];
   resources: PortalResource[];
+  questions: PortalQuestion[];
   activity: ActivityEvent[];
   waitingOnYou: WaitingItem[];
   portalUpdate: PortalUpdatePayload | null;
@@ -200,6 +214,7 @@ function activityIcon(type: string) {
   if (type.startsWith('task')) return CheckCircle2;
   if (type.startsWith('resource')) return Link2;
   if (type.startsWith('update')) return ActivityIcon;
+  if (type.startsWith('question')) return MessageCircle;
   return ActivityIcon;
 }
 
@@ -272,7 +287,7 @@ export default function ClientPortal() {
     );
   }
 
-  const { client, projects, invoices, checklists, resources, activity, waitingOnYou, portalUpdate, workspaceOwner, showCosts, branding } = data;
+  const { client, projects, invoices, checklists, resources, questions, activity, waitingOnYou, portalUpdate, workspaceOwner, showCosts, branding } = data;
   const accent = branding.isWhiteLabel && branding.brandColor ? branding.brandColor : "#3B66F0";
   const isRetainer = client.model === 'Retainer' && (client.retainerTotal ?? 0) > 0;
 
@@ -392,6 +407,7 @@ export default function ClientPortal() {
                 <div className="space-y-6">
                   <WaitingOnYou items={waitingOnYou} accent={accent} onTabChange={setTab} token={token!} />
                   {portalUpdate && <ThisWeekCard update={portalUpdate} accent={accent} />}
+                  <QuestionsSection questions={questions} accent={accent} token={token!} />
                   <RecentActivity events={activity} accent={accent} />
                   <Engagements projects={projects} accent={accent} />
                   {isRetainer && (
@@ -492,6 +508,14 @@ function WaitingOnYou({ items, accent, onTabChange, token }: { items: WaitingIte
       }
     } else if (item.kind === 'resource.approve') {
       onTabChange('resources');
+    } else if (item.kind === 'question.answer') {
+      const qid = item.id.replace('question-', '');
+      const el = document.getElementById(`focus-question:${qid}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.add('portal-focus-ring');
+        setTimeout(() => el.classList.remove('portal-focus-ring'), 1600);
+      }
     } else {
       onTabChange('tasks');
     }
@@ -537,6 +561,8 @@ function WaitingOnYou({ items, accent, onTabChange, token }: { items: WaitingIte
                   <Receipt className="w-4 h-4" style={{ color: accent }} />
                 ) : item.kind === 'resource.approve' ? (
                   <Link2 className="w-4 h-4" style={{ color: accent }} />
+                ) : item.kind === 'question.answer' ? (
+                  <MessageCircle className="w-4 h-4" style={{ color: accent }} />
                 ) : (
                   <CheckSquare className="w-4 h-4" style={{ color: accent }} />
                 )}
@@ -558,7 +584,7 @@ function WaitingOnYou({ items, accent, onTabChange, token }: { items: WaitingIte
                 className="text-[12px] font-semibold px-3 py-1.5 rounded text-white cursor-pointer disabled:opacity-60"
                 style={{ backgroundColor: accent }}
               >
-                {isPaying ? 'Opening…' : item.kind === 'invoice.pay' ? 'Pay' : item.kind === 'resource.approve' ? 'Review' : 'Open'}
+                {isPaying ? 'Opening…' : item.kind === 'invoice.pay' ? 'Pay' : item.kind === 'resource.approve' ? 'Review' : item.kind === 'question.answer' ? 'Answer' : 'Open'}
               </button>
             </div>
           );
@@ -719,6 +745,164 @@ function ContactCard({ owner, accent }: { owner: { name: string | null; email: s
           >
             {owner.email}
           </a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ── Questions Section ───────────────────────────────────────────────
+
+function QuestionsSection({ questions, accent, token }: { questions: PortalQuestion[]; accent: string; token: string }) {
+  const [list, setList] = useState<PortalQuestion[]>(questions);
+  useEffect(() => setList(questions), [questions]);
+  const [newQ, setNewQ] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [answering, setAnswering] = useState<Record<string, string>>({});
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  async function submitNew() {
+    const q = newQ.trim();
+    if (!q || submitting) return;
+    setSubmitting(true);
+    try {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/portal-question`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, action: 'ask', question: q }),
+      });
+      const json = await res.json();
+      if (!res.ok) { alert(json.error || 'Unable to send.'); return; }
+      setList(prev => [{
+        id: json.id, askedBy: 'client', question: q, answer: null,
+        status: 'open', askedAt: new Date().toISOString(), answeredAt: null, answeredBy: null,
+      }, ...prev]);
+      setNewQ("");
+    } catch { alert('Network error.'); }
+    finally { setSubmitting(false); }
+  }
+
+  async function submitAnswer(id: string) {
+    const a = (answering[id] || '').trim();
+    if (!a || busyId) return;
+    setBusyId(id);
+    try {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/portal-question`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, action: 'answer', question_id: id, answer: a }),
+      });
+      const json = await res.json();
+      if (!res.ok) { alert(json.error || 'Unable to send.'); return; }
+      setList(prev => prev.map(q => q.id === id ? {
+        ...q, answer: a, answeredAt: new Date().toISOString(), answeredBy: 'client', status: 'answered',
+      } : q));
+      setAnswering(prev => { const n = { ...prev }; delete n[id]; return n; });
+    } catch { alert('Network error.'); }
+    finally { setBusyId(null); }
+  }
+
+  const open = list.filter(q => q.status === 'open');
+  const answered = list.filter(q => q.status !== 'open').slice(0, 5);
+
+  if (list.length === 0) {
+    return (
+      <section>
+        <SectionTitle icon={MessageCircle} title="Questions" accent={accent} />
+        <div className="rounded border p-4" style={{ borderColor: 'var(--portal-hairline)', backgroundColor: 'var(--portal-surface)' }}>
+          <div className="flex items-end gap-2">
+            <textarea
+              value={newQ}
+              onChange={e => setNewQ(e.target.value)}
+              placeholder="Ask a question…"
+              rows={2}
+              className="flex-1 text-[13px] px-3 py-2 rounded border resize-none focus:outline-none"
+              style={{ borderColor: 'var(--portal-hairline)', color: 'var(--portal-ink)' }}
+            />
+            <button
+              onClick={submitNew}
+              disabled={submitting || !newQ.trim()}
+              className="text-[12px] font-semibold px-3 py-2 rounded text-white cursor-pointer disabled:opacity-50 inline-flex items-center gap-1.5"
+              style={{ backgroundColor: accent }}
+            >
+              <Send className="w-3.5 h-3.5" /> Send
+            </button>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section>
+      <SectionTitle icon={MessageCircle} title="Questions" count={open.length || undefined} accent={accent} />
+      <div className="rounded border divide-y" style={{ borderColor: 'var(--portal-hairline)', backgroundColor: 'var(--portal-surface)' }}>
+        {open.map(q => (
+          <div key={q.id} id={`focus-question:${q.id}`} className="p-4">
+            <div className="flex items-center gap-2 mb-1.5 text-[10.5px] uppercase tracking-wide font-semibold" style={{ color: q.askedBy === 'owner' ? accent : 'var(--portal-subtle)', letterSpacing: '0.08em' }}>
+              {q.askedBy === 'owner' ? 'From your contact' : 'You asked'} · {relTime(q.askedAt)}
+            </div>
+            <div className="text-[13.5px] leading-relaxed whitespace-pre-wrap" style={{ color: 'var(--portal-ink)' }}>{q.question}</div>
+            {q.askedBy === 'owner' && (
+              <div className="mt-3 flex items-end gap-2">
+                <textarea
+                  value={answering[q.id] || ''}
+                  onChange={e => setAnswering(prev => ({ ...prev, [q.id]: e.target.value }))}
+                  placeholder="Type your answer…"
+                  rows={2}
+                  className="flex-1 text-[13px] px-3 py-2 rounded border resize-none focus:outline-none"
+                  style={{ borderColor: 'var(--portal-hairline)', color: 'var(--portal-ink)' }}
+                />
+                <button
+                  onClick={() => submitAnswer(q.id)}
+                  disabled={busyId === q.id || !(answering[q.id] || '').trim()}
+                  className="text-[12px] font-semibold px-3 py-2 rounded text-white cursor-pointer disabled:opacity-50 inline-flex items-center gap-1.5"
+                  style={{ backgroundColor: accent }}
+                >
+                  <Send className="w-3.5 h-3.5" /> Send
+                </button>
+              </div>
+            )}
+            {q.askedBy === 'client' && (
+              <div className="mt-2 text-[11.5px]" style={{ color: 'var(--portal-subtle)' }}>Waiting for a reply</div>
+            )}
+          </div>
+        ))}
+        {answered.map(q => (
+          <div key={q.id} className="p-4" style={{ backgroundColor: 'var(--portal-bg)' }}>
+            <div className="flex items-center gap-2 mb-1 text-[10.5px] uppercase tracking-wide font-semibold" style={{ color: 'var(--portal-subtle)', letterSpacing: '0.08em' }}>
+              {q.askedBy === 'owner' ? 'From your contact' : 'You asked'} · {relTime(q.askedAt)}
+            </div>
+            <div className="text-[13px] leading-relaxed whitespace-pre-wrap" style={{ color: 'var(--portal-ink)' }}>{q.question}</div>
+            {q.answer && (
+              <div className="mt-2 pl-3 border-l-2" style={{ borderColor: accent }}>
+                <div className="text-[10.5px] uppercase tracking-wide font-semibold mb-0.5" style={{ color: accent, letterSpacing: '0.08em' }}>
+                  {q.answeredBy === 'client' ? 'You answered' : 'Replied'} · {relTime(q.answeredAt || q.askedAt)}
+                </div>
+                <div className="text-[13px] leading-relaxed whitespace-pre-wrap" style={{ color: 'var(--portal-ink)' }}>{q.answer}</div>
+              </div>
+            )}
+          </div>
+        ))}
+        <div className="p-4">
+          <div className="flex items-end gap-2">
+            <textarea
+              value={newQ}
+              onChange={e => setNewQ(e.target.value)}
+              placeholder="Ask a new question…"
+              rows={2}
+              className="flex-1 text-[13px] px-3 py-2 rounded border resize-none focus:outline-none"
+              style={{ borderColor: 'var(--portal-hairline)', color: 'var(--portal-ink)' }}
+            />
+            <button
+              onClick={submitNew}
+              disabled={submitting || !newQ.trim()}
+              className="text-[12px] font-semibold px-3 py-2 rounded text-white cursor-pointer disabled:opacity-50 inline-flex items-center gap-1.5"
+              style={{ backgroundColor: accent }}
+            >
+              <Send className="w-3.5 h-3.5" /> Send
+            </button>
+          </div>
         </div>
       </div>
     </section>

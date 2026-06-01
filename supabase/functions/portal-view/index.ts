@@ -60,6 +60,7 @@ Deno.serve(async (req) => {
       milestonesRes,
       resourcesRes,
       approvalsRes,
+      questionsRes,
     ] = await Promise.all([
       sb.from('clients').select('*').eq('id', client_id).single(),
       sb.from('projects').select('*').eq('client_id', client_id).eq('workspace_id', workspace_id).order('created_at', { ascending: false }),
@@ -79,6 +80,8 @@ Deno.serve(async (req) => {
       sb.from('shared_resources').select('*').eq('client_id', client_id).eq('workspace_id', workspace_id).order('sort_order', { ascending: true }).order('created_at', { ascending: false }),
       // P4: latest approval decisions
       sb.from('resource_approvals').select('*').eq('client_id', client_id).eq('workspace_id', workspace_id).order('decided_at', { ascending: false }),
+      // P5: portal Q&A
+      sb.from('portal_questions').select('*').eq('client_id', client_id).eq('workspace_id', workspace_id).order('asked_at', { ascending: false }).limit(50),
     ]);
 
     if (clientRes.error || !clientRes.data) {
@@ -326,6 +329,28 @@ Deno.serve(async (req) => {
         at: a.decided_at,
       });
     }
+    // P5: portal questions — activity events
+    const questions = (questionsRes.data || []);
+    for (const q of questions) {
+      activity.push({
+        id: `q-asked-${q.id}`,
+        type: q.asked_by === 'owner' ? 'question.asked_by_owner' : 'question.asked_by_client',
+        title: q.asked_by === 'owner'
+          ? `Question for you: ${String(q.question).slice(0, 80)}`
+          : `You asked: ${String(q.question).slice(0, 80)}`,
+        at: q.asked_at,
+      });
+      if (q.answered_at) {
+        activity.push({
+          id: `q-ans-${q.id}`,
+          type: 'question.answered',
+          title: q.answered_by === 'client'
+            ? `You answered: ${String(q.question).slice(0, 60)}`
+            : `Answered: ${String(q.question).slice(0, 60)}`,
+          at: q.answered_at,
+        });
+      }
+    }
     activity.sort((a, b) => (a.at < b.at ? 1 : -1));
     const activityCappedFinal = activity.slice(0, 20);
 
@@ -369,6 +394,17 @@ Deno.serve(async (req) => {
       }
     }
 
+    // P5: open owner→client questions belong in waiting-on-you
+    for (const q of questions) {
+      if (q.asked_by === 'owner' && q.status === 'open') {
+        waitingOnYou.push({
+          id: `question-${q.id}`,
+          kind: 'question.answer',
+          title: String(q.question).slice(0, 140),
+        });
+      }
+    }
+
     const portalData = {
       client: {
         name: client.name,
@@ -392,6 +428,16 @@ Deno.serve(async (req) => {
       invoices,
       checklists,
       resources,
+      questions: questions.map((q: any) => ({
+        id: q.id,
+        askedBy: q.asked_by,
+        question: q.question,
+        answer: q.answer ?? null,
+        status: q.status,
+        askedAt: q.asked_at,
+        answeredAt: q.answered_at ?? null,
+        answeredBy: q.answered_by ?? null,
+      })),
       activity: activityCappedFinal,
       waitingOnYou,
       portalUpdate: portalUpdate

@@ -53,6 +53,7 @@ import ClientNotes from "../components/ClientNotes";
 import ChecklistPanel from "../components/ChecklistPanel";
 import EmailActivityLog from "../components/EmailActivityLog";
 import WeeklyUpdateComposer from "../components/WeeklyUpdateComposer";
+import PortalQuestionsPanel from "../components/PortalQuestionsPanel";
 import SharedResourcesPanel from "../components/SharedResourcesPanel";
 import BulkSessionActions from "../components/BulkSessionActions";
 import { supabase } from "@/integrations/supabase/client";
@@ -2465,6 +2466,10 @@ function PortalTab({ client, clientId, workspaceId, portalConfig, portalLoading,
 
         {workspaceId && clientId && (
           <SharedResourcesPanel workspaceId={workspaceId} clientId={clientId} />
+        )}
+
+        {workspaceId && clientId && (
+          <PortalQuestionsPanel workspaceId={workspaceId} clientId={clientId} />
         )}
 
         <div className="text-[13px] text-muted-foreground">
