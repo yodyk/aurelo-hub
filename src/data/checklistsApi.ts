@@ -251,6 +251,7 @@ export interface TaskUpdates {
   followUpAt?: string | null;
   waitingNote?: string | null;
   repeat?: 'weekly' | 'monthly' | 'quarterly' | null;
+  assignedToClient?: boolean;
 }
 
 export async function updateChecklistItem(itemId: string, updates: TaskUpdates): Promise<void> {
@@ -268,6 +269,7 @@ export async function updateChecklistItem(itemId: string, updates: TaskUpdates):
   if (updates.followUpAt !== undefined) row.follow_up_at = updates.followUpAt;
   if (updates.waitingNote !== undefined) row.waiting_note = updates.waitingNote;
   if (updates.repeat !== undefined) row.repeat = updates.repeat;
+  if (updates.assignedToClient !== undefined) row.assigned_to_client = updates.assignedToClient;
   const { error } = await supabase.from('checklist_items').update(row).eq('id', itemId);
   if (error) throw new Error(`Failed to update task: ${error.message}`);
 }
