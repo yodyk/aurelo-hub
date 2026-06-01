@@ -3,7 +3,7 @@ import { useAuth } from '../data/AuthContext';
 import {
   Plus, Pin, PinOff, Check, CheckCircle2, Circle, Trash2, X,
   MessageSquare, Gavel, CircleCheckBig, MessageCircle, StickyNote,
-  Tag, FolderKanban, Search, ChevronDown, MoreHorizontal, Pencil,
+  Tag, FolderKanban, Search, ChevronDown, MoreHorizontal, Pencil, Eye, EyeOff,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from '@/lib/toast';
