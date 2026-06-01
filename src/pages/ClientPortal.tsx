@@ -595,9 +595,14 @@ function Engagements({ projects, accent }: { projects: PortalProject[]; accent: 
             <div key={p.id} className="flex items-center gap-3 px-4 py-3">
               <div className="flex-1 min-w-0">
                 <div className="text-[13.5px] font-display font-semibold truncate" style={{ color: 'var(--portal-ink)' }}>{p.name}</div>
-                {p.description && (
+                {p.next_milestone ? (
+                  <div className="text-[11.5px] mt-0.5 truncate" style={{ color: 'var(--portal-muted)' }}>
+                    Next: {p.next_milestone.title}
+                    {p.next_milestone.due_date && <span style={{ color: 'var(--portal-subtle)' }}> · {dueLabel(p.next_milestone.due_date)}</span>}
+                  </div>
+                ) : p.description ? (
                   <div className="text-[11.5px] mt-0.5 line-clamp-1" style={{ color: 'var(--portal-muted)' }}>{p.description}</div>
-                )}
+                ) : null}
               </div>
               <span
                 className="text-[10.5px] font-semibold px-2 py-0.5 rounded tabular-nums"
