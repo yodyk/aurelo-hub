@@ -41,6 +41,21 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated");
     logStep("User authenticated", { email: user.email });
 
+    const { data: memberships } = await supabaseClient
+      .from("workspace_members")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("status", "active");
+    const isPrivileged = (memberships || []).some(
+      (m: { role: string }) => m.role === "Owner" || m.role === "Admin",
+    );
+    if (!isPrivileged) {
+      return new Response(
+        JSON.stringify({ error: "Only workspace owners or admins can manage billing" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
     const customers = await stripe.customers.list({
       email: user.email,
