@@ -561,6 +561,8 @@ function WaitingOnYou({ items, accent, onTabChange, token }: { items: WaitingIte
                   <Receipt className="w-4 h-4" style={{ color: accent }} />
                 ) : item.kind === 'resource.approve' ? (
                   <Link2 className="w-4 h-4" style={{ color: accent }} />
+                ) : item.kind === 'question.answer' ? (
+                  <MessageCircle className="w-4 h-4" style={{ color: accent }} />
                 ) : (
                   <CheckSquare className="w-4 h-4" style={{ color: accent }} />
                 )}
@@ -582,7 +584,7 @@ function WaitingOnYou({ items, accent, onTabChange, token }: { items: WaitingIte
                 className="text-[12px] font-semibold px-3 py-1.5 rounded text-white cursor-pointer disabled:opacity-60"
                 style={{ backgroundColor: accent }}
               >
-                {isPaying ? 'Opening…' : item.kind === 'invoice.pay' ? 'Pay' : item.kind === 'resource.approve' ? 'Review' : 'Open'}
+                {isPaying ? 'Opening…' : item.kind === 'invoice.pay' ? 'Pay' : item.kind === 'resource.approve' ? 'Review' : item.kind === 'question.answer' ? 'Answer' : 'Open'}
               </button>
             </div>
           );
