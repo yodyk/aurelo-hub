@@ -694,6 +694,12 @@ function NoteCard({
             >
               {note.isPinned ? <PinOff className="w-3.5 h-3.5" /> : <Pin className="w-3.5 h-3.5" />}
             </button>
+            <button
+              onClick={() => onToggleShared(note.id, !!note.sharedWithClient)}
+              className={`w-6 h-6 flex items-center justify-center rounded-md transition-colors ${note.sharedWithClient ? 'text-primary hover:bg-primary/10' : 'text-muted-foreground hover:bg-accent/40'}`}
+              title={note.sharedWithClient ? 'Hide from client portal' : 'Share with client portal'}
+            >
+              {note.sharedWithClient ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
 
             {/* More menu */}
             <div className="relative" ref={menuRef}>
