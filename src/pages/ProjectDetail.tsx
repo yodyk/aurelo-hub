@@ -39,6 +39,13 @@ import * as dataApi from "../data/dataApi";
 import ClientNotes from "../components/ClientNotes";
 import ChecklistPanel from "../components/ChecklistPanel";
 import { useRoleAccess } from "@/data/useRoleAccess";
+import {
+  loadMilestones,
+  createMilestone,
+  updateMilestone,
+  deleteMilestone,
+  type ProjectMilestone,
+} from "@/data/portalContentApi";
 
 // ── Constants ──────────────────────────────────────────────────────
 
