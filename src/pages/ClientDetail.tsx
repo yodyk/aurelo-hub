@@ -52,6 +52,7 @@ import * as portalApi from "../data/portalApi";
 import ClientNotes from "../components/ClientNotes";
 import ChecklistPanel from "../components/ChecklistPanel";
 import EmailActivityLog from "../components/EmailActivityLog";
+import WeeklyUpdateComposer from "../components/WeeklyUpdateComposer";
 import BulkSessionActions from "../components/BulkSessionActions";
 import { supabase } from "@/integrations/supabase/client";
 import { formatMoney, formatBytes, formatDuration } from "@/lib/format";
