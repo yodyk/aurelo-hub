@@ -375,6 +375,7 @@ export default function ClientPortal() {
               {tab === 'home' && (
                 <div className="space-y-6">
                   <WaitingOnYou items={waitingOnYou} accent={accent} onTabChange={setTab} token={token!} />
+                  {portalUpdate && <ThisWeekCard update={portalUpdate} accent={accent} />}
                   <RecentActivity events={activity} accent={accent} />
                   <Engagements projects={projects} accent={accent} />
                   {isRetainer && (
