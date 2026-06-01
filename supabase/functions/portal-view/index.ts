@@ -60,6 +60,7 @@ Deno.serve(async (req) => {
       milestonesRes,
       resourcesRes,
       approvalsRes,
+      questionsRes,
     ] = await Promise.all([
       sb.from('clients').select('*').eq('id', client_id).single(),
       sb.from('projects').select('*').eq('client_id', client_id).eq('workspace_id', workspace_id).order('created_at', { ascending: false }),
