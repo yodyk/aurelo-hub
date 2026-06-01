@@ -441,7 +441,32 @@ function PortalHeader({ branding, accent }: { branding: PortalBranding; accent: 
 
 // ── Waiting on you ──────────────────────────────────────────────────
 
-function WaitingOnYou({ items, accent, onTabChange }: { items: WaitingItem[]; accent: string; onTabChange: (t: PortalTabId) => void }) {
+function WaitingOnYou({ items, accent, onTabChange, token }: { items: WaitingItem[]; accent: string; onTabChange: (t: PortalTabId) => void; token: string }) {
+  const [paying, setPaying] = useState<string | null>(null);
+
+  const handleAction = async (item: WaitingItem) => {
+    if (item.kind === 'invoice.pay') {
+      const invoiceId = item.id.replace('pay-', '');
+      setPaying(invoiceId);
+      try {
+        const res = await fetch(`${SUPABASE_URL}/functions/v1/portal-pay-invoice`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token, invoice_id: invoiceId }),
+        });
+        const json = await res.json();
+        if (json.url) { window.location.href = json.url; return; }
+        alert(json.error || 'Unable to start payment.');
+      } catch {
+        alert('Network error. Please try again.');
+      } finally {
+        setPaying(null);
+      }
+    } else {
+      onTabChange('tasks');
+    }
+  };
+
   if (items.length === 0) {
     return (
       <section>
@@ -465,42 +490,47 @@ function WaitingOnYou({ items, accent, onTabChange }: { items: WaitingItem[]; ac
         className="rounded border divide-y"
         style={{ borderColor: 'var(--portal-hairline)', backgroundColor: 'var(--portal-surface)' }}
       >
-        {items.map(item => (
-          <div
-            key={item.id}
-            id={item.kind === 'invoice.pay' ? `focus-invoice:${item.id.replace('pay-', '')}` : `focus-task:${item.id.replace('task-', '')}`}
-            className="flex items-center gap-3 p-4"
-          >
+        {items.map(item => {
+          const invoiceId = item.kind === 'invoice.pay' ? item.id.replace('pay-', '') : null;
+          const isPaying = invoiceId && paying === invoiceId;
+          return (
             <div
-              className="w-8 h-8 rounded flex items-center justify-center flex-shrink-0"
-              style={{ backgroundColor: `color-mix(in srgb, ${accent} 10%, transparent)` }}
+              key={item.id}
+              id={item.kind === 'invoice.pay' ? `focus-invoice:${invoiceId}` : `focus-task:${item.id.replace('task-', '')}`}
+              className="flex items-center gap-3 p-4"
             >
-              {item.kind === 'invoice.pay' ? (
-                <Receipt className="w-4 h-4" style={{ color: accent }} />
-              ) : (
-                <CheckSquare className="w-4 h-4" style={{ color: accent }} />
-              )}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-[13.5px] font-display font-semibold truncate" style={{ color: 'var(--portal-ink)' }}>
-                {item.title}
-              </div>
-              <div className="text-[11.5px] mt-0.5 flex items-center gap-2" style={{ color: 'var(--portal-muted)' }}>
-                {item.amount != null && (
-                  <span className="tabular-nums">{fmt$(item.amount, item.currency || 'USD')}</span>
+              <div
+                className="w-8 h-8 rounded flex items-center justify-center flex-shrink-0"
+                style={{ backgroundColor: `color-mix(in srgb, ${accent} 10%, transparent)` }}
+              >
+                {item.kind === 'invoice.pay' ? (
+                  <Receipt className="w-4 h-4" style={{ color: accent }} />
+                ) : (
+                  <CheckSquare className="w-4 h-4" style={{ color: accent }} />
                 )}
-                {item.due_date && <span>· {dueLabel(item.due_date)}</span>}
               </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-[13.5px] font-display font-semibold truncate" style={{ color: 'var(--portal-ink)' }}>
+                  {item.title}
+                </div>
+                <div className="text-[11.5px] mt-0.5 flex items-center gap-2" style={{ color: 'var(--portal-muted)' }}>
+                  {item.amount != null && (
+                    <span className="tabular-nums">{fmt$(item.amount, item.currency || 'USD')}</span>
+                  )}
+                  {item.due_date && <span>· {dueLabel(item.due_date)}</span>}
+                </div>
+              </div>
+              <button
+                onClick={() => handleAction(item)}
+                disabled={!!isPaying}
+                className="text-[12px] font-semibold px-3 py-1.5 rounded text-white cursor-pointer disabled:opacity-60"
+                style={{ backgroundColor: accent }}
+              >
+                {isPaying ? 'Opening…' : item.kind === 'invoice.pay' ? 'Pay' : 'Open'}
+              </button>
             </div>
-            <button
-              onClick={() => onTabChange(item.kind === 'invoice.pay' ? 'billing' : 'tasks')}
-              className="text-[12px] font-semibold px-3 py-1.5 rounded text-white cursor-pointer"
-              style={{ backgroundColor: accent }}
-            >
-              {item.kind === 'invoice.pay' ? 'Pay' : 'Open'}
-            </button>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );
