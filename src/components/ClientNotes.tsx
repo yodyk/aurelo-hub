@@ -3,7 +3,7 @@ import { useAuth } from '../data/AuthContext';
 import {
   Plus, Pin, PinOff, Check, CheckCircle2, Circle, Trash2, X,
   MessageSquare, Gavel, CircleCheckBig, MessageCircle, StickyNote,
-  Tag, FolderKanban, Search, ChevronDown, MoreHorizontal, Pencil,
+  Tag, FolderKanban, Search, ChevronDown, MoreHorizontal, Pencil, Eye, EyeOff,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from '@/lib/toast';
@@ -125,6 +125,11 @@ export default function ClientNotes({ clientId, projects, filterProjectId, filte
   const handleToggleResolved = useCallback(async (noteId: string, current: boolean) => {
     await handleUpdateNote(noteId, { isResolved: !current });
     toast.success(current ? 'Reopened' : 'Resolved');
+  }, [handleUpdateNote]);
+
+  const handleToggleShared = useCallback(async (noteId: string, current: boolean) => {
+    await handleUpdateNote(noteId, { sharedWithClient: !current });
+    toast.success(current ? 'Note hidden from client portal' : 'Note shared with client portal');
   }, [handleUpdateNote]);
 
   // ── Filtering & sorting ────────────────────────────────────────
@@ -322,6 +327,7 @@ export default function ClientNotes({ clientId, projects, filterProjectId, filte
                 onDelete={handleDeleteNote}
                 onTogglePin={handleTogglePin}
                 onToggleResolved={handleToggleResolved}
+                onToggleShared={handleToggleShared}
               />
             ))}
           </AnimatePresence>
@@ -569,6 +575,7 @@ function NoteCard({
   onDelete,
   onTogglePin,
   onToggleResolved,
+  onToggleShared,
 }: {
   note: ClientNote;
   projects: any[];
@@ -579,6 +586,7 @@ function NoteCard({
   onDelete: (noteId: string) => Promise<void>;
   onTogglePin: (noteId: string, current: boolean) => Promise<void>;
   onToggleResolved: (noteId: string, current: boolean) => Promise<void>;
+  onToggleShared: (noteId: string, current: boolean) => Promise<void>;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -647,6 +655,14 @@ function NoteCard({
               </span>
             )}
 
+            {/* Shared-with-client indicator */}
+            {note.sharedWithClient && (
+              <span className="inline-flex items-center gap-0.5 text-[11px] px-1.5 py-0.5 rounded bg-primary/10 text-primary" style={{ fontWeight: 500 }} title="Visible in client portal">
+                <Eye className="w-3 h-3" />
+                Shared
+              </span>
+            )}
+
             {/* Project link */}
             {note.projectName && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-accent/60 text-[11px] rounded-md text-muted-foreground" style={{ fontWeight: 500 }}>
@@ -678,6 +694,14 @@ function NoteCard({
             >
               {note.isPinned ? <PinOff className="w-3.5 h-3.5" /> : <Pin className="w-3.5 h-3.5" />}
             </button>
+            <button
+              onClick={() => onToggleShared(note.id, !!note.sharedWithClient)}
+              className={`w-6 h-6 flex items-center justify-center rounded-md transition-colors ${note.sharedWithClient ? 'text-primary hover:bg-primary/10' : 'text-muted-foreground hover:bg-accent/40'}`}
+              title={note.sharedWithClient ? 'Hide from client portal' : 'Share with client portal'}
+            >
+              {note.sharedWithClient ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+            </button>
+
 
             {/* More menu */}
             <div className="relative" ref={menuRef}>

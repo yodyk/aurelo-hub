@@ -52,6 +52,7 @@ import * as portalApi from "../data/portalApi";
 import ClientNotes from "../components/ClientNotes";
 import ChecklistPanel from "../components/ChecklistPanel";
 import EmailActivityLog from "../components/EmailActivityLog";
+import WeeklyUpdateComposer from "../components/WeeklyUpdateComposer";
 import BulkSessionActions from "../components/BulkSessionActions";
 import { supabase } from "@/integrations/supabase/client";
 import { formatMoney, formatBytes, formatDuration } from "@/lib/format";
@@ -903,6 +904,7 @@ export default function ClientDetail() {
               <PortalTab
                 client={client}
                 clientId={clientId}
+                workspaceId={workspaceId}
                 portalConfig={portalConfig}
                 portalLoading={portalLoading}
                 copied={copied}
@@ -2430,7 +2432,7 @@ function ChecklistsTab({ clientId, workspaceId }: { clientId: string; workspaceI
 // ═══════════════════════════════════════════════════════════════════
 // Portal Tab
 // ═══════════════════════════════════════════════════════════════════
-function PortalTab({ client, clientId, portalConfig, portalLoading, copied, onCopyPortalLink, onGeneratePortal, onTogglePortal, onEmailPortalLink }: any) {
+function PortalTab({ client, clientId, workspaceId, portalConfig, portalLoading, copied, onCopyPortalLink, onGeneratePortal, onTogglePortal, onEmailPortalLink }: any) {
   const [recipientEmail, setRecipientEmail] = useState<string>(client.contactEmail || "");
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
@@ -2456,6 +2458,10 @@ function PortalTab({ client, clientId, portalConfig, portalLoading, copied, onCo
     <SectionCard>
       <SectionHeader>Client Portal</SectionHeader>
       <div className="space-y-5">
+        {workspaceId && clientId && (
+          <WeeklyUpdateComposer workspaceId={workspaceId} clientId={clientId} />
+        )}
+
         <div className="text-[13px] text-muted-foreground">
           Share a private read-only portal with this client. They'll see project progress, time logged, and{" "}
           {client.showPortalCosts !== false ? "billing totals" : "activity only (costs hidden)"}.

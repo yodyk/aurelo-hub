@@ -144,9 +144,13 @@ export async function createChecklist(
   return rowToChecklist(data, []);
 }
 
-export async function updateChecklist(checklistId: string, updates: { title?: string }): Promise<void> {
+export async function updateChecklist(
+  checklistId: string,
+  updates: { title?: string; sharedWithClient?: boolean },
+): Promise<void> {
   const row: Record<string, any> = { updated_at: new Date().toISOString() };
   if (updates.title !== undefined) row.title = updates.title;
+  if (updates.sharedWithClient !== undefined) row.shared_with_client = updates.sharedWithClient;
   const { error } = await supabase.from('checklists').update(row).eq('id', checklistId);
   if (error) throw new Error(`Failed to update list: ${error.message}`);
 }
@@ -247,6 +251,7 @@ export interface TaskUpdates {
   followUpAt?: string | null;
   waitingNote?: string | null;
   repeat?: 'weekly' | 'monthly' | 'quarterly' | null;
+  assignedToClient?: boolean;
 }
 
 export async function updateChecklistItem(itemId: string, updates: TaskUpdates): Promise<void> {
@@ -264,6 +269,7 @@ export async function updateChecklistItem(itemId: string, updates: TaskUpdates):
   if (updates.followUpAt !== undefined) row.follow_up_at = updates.followUpAt;
   if (updates.waitingNote !== undefined) row.waiting_note = updates.waitingNote;
   if (updates.repeat !== undefined) row.repeat = updates.repeat;
+  if (updates.assignedToClient !== undefined) row.assigned_to_client = updates.assignedToClient;
   const { error } = await supabase.from('checklist_items').update(row).eq('id', itemId);
   if (error) throw new Error(`Failed to update task: ${error.message}`);
 }

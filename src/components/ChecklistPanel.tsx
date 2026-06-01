@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   Plus, Trash2, Pencil, X, Check, Loader2, MoreHorizontal, Calendar, Clock,
-  Tag, AlignLeft, Filter, ChevronDown,
+  Tag, AlignLeft, Filter, ChevronDown, Eye, EyeOff, UserPlus,
   Link2, FileText, Paperclip, ExternalLink,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -243,8 +243,27 @@ function ChecklistCard({
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleValue, setTitleValue] = useState(checklist.title);
+  const [shared, setShared] = useState<boolean>(checklist.sharedWithClient === true);
+  const [sharingBusy, setSharingBusy] = useState(false);
 
   useEffect(() => { setItems(checklist.items); }, [checklist.items]);
+  useEffect(() => { setShared(checklist.sharedWithClient === true); }, [checklist.sharedWithClient]);
+
+  const handleToggleShared = async () => {
+    if (sharingBusy) return;
+    const next = !shared;
+    setShared(next);
+    setSharingBusy(true);
+    try {
+      await updateChecklist(checklist.id, { sharedWithClient: next });
+      toast.success(next ? 'List visible in client portal' : 'List hidden from client portal');
+    } catch (err: any) {
+      setShared(!next);
+      toast.error(err.message || 'Failed to update sharing');
+    } finally {
+      setSharingBusy(false);
+    }
+  };
 
   const filteredItems = items.filter(item => {
     if (statusFilter === 'open' && item.status === 'complete') return false;
@@ -309,6 +328,18 @@ function ChecklistCard({
           )}
           <div className="flex items-center gap-2">
             <span className="text-[11px] text-muted-foreground tabular-nums">{completedCount}/{totalCount}</span>
+            <button
+              onClick={handleToggleShared}
+              disabled={sharingBusy}
+              title={shared ? 'Visible in client portal — click to hide' : 'Hidden from client portal — click to share'}
+              className={`inline-flex items-center gap-1 px-1.5 py-1 rounded transition-colors cursor-pointer ${shared ? 'text-primary hover:bg-primary/10' : 'text-muted-foreground hover:bg-accent/60'}`}
+              style={{ opacity: sharingBusy ? 0.5 : 1 }}
+            >
+              {shared ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+              <span className="text-[10.5px] hidden sm:inline" style={{ fontWeight: 500 }}>
+                {shared ? 'Shared' : 'Private'}
+              </span>
+            </button>
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <button className="p-1 rounded hover:bg-accent/60 text-muted-foreground hover:text-destructive transition-colors cursor-pointer" title="Delete list">
@@ -354,7 +385,7 @@ function ChecklistCard({
                 onUpdate={(patch) => updateLocal(item.id, patch)}
                 onDeleted={() => setItems(prev => prev.filter(i => i.id !== item.id))}
                 onUndoDelete={(restored) => setItems(prev => prev.some(i => i.id === restored.id) ? prev : [...prev, restored].sort((a, b) => a.sortOrder - b.sortOrder))}
-
+                parentShared={shared}
                 onRefresh={onRefresh}
               />
             ))}
@@ -389,7 +420,7 @@ function ChecklistCard({
 
 function TaskRow({
   item, clientId, workspaceId, onUpdate, onDeleted, onUndoDelete, onRefresh, workCategoryNames,
-  links, clientNotes, clientFiles, onLinksChanged,
+  links, clientNotes, clientFiles, onLinksChanged, parentShared = false,
 }: {
   item: ChecklistItem;
   clientId: string;
@@ -403,6 +434,7 @@ function TaskRow({
   onDeleted: () => void;
   onUndoDelete: (restored: ChecklistItem) => void;
   onRefresh: () => void;
+  parentShared?: boolean;
 }) {
 
   const [expanded, setExpanded] = useState(false);
@@ -556,6 +588,20 @@ function TaskRow({
                   title="Linked notes & files"
                 >
                   <Link2 className="w-3 h-3" /> {links.length}
+                </button>
+              )}
+
+              {parentShared && (
+                <button
+                  onClick={() => saveField(
+                    { assignedToClient: !item.assignedToClient },
+                    { assignedToClient: !item.assignedToClient },
+                  )}
+                  title={item.assignedToClient ? 'Assigned to client (shows in their portal Waiting on you) — click to unassign' : 'Assign to client'}
+                  className={`inline-flex items-center gap-1 text-[11.5px] px-1.5 py-0.5 rounded transition-colors cursor-pointer ${item.assignedToClient ? 'bg-primary/12 text-primary' : 'bg-accent/40 text-muted-foreground hover:text-primary'}`}
+                  style={{ fontWeight: 500 }}
+                >
+                  <UserPlus className="w-3 h-3" /> {item.assignedToClient ? 'For client' : 'Assign client'}
                 </button>
               )}
             </div>
