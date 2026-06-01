@@ -16,6 +16,8 @@ export interface Checklist {
   title: string;
   createdAt: string;
   updatedAt: string;
+  /** When true, this checklist appears in the client's portal Tasks tab. */
+  sharedWithClient?: boolean;
   items: ChecklistItem[];
 }
 
