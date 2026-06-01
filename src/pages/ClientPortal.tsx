@@ -19,6 +19,8 @@ import {
   Mail,
   Activity as ActivityIcon,
   Link2,
+  MessageCircle,
+  Send,
 } from "lucide-react";
 import { format } from "date-fns";
 import { formatMoney, formatDuration, formatDate as formatDateFn } from "@/lib/format";
