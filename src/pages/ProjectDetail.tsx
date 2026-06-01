@@ -1242,32 +1242,44 @@ export default function ProjectDetail() {
                         </button>
                       </div>
                     )}
-                    {milestones.map((m, i) => (
-                      <div
-                        key={m.id}
-                        className={`flex items-center gap-3 py-2.5 group ${i < milestones.length - 1 ? "border-b border-border/50" : ""}`}
-                      >
-                        <button onClick={() => handleToggleMilestone(m.id)} className="flex-shrink-0">
-                          {m.completed ? (
-                            <Check className="w-4 h-4 text-primary" />
-                          ) : (
-                            <Circle className="w-4 h-4 text-muted-foreground/40 hover:text-muted-foreground transition-colors" />
+                    {milestones.map((m, i) => {
+                      const done = m.status === "complete";
+                      const due = m.dueDate
+                        ? new Date(m.dueDate + "T00:00:00").toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                          })
+                        : null;
+                      return (
+                        <div
+                          key={m.id}
+                          className={`flex items-center gap-3 py-2.5 group ${i < milestones.length - 1 ? "border-b border-border/50" : ""}`}
+                        >
+                          <button onClick={() => handleToggleMilestone(m.id)} className="flex-shrink-0 cursor-pointer">
+                            {done ? (
+                              <Check className="w-4 h-4 text-primary" />
+                            ) : (
+                              <Circle className="w-4 h-4 text-muted-foreground/40 hover:text-muted-foreground transition-colors" />
+                            )}
+                          </button>
+                          <span
+                            className={`text-[13px] flex-1 ${done ? "text-muted-foreground line-through" : ""}`}
+                            style={{ fontWeight: 500 }}
+                          >
+                            {m.title}
+                          </span>
+                          {due && (
+                            <span className="text-[11px] text-muted-foreground tabular-nums">{due}</span>
                           )}
-                        </button>
-                        <span
-                          className={`text-[13px] flex-1 ${m.completed ? "text-muted-foreground line-through" : ""}`}
-                          style={{ fontWeight: 500 }}
-                        >
-                          {m.text}
-                        </span>
-                        <button
-                          onClick={() => handleDeleteMilestone(m.id)}
-                          className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-accent/60 text-muted-foreground hover:text-destructive transition-all"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ))}
+                          <button
+                            onClick={() => handleDeleteMilestone(m.id)}
+                            className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-accent/60 text-muted-foreground hover:text-destructive transition-all cursor-pointer"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      );
+                    })}
                     {addingMilestone && (
                       <div className="flex items-center gap-2 py-2">
                         <Circle className="w-4 h-4 text-muted-foreground/30 flex-shrink-0" />
