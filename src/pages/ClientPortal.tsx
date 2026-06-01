@@ -227,6 +227,7 @@ export default function ClientPortal() {
   const [searchParams] = useSearchParams();
   const [data, setData] = useState<PortalData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<PortalTabId>('home');
 
@@ -238,17 +239,59 @@ export default function ClientPortal() {
     return () => { if (wasDark) root.classList.add("dark"); };
   }, []);
 
-  useEffect(() => {
+  const load = useCallback(async (mode: 'initial' | 'refresh' = 'initial') => {
     if (!token) { setError("No portal token"); setLoading(false); return; }
-    fetch(`${SUPABASE_URL}/functions/v1/portal-view?token=${encodeURIComponent(token)}`)
-      .then(r => r.json())
-      .then(json => {
-        if (json.error) throw new Error(json.error);
-        setData(json.data);
-      })
-      .catch(e => setError(e.message || "Failed to load portal"))
-      .finally(() => setLoading(false));
+    if (mode === 'refresh') setRefreshing(true);
+    try {
+      const r = await fetch(`${SUPABASE_URL}/functions/v1/portal-view?token=${encodeURIComponent(token)}`);
+      const json = await r.json();
+      if (json.error) throw new Error(json.error);
+      setData(json.data);
+      setError(null);
+    } catch (e: any) {
+      setError(e?.message || "Failed to load portal");
+    } finally {
+      if (mode === 'refresh') setRefreshing(false);
+      setLoading(false);
+    }
   }, [token]);
+
+  useEffect(() => { load('initial'); }, [load]);
+
+  // Pull-to-refresh (mobile)
+  const pullRef = useRef<{ startY: number; active: boolean; pulled: number }>({ startY: 0, active: false, pulled: 0 });
+  const [pullDist, setPullDist] = useState(0);
+  useEffect(() => {
+    const THRESHOLD = 70;
+    const onTouchStart = (e: TouchEvent) => {
+      if (window.scrollY > 0) return;
+      pullRef.current = { startY: e.touches[0].clientY, active: true, pulled: 0 };
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      if (!pullRef.current.active) return;
+      const dy = e.touches[0].clientY - pullRef.current.startY;
+      if (dy > 0 && window.scrollY === 0) {
+        const eased = Math.min(dy * 0.5, 90);
+        pullRef.current.pulled = eased;
+        setPullDist(eased);
+      }
+    };
+    const onTouchEnd = () => {
+      if (!pullRef.current.active) return;
+      const pulled = pullRef.current.pulled;
+      pullRef.current.active = false;
+      setPullDist(0);
+      if (pulled >= THRESHOLD && !refreshing) load('refresh');
+    };
+    window.addEventListener('touchstart', onTouchStart, { passive: true });
+    window.addEventListener('touchmove', onTouchMove, { passive: true });
+    window.addEventListener('touchend', onTouchEnd);
+    return () => {
+      window.removeEventListener('touchstart', onTouchStart);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onTouchEnd);
+    };
+  }, [load, refreshing]);
 
   // Deep-link focus highlight
   const focus = searchParams.get('focus');
@@ -266,11 +309,7 @@ export default function ClientPortal() {
   }, [data, focus]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--portal-bg)' }}>
-        <Loader2 className="w-6 h-6 animate-spin" style={{ color: 'var(--portal-accent)' }} />
-      </div>
-    );
+    return <PortalSkeleton />;
   }
 
   if (error || !data) {
