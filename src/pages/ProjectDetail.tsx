@@ -364,23 +364,44 @@ export default function ProjectDetail() {
   };
 
   const handleAddMilestone = async () => {
-    if (!newMilestone.trim()) return;
-    const updated = [...milestones, { id: Date.now().toString(), text: newMilestone.trim(), completed: false }];
-    await handleUpdateProject({ milestones: updated });
-    setNewMilestone("");
-    setAddingMilestone(false);
-    toast.success("Milestone added");
+    if (!newMilestone.trim() || !workspaceId || !projectId) return;
+    try {
+      const created = await createMilestone(workspaceId, projectId, {
+        title: newMilestone.trim(),
+        sortOrder: milestones.length,
+      });
+      setMilestones((prev) => [...prev, created]);
+      setNewMilestone("");
+      setAddingMilestone(false);
+      toast.success("Milestone added");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to add milestone");
+    }
   };
 
   const handleToggleMilestone = async (id: string) => {
-    const updated = milestones.map((m) => (m.id === id ? { ...m, completed: !m.completed } : m));
-    await handleUpdateProject({ milestones: updated });
+    const m = milestones.find((x) => x.id === id);
+    if (!m) return;
+    const nextStatus = m.status === "complete" ? "upcoming" : "complete";
+    setMilestones((prev) => prev.map((x) => (x.id === id ? { ...x, status: nextStatus } : x)));
+    try {
+      await updateMilestone(id, { status: nextStatus });
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update milestone");
+      setMilestones((prev) => prev.map((x) => (x.id === id ? { ...x, status: m.status } : x)));
+    }
   };
 
   const handleDeleteMilestone = async (id: string) => {
-    const updated = milestones.filter((m) => m.id !== id);
-    await handleUpdateProject({ milestones: updated });
-    toast.success("Milestone removed");
+    const prev = milestones;
+    setMilestones((curr) => curr.filter((m) => m.id !== id));
+    try {
+      await deleteMilestone(id);
+      toast.success("Milestone removed");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to remove milestone");
+      setMilestones(prev);
+    }
   };
 
   const handleAddLink = async () => {
