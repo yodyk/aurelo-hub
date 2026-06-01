@@ -683,7 +683,11 @@ function ThisWeekCard({ update, accent }: { update: PortalUpdatePayload; accent:
 }
 
 function RecentActivity({ events, accent }: { events: ActivityEvent[]; accent: string }) {
+  const [expanded, setExpanded] = useState(false);
   if (events.length === 0) return null;
+  const INITIAL = 6;
+  const visible = expanded ? events.slice(0, 20) : events.slice(0, INITIAL);
+  const hasMore = !expanded && events.length > INITIAL;
   return (
     <section>
       <SectionTitle icon={ActivityIcon} title="Recent activity" accent={accent} />
@@ -691,7 +695,7 @@ function RecentActivity({ events, accent }: { events: ActivityEvent[]; accent: s
         className="rounded border divide-y"
         style={{ borderColor: 'var(--portal-hairline)', backgroundColor: 'var(--portal-surface)' }}
       >
-        {events.slice(0, 8).map(ev => {
+        {visible.map(ev => {
           const Icon = activityIcon(ev.type);
           return (
             <div key={ev.id} className="flex items-center gap-3 px-4 py-3">
@@ -703,6 +707,15 @@ function RecentActivity({ events, accent }: { events: ActivityEvent[]; accent: s
             </div>
           );
         })}
+        {hasMore && (
+          <button
+            onClick={() => setExpanded(true)}
+            className="w-full px-4 py-2.5 text-[12px] font-semibold cursor-pointer hover:bg-[var(--portal-soft)] transition-colors"
+            style={{ color: accent }}
+          >
+            Show {Math.min(events.length, 20) - INITIAL} more
+          </button>
+        )}
       </div>
     </section>
   );
