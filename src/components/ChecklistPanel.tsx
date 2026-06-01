@@ -243,8 +243,27 @@ function ChecklistCard({
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleValue, setTitleValue] = useState(checklist.title);
+  const [shared, setShared] = useState<boolean>(checklist.sharedWithClient === true);
+  const [sharingBusy, setSharingBusy] = useState(false);
 
   useEffect(() => { setItems(checklist.items); }, [checklist.items]);
+  useEffect(() => { setShared(checklist.sharedWithClient === true); }, [checklist.sharedWithClient]);
+
+  const handleToggleShared = async () => {
+    if (sharingBusy) return;
+    const next = !shared;
+    setShared(next);
+    setSharingBusy(true);
+    try {
+      await updateChecklist(checklist.id, { sharedWithClient: next });
+      toast.success(next ? 'List visible in client portal' : 'List hidden from client portal');
+    } catch (err: any) {
+      setShared(!next);
+      toast.error(err.message || 'Failed to update sharing');
+    } finally {
+      setSharingBusy(false);
+    }
+  };
 
   const filteredItems = items.filter(item => {
     if (statusFilter === 'open' && item.status === 'complete') return false;
