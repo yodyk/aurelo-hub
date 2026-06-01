@@ -388,6 +388,7 @@ export default function ClientPortal() {
                   isRetainer={isRetainer}
                   retainerTotal={client.retainerTotal}
                   retainerRemaining={client.retainerRemaining}
+                  token={token!}
                 />
               )}
             </motion.div>
