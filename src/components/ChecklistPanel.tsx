@@ -590,6 +590,20 @@ function TaskRow({
                   <Link2 className="w-3 h-3" /> {links.length}
                 </button>
               )}
+
+              {parentShared && (
+                <button
+                  onClick={() => saveField(
+                    { assignedToClient: !item.assignedToClient },
+                    { assignedToClient: !item.assignedToClient },
+                  )}
+                  title={item.assignedToClient ? 'Assigned to client (shows in their portal Waiting on you) — click to unassign' : 'Assign to client'}
+                  className={`inline-flex items-center gap-1 text-[11.5px] px-1.5 py-0.5 rounded transition-colors cursor-pointer ${item.assignedToClient ? 'bg-primary/12 text-primary' : 'bg-accent/40 text-muted-foreground hover:text-primary'}`}
+                  style={{ fontWeight: 500 }}
+                >
+                  <UserPlus className="w-3 h-3" /> {item.assignedToClient ? 'For client' : 'Assign client'}
+                </button>
+              )}
             </div>
           )}
 
