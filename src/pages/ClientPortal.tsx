@@ -798,9 +798,30 @@ function BillingTab({
   );
 }
 
-function InvoiceRow({ invoice: inv, accent }: { invoice: PortalInvoice; accent: string }) {
+function InvoiceRow({ invoice: inv, accent, token, payable = false }: { invoice: PortalInvoice; accent: string; token?: string; payable?: boolean }) {
   const b = statusBadge(inv.status);
   const isPaid = inv.status.toLowerCase() === 'paid';
+  const [loading, setLoading] = useState(false);
+
+  const handlePay = async () => {
+    if (!token) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/portal-pay-invoice`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, invoice_id: inv.id }),
+      });
+      const json = await res.json();
+      if (json.url) { window.location.href = json.url; return; }
+      alert(json.error || 'Unable to start payment.');
+    } catch {
+      alert('Network error. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div id={`focus-invoice:${inv.id}`} className="flex items-center gap-3 px-4 py-3">
       <div className="flex-1 min-w-0">
@@ -817,6 +838,16 @@ function InvoiceRow({ invoice: inv, accent }: { invoice: PortalInvoice; accent: 
       <div className="text-[14px] font-display font-semibold tabular-nums" style={{ color: 'var(--portal-ink)' }}>
         {fmt$(inv.total, inv.currency)}
       </div>
+      {payable && !isPaid && (
+        <button
+          onClick={handlePay}
+          disabled={loading}
+          className="text-[12px] font-semibold px-3 py-1.5 rounded text-white cursor-pointer disabled:opacity-60"
+          style={{ backgroundColor: accent }}
+        >
+          {loading ? 'Opening…' : 'Pay'}
+        </button>
+      )}
     </div>
   );
 }
