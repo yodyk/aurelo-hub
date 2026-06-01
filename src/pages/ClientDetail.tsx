@@ -904,6 +904,7 @@ export default function ClientDetail() {
               <PortalTab
                 client={client}
                 clientId={clientId}
+                workspaceId={workspaceId}
                 portalConfig={portalConfig}
                 portalLoading={portalLoading}
                 copied={copied}
