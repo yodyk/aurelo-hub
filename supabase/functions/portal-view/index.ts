@@ -80,6 +80,8 @@ Deno.serve(async (req) => {
       sb.from('shared_resources').select('*').eq('client_id', client_id).eq('workspace_id', workspace_id).order('sort_order', { ascending: true }).order('created_at', { ascending: false }),
       // P4: latest approval decisions
       sb.from('resource_approvals').select('*').eq('client_id', client_id).eq('workspace_id', workspace_id).order('decided_at', { ascending: false }),
+      // P5: portal Q&A
+      sb.from('portal_questions').select('*').eq('client_id', client_id).eq('workspace_id', workspace_id).order('asked_at', { ascending: false }).limit(50),
     ]);
 
     if (clientRes.error || !clientRes.data) {
