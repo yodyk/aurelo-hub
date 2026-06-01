@@ -106,7 +106,7 @@ interface ActivityEvent {
 
 interface WaitingItem {
   id: string;
-  kind: 'invoice.pay' | 'task.action' | 'resource.approve' | string;
+  kind: 'invoice.pay' | 'task.action' | 'resource.approve' | 'question.answer' | string;
   title: string;
   amount?: number;
   currency?: string;
@@ -135,12 +135,24 @@ interface PortalResource {
   last_decision: { decision: 'approved' | 'changes_requested' | 'rejected'; comment: string | null; at: string } | null;
 }
 
+interface PortalQuestion {
+  id: string;
+  askedBy: 'owner' | 'client';
+  question: string;
+  answer: string | null;
+  status: 'open' | 'answered' | 'closed';
+  askedAt: string;
+  answeredAt: string | null;
+  answeredBy: string | null;
+}
+
 interface PortalData {
   client: PortalClient;
   projects: PortalProject[];
   invoices: PortalInvoice[];
   checklists: PortalChecklist[];
   resources: PortalResource[];
+  questions: PortalQuestion[];
   activity: ActivityEvent[];
   waitingOnYou: WaitingItem[];
   portalUpdate: PortalUpdatePayload | null;
