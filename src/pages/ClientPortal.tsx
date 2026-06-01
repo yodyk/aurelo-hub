@@ -720,7 +720,7 @@ function TasksTab({ checklists, accent, token }: { checklists: PortalChecklist[]
 // ── Billing Tab ─────────────────────────────────────────────────────
 
 function BillingTab({
-  invoices, showCosts, accent, isRetainer, retainerTotal, retainerRemaining,
+  invoices, showCosts, accent, isRetainer, retainerTotal, retainerRemaining, token,
 }: {
   invoices: PortalInvoice[];
   showCosts: boolean;
@@ -728,6 +728,7 @@ function BillingTab({
   isRetainer: boolean;
   retainerTotal?: number;
   retainerRemaining?: number;
+  token: string;
 }) {
   if (!showCosts) {
     return (
