@@ -329,6 +329,28 @@ Deno.serve(async (req) => {
         at: a.decided_at,
       });
     }
+    // P5: portal questions — activity events
+    const questions = (questionsRes.data || []);
+    for (const q of questions) {
+      activity.push({
+        id: `q-asked-${q.id}`,
+        type: q.asked_by === 'owner' ? 'question.asked_by_owner' : 'question.asked_by_client',
+        title: q.asked_by === 'owner'
+          ? `Question for you: ${String(q.question).slice(0, 80)}`
+          : `You asked: ${String(q.question).slice(0, 80)}`,
+        at: q.asked_at,
+      });
+      if (q.answered_at) {
+        activity.push({
+          id: `q-ans-${q.id}`,
+          type: 'question.answered',
+          title: q.answered_by === 'client'
+            ? `You answered: ${String(q.question).slice(0, 60)}`
+            : `Answered: ${String(q.question).slice(0, 60)}`,
+          at: q.answered_at,
+        });
+      }
+    }
     activity.sort((a, b) => (a.at < b.at ? 1 : -1));
     const activityCappedFinal = activity.slice(0, 20);
 
