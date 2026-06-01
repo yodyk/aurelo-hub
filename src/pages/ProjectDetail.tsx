@@ -171,7 +171,8 @@ export default function ProjectDetail() {
   const [showStatusMenu, setShowStatusMenu] = useState(false);
   const statusRef = useRef<HTMLDivElement>(null);
 
-  // Milestones
+  // Milestones (synced to client portal via project_milestones table)
+  const [milestones, setMilestones] = useState<ProjectMilestone[]>([]);
   const [newMilestone, setNewMilestone] = useState("");
   const [addingMilestone, setAddingMilestone] = useState(false);
 
