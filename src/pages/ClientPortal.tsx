@@ -276,9 +276,10 @@ export default function ClientPortal() {
   const accent = branding.isWhiteLabel && branding.brandColor ? branding.brandColor : "#3B66F0";
   const isRetainer = client.model === 'Retainer' && (client.retainerTotal ?? 0) > 0;
 
+  const pendingResources = resources.filter(r => r.needs_approval).length;
   const tabs: { id: PortalTabId; label: string; count?: number }[] = [
     { id: 'home', label: 'Home', count: waitingOnYou.length || undefined },
-    { id: 'resources', label: 'Resources' },
+    { id: 'resources', label: 'Resources', count: pendingResources || resources.length || undefined },
     { id: 'tasks', label: 'Tasks', count: checklists.reduce((a, c) => a + c.items.filter(i => i.status !== 'complete').length, 0) || undefined },
     { id: 'billing', label: 'Billing', count: invoices.filter(i => ['sent','issued','overdue'].includes(i.status.toLowerCase())).length || undefined },
   ];
