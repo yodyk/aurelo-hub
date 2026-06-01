@@ -13,6 +13,8 @@ export interface ClientNote {
   projectName?: string;
   isPinned: boolean;
   isResolved: boolean;
+  /** When true, this note appears in the client's portal home activity feed. */
+  sharedWithClient?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -28,6 +30,7 @@ function rowToNote(row: any): ClientNote {
     projectName: row.project_name || undefined,
     isPinned: row.is_pinned,
     isResolved: row.is_resolved,
+    sharedWithClient: row.shared_with_client === true,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };

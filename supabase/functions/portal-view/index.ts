@@ -55,6 +55,9 @@ Deno.serve(async (req) => {
       workspaceRes,
       brandingRes,
       checklistsRes,
+      notesRes,
+      portalUpdateRes,
+      milestonesRes,
     ] = await Promise.all([
       sb.from('clients').select('*').eq('id', client_id).single(),
       sb.from('projects').select('*').eq('client_id', client_id).eq('workspace_id', workspace_id).order('created_at', { ascending: false }),
@@ -62,7 +65,14 @@ Deno.serve(async (req) => {
       sb.from('invoices').select('*').eq('client_id', client_id).eq('workspace_id', workspace_id).order('created_at', { ascending: false }),
       sb.from('workspaces').select('name, plan_id, owner_email').eq('id', workspace_id).single(),
       sb.from('workspace_settings').select('data').eq('workspace_id', workspace_id).eq('section', 'workspace').maybeSingle(),
-      sb.from('checklists').select('*').eq('client_id', client_id).eq('workspace_id', workspace_id).order('created_at', { ascending: true }),
+      // P3: only return checklists explicitly shared with the client
+      sb.from('checklists').select('*').eq('client_id', client_id).eq('workspace_id', workspace_id).eq('shared_with_client', true).order('created_at', { ascending: true }),
+      // P3: shared notes — for activity feed only (note.shared events)
+      sb.from('notes').select('*').eq('client_id', client_id).eq('workspace_id', workspace_id).eq('shared_with_client', true).order('updated_at', { ascending: false }).limit(20),
+      // P3: latest weekly update
+      sb.from('portal_updates').select('*').eq('client_id', client_id).eq('workspace_id', workspace_id).order('posted_at', { ascending: false }).limit(1).maybeSingle(),
+      // P3: all milestones for this client's projects (filtered by project_id below)
+      sb.from('project_milestones').select('*').eq('workspace_id', workspace_id).order('sort_order', { ascending: true }),
     ]);
 
     if (clientRes.error || !clientRes.data) {
@@ -121,6 +131,29 @@ Deno.serve(async (req) => {
       ...(showCosts ? { revenue: s.revenue } : {}),
     }));
 
+    // P3: bucket milestones by project_id and pick the next one per project
+    const milestonesByProject: Record<string, any[]> = {};
+    for (const m of (milestonesRes.data || [])) {
+      const pid = m.project_id as string;
+      if (!milestonesByProject[pid]) milestonesByProject[pid] = [];
+      milestonesByProject[pid].push(m);
+    }
+    const pickNextMilestone = (pid: string) => {
+      const list = milestonesByProject[pid] || [];
+      // Prefer in_progress, then upcoming. Skip complete. Within same status, lowest sort_order wins.
+      const open = list
+        .filter((m: any) => m.status !== 'complete')
+        .sort((a: any, b: any) => {
+          const rank = (s: string) => (s === 'in_progress' ? 0 : s === 'upcoming' ? 1 : 2);
+          const r = rank(a.status) - rank(b.status);
+          if (r !== 0) return r;
+          return (a.sort_order ?? 0) - (b.sort_order ?? 0);
+        });
+      return open[0]
+        ? { title: open[0].title, status: open[0].status, due_date: open[0].due_date ?? null }
+        : null;
+    };
+
     const projects = (projectsRes.data || []).map((p: any) => ({
       id: p.id,
       name: p.name,
@@ -130,6 +163,7 @@ Deno.serve(async (req) => {
       end_date: p.end_date,
       hours: p.hours,
       estimated_hours: p.estimated_hours,
+      next_milestone: pickNextMilestone(p.id),
       ...(showCosts ? { revenue: p.revenue, total_value: p.total_value, budget_amount: p.budget_amount, budget_type: p.budget_type } : {}),
     }));
 
@@ -218,6 +252,25 @@ Deno.serve(async (req) => {
         }
       }
     }
+    // P3: note.shared events (from notes flagged shared_with_client)
+    for (const n of (notesRes.data || [])) {
+      activity.push({
+        id: `note-${n.id}`,
+        type: 'note.shared',
+        title: n.content ? `Note shared: ${String(n.content).replace(/<[^>]+>/g, '').slice(0, 80)}` : 'Note shared',
+        at: n.updated_at || n.created_at,
+      });
+    }
+    // P3: update.posted event for the latest weekly update
+    const portalUpdate = portalUpdateRes?.data || null;
+    if (portalUpdate) {
+      activity.push({
+        id: `update-${portalUpdate.id}`,
+        type: 'update.posted',
+        title: 'Weekly update posted',
+        at: portalUpdate.posted_at,
+      });
+    }
     activity.sort((a, b) => (a.at < b.at ? 1 : -1));
     const activityCapped = activity.slice(0, 20);
 
@@ -275,6 +328,15 @@ Deno.serve(async (req) => {
       checklists,
       activity: activityCapped,
       waitingOnYou,
+      portalUpdate: portalUpdate
+        ? {
+            id: portalUpdate.id,
+            thisWeek: portalUpdate.this_week ?? null,
+            nextWeek: portalUpdate.next_week ?? null,
+            waitingOnYou: portalUpdate.waiting_on_you ?? null,
+            postedAt: portalUpdate.posted_at,
+          }
+        : null,
       workspaceOwner: {
         name: workspace?.name || null,
         email: (workspace as any)?.owner_email || null,

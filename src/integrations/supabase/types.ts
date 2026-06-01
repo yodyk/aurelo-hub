@@ -99,6 +99,7 @@ export type Database = {
       checklist_items: {
         Row: {
           added_by: string
+          assigned_to_client: boolean
           checklist_id: string | null
           client_id: string | null
           completed: boolean
@@ -124,6 +125,7 @@ export type Database = {
         }
         Insert: {
           added_by?: string
+          assigned_to_client?: boolean
           checklist_id?: string | null
           client_id?: string | null
           completed?: boolean
@@ -149,6 +151,7 @@ export type Database = {
         }
         Update: {
           added_by?: string
+          assigned_to_client?: boolean
           checklist_id?: string | null
           client_id?: string | null
           completed?: boolean
@@ -188,6 +191,7 @@ export type Database = {
           created_at: string
           id: string
           project_id: string | null
+          shared_with_client: boolean
           title: string
           updated_at: string
           workspace_id: string
@@ -197,6 +201,7 @@ export type Database = {
           created_at?: string
           id?: string
           project_id?: string | null
+          shared_with_client?: boolean
           title?: string
           updated_at?: string
           workspace_id: string
@@ -206,6 +211,7 @@ export type Database = {
           created_at?: string
           id?: string
           project_id?: string | null
+          shared_with_client?: boolean
           title?: string
           updated_at?: string
           workspace_id?: string
@@ -783,6 +789,7 @@ export type Database = {
           is_resolved: boolean
           project_id: string | null
           project_name: string | null
+          shared_with_client: boolean
           tags: string[] | null
           type: string
           updated_at: string
@@ -797,6 +804,7 @@ export type Database = {
           is_resolved?: boolean
           project_id?: string | null
           project_name?: string | null
+          shared_with_client?: boolean
           tags?: string[] | null
           type?: string
           updated_at?: string
@@ -811,6 +819,7 @@ export type Database = {
           is_resolved?: boolean
           project_id?: string | null
           project_name?: string | null
+          shared_with_client?: boolean
           tags?: string[] | null
           type?: string
           updated_at?: string
@@ -1133,6 +1142,81 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      portal_updates: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: string
+          next_week: string | null
+          posted_at: string
+          posted_by: string | null
+          this_week: string | null
+          updated_at: string
+          waiting_on_you: string | null
+          workspace_id: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: string
+          next_week?: string | null
+          posted_at?: string
+          posted_by?: string | null
+          this_week?: string | null
+          updated_at?: string
+          waiting_on_you?: string | null
+          workspace_id: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          next_week?: string | null
+          posted_at?: string
+          posted_by?: string | null
+          this_week?: string | null
+          updated_at?: string
+          waiting_on_you?: string | null
+          workspace_id?: string
+        }
+        Relationships: []
+      }
+      project_milestones: {
+        Row: {
+          created_at: string
+          due_date: string | null
+          id: string
+          project_id: string
+          sort_order: number
+          status: string
+          title: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          project_id: string
+          sort_order?: number
+          status?: string
+          title: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          project_id?: string
+          sort_order?: number
+          status?: string
+          title?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: []
       }
       projects: {
         Row: {

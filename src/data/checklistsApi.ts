@@ -16,6 +16,8 @@ export interface Checklist {
   title: string;
   createdAt: string;
   updatedAt: string;
+  /** When true, this checklist appears in the client's portal Tasks tab. */
+  sharedWithClient?: boolean;
   items: ChecklistItem[];
 }
 
@@ -46,6 +48,8 @@ export interface ChecklistItem {
   completedAt?: string | null;
   /** Lightweight repeat (Things 3 style). Null = one-off. */
   repeat?: 'weekly' | 'monthly' | 'quarterly' | null;
+  /** When true and on a shared checklist, surfaces in client portal "Waiting on you". */
+  assignedToClient?: boolean;
 }
 
 function rowToChecklist(row: any, items: ChecklistItem[] = []): Checklist {
@@ -57,6 +61,7 @@ function rowToChecklist(row: any, items: ChecklistItem[] = []): Checklist {
     title: row.title,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    sharedWithClient: row.shared_with_client === true,
     items,
   };
 }
@@ -87,6 +92,7 @@ function rowToItem(row: any): ChecklistItem {
     source: (row.source as TaskSource) ?? 'manual',
     completedAt: row.completed_at ?? null,
     repeat: (row.repeat as ChecklistItem['repeat']) ?? null,
+    assignedToClient: row.assigned_to_client === true,
   };
 }
 

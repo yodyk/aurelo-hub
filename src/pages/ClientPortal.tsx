@@ -60,6 +60,7 @@ interface PortalProject {
   total_value?: number;
   budget_amount?: number;
   budget_type?: string;
+  next_milestone?: { title: string; status: string; due_date?: string | null } | null;
 }
 
 interface PortalInvoice {
@@ -110,6 +111,14 @@ interface WaitingItem {
   due_date?: string | null;
 }
 
+interface PortalUpdatePayload {
+  id: string;
+  thisWeek: string | null;
+  nextWeek: string | null;
+  waitingOnYou: string | null;
+  postedAt: string;
+}
+
 interface PortalData {
   client: PortalClient;
   projects: PortalProject[];
@@ -117,6 +126,7 @@ interface PortalData {
   checklists: PortalChecklist[];
   activity: ActivityEvent[];
   waitingOnYou: WaitingItem[];
+  portalUpdate: PortalUpdatePayload | null;
   workspaceOwner: { name: string | null; email: string | null };
   showCosts: boolean;
   branding: PortalBranding;
@@ -247,7 +257,7 @@ export default function ClientPortal() {
     );
   }
 
-  const { client, projects, invoices, checklists, activity, waitingOnYou, workspaceOwner, showCosts, branding } = data;
+  const { client, projects, invoices, checklists, activity, waitingOnYou, portalUpdate, workspaceOwner, showCosts, branding } = data;
   const accent = branding.isWhiteLabel && branding.brandColor ? branding.brandColor : "#3B66F0";
   const isRetainer = client.model === 'Retainer' && (client.retainerTotal ?? 0) > 0;
 
@@ -365,6 +375,7 @@ export default function ClientPortal() {
               {tab === 'home' && (
                 <div className="space-y-6">
                   <WaitingOnYou items={waitingOnYou} accent={accent} onTabChange={setTab} token={token!} />
+                  {portalUpdate && <ThisWeekCard update={portalUpdate} accent={accent} />}
                   <RecentActivity events={activity} accent={accent} />
                   <Engagements projects={projects} accent={accent} />
                   {isRetainer && (
@@ -539,6 +550,31 @@ function WaitingOnYou({ items, accent, onTabChange, token }: { items: WaitingIte
 
 // ── Recent Activity ─────────────────────────────────────────────────
 
+function ThisWeekCard({ update, accent }: { update: PortalUpdatePayload; accent: string }) {
+  const blocks: { label: string; body: string }[] = [];
+  if (update.thisWeek) blocks.push({ label: 'This week', body: update.thisWeek });
+  if (update.nextWeek) blocks.push({ label: 'Next week', body: update.nextWeek });
+  if (update.waitingOnYou) blocks.push({ label: 'Waiting on you', body: update.waitingOnYou });
+  if (blocks.length === 0) return null;
+  return (
+    <section>
+      <SectionTitle icon={ActivityIcon} title="This week" accent={accent} />
+      <div
+        className="rounded border p-5 space-y-4"
+        style={{ borderColor: 'var(--portal-hairline)', backgroundColor: 'var(--portal-surface)' }}
+      >
+        {blocks.map(b => (
+          <div key={b.label}>
+            <div className="text-[10.5px] uppercase tracking-wide font-semibold mb-1" style={{ color: accent, letterSpacing: '0.08em' }}>{b.label}</div>
+            <div className="text-[13px] leading-relaxed whitespace-pre-wrap" style={{ color: 'var(--portal-ink)' }}>{b.body}</div>
+          </div>
+        ))}
+        <div className="text-[11px] pt-1" style={{ color: 'var(--portal-subtle)' }}>Posted {relTime(update.postedAt)}</div>
+      </div>
+    </section>
+  );
+}
+
 function RecentActivity({ events, accent }: { events: ActivityEvent[]; accent: string }) {
   if (events.length === 0) return null;
   return (
@@ -584,9 +620,14 @@ function Engagements({ projects, accent }: { projects: PortalProject[]; accent: 
             <div key={p.id} className="flex items-center gap-3 px-4 py-3">
               <div className="flex-1 min-w-0">
                 <div className="text-[13.5px] font-display font-semibold truncate" style={{ color: 'var(--portal-ink)' }}>{p.name}</div>
-                {p.description && (
+                {p.next_milestone ? (
+                  <div className="text-[11.5px] mt-0.5 truncate" style={{ color: 'var(--portal-muted)' }}>
+                    Next: {p.next_milestone.title}
+                    {p.next_milestone.due_date && <span style={{ color: 'var(--portal-subtle)' }}> · {dueLabel(p.next_milestone.due_date)}</span>}
+                  </div>
+                ) : p.description ? (
                   <div className="text-[11.5px] mt-0.5 line-clamp-1" style={{ color: 'var(--portal-muted)' }}>{p.description}</div>
-                )}
+                ) : null}
               </div>
               <span
                 className="text-[10.5px] font-semibold px-2 py-0.5 rounded tabular-nums"
