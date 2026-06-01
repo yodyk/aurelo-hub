@@ -60,6 +60,7 @@ interface PortalProject {
   total_value?: number;
   budget_amount?: number;
   budget_type?: string;
+  next_milestone?: { title: string; status: string; due_date?: string | null } | null;
 }
 
 interface PortalInvoice {
