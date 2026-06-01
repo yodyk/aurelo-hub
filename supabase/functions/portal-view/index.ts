@@ -131,6 +131,29 @@ Deno.serve(async (req) => {
       ...(showCosts ? { revenue: s.revenue } : {}),
     }));
 
+    // P3: bucket milestones by project_id and pick the next one per project
+    const milestonesByProject: Record<string, any[]> = {};
+    for (const m of (milestonesRes.data || [])) {
+      const pid = m.project_id as string;
+      if (!milestonesByProject[pid]) milestonesByProject[pid] = [];
+      milestonesByProject[pid].push(m);
+    }
+    const pickNextMilestone = (pid: string) => {
+      const list = milestonesByProject[pid] || [];
+      // Prefer in_progress, then upcoming. Skip complete. Within same status, lowest sort_order wins.
+      const open = list
+        .filter((m: any) => m.status !== 'complete')
+        .sort((a: any, b: any) => {
+          const rank = (s: string) => (s === 'in_progress' ? 0 : s === 'upcoming' ? 1 : 2);
+          const r = rank(a.status) - rank(b.status);
+          if (r !== 0) return r;
+          return (a.sort_order ?? 0) - (b.sort_order ?? 0);
+        });
+      return open[0]
+        ? { title: open[0].title, status: open[0].status, due_date: open[0].due_date ?? null }
+        : null;
+    };
+
     const projects = (projectsRes.data || []).map((p: any) => ({
       id: p.id,
       name: p.name,
@@ -140,6 +163,7 @@ Deno.serve(async (req) => {
       end_date: p.end_date,
       hours: p.hours,
       estimated_hours: p.estimated_hours,
+      next_milestone: pickNextMilestone(p.id),
       ...(showCosts ? { revenue: p.revenue, total_value: p.total_value, budget_amount: p.budget_amount, budget_type: p.budget_type } : {}),
     }));
 
