@@ -575,6 +575,7 @@ function NoteCard({
   onDelete,
   onTogglePin,
   onToggleResolved,
+  onToggleShared,
 }: {
   note: ClientNote;
   projects: any[];
@@ -585,6 +586,7 @@ function NoteCard({
   onDelete: (noteId: string) => Promise<void>;
   onTogglePin: (noteId: string, current: boolean) => Promise<void>;
   onToggleResolved: (noteId: string, current: boolean) => Promise<void>;
+  onToggleShared: (noteId: string, current: boolean) => Promise<void>;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
