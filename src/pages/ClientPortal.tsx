@@ -508,6 +508,14 @@ function WaitingOnYou({ items, accent, onTabChange, token }: { items: WaitingIte
       }
     } else if (item.kind === 'resource.approve') {
       onTabChange('resources');
+    } else if (item.kind === 'question.answer') {
+      const qid = item.id.replace('question-', '');
+      const el = document.getElementById(`focus-question:${qid}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.add('portal-focus-ring');
+        setTimeout(() => el.classList.remove('portal-focus-ring'), 1600);
+      }
     } else {
       onTabChange('tasks');
     }
