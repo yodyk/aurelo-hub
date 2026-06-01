@@ -127,6 +127,11 @@ export default function ClientNotes({ clientId, projects, filterProjectId, filte
     toast.success(current ? 'Reopened' : 'Resolved');
   }, [handleUpdateNote]);
 
+  const handleToggleShared = useCallback(async (noteId: string, current: boolean) => {
+    await handleUpdateNote(noteId, { sharedWithClient: !current });
+    toast.success(current ? 'Note hidden from client portal' : 'Note shared with client portal');
+  }, [handleUpdateNote]);
+
   // ── Filtering & sorting ────────────────────────────────────────
 
   // First apply project scope — all counts/stats should respect this
