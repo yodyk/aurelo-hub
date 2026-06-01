@@ -1658,3 +1658,60 @@ function PortalComposer({
     </div>
   );
 }
+
+// ── Skeleton loader (matches surface system) ────────────────────────
+
+function PortalSkeleton() {
+  return (
+    <div
+      className="portal-light min-h-screen"
+      style={{
+        ['--portal-bg' as any]: '#f7f7f9',
+        ['--portal-surface' as any]: '#ffffff',
+        ['--portal-hairline' as any]: '#e7e8ec',
+        ['--portal-soft' as any]: '#f1f2f5',
+        backgroundColor: 'var(--portal-bg)',
+      } as any}
+    >
+      <style>{`
+        @keyframes portalShimmer { 0% { background-position: -200px 0 } 100% { background-position: calc(200px + 100%) 0 } }
+        .portal-skel { background: linear-gradient(90deg, #f1f2f5 0%, #ececf0 50%, #f1f2f5 100%); background-size: 200px 100%; animation: portalShimmer 1.2s ease-in-out infinite; border-radius: 4px; }
+      `}</style>
+      <div className="border-b" style={{ borderColor: 'var(--portal-hairline)', backgroundColor: 'var(--portal-surface)' }}>
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-10 h-14 flex items-center">
+          <div className="portal-skel h-5 w-32" />
+        </div>
+      </div>
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-10 py-6 lg:py-10 space-y-6">
+        {/* Identity */}
+        <div className="flex items-center gap-3">
+          <div className="portal-skel h-10 w-10" />
+          <div className="space-y-2">
+            <div className="portal-skel h-5 w-44" />
+            <div className="portal-skel h-3 w-28" />
+          </div>
+        </div>
+        {/* Tabs */}
+        <div className="flex gap-2">
+          <div className="portal-skel h-8 w-20" />
+          <div className="portal-skel h-8 w-24" />
+          <div className="portal-skel h-8 w-20" />
+          <div className="portal-skel h-8 w-24" />
+        </div>
+        {/* Cards */}
+        {[0, 1, 2].map(i => (
+          <div
+            key={i}
+            className="rounded border p-5 space-y-3"
+            style={{ borderColor: 'var(--portal-hairline)', backgroundColor: 'var(--portal-surface)' }}
+          >
+            <div className="portal-skel h-4 w-32" />
+            <div className="portal-skel h-3 w-full" />
+            <div className="portal-skel h-3 w-5/6" />
+            <div className="portal-skel h-3 w-3/4" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
