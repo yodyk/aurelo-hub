@@ -357,7 +357,29 @@ export default function ClientPortal() {
     >
       <style>{`
         .portal-focus-ring { box-shadow: 0 0 0 2px var(--portal-accent), 0 0 0 6px color-mix(in srgb, var(--portal-accent) 18%, transparent); transition: box-shadow .25s ease; }
+        @keyframes portalShimmer { 0% { background-position: -200px 0 } 100% { background-position: calc(200px + 100%) 0 } }
+        .portal-skel { background: linear-gradient(90deg, var(--portal-soft) 0%, #ececf0 50%, var(--portal-soft) 100%); background-size: 200px 100%; animation: portalShimmer 1.2s ease-in-out infinite; border-radius: 4px; }
       `}</style>
+
+      {/* Pull-to-refresh indicator (mobile) */}
+      {(pullDist > 0 || refreshing) && (
+        <div
+          className="md:hidden flex items-center justify-center pointer-events-none"
+          style={{
+            height: refreshing ? 48 : pullDist,
+            transition: refreshing ? 'height .2s ease' : undefined,
+            color: 'var(--portal-accent)',
+          }}
+        >
+          <Loader2
+            className={refreshing ? 'w-4 h-4 animate-spin' : 'w-4 h-4'}
+            style={{
+              opacity: refreshing ? 1 : Math.min(pullDist / 70, 1),
+              transform: refreshing ? undefined : `rotate(${pullDist * 4}deg)`,
+            }}
+          />
+        </div>
+      )}
 
       <PortalHeader branding={branding} accent={accent} />
 
