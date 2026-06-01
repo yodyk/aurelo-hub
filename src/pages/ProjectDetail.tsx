@@ -478,7 +478,7 @@ export default function ProjectDetail() {
   }
 
   const sc = statusColors[project.status] || statusColors["In Progress"];
-  const completedMilestones = milestones.filter((m) => m.completed).length;
+  const completedMilestones = milestones.filter((m) => m.status === "complete").length;
   const milestonePct = milestones.length > 0 ? Math.round((completedMilestones / milestones.length) * 100) : 0;
 
   // ── Render ───────────────────────────────────────────────────────
