@@ -401,7 +401,7 @@ export default function ClientPortal() {
                 </div>
               )}
 
-              {tab === 'resources' && <ResourcesStub accent={accent} />}
+              {tab === 'resources' && <ResourcesTab resources={resources} accent={accent} token={token!} />}
 
               {tab === 'tasks' && (
                 <TasksTab checklists={checklists} accent={accent} token={token!} />
@@ -490,6 +490,8 @@ function WaitingOnYou({ items, accent, onTabChange, token }: { items: WaitingIte
       } finally {
         setPaying(null);
       }
+    } else if (item.kind === 'resource.approve') {
+      onTabChange('resources');
     } else {
       onTabChange('tasks');
     }
