@@ -2432,7 +2432,7 @@ function ChecklistsTab({ clientId, workspaceId }: { clientId: string; workspaceI
 // ═══════════════════════════════════════════════════════════════════
 // Portal Tab
 // ═══════════════════════════════════════════════════════════════════
-function PortalTab({ client, clientId, portalConfig, portalLoading, copied, onCopyPortalLink, onGeneratePortal, onTogglePortal, onEmailPortalLink }: any) {
+function PortalTab({ client, clientId, workspaceId, portalConfig, portalLoading, copied, onCopyPortalLink, onGeneratePortal, onTogglePortal, onEmailPortalLink }: any) {
   const [recipientEmail, setRecipientEmail] = useState<string>(client.contactEmail || "");
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
