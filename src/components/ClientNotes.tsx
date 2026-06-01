@@ -327,6 +327,7 @@ export default function ClientNotes({ clientId, projects, filterProjectId, filte
                 onDelete={handleDeleteNote}
                 onTogglePin={handleTogglePin}
                 onToggleResolved={handleToggleResolved}
+                onToggleShared={handleToggleShared}
               />
             ))}
           </AnimatePresence>
