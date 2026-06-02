@@ -1244,7 +1244,9 @@ function TasksTab({ checklists, accent, token }: { checklists: PortalChecklist[]
       >
         <CheckSquare className="w-7 h-7 mx-auto mb-3" style={{ color: 'var(--portal-subtle)' }} />
         <p className="text-[14px] font-display font-semibold" style={{ color: 'var(--portal-ink)' }}>No shared tasks yet</p>
-        <p className="text-[12.5px] mt-1" style={{ color: 'var(--portal-muted)' }}>Tasks shared with you will appear here.</p>
+        <p className="text-[12.5px] mt-1 max-w-sm mx-auto leading-relaxed" style={{ color: 'var(--portal-muted)' }}>
+          Your collaborator can share a task list with you by opening it in their workspace and toggling the <span style={{ fontWeight: 600 }}>Private → Shared</span> control at the top of the list.
+        </p>
       </div>
     );
   }

@@ -284,10 +284,12 @@ export default function Settings() {
 
   const saveContextValue = useMemo(() => ({ markDirty, registerSave }), [markDirty, registerSave]);
 
-  // Reset dirty state when tab changes
+  // Reset dirty state when tab changes. Do NOT null out saveFnRef here —
+  // the newly mounted tab's useRegisterSave effect runs BEFORE this parent
+  // effect (child effects fire before parent effects), so nulling here would
+  // clobber the freshly registered save fn and the Save button becomes a no-op.
   useEffect(() => {
     setIsDirty(false);
-    saveFnRef.current = null;
   }, [activeTab]);
 
   const handleSave = useCallback(async () => {
