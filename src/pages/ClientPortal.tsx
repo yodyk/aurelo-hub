@@ -147,10 +147,23 @@ interface PortalQuestion {
   answeredBy: string | null;
 }
 
+interface PortalSession {
+  id: string;
+  date: string;
+  duration: number;
+  task: string | null;
+  notes: string | null;
+  work_tags: string[] | null;
+  billable: boolean;
+  project_id: string | null;
+  revenue?: number;
+}
+
 interface PortalData {
   client: PortalClient;
   projects: PortalProject[];
   invoices: PortalInvoice[];
+  sessions: PortalSession[];
   checklists: PortalChecklist[];
   resources: PortalResource[];
   questions: PortalQuestion[];
