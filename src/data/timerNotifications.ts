@@ -75,7 +75,8 @@ function fireNotification(minutes: number): void {
   try {
     const n = new Notification('⏱ Timer Reminder — Aurelo', {
       body: `Your timer has been running for ${formatDuration(minutes)}. Don't forget to stop it when you're done!`,
-      icon: '/favicon.ico',
+      icon: '/notification-icon.png',
+      badge: '/notification-icon.png',
       tag: `aurelo-timer-${minutes}`, // prevents duplicate notifications
       requireInteraction: false,
     });
