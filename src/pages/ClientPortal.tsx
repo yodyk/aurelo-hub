@@ -45,6 +45,8 @@ interface PortalClient {
   retainerTotal?: number;
   retainerRemaining?: number;
   retainerCarryoverHours?: number;
+  retainerCycleStart?: string | null;
+  retainerCycleDays?: number;
   lifetimeRevenue?: number;
   monthlyEarnings?: number;
   hoursLogged?: number;
