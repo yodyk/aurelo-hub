@@ -1969,8 +1969,11 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
     try {
       const todayStr = new Date().toISOString().split('T')[0];
       const nextBaseHours = Math.max(0, Number(retainerPlanning.nextCycleBaseHours ?? client.retainerTotal ?? 0));
-      const carryoverHours = Math.max(0, Number(retainerPlanning.pendingCarryoverHours ?? 0));
-      const nextCycleTotal = nextBaseHours + carryoverHours;
+      const cap = Math.max(0, Number(retainerPlanning.pendingCarryoverHours ?? 0));
+      // Only carry forward what's actually unused, up to the contract cap.
+      const actualLeftover = Math.max(0, Number(client.retainerRemaining ?? 0));
+      const effectiveCarryover = Math.min(cap, actualLeftover);
+      const nextCycleTotal = nextBaseHours + effectiveCarryover;
 
       // Snapshot current cycle to history
       if (client.retainerCycleStart) {
@@ -1990,16 +1993,16 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
         retainerTotal: nextCycleTotal,
         retainerRemaining: nextCycleTotal,
         retainerCycleStart: todayStr,
+        // Clear the one-time base override, keep the carry-over cap as a recurring contract setting.
         customFields: updateRetainerPlanning(client.customFields, {
           nextCycleBaseHours: null,
-          pendingCarryoverHours: null,
         }),
       });
       // Reload history
       const { data } = await supabase.from('retainer_history').select('*').eq('client_id', clientId).eq('workspace_id', workspaceId).order('cycle_end', { ascending: false });
       setHistory(data || []);
       setEditingResetPlan(false);
-      toast.success(carryoverHours > 0 ? `Retainer reset with ${carryoverHours}h carried over` : 'Retainer reset successfully');
+      toast.success(effectiveCarryover > 0 ? `Retainer reset with ${effectiveCarryover}h carried over` : 'Retainer reset successfully');
     } catch (err) {
       toast.error('Failed to reset retainer');
     } finally {
@@ -2007,6 +2010,7 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
       setConfirmReset(false);
     }
   };
+
 
   const handleStatusChange = async (newStatus: string) => {
     try {
