@@ -666,6 +666,7 @@ export default function ClientDetail() {
               <Plus className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Start timer</span>
             </button>
+            {activeTab !== "tasks" && (
             <button
               onClick={() => {
                 if (activeTab === "work") setShowProjectModal(true);
@@ -682,6 +683,7 @@ export default function ClientDetail() {
                 {activeTab === "portal" && copied ? "Copied" : TAB_PRIMARY[activeTab]}
               </span>
             </button>
+            )}
           </div>
 
         </div>
