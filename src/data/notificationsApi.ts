@@ -159,11 +159,12 @@ export async function loadRecipients(workspaceId: string): Promise<NotificationR
 
 export async function setRecipients(workspaceId: string, category: string, memberIds: string[]): Promise<void> {
   // Delete existing for this category
-  await supabase
+  const { error: delErr } = await supabase
     .from('notification_recipients')
     .delete()
     .eq('workspace_id', workspaceId)
     .eq('category', category);
+  if (delErr) { console.error('[notificationsApi] setRecipients delete:', delErr); throw delErr; }
 
   // Insert new
   if (memberIds.length > 0) {
@@ -175,7 +176,7 @@ export async function setRecipients(workspaceId: string, category: string, membe
     const { error } = await supabase
       .from('notification_recipients')
       .insert(rows);
-    if (error) console.error('[notificationsApi] setRecipients:', error);
+    if (error) { console.error('[notificationsApi] setRecipients:', error); throw error; }
   }
 }
 
