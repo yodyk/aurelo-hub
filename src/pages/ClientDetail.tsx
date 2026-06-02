@@ -2253,7 +2253,8 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
           <div className="flex items-center justify-between mb-3 gap-3">
             <div>
               <span className="text-[12px] text-muted-foreground block" style={{ fontWeight: 600 }}>Next reset adjustment</span>
-              <span className="text-[11px] text-muted-foreground">Plan next cycle hours and any one-time carry-over.</span>
+              <span className="text-[11px] text-muted-foreground">Plan next cycle base hours and the carry-over cap. Only unused hours carry over, up to the cap.</span>
+
             </div>
             {!editingResetPlan ? (
               <button onClick={() => setEditingResetPlan(true)} className="text-[11px] text-primary hover:text-primary/80 transition-colors" style={{ fontWeight: 500 }}>Edit</button>
