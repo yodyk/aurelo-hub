@@ -514,6 +514,17 @@ export default function ClientPortal() {
                 <TasksTab checklists={checklists} accent={accent} token={token!} />
               )}
 
+              {tab === 'retainer' && isRetainer && (
+                <RetainerTab
+                  client={client}
+                  sessions={sessions}
+                  projects={projects}
+                  showCosts={showCosts}
+                  accent={accent}
+                />
+              )}
+
+
               {tab === 'billing' && (
                 <BillingTab
                   invoices={invoices}
