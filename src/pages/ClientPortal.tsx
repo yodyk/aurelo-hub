@@ -774,10 +774,18 @@ function Engagements({ projects, accent }: { projects: PortalProject[]; accent: 
 
 // ── Retainer Card ───────────────────────────────────────────────────
 
-function RetainerCard({ total, remaining, accent }: { total: number; remaining: number; accent: string }) {
+function RetainerCard({ total, remaining, carryover = 0, accent }: { total: number; remaining: number; carryover?: number; accent: string }) {
   const used = Math.max(0, total - remaining);
-  const pct = Math.min(100, Math.round((used / total) * 100));
+  const pct = total > 0 ? Math.min(100, Math.round((used / total) * 100)) : 0;
   const barColor = pct >= 90 ? "#ef4444" : pct >= 70 ? "#f59e0b" : accent;
+  const carryClamped = Math.max(0, Math.min(carryover, total));
+  const base = Math.max(0, total - carryClamped);
+  const carryUsed = Math.min(used, carryClamped);
+  const carryRemaining = Math.max(0, carryClamped - carryUsed);
+  const baseUsed = Math.max(0, used - carryUsed);
+  const baseRemaining = Math.max(0, base - baseUsed);
+  const carryPct = total > 0 ? (carryClamped / total) * 100 : 0;
+  const carryColor = '#f59e0b';
   return (
     <section>
       <SectionTitle icon={Clock} title="Retainer" accent={accent} />
@@ -791,12 +799,33 @@ function RetainerCard({ total, remaining, accent }: { total: number; remaining: 
           </span>
           <span className="text-[13px] font-display font-semibold tabular-nums" style={{ color: barColor }}>{pct}%</span>
         </div>
-        <div className="h-1.5 rounded-circle overflow-hidden" style={{ backgroundColor: 'var(--portal-soft)' }}>
-          <div className="h-full rounded-circle transition-all" style={{ width: `${pct}%`, backgroundColor: barColor }} />
+        {/* Segmented bar: rollover first, then base */}
+        <div className="h-1.5 rounded-circle overflow-hidden flex" style={{ backgroundColor: 'var(--portal-soft)' }}>
+          {carryClamped > 0 && (
+            <div className="h-full relative" style={{ width: `${carryPct}%`, backgroundColor: `color-mix(in srgb, ${carryColor} 22%, transparent)` }}>
+              <div className="absolute inset-y-0 left-0" style={{ width: carryClamped > 0 ? `${(carryUsed / carryClamped) * 100}%` : '0%', backgroundColor: carryColor }} />
+            </div>
+          )}
+          <div className="h-full relative flex-1">
+            <div className="absolute inset-y-0 left-0 transition-all" style={{ width: base > 0 ? `${(baseUsed / base) * 100}%` : '0%', backgroundColor: barColor }} />
+          </div>
         </div>
-        <div className="mt-2 text-[11.5px]" style={{ color: 'var(--portal-muted)' }}>
-          {fmtHours(remaining)} remaining this cycle
-        </div>
+        {carryClamped > 0 ? (
+          <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[11.5px]" style={{ color: 'var(--portal-muted)' }}>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="inline-block w-2 h-2 rounded-circle" style={{ backgroundColor: carryColor }} />
+              Rollover (used first): <span className="tabular-nums" style={{ color: 'var(--portal-ink)', fontWeight: 600 }}>{fmtHours(carryUsed)}</span>/{fmtHours(carryClamped)}{carryRemaining > 0 && ` · ${fmtHours(carryRemaining)} left`}
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="inline-block w-2 h-2 rounded-circle" style={{ backgroundColor: accent }} />
+              This cycle: <span className="tabular-nums" style={{ color: 'var(--portal-ink)', fontWeight: 600 }}>{fmtHours(baseUsed)}</span>/{fmtHours(base)}{baseRemaining > 0 && ` · ${fmtHours(baseRemaining)} left`}
+            </span>
+          </div>
+        ) : (
+          <div className="mt-2 text-[11.5px]" style={{ color: 'var(--portal-muted)' }}>
+            {fmtHours(remaining)} remaining this cycle
+          </div>
+        )}
       </div>
     </section>
   );
