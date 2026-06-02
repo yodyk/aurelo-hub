@@ -480,7 +480,7 @@ export default function ClientPortal() {
                   <RecentActivity events={activity} accent={accent} />
                   <Engagements projects={projects} accent={accent} />
                   {isRetainer && (
-                    <RetainerCard total={client.retainerTotal!} remaining={client.retainerRemaining || 0} accent={accent} />
+                    <RetainerCard total={client.retainerTotal!} remaining={client.retainerRemaining || 0} carryover={client.retainerCarryoverHours || 0} accent={accent} />
                   )}
                   <ContactCard owner={workspaceOwner} accent={accent} />
                 </div>
@@ -500,6 +500,7 @@ export default function ClientPortal() {
                   isRetainer={isRetainer}
                   retainerTotal={client.retainerTotal}
                   retainerRemaining={client.retainerRemaining}
+                  retainerCarryover={client.retainerCarryoverHours}
                   token={token!}
                 />
               )}
