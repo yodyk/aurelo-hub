@@ -236,7 +236,7 @@ function activityIcon(type: string) {
 
 // ── Portal Page ─────────────────────────────────────────────────────
 
-type PortalTabId = 'home' | 'resources' | 'tasks' | 'billing';
+type PortalTabId = 'home' | 'resources' | 'tasks' | 'retainer' | 'billing';
 
 export default function ClientPortal() {
   const { token } = useParams();
