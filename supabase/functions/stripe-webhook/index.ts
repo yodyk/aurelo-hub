@@ -156,16 +156,45 @@ async function syncSubscription(
     }
   } catch { /* non-critical */ }
 
-  // Find workspace by owner email
-  const { data: workspace } = await supabase
+  // Resolve workspace deterministically: subscription id → customer id → owner email.
+  // Falling back to owner_email alone is ambiguous when one user owns multiple workspaces.
+  let workspace: { id: string } | null = null;
+
+  const bySub = await supabase
     .from("workspaces")
     .select("id")
-    .eq("owner_email", email)
+    .eq("stripe_subscription_id", sub.id)
     .limit(1)
     .maybeSingle();
+  workspace = bySub.data as { id: string } | null;
 
   if (!workspace) {
-    log("No workspace found for email", { email });
+    const byCustomer = await supabase
+      .from("workspaces")
+      .select("id")
+      .eq("stripe_customer_id", customerId)
+      .limit(1)
+      .maybeSingle();
+    workspace = byCustomer.data as { id: string } | null;
+  }
+
+  if (!workspace) {
+    // Fall back to owner_email, but only when exactly one workspace matches —
+    // otherwise we'd pick a non-deterministic row.
+    const { data: byEmail } = await supabase
+      .from("workspaces")
+      .select("id")
+      .eq("owner_email", email);
+    if (byEmail && byEmail.length === 1) {
+      workspace = byEmail[0] as { id: string };
+    } else if (byEmail && byEmail.length > 1) {
+      log("Ambiguous owner_email — multiple workspaces, skipping sync", { email, count: byEmail.length });
+      return;
+    }
+  }
+
+  if (!workspace) {
+    log("No workspace found for subscription", { email, customerId, subscriptionId: sub.id });
     return;
   }
 
