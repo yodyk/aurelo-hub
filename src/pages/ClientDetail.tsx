@@ -691,7 +691,7 @@ export default function ClientDetail() {
 
       {/* ── Underline tab bar ─────────────────────────────────────── */}
       <motion.div variants={item} className="border-b border-[var(--hairline)] mb-8">
-        <div role="tablist" className="flex items-center gap-1 -mb-px overflow-x-auto scrollbar-thin">
+        <div role="tablist" className="flex items-center gap-1 -mb-px overflow-x-auto scrollbar-thin tab-scroll">
           {visibleTabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
