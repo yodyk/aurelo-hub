@@ -63,19 +63,19 @@ export async function markAsRead(notificationId: string): Promise<void> {
     .from('notifications')
     .update({ is_read: true })
     .eq('id', notificationId);
-  if (error) console.error('[notificationsApi] markAsRead:', error);
+  if (error) { console.error('[notificationsApi] markAsRead:', error); throw error; }
 }
 
 export async function markAllAsRead(workspaceId: string): Promise<void> {
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return;
+  if (!user) throw new Error('Not authenticated');
   const { error } = await supabase
     .from('notifications')
     .update({ is_read: true })
     .eq('workspace_id', workspaceId)
     .eq('is_read', false)
     .or(`user_id.is.null,user_id.eq.${user.id}`);
-  if (error) console.error('[notificationsApi] markAllAsRead:', error);
+  if (error) { console.error('[notificationsApi] markAllAsRead:', error); throw error; }
 }
 
 // ── Dismiss (delete) ────────────────────────────────────────────────
