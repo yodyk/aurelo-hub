@@ -14,6 +14,7 @@ import {
   subscribeToNotifications,
 } from '@/data/notificationsApi';
 import { formatDistanceToNow } from 'date-fns';
+import { toast } from 'sonner';
 
 const CATEGORY_ICONS: Record<string, typeof Bell> = {
   session: Clock,
@@ -100,24 +101,40 @@ export function NotificationCenter({ workspaceId }: NotificationCenterProps) {
 
 
   const handleMarkAllRead = useCallback(async () => {
-    await markAllAsRead(workspaceId);
-    setNotifs(prev => prev.map(n => ({ ...n, is_read: true })));
+    try {
+      await markAllAsRead(workspaceId);
+      setNotifs(prev => prev.map(n => ({ ...n, is_read: true })));
+    } catch (e: any) {
+      toast.error(e?.message || 'Could not mark notifications as read');
+    }
   }, [workspaceId]);
 
   const handleMarkRead = useCallback(async (id: string) => {
-    await markAsRead(id);
-    setNotifs(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+    try {
+      await markAsRead(id);
+      setNotifs(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+    } catch (e: any) {
+      toast.error(e?.message || 'Could not mark as read');
+    }
   }, []);
 
   const handleDismiss = useCallback(async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    await markAsRead(id);
-    setNotifs(prev => prev.filter(n => n.id !== id));
+    try {
+      await markAsRead(id);
+      setNotifs(prev => prev.filter(n => n.id !== id));
+    } catch (err: any) {
+      toast.error(err?.message || 'Could not dismiss notification');
+    }
   }, []);
 
   const handleClearAll = useCallback(async () => {
-    await markAllAsRead(workspaceId);
-    setNotifs([]);
+    try {
+      await markAllAsRead(workspaceId);
+      setNotifs([]);
+    } catch (e: any) {
+      toast.error(e?.message || 'Could not clear notifications');
+    }
   }, [workspaceId]);
 
   const handleClick = useCallback((n: Notification) => {

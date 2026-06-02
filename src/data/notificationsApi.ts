@@ -63,19 +63,19 @@ export async function markAsRead(notificationId: string): Promise<void> {
     .from('notifications')
     .update({ is_read: true })
     .eq('id', notificationId);
-  if (error) console.error('[notificationsApi] markAsRead:', error);
+  if (error) { console.error('[notificationsApi] markAsRead:', error); throw error; }
 }
 
 export async function markAllAsRead(workspaceId: string): Promise<void> {
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return;
+  if (!user) throw new Error('Not authenticated');
   const { error } = await supabase
     .from('notifications')
     .update({ is_read: true })
     .eq('workspace_id', workspaceId)
     .eq('is_read', false)
     .or(`user_id.is.null,user_id.eq.${user.id}`);
-  if (error) console.error('[notificationsApi] markAllAsRead:', error);
+  if (error) { console.error('[notificationsApi] markAllAsRead:', error); throw error; }
 }
 
 // ── Dismiss (delete) ────────────────────────────────────────────────
@@ -143,7 +143,7 @@ export async function upsertPreference(params: {
       frequency: params.frequency || 'instant',
       updated_at: new Date().toISOString(),
     }, { onConflict: 'workspace_id,user_id,category' });
-  if (error) console.error('[notificationsApi] upsertPreference:', error);
+  if (error) { console.error('[notificationsApi] upsertPreference:', error); throw error; }
 }
 
 // ── Recipients ──────────────────────────────────────────────────────
@@ -159,11 +159,12 @@ export async function loadRecipients(workspaceId: string): Promise<NotificationR
 
 export async function setRecipients(workspaceId: string, category: string, memberIds: string[]): Promise<void> {
   // Delete existing for this category
-  await supabase
+  const { error: delErr } = await supabase
     .from('notification_recipients')
     .delete()
     .eq('workspace_id', workspaceId)
     .eq('category', category);
+  if (delErr) { console.error('[notificationsApi] setRecipients delete:', delErr); throw delErr; }
 
   // Insert new
   if (memberIds.length > 0) {
@@ -175,7 +176,7 @@ export async function setRecipients(workspaceId: string, category: string, membe
     const { error } = await supabase
       .from('notification_recipients')
       .insert(rows);
-    if (error) console.error('[notificationsApi] setRecipients:', error);
+    if (error) { console.error('[notificationsApi] setRecipients:', error); throw error; }
   }
 }
 
@@ -361,7 +362,8 @@ export const NotificationEvents = {
             // Store resend_email_id in notification metadata + mark as email_sent
             if (notif?.id) {
               const updatedMeta = { ...(meta || {}), resend_email_id: result.resend_email_id };
-              await supabase.from('notifications').update({ email_sent: true, metadata: updatedMeta }).eq('id', notif.id);
+              const { error: updErr } = await supabase.from('notifications').update({ email_sent: true, metadata: updatedMeta }).eq('id', notif.id);
+              if (updErr) console.error('[notificationsApi] retainer notif update:', updErr);
             }
           }
         }
