@@ -362,7 +362,8 @@ export const NotificationEvents = {
             // Store resend_email_id in notification metadata + mark as email_sent
             if (notif?.id) {
               const updatedMeta = { ...(meta || {}), resend_email_id: result.resend_email_id };
-              await supabase.from('notifications').update({ email_sent: true, metadata: updatedMeta }).eq('id', notif.id);
+              const { error: updErr } = await supabase.from('notifications').update({ email_sent: true, metadata: updatedMeta }).eq('id', notif.id);
+              if (updErr) console.error('[notificationsApi] retainer notif update:', updErr);
             }
           }
         }
