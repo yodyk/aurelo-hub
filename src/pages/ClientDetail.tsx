@@ -2177,7 +2177,76 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
               </button>
             )}
           </div>
-        </div>
+
+          {/* Add hours to current cycle */}
+          <div className="mt-4 pt-4 border-t border-border">
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <span className="text-[12px] text-muted-foreground block" style={{ fontWeight: 600 }}>Add hours to this cycle</span>
+                <span className="text-[11px] text-muted-foreground">One-time top-up for the active cycle. Adds to both total and remaining.</span>
+              </div>
+              {!addOpen && (
+                <button onClick={() => setAddOpen(true)} className="text-[11px] text-primary hover:text-primary/80 transition-colors" style={{ fontWeight: 500 }}>
+                  Add hours
+                </button>
+              )}
+            </div>
+            {addOpen && (
+              <div className="space-y-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <input
+                    type="number"
+                    value={addAmount}
+                    onChange={(e) => setAddAmount(e.target.value)}
+                    min={0}
+                    step={addUnit === 'percent' ? '1' : '0.25'}
+                    placeholder={addUnit === 'percent' ? '% of base' : 'Hours'}
+                    className="w-32 px-3 py-2 text-[13px] bg-input-background border border-border rounded-lg tabular-nums"
+                  />
+                  <div className="inline-flex rounded-lg border border-border overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => setAddUnit('hours')}
+                      className={`px-2.5 py-1.5 text-[11px] transition-colors ${addUnit === 'hours' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-accent/40'}`}
+                      style={{ fontWeight: 500 }}
+                    >
+                      Hours
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAddUnit('percent')}
+                      className={`px-2.5 py-1.5 text-[11px] transition-colors ${addUnit === 'percent' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-accent/40'}`}
+                      style={{ fontWeight: 500 }}
+                    >
+                      % of base
+                    </button>
+                  </div>
+                  <span className="text-[11px] text-muted-foreground">
+                    {addHoursDelta > 0 ? <>Adds <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>{addHoursDelta}h</span> → new total {Math.round(((Number(client.retainerTotal) || 0) + addHoursDelta) * 100) / 100}h</> : 'Enter an amount'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => { setAddOpen(false); setAddAmount(''); }}
+                    className="px-3 py-1.5 text-[12px] rounded-lg border border-border text-muted-foreground hover:bg-accent transition-colors"
+                    style={{ fontWeight: 500 }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleAddHours}
+                    disabled={adding || addHoursDelta <= 0}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    style={{ fontWeight: 500 }}
+                  >
+                    {adding ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                    {adding ? 'Adding…' : 'Add to cycle'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
 
         <div className="border-t border-border pt-4 mt-4">
           <div className="flex items-center justify-between mb-3 gap-3">
