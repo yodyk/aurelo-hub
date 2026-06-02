@@ -1,0 +1,2 @@
+ALTER TABLE public.workspaces DROP CONSTRAINT IF EXISTS workspaces_plan_id_check;
+ALTER TABLE public.workspaces ADD CONSTRAINT workspaces_plan_id_check CHECK (plan_id = ANY (ARRAY['starter'::text, 'pro'::text, 'studio'::text, 'legacy'::text]));
