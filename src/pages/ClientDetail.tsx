@@ -2246,9 +2246,10 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
               </div>
             )}
           </div>
-
+        </div>
 
         <div className="border-t border-border pt-4 mt-4">
+
           <div className="flex items-center justify-between mb-3 gap-3">
             <div>
               <span className="text-[12px] text-muted-foreground block" style={{ fontWeight: 600 }}>Next reset adjustment</span>
