@@ -1304,7 +1304,7 @@ function TasksTab({ checklists, accent, token }: { checklists: PortalChecklist[]
 // ── Billing Tab ─────────────────────────────────────────────────────
 
 function BillingTab({
-  invoices, showCosts, accent, isRetainer, retainerTotal, retainerRemaining, token,
+  invoices, showCosts, accent, isRetainer, retainerTotal, retainerRemaining, retainerCarryover, token,
 }: {
   invoices: PortalInvoice[];
   showCosts: boolean;
@@ -1312,6 +1312,7 @@ function BillingTab({
   isRetainer: boolean;
   retainerTotal?: number;
   retainerRemaining?: number;
+  retainerCarryover?: number;
   token: string;
 }) {
   if (!showCosts) {
@@ -1334,7 +1335,7 @@ function BillingTab({
   return (
     <div className="space-y-6">
       {isRetainer && retainerTotal != null && (
-        <RetainerCard total={retainerTotal} remaining={retainerRemaining || 0} accent={accent} />
+        <RetainerCard total={retainerTotal} remaining={retainerRemaining || 0} carryover={retainerCarryover || 0} accent={accent} />
       )}
       {outstanding.length > 0 && (
         <section>
