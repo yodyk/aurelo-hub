@@ -110,12 +110,16 @@ export function PlanProvider({ children, initialPlan, workspaceId, isOwner = tru
           // Sync plan to DB
           const wsId = wsIdRef.current;
           if (wsId) {
-            await supabase.from('workspaces').update({
+            const { error: upErr } = await supabase.from('workspaces').update({
               plan_id: stripePlan,
               stripe_customer_id: data.stripe_customer_id || null,
               stripe_subscription_id: data.stripe_subscription_id || null,
               plan_period_end: data.subscription_end || null,
             }).eq('id', wsId);
+            if (upErr) {
+              console.error('[PlanContext] failed to sync plan to DB:', upErr);
+              return;
+            }
           }
           setPlanState(prev => ({
             ...prev,
@@ -139,11 +143,15 @@ export function PlanProvider({ children, initialPlan, workspaceId, isOwner = tru
         // Subscription lapsed — downgrade to starter (but not if legacy)
         const wsId = wsIdRef.current;
         if (wsId) {
-          await supabase.from('workspaces').update({
+          const { error: downErr } = await supabase.from('workspaces').update({
             plan_id: 'starter',
             stripe_subscription_id: null,
             plan_period_end: null,
           }).eq('id', wsId);
+          if (downErr) {
+            console.error('[PlanContext] failed to downgrade plan in DB:', downErr);
+            return;
+          }
         }
         setPlanState(prev => ({
           ...prev,
