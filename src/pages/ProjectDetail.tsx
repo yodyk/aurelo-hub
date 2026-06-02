@@ -760,7 +760,7 @@ export default function ProjectDetail() {
       {/* TAB BAR                                                     */}
       {/* ════════════════════════════════════════════════════════════ */}
       <motion.div variants={item} className="mb-6">
-        <div className="flex items-center gap-1 border-b border-border overflow-x-auto -mx-6 px-6 md:mx-0 md:px-0">
+        <div className="flex items-center gap-1 border-b border-border overflow-x-auto -mx-6 px-6 md:mx-0 md:px-0 tab-scroll">
           {TABS.map((tab) => {
             const isActive = activeTab === tab.id;
             const TabIcon = tab.icon;
