@@ -454,7 +454,7 @@ export default function ClientPortal() {
           </motion.div>
 
           {/* Tabs */}
-          <motion.div variants={itemVariants} className="mb-6">
+          <motion.div variants={itemVariants} className="mb-6 -mx-4 px-4 md:mx-0 md:px-0 overflow-x-auto tab-scroll">
             <div className="inline-flex items-center gap-1 p-0.5 rounded border" style={{ borderColor: 'var(--portal-hairline)', backgroundColor: 'var(--portal-surface)' }}>
               {tabs.map(t => {
                 const active = tab === t.id;
