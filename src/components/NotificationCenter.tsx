@@ -14,6 +14,7 @@ import {
   subscribeToNotifications,
 } from '@/data/notificationsApi';
 import { formatDistanceToNow } from 'date-fns';
+import { toast } from 'sonner';
 
 const CATEGORY_ICONS: Record<string, typeof Bell> = {
   session: Clock,
