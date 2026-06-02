@@ -2062,39 +2062,94 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
       {/* Usage */}
       <SectionCard>
         <SectionHeader>Retainer Usage</SectionHeader>
-        <div className="flex justify-between items-baseline mb-4">
-          <div className="text-[14px] text-muted-foreground">
-            <span style={{ fontWeight: 500 }} className="text-foreground">{hoursUsed}h</span> used of {client.retainerTotal || 0}h
-            <span className="text-muted-foreground ml-1.5">({client.retainerRemaining || 0}h remaining)</span>
-          </div>
-          <div className="text-[24px] tabular-nums" style={{ fontWeight: 600, color: getUsageTextColor(usagePct) }}>{usagePct}%</div>
-        </div>
-        <div className="h-3 bg-accent/60 rounded-circle overflow-hidden">
-          <motion.div className="h-full rounded-circle" style={{ background: getUsageBarColor(usagePct) }} initial={{ width: 0 }} animate={{ width: `${usagePct}%` }} transition={{ delay: 0.3, duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }} />
-        </div>
-        {usagePct >= 70 && (
-          <div className="mt-3 text-[13px] flex items-center gap-1.5" style={{ color: getUsageTextColor(usagePct) }}>
-            <div className="w-1.5 h-1.5 rounded-circle" style={{ backgroundColor: getUsageTextColor(usagePct) }} />
-            {usagePct >= 85 ? "Running low — consider discussing renewal or overage terms" : "Over 70% used — monitor remaining hours"}
-          </div>
-        )}
+        {(() => {
+          const total = Number(client.retainerTotal || 0);
+          const remaining = Math.max(0, Number(client.retainerRemaining || 0));
+          const used = Math.max(0, total - remaining);
+          const carryover = Math.max(0, Math.min(Number(client.retainerCarryoverHours || 0), total));
+          const base = Math.max(0, total - carryover);
+          // Carryover hours are consumed first.
+          const carryoverUsed = Math.min(used, carryover);
+          const carryoverRemaining = Math.max(0, carryover - carryoverUsed);
+          const baseUsed = Math.max(0, used - carryoverUsed);
+          const baseRemaining = Math.max(0, base - baseUsed);
+          const pct = total > 0 ? Math.round((used / total) * 100) : 0;
+          const carryoverPct = total > 0 ? (carryover / total) * 100 : 0;
+          const carryoverUsedPct = total > 0 ? (carryoverUsed / total) * 100 : 0;
+          const baseUsedPct = total > 0 ? (baseUsed / total) * 100 : 0;
+          return (
+            <>
+              <div className="flex justify-between items-baseline mb-4">
+                <div className="text-[14px] text-muted-foreground">
+                  <span style={{ fontWeight: 500 }} className="text-foreground">{Math.round(used * 100) / 100}h</span> used of {total}h
+                  <span className="text-muted-foreground ml-1.5">({Math.round(remaining * 100) / 100}h remaining)</span>
+                </div>
+                <div className="text-[24px] tabular-nums" style={{ fontWeight: 600, color: getUsageTextColor(pct) }}>{pct}%</div>
+              </div>
+              {/* Segmented bar: carryover first (amber), then base (accent). Hatched = used. */}
+              <div className="relative h-3 bg-accent/60 rounded-circle overflow-hidden flex">
+                {carryover > 0 && (
+                  <div className="h-full relative" style={{ width: `${carryoverPct}%`, backgroundColor: 'hsl(var(--warning) / 0.18)' }}>
+                    <motion.div
+                      className="absolute inset-y-0 left-0"
+                      style={{ backgroundColor: 'hsl(var(--warning))' }}
+                      initial={{ width: 0 }}
+                      animate={{ width: carryover > 0 ? `${(carryoverUsed / carryover) * 100}%` : '0%' }}
+                      transition={{ delay: 0.3, duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
+                    />
+                  </div>
+                )}
+                <div className="h-full relative flex-1">
+                  <motion.div
+                    className="absolute inset-y-0 left-0"
+                    style={{ background: getUsageBarColor(pct) }}
+                    initial={{ width: 0 }}
+                    animate={{ width: base > 0 ? `${(baseUsed / base) * 100}%` : '0%' }}
+                    transition={{ delay: 0.3, duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
+                  />
+                </div>
+              </div>
+              {/* Legend */}
+              {carryover > 0 && (
+                <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-[11.5px] text-muted-foreground">
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="inline-block w-2 h-2 rounded-circle" style={{ backgroundColor: 'hsl(var(--warning))' }} />
+                    Rollover (used first): <span className="text-foreground tabular-nums" style={{ fontWeight: 500 }}>{Math.round(carryoverUsed * 100) / 100}h</span> / {Math.round(carryover * 100) / 100}h
+                    {carryoverRemaining > 0 && <span className="text-muted-foreground">· {Math.round(carryoverRemaining * 100) / 100}h left</span>}
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="inline-block w-2 h-2 rounded-circle" style={{ backgroundColor: 'hsl(var(--primary))' }} />
+                    This cycle: <span className="text-foreground tabular-nums" style={{ fontWeight: 500 }}>{Math.round(baseUsed * 100) / 100}h</span> / {Math.round(base * 100) / 100}h
+                    {baseRemaining > 0 && <span className="text-muted-foreground">· {Math.round(baseRemaining * 100) / 100}h left</span>}
+                  </span>
+                </div>
+              )}
+              {pct >= 70 && (
+                <div className="mt-3 text-[13px] flex items-center gap-1.5" style={{ color: getUsageTextColor(pct) }}>
+                  <div className="w-1.5 h-1.5 rounded-circle" style={{ backgroundColor: getUsageTextColor(pct) }} />
+                  {pct >= 85 ? "Running low — consider discussing renewal or overage terms" : "Over 70% used — monitor remaining hours"}
+                </div>
+              )}
 
-        {/* Cycle timeline */}
-        {cycleStartDate && cycleEndDate && (
-          <div className="mt-4 pt-3 border-t border-border">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] text-muted-foreground" style={{ fontWeight: 500 }}>Cycle progress</span>
-              <span className="text-[11px] text-muted-foreground tabular-nums">{daysLeft} days remaining</span>
-            </div>
-            <div className="h-1.5 bg-accent/60 rounded-circle overflow-hidden mb-2">
-              <div className="h-full rounded-circle bg-primary/40 transition-all duration-500" style={{ width: `${cyclePct}%` }} />
-            </div>
-            <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-              <span>{format(cycleStartDate, 'MMM d')}</span>
-              <span>{format(cycleEndDate, 'MMM d')}</span>
-            </div>
-          </div>
-        )}
+              {/* Cycle timeline */}
+              {cycleStartDate && cycleEndDate && (
+                <div className="mt-4 pt-3 border-t border-border">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[11px] text-muted-foreground" style={{ fontWeight: 500 }}>Cycle progress</span>
+                    <span className="text-[11px] text-muted-foreground tabular-nums">{daysLeft} days remaining</span>
+                  </div>
+                  <div className="h-1.5 bg-accent/60 rounded-circle overflow-hidden mb-2">
+                    <div className="h-full rounded-circle bg-primary/40 transition-all duration-500" style={{ width: `${cyclePct}%` }} />
+                  </div>
+                  <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                    <span>{format(cycleStartDate, 'MMM d')}</span>
+                    <span>{format(cycleEndDate, 'MMM d')}</span>
+                  </div>
+                </div>
+              )}
+            </>
+          );
+        })()}
       </SectionCard>
 
       {/* Retainer Details & Controls */}
