@@ -69,6 +69,7 @@ function camelToSnake(obj: Record<string, any>): Record<string, any> {
     retainerCycleStart: 'retainer_cycle_start',
     retainerCycleDays: 'retainer_cycle_days',
     retainerStatus: 'retainer_status',
+    retainerCarryoverHours: 'retainer_carryover_hours',
     trueHourlyRate: 'true_hourly_rate',
     lastSessionDate: 'last_session_date',
     externalLinks: 'external_links',
