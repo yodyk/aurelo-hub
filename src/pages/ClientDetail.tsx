@@ -2192,7 +2192,7 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
                 <button
                   onClick={() => {
                     setPlannedBaseHours(String(scheduledBaseHours));
-                    setPlannedCarryoverHours(String(scheduledCarryoverHours));
+                    setPlannedCarryoverHours(String(carryoverCap));
                     setEditingResetPlan(false);
                   }}
                   className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
@@ -2232,15 +2232,14 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
                   <input type="number" value={plannedBaseHours} onChange={(e) => setPlannedBaseHours(e.target.value)} min={0} step="0.25" className="w-full px-3 py-2 text-[13px] bg-input-background border border-border rounded-lg tabular-nums" />
                 </div>
                 <div>
-                  <label className="text-[11px] text-muted-foreground mb-1 block" style={{ fontWeight: 500 }}>Carry-over hours</label>
+                  <label className="text-[11px] text-muted-foreground mb-1 block" style={{ fontWeight: 500 }}>Carry-over cap (max hours)</label>
                   <input type="number" value={plannedCarryoverHours} onChange={(e) => setPlannedCarryoverHours(e.target.value)} min={0} step="0.25" className="w-full px-3 py-2 text-[13px] bg-input-background border border-border rounded-lg tabular-nums" />
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                <button onClick={() => setPlannedCarryoverHours(String(client.retainerRemaining || 0))} className="px-2.5 py-1.5 text-[11px] rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-colors" style={{ fontWeight: 500 }}>
-                  Use current leftover ({client.retainerRemaining || 0}h)
-                </button>
-                <span className="text-[11px] text-muted-foreground">Next cycle will start at <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>{nextCycleHours}h</span>.</span>
+                <span className="text-[11px] text-muted-foreground">
+                  Only unused hours carry over, up to the cap. Based on current leftover ({client.retainerRemaining || 0}h), next cycle will start at <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>{nextCycleHours}h</span>.
+                </span>
               </div>
             </div>
           ) : (
@@ -2250,14 +2249,15 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
                 <span className="tabular-nums" style={{ fontWeight: 500 }}>{scheduledBaseHours}h</span>
               </div>
               <div className="flex items-center justify-between bg-accent/30 rounded-lg px-3 py-2">
-                <span className="text-muted-foreground">Carry-over</span>
-                <span className="tabular-nums" style={{ fontWeight: 500 }}>{scheduledCarryoverHours}h</span>
+                <span className="text-muted-foreground">Carry-over cap</span>
+                <span className="tabular-nums" style={{ fontWeight: 500 }}>{carryoverCap}h</span>
               </div>
               <div className="flex items-center justify-between bg-accent/30 rounded-lg px-3 py-2">
                 <span className="text-muted-foreground">Next reset starts at</span>
-                <span className="tabular-nums" style={{ fontWeight: 600 }}>{scheduledBaseHours + scheduledCarryoverHours}h</span>
+                <span className="tabular-nums" style={{ fontWeight: 600 }}>{scheduledBaseHours + Math.min(carryoverCap, Math.max(0, Number(client.retainerRemaining || 0)))}h</span>
               </div>
             </div>
+
           )}
         </div>
       </SectionCard>
