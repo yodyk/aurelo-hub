@@ -1887,21 +1887,58 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
   const [cycleStart, setCycleStart] = useState(client.retainerCycleStart || '');
   const [cycleDays, setCycleDays] = useState(client.retainerCycleDays || 30);
   const retainerPlanning = getRetainerPlanning(client.customFields);
-  const scheduledCarryoverHours = Math.max(0, Number(retainerPlanning.pendingCarryoverHours || 0));
+  const carryoverCap = Math.max(0, Number(retainerPlanning.pendingCarryoverHours || 0));
   const scheduledBaseHours = Math.max(0, Number(retainerPlanning.nextCycleBaseHours ?? client.retainerTotal ?? 0));
   const [editingResetPlan, setEditingResetPlan] = useState(false);
   const [plannedBaseHours, setPlannedBaseHours] = useState(String(scheduledBaseHours));
-  const [plannedCarryoverHours, setPlannedCarryoverHours] = useState(String(scheduledCarryoverHours));
+  const [plannedCarryoverHours, setPlannedCarryoverHours] = useState(String(carryoverCap));
+
+  // "Add hours to current cycle" state
+  const [addOpen, setAddOpen] = useState(false);
+  const [addAmount, setAddAmount] = useState('');
+  const [addUnit, setAddUnit] = useState<'hours' | 'percent'>('hours');
+  const [adding, setAdding] = useState(false);
 
   const hoursUsed = (client.retainerTotal || 0) - (client.retainerRemaining || 0);
   const usagePct = client.retainerTotal ? Math.round((hoursUsed / client.retainerTotal) * 100) : 0;
   const retainerStatus = client.retainerStatus || 'active';
-  const nextCycleHours = Math.max(0, (Number(plannedBaseHours) || 0) + (Number(plannedCarryoverHours) || 0));
+  // Effective carry-over preview: capped by what's actually left in the current cycle.
+  const previewEffectiveCarryover = Math.min(
+    Math.max(0, Number(plannedCarryoverHours) || 0),
+    Math.max(0, Number(client.retainerRemaining || 0)),
+  );
+  const nextCycleHours = Math.max(0, (Number(plannedBaseHours) || 0) + previewEffectiveCarryover);
+
+  // Compute the "Add hours" preview
+  const addAmountNum = Math.max(0, Number(addAmount) || 0);
+  const baseForPct = Number(client.retainerTotal || 0);
+  const addHoursDelta = addUnit === 'percent'
+    ? Math.round((baseForPct * addAmountNum / 100) * 100) / 100
+    : Math.round(addAmountNum * 100) / 100;
 
   useEffect(() => {
     setPlannedBaseHours(String(scheduledBaseHours));
-    setPlannedCarryoverHours(String(scheduledCarryoverHours));
-  }, [scheduledBaseHours, scheduledCarryoverHours, client.id]);
+    setPlannedCarryoverHours(String(carryoverCap));
+  }, [scheduledBaseHours, carryoverCap, client.id]);
+
+  const handleAddHours = async () => {
+    if (addHoursDelta <= 0) return;
+    setAdding(true);
+    try {
+      await onUpdateClient({
+        retainerTotal: Math.round(((Number(client.retainerTotal) || 0) + addHoursDelta) * 100) / 100,
+        retainerRemaining: Math.round(((Number(client.retainerRemaining) || 0) + addHoursDelta) * 100) / 100,
+      });
+      toast.success(`Added ${addHoursDelta}h to this cycle`);
+      setAddAmount('');
+      setAddOpen(false);
+    } catch {
+      toast.error('Failed to add hours');
+    } finally {
+      setAdding(false);
+    }
+  };
+
 
   // Load retainer history
   useEffect(() => {
@@ -1932,8 +1969,11 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
     try {
       const todayStr = new Date().toISOString().split('T')[0];
       const nextBaseHours = Math.max(0, Number(retainerPlanning.nextCycleBaseHours ?? client.retainerTotal ?? 0));
-      const carryoverHours = Math.max(0, Number(retainerPlanning.pendingCarryoverHours ?? 0));
-      const nextCycleTotal = nextBaseHours + carryoverHours;
+      const cap = Math.max(0, Number(retainerPlanning.pendingCarryoverHours ?? 0));
+      // Only carry forward what's actually unused, up to the contract cap.
+      const actualLeftover = Math.max(0, Number(client.retainerRemaining ?? 0));
+      const effectiveCarryover = Math.min(cap, actualLeftover);
+      const nextCycleTotal = nextBaseHours + effectiveCarryover;
 
       // Snapshot current cycle to history
       if (client.retainerCycleStart) {
@@ -1953,16 +1993,16 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
         retainerTotal: nextCycleTotal,
         retainerRemaining: nextCycleTotal,
         retainerCycleStart: todayStr,
+        // Clear the one-time base override, keep the carry-over cap as a recurring contract setting.
         customFields: updateRetainerPlanning(client.customFields, {
           nextCycleBaseHours: null,
-          pendingCarryoverHours: null,
         }),
       });
       // Reload history
       const { data } = await supabase.from('retainer_history').select('*').eq('client_id', clientId).eq('workspace_id', workspaceId).order('cycle_end', { ascending: false });
       setHistory(data || []);
       setEditingResetPlan(false);
-      toast.success(carryoverHours > 0 ? `Retainer reset with ${carryoverHours}h carried over` : 'Retainer reset successfully');
+      toast.success(effectiveCarryover > 0 ? `Retainer reset with ${effectiveCarryover}h carried over` : 'Retainer reset successfully');
     } catch (err) {
       toast.error('Failed to reset retainer');
     } finally {
@@ -1970,6 +2010,7 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
       setConfirmReset(false);
     }
   };
+
 
   const handleStatusChange = async (newStatus: string) => {
     try {
@@ -2136,13 +2177,84 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
               </button>
             )}
           </div>
+
+          {/* Add hours to current cycle */}
+          <div className="mt-4 pt-4 border-t border-border">
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <span className="text-[12px] text-muted-foreground block" style={{ fontWeight: 600 }}>Add hours to this cycle</span>
+                <span className="text-[11px] text-muted-foreground">One-time top-up for the active cycle. Adds to both total and remaining.</span>
+              </div>
+              {!addOpen && (
+                <button onClick={() => setAddOpen(true)} className="text-[11px] text-primary hover:text-primary/80 transition-colors" style={{ fontWeight: 500 }}>
+                  Add hours
+                </button>
+              )}
+            </div>
+            {addOpen && (
+              <div className="space-y-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <input
+                    type="number"
+                    value={addAmount}
+                    onChange={(e) => setAddAmount(e.target.value)}
+                    min={0}
+                    step={addUnit === 'percent' ? '1' : '0.25'}
+                    placeholder={addUnit === 'percent' ? '% of base' : 'Hours'}
+                    className="w-32 px-3 py-2 text-[13px] bg-input-background border border-border rounded-lg tabular-nums"
+                  />
+                  <div className="inline-flex rounded-lg border border-border overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => setAddUnit('hours')}
+                      className={`px-2.5 py-1.5 text-[11px] transition-colors ${addUnit === 'hours' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-accent/40'}`}
+                      style={{ fontWeight: 500 }}
+                    >
+                      Hours
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAddUnit('percent')}
+                      className={`px-2.5 py-1.5 text-[11px] transition-colors ${addUnit === 'percent' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-accent/40'}`}
+                      style={{ fontWeight: 500 }}
+                    >
+                      % of base
+                    </button>
+                  </div>
+                  <span className="text-[11px] text-muted-foreground">
+                    {addHoursDelta > 0 ? <>Adds <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>{addHoursDelta}h</span> → new total {Math.round(((Number(client.retainerTotal) || 0) + addHoursDelta) * 100) / 100}h</> : 'Enter an amount'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => { setAddOpen(false); setAddAmount(''); }}
+                    className="px-3 py-1.5 text-[12px] rounded-lg border border-border text-muted-foreground hover:bg-accent transition-colors"
+                    style={{ fontWeight: 500 }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleAddHours}
+                    disabled={adding || addHoursDelta <= 0}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    style={{ fontWeight: 500 }}
+                  >
+                    {adding ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                    {adding ? 'Adding…' : 'Add to cycle'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="border-t border-border pt-4 mt-4">
+
           <div className="flex items-center justify-between mb-3 gap-3">
             <div>
               <span className="text-[12px] text-muted-foreground block" style={{ fontWeight: 600 }}>Next reset adjustment</span>
-              <span className="text-[11px] text-muted-foreground">Plan next cycle hours and any one-time carry-over.</span>
+              <span className="text-[11px] text-muted-foreground">Plan next cycle base hours and the carry-over cap. Only unused hours carry over, up to the cap.</span>
+
             </div>
             {!editingResetPlan ? (
               <button onClick={() => setEditingResetPlan(true)} className="text-[11px] text-primary hover:text-primary/80 transition-colors" style={{ fontWeight: 500 }}>Edit</button>
@@ -2151,7 +2263,7 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
                 <button
                   onClick={() => {
                     setPlannedBaseHours(String(scheduledBaseHours));
-                    setPlannedCarryoverHours(String(scheduledCarryoverHours));
+                    setPlannedCarryoverHours(String(carryoverCap));
                     setEditingResetPlan(false);
                   }}
                   className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
@@ -2191,15 +2303,14 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
                   <input type="number" value={plannedBaseHours} onChange={(e) => setPlannedBaseHours(e.target.value)} min={0} step="0.25" className="w-full px-3 py-2 text-[13px] bg-input-background border border-border rounded-lg tabular-nums" />
                 </div>
                 <div>
-                  <label className="text-[11px] text-muted-foreground mb-1 block" style={{ fontWeight: 500 }}>Carry-over hours</label>
+                  <label className="text-[11px] text-muted-foreground mb-1 block" style={{ fontWeight: 500 }}>Carry-over cap (max hours)</label>
                   <input type="number" value={plannedCarryoverHours} onChange={(e) => setPlannedCarryoverHours(e.target.value)} min={0} step="0.25" className="w-full px-3 py-2 text-[13px] bg-input-background border border-border rounded-lg tabular-nums" />
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                <button onClick={() => setPlannedCarryoverHours(String(client.retainerRemaining || 0))} className="px-2.5 py-1.5 text-[11px] rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-accent/40 transition-colors" style={{ fontWeight: 500 }}>
-                  Use current leftover ({client.retainerRemaining || 0}h)
-                </button>
-                <span className="text-[11px] text-muted-foreground">Next cycle will start at <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>{nextCycleHours}h</span>.</span>
+                <span className="text-[11px] text-muted-foreground">
+                  Only unused hours carry over, up to the cap. Based on current leftover ({client.retainerRemaining || 0}h), next cycle will start at <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>{nextCycleHours}h</span>.
+                </span>
               </div>
             </div>
           ) : (
@@ -2209,14 +2320,15 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
                 <span className="tabular-nums" style={{ fontWeight: 500 }}>{scheduledBaseHours}h</span>
               </div>
               <div className="flex items-center justify-between bg-accent/30 rounded-lg px-3 py-2">
-                <span className="text-muted-foreground">Carry-over</span>
-                <span className="tabular-nums" style={{ fontWeight: 500 }}>{scheduledCarryoverHours}h</span>
+                <span className="text-muted-foreground">Carry-over cap</span>
+                <span className="tabular-nums" style={{ fontWeight: 500 }}>{carryoverCap}h</span>
               </div>
               <div className="flex items-center justify-between bg-accent/30 rounded-lg px-3 py-2">
                 <span className="text-muted-foreground">Next reset starts at</span>
-                <span className="tabular-nums" style={{ fontWeight: 600 }}>{scheduledBaseHours + scheduledCarryoverHours}h</span>
+                <span className="tabular-nums" style={{ fontWeight: 600 }}>{scheduledBaseHours + Math.min(carryoverCap, Math.max(0, Number(client.retainerRemaining || 0)))}h</span>
               </div>
             </div>
+
           )}
         </div>
       </SectionCard>

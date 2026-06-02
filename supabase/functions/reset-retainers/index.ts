@@ -46,7 +46,7 @@ Deno.serve(async (req) => {
     // Find all active retainer clients whose cycle has elapsed
     const { data: clients, error } = await supabase
       .from("clients")
-      .select("id, workspace_id, name, retainer_total, retainer_remaining, retainer_cycle_start, retainer_cycle_days, retainer_status, rate")
+      .select("id, workspace_id, name, retainer_total, retainer_remaining, retainer_cycle_start, retainer_cycle_days, retainer_status, rate, custom_fields")
       .eq("model", "Retainer")
       .eq("status", "Active")
       .eq("retainer_status", "active")
@@ -74,6 +74,28 @@ Deno.serve(async (req) => {
         const retainerRemaining = Number(client.retainer_remaining ?? retainerTotal);
         const hoursUsed = Math.max(0, retainerTotal - retainerRemaining);
 
+        // Read planned next-cycle settings from custom_fields._system.retainer.
+        // - nextCycleBaseHours: one-time override of the base allotment (cleared after use)
+        // - pendingCarryoverHours: persistent contract cap on how many unused hours can roll over
+        const cf: any = client.custom_fields || {};
+        const planning: any =
+          cf && typeof cf === "object" && !Array.isArray(cf) &&
+          cf._system && typeof cf._system === "object" && !Array.isArray(cf._system) &&
+          cf._system.retainer && typeof cf._system.retainer === "object" && !Array.isArray(cf._system.retainer)
+            ? cf._system.retainer
+            : {};
+
+        const baseOverride = Number(planning.nextCycleBaseHours);
+        const nextBaseHours = Number.isFinite(baseOverride) && baseOverride >= 0
+          ? baseOverride
+          : retainerTotal;
+
+        const cap = Math.max(0, Number(planning.pendingCarryoverHours) || 0);
+        const actualLeftover = Math.max(0, retainerRemaining);
+        const effectiveCarryover = Math.min(cap, actualLeftover);
+
+        const nextCycleTotal = nextBaseHours + effectiveCarryover;
+
         // Snapshot current cycle to history
         const { error: historyError } = await supabase.from("retainer_history").insert({
           workspace_id: client.workspace_id,
@@ -89,14 +111,31 @@ Deno.serve(async (req) => {
 
         if (historyError) throw historyError;
 
-        // Reset retainer: set remaining back to total and advance to the next cycle boundary.
+        // Build the next custom_fields: clear one-time base override, keep cap.
+        let nextCustomFields = cf;
+        if (planning.nextCycleBaseHours != null) {
+          const nextRetainer = { ...planning };
+          delete nextRetainer.nextCycleBaseHours;
+          nextCustomFields = {
+            ...(cf || {}),
+            _system: {
+              ...((cf && cf._system) || {}),
+              retainer: nextRetainer,
+            },
+          };
+        }
+
+        const update: Record<string, unknown> = {
+          retainer_total: nextCycleTotal,
+          retainer_remaining: nextCycleTotal,
+          retainer_cycle_start: nextCycleStartStr,
+          updated_at: new Date().toISOString(),
+        };
+        if (nextCustomFields !== cf) update.custom_fields = nextCustomFields;
+
         const { error: updateError } = await supabase
           .from("clients")
-          .update({
-            retainer_remaining: retainerTotal,
-            retainer_cycle_start: nextCycleStartStr,
-            updated_at: new Date().toISOString(),
-          })
+          .update(update)
           .eq("id", client.id);
 
         if (updateError) throw updateError;
@@ -104,6 +143,7 @@ Deno.serve(async (req) => {
         resetCount++;
       }
     }
+
 
     return new Response(
       JSON.stringify({ success: true, reset: resetCount }),
