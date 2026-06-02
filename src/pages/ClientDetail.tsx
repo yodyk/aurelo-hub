@@ -807,6 +807,12 @@ export default function ClientDetail() {
               </>
             )}
 
+            {activeTab === "tasks" && workspaceId && clientId && (
+              <ChecklistsTab clientId={clientId} workspaceId={workspaceId} />
+            )}
+
+
+
             {activeTab === "docs" && (
               <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
                 <div className="lg:col-span-3 min-w-0">
