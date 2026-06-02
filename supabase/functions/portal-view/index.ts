@@ -411,6 +411,8 @@ Deno.serve(async (req) => {
         model: client.model,
         status: client.status,
         portalGreeting: client.portal_greeting || null,
+        retainerCycleStart: client.retainer_cycle_start || null,
+        retainerCycleDays: client.retainer_cycle_days || 30,
         ...(showCosts ? {
           rate: client.rate,
           retainerTotal: client.retainer_total,
