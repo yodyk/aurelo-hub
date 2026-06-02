@@ -820,7 +820,36 @@
 ::-webkit-scrollbar-corner { background: transparent; }
 
 /* ── Smooth scrolling + tactile body feel ── */
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; scrollbar-gutter: stable; }
+
+/* ── Horizontal tab/chip scrollers ──
+   Locks gesture to horizontal pan so vertical swipes don't fight
+   page scroll, and hides any incidental vertical bar. */
+.tab-scroll {
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  overscroll-behavior-y: auto;
+  touch-action: pan-x;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.tab-scroll::-webkit-scrollbar { height: 0; width: 0; display: none; }
+
+/* ── Mobile scroll-lock stability ──
+   Radix dialogs/sheets/dropdowns lock body scroll. On mobile this can
+   shift layout and flicker animated backgrounds. Force a stable lock
+   without position:fixed jumps and disable smooth-scroll during lock. */
+@media (max-width: 768px) {
+  html:has(body[data-scroll-locked]) { scroll-behavior: auto; }
+  body[data-scroll-locked] {
+    position: static !important;
+    overflow: hidden !important;
+    margin-right: 0 !important;
+    padding-right: 0 !important;
+    top: auto !important;
+    left: auto !important;
+  }
+}
 
 /* ── Respect reduced motion preference ── */
 @media (prefers-reduced-motion: reduce) {
