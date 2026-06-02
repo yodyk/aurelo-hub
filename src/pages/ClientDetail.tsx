@@ -140,7 +140,7 @@ function updateRetainerPlanning(customFields: any, updates: { pendingCarryoverHo
 }
 
 // ── Tab definitions (5-tab altitude model) ──────────────────────────
-type TabId = "overview" | "work" | "docs" | "billing" | "portal";
+type TabId = "overview" | "work" | "tasks" | "docs" | "billing" | "portal";
 
 type TabDef = { id: TabId; label: string };
 
@@ -148,6 +148,7 @@ function getTabsForClient(_client: any, canViewFinancials: boolean): TabDef[] {
   const tabs: TabDef[] = [
     { id: "overview", label: "Overview" },
     { id: "work", label: "Work" },
+    { id: "tasks", label: "Tasks" },
     { id: "docs", label: "Docs" },
   ];
   if (canViewFinancials) tabs.push({ id: "billing", label: "Billing" });
@@ -159,6 +160,7 @@ function getTabsForClient(_client: any, canViewFinancials: boolean): TabDef[] {
 const TAB_PRIMARY: Record<TabId, string> = {
   overview: "Add note",
   work: "New project",
+  tasks: "New task",
   docs: "Upload file",
   billing: "New invoice",
   portal: "Copy link",
@@ -664,6 +666,7 @@ export default function ClientDetail() {
               <Plus className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Start timer</span>
             </button>
+            {activeTab !== "tasks" && (
             <button
               onClick={() => {
                 if (activeTab === "work") setShowProjectModal(true);
@@ -680,6 +683,7 @@ export default function ClientDetail() {
                 {activeTab === "portal" && copied ? "Copied" : TAB_PRIMARY[activeTab]}
               </span>
             </button>
+            )}
           </div>
 
         </div>
@@ -792,12 +796,6 @@ export default function ClientDetail() {
                     onEditSession={setEditingSession}
                   />
                 </section>
-                {workspaceId && clientId && (
-                  <section>
-                    <div className="type-eyebrow mb-4">Tasks &amp; checklists</div>
-                    <ChecklistsTab clientId={clientId} workspaceId={workspaceId} />
-                  </section>
-                )}
                 <section>
                   <div className="type-eyebrow mb-4">Recurring rules</div>
                   <RecurringSessionsManager
@@ -808,6 +806,12 @@ export default function ClientDetail() {
                 </section>
               </>
             )}
+
+            {activeTab === "tasks" && workspaceId && clientId && (
+              <ChecklistsTab clientId={clientId} workspaceId={workspaceId} />
+            )}
+
+
 
             {activeTab === "docs" && (
               <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
