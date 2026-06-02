@@ -3495,7 +3495,6 @@ function TimerReminderSettings() {
   const handleRequestPermission = async () => {
     const perm = await requestNotificationPermission();
     setPermission(perm);
-    setPermission(perm);
   };
 
   const toggleInterval = (mins: number) => {
@@ -3503,6 +3502,10 @@ function TimerReminderSettings() {
       ? cfg.intervals.filter((m: number) => m !== mins)
       : [...cfg.intervals, mins].sort((a: number, b: number) => a - b);
     update({ intervals });
+  };
+
+  const removeInterval = (mins: number) => {
+    update({ intervals: cfg.intervals.filter((m: number) => m !== mins) });
   };
 
   const addCustom = () => {
@@ -3518,6 +3521,8 @@ function TimerReminderSettings() {
     const m = mins % 60;
     return m === 0 ? `${h}h` : `${h}h ${m}m`;
   };
+
+  const customIntervals = cfg.intervals.filter((m: number) => !PRESET_INTERVALS.includes(m));
 
   return (
     <SectionCard>
@@ -3536,9 +3541,12 @@ function TimerReminderSettings() {
       )}
 
       {permission === 'denied' && (
-        <div className="px-3 py-3 mb-4 rounded-lg bg-destructive/10 border border-destructive/30">
-          <p className="text-[12px] text-destructive">
-            Notifications are blocked. Please allow notifications for this site in your browser settings.
+        <div className="px-3 py-3 mb-4 rounded-lg bg-destructive/10 border border-destructive/30 space-y-2">
+          <p className="text-[12px] text-destructive" style={{ fontWeight: 600 }}>
+            Notifications are blocked for this site
+          </p>
+          <p className="text-[12px] text-destructive/90">
+            Click the lock or site-info icon in your browser's address bar, find <strong>Notifications</strong>, and switch it to <strong>Allow</strong>. Then refresh this page.
           </p>
         </div>
       )}
@@ -3611,25 +3619,53 @@ function TimerReminderSettings() {
               </div>
 
               {/* Custom interval */}
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  min={1}
-                  max={480}
-                  placeholder="Custom (min)"
-                  value={customMinutes}
-                  onChange={e => setCustomMinutes(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && addCustom()}
-                  className="w-32 px-3 py-1.5 rounded-lg border border-border/60 bg-card text-[12px] text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/30"
-                />
-                <button
-                  onClick={addCustom}
-                  disabled={!customMinutes || parseInt(customMinutes) < 1}
-                  className="px-3 py-1.5 rounded-lg text-[12px] bg-primary/10 text-primary hover:bg-primary/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                  style={{ fontWeight: 500 }}
-                >
-                  Add
-                </button>
+              <div>
+                <div className="text-[12px] text-muted-foreground mb-2" style={{ fontWeight: 600 }}>
+                  Custom intervals
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min={1}
+                    max={480}
+                    placeholder="Minutes"
+                    value={customMinutes}
+                    onChange={e => setCustomMinutes(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && addCustom()}
+                    className="w-32 px-3 py-1.5 rounded-lg border border-border/60 bg-card text-[12px] text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/30"
+                  />
+                  <button
+                    onClick={addCustom}
+                    disabled={!customMinutes || parseInt(customMinutes) < 1}
+                    className="px-3 py-1.5 rounded-lg text-[12px] bg-primary/10 text-primary hover:bg-primary/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    style={{ fontWeight: 500 }}
+                  >
+                    Add
+                  </button>
+                </div>
+
+                {customIntervals.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {customIntervals.map((mins: number) => (
+                      <span
+                        key={mins}
+                        className="inline-flex items-center gap-1.5 pl-3 pr-1.5 py-1 rounded-lg text-[12px] bg-primary/10 border border-primary/30 text-primary"
+                        style={{ fontWeight: 600 }}
+                      >
+                        {formatLabel(mins)}
+                        <button
+                          onClick={() => removeInterval(mins)}
+                          className="w-5 h-5 rounded flex items-center justify-center hover:bg-primary/20 transition-colors"
+                          aria-label={`Remove ${formatLabel(mins)} reminder`}
+                          title="Remove"
+                          style={{ cursor: 'pointer' }}
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Active reminders summary */}
@@ -3643,6 +3679,31 @@ function TimerReminderSettings() {
                   Select at least one interval to receive timer reminders
                 </div>
               )}
+
+              {/* OS-level help */}
+              <details className="group rounded-lg border border-border/60 bg-card/60">
+                <summary className="cursor-pointer list-none px-3 py-2 text-[12px] text-foreground flex items-center justify-between" style={{ fontWeight: 600 }}>
+                  <span>Not seeing notifications? Check your OS settings</span>
+                  <span className="text-muted-foreground group-open:rotate-180 transition-transform">⌄</span>
+                </summary>
+                <div className="px-3 pb-3 pt-1 space-y-3 text-[12px] text-muted-foreground leading-relaxed">
+                  <div>
+                    <div className="text-foreground mb-1" style={{ fontWeight: 600 }}>macOS</div>
+                    Open <strong>System Settings → Notifications</strong>, find your browser (Chrome, Safari, Arc, etc.), and turn on <strong>Allow notifications</strong>. Set the alert style to <strong>Banners</strong> or <strong>Alerts</strong>. Also disable <strong>Do Not Disturb</strong> / Focus modes from the Control Center.
+                  </div>
+                  <div>
+                    <div className="text-foreground mb-1" style={{ fontWeight: 600 }}>Windows</div>
+                    Open <strong>Settings → System → Notifications</strong>, make sure notifications are on, then scroll to your browser and toggle it on. Turn off <strong>Focus Assist</strong> / <strong>Do Not Disturb</strong> if active.
+                  </div>
+                  <div>
+                    <div className="text-foreground mb-1" style={{ fontWeight: 600 }}>Browser site permission</div>
+                    Click the lock or site-info icon in the address bar, find <strong>Notifications</strong>, and set it to <strong>Allow</strong>. Refresh the page after changing.
+                  </div>
+                  <div className="pt-1 border-t border-border/60 text-[11px]">
+                    Note: on macOS, desktop notifications display your browser's icon (Chrome, Safari, etc.) next to the Aurelo mark — this is an OS limitation that only changes if Aurelo is installed as a standalone app.
+                  </div>
+                </div>
+              </details>
             </div>
           </motion.div>
         )}
