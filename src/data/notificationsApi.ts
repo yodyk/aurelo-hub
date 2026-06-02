@@ -143,7 +143,7 @@ export async function upsertPreference(params: {
       frequency: params.frequency || 'instant',
       updated_at: new Date().toISOString(),
     }, { onConflict: 'workspace_id,user_id,category' });
-  if (error) console.error('[notificationsApi] upsertPreference:', error);
+  if (error) { console.error('[notificationsApi] upsertPreference:', error); throw error; }
 }
 
 // ── Recipients ──────────────────────────────────────────────────────
