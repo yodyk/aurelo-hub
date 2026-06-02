@@ -796,12 +796,6 @@ export default function ClientDetail() {
                     onEditSession={setEditingSession}
                   />
                 </section>
-                {workspaceId && clientId && (
-                  <section>
-                    <div className="type-eyebrow mb-4">Tasks &amp; checklists</div>
-                    <ChecklistsTab clientId={clientId} workspaceId={workspaceId} />
-                  </section>
-                )}
                 <section>
                   <div className="type-eyebrow mb-4">Recurring rules</div>
                   <RecurringSessionsManager
