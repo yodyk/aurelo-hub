@@ -333,6 +333,7 @@ export type Database = {
           portal_greeting: string | null
           priority_level: string | null
           rate: number
+          retainer_carryover_hours: number
           retainer_cycle_days: number
           retainer_cycle_start: string | null
           retainer_remaining: number | null
@@ -366,6 +367,7 @@ export type Database = {
           portal_greeting?: string | null
           priority_level?: string | null
           rate?: number
+          retainer_carryover_hours?: number
           retainer_cycle_days?: number
           retainer_cycle_start?: string | null
           retainer_remaining?: number | null
@@ -399,6 +401,7 @@ export type Database = {
           portal_greeting?: string | null
           priority_level?: string | null
           rate?: number
+          retainer_carryover_hours?: number
           retainer_cycle_days?: number
           retainer_cycle_start?: string | null
           retainer_remaining?: number | null

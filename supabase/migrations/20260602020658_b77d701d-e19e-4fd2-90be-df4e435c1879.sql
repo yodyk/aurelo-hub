@@ -1,0 +1,1 @@
+ALTER TABLE public.clients ADD COLUMN IF NOT EXISTS retainer_carryover_hours numeric NOT NULL DEFAULT 0;
