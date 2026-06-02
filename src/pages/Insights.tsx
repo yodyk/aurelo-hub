@@ -539,7 +539,7 @@ export default function Insights() {
         <div className={!hasFullInsights ? "select-none pointer-events-none" : ""}>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-4">
             <SectionLabel pro={!hasFullInsights}>Client rankings</SectionLabel>
-            <div className="flex gap-1 overflow-x-auto pb-1 -mx-1 px-1">
+            <div className="flex gap-1 overflow-x-auto pb-1 -mx-1 px-1 tab-scroll">
               {([
                 { key: "revenue" as SortKey, label: "Earnings" },
                 { key: "trueHourlyRate" as SortKey, label: "Eff. rate" },
