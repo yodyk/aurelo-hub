@@ -1887,21 +1887,58 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
   const [cycleStart, setCycleStart] = useState(client.retainerCycleStart || '');
   const [cycleDays, setCycleDays] = useState(client.retainerCycleDays || 30);
   const retainerPlanning = getRetainerPlanning(client.customFields);
-  const scheduledCarryoverHours = Math.max(0, Number(retainerPlanning.pendingCarryoverHours || 0));
+  const carryoverCap = Math.max(0, Number(retainerPlanning.pendingCarryoverHours || 0));
   const scheduledBaseHours = Math.max(0, Number(retainerPlanning.nextCycleBaseHours ?? client.retainerTotal ?? 0));
   const [editingResetPlan, setEditingResetPlan] = useState(false);
   const [plannedBaseHours, setPlannedBaseHours] = useState(String(scheduledBaseHours));
-  const [plannedCarryoverHours, setPlannedCarryoverHours] = useState(String(scheduledCarryoverHours));
+  const [plannedCarryoverHours, setPlannedCarryoverHours] = useState(String(carryoverCap));
+
+  // "Add hours to current cycle" state
+  const [addOpen, setAddOpen] = useState(false);
+  const [addAmount, setAddAmount] = useState('');
+  const [addUnit, setAddUnit] = useState<'hours' | 'percent'>('hours');
+  const [adding, setAdding] = useState(false);
 
   const hoursUsed = (client.retainerTotal || 0) - (client.retainerRemaining || 0);
   const usagePct = client.retainerTotal ? Math.round((hoursUsed / client.retainerTotal) * 100) : 0;
   const retainerStatus = client.retainerStatus || 'active';
-  const nextCycleHours = Math.max(0, (Number(plannedBaseHours) || 0) + (Number(plannedCarryoverHours) || 0));
+  // Effective carry-over preview: capped by what's actually left in the current cycle.
+  const previewEffectiveCarryover = Math.min(
+    Math.max(0, Number(plannedCarryoverHours) || 0),
+    Math.max(0, Number(client.retainerRemaining || 0)),
+  );
+  const nextCycleHours = Math.max(0, (Number(plannedBaseHours) || 0) + previewEffectiveCarryover);
+
+  // Compute the "Add hours" preview
+  const addAmountNum = Math.max(0, Number(addAmount) || 0);
+  const baseForPct = Number(client.retainerTotal || 0);
+  const addHoursDelta = addUnit === 'percent'
+    ? Math.round((baseForPct * addAmountNum / 100) * 100) / 100
+    : Math.round(addAmountNum * 100) / 100;
 
   useEffect(() => {
     setPlannedBaseHours(String(scheduledBaseHours));
-    setPlannedCarryoverHours(String(scheduledCarryoverHours));
-  }, [scheduledBaseHours, scheduledCarryoverHours, client.id]);
+    setPlannedCarryoverHours(String(carryoverCap));
+  }, [scheduledBaseHours, carryoverCap, client.id]);
+
+  const handleAddHours = async () => {
+    if (addHoursDelta <= 0) return;
+    setAdding(true);
+    try {
+      await onUpdateClient({
+        retainerTotal: Math.round(((Number(client.retainerTotal) || 0) + addHoursDelta) * 100) / 100,
+        retainerRemaining: Math.round(((Number(client.retainerRemaining) || 0) + addHoursDelta) * 100) / 100,
+      });
+      toast.success(`Added ${addHoursDelta}h to this cycle`);
+      setAddAmount('');
+      setAddOpen(false);
+    } catch {
+      toast.error('Failed to add hours');
+    } finally {
+      setAdding(false);
+    }
+  };
+
 
   // Load retainer history
   useEffect(() => {
