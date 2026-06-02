@@ -1992,6 +1992,7 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
       await onUpdateClient({
         retainerTotal: nextCycleTotal,
         retainerRemaining: nextCycleTotal,
+        retainerCarryoverHours: effectiveCarryover,
         retainerCycleStart: todayStr,
         // Clear the one-time base override, keep the carry-over cap as a recurring contract setting.
         customFields: updateRetainerPlanning(client.customFields, {
