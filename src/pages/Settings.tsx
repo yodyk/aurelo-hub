@@ -3541,9 +3541,12 @@ function TimerReminderSettings() {
       )}
 
       {permission === 'denied' && (
-        <div className="px-3 py-3 mb-4 rounded-lg bg-destructive/10 border border-destructive/30">
-          <p className="text-[12px] text-destructive">
-            Notifications are blocked. Please allow notifications for this site in your browser settings.
+        <div className="px-3 py-3 mb-4 rounded-lg bg-destructive/10 border border-destructive/30 space-y-2">
+          <p className="text-[12px] text-destructive" style={{ fontWeight: 600 }}>
+            Notifications are blocked for this site
+          </p>
+          <p className="text-[12px] text-destructive/90">
+            Click the lock or site-info icon in your browser's address bar, find <strong>Notifications</strong>, and switch it to <strong>Allow</strong>. Then refresh this page.
           </p>
         </div>
       )}
