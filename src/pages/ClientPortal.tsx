@@ -45,6 +45,8 @@ interface PortalClient {
   retainerTotal?: number;
   retainerRemaining?: number;
   retainerCarryoverHours?: number;
+  retainerCycleStart?: string | null;
+  retainerCycleDays?: number;
   lifetimeRevenue?: number;
   monthlyEarnings?: number;
   hoursLogged?: number;
@@ -147,10 +149,23 @@ interface PortalQuestion {
   answeredBy: string | null;
 }
 
+interface PortalSession {
+  id: string;
+  date: string;
+  duration: number;
+  task: string | null;
+  notes: string | null;
+  work_tags: string[] | null;
+  billable: boolean;
+  project_id: string | null;
+  revenue?: number;
+}
+
 interface PortalData {
   client: PortalClient;
   projects: PortalProject[];
   invoices: PortalInvoice[];
+  sessions: PortalSession[];
   checklists: PortalChecklist[];
   resources: PortalResource[];
   questions: PortalQuestion[];
@@ -221,7 +236,7 @@ function activityIcon(type: string) {
 
 // ── Portal Page ─────────────────────────────────────────────────────
 
-type PortalTabId = 'home' | 'resources' | 'tasks' | 'billing';
+type PortalTabId = 'home' | 'resources' | 'tasks' | 'retainer' | 'billing';
 
 export default function ClientPortal() {
   const { token } = useParams();
@@ -330,6 +345,7 @@ export default function ClientPortal() {
   const { client, portalUpdate, workspaceOwner, showCosts, branding } = data;
   const projects = data.projects ?? [];
   const invoices = data.invoices ?? [];
+  const sessions = data.sessions ?? [];
   const checklists = data.checklists ?? [];
   const resources = data.resources ?? [];
   const questions = data.questions ?? [];
@@ -343,8 +359,14 @@ export default function ClientPortal() {
     { id: 'home', label: 'Home', count: waitingOnYou.length || undefined },
     { id: 'resources', label: 'Resources', count: pendingResources || resources.length || undefined },
     { id: 'tasks', label: 'Tasks', count: checklists.reduce((a, c) => a + c.items.filter(i => i.status !== 'complete').length, 0) || undefined },
+    ...(isRetainer ? [{ id: 'retainer' as PortalTabId, label: 'Retainer' }] : []),
     { id: 'billing', label: 'Billing', count: invoices.filter(i => ['sent','issued','overdue'].includes(i.status.toLowerCase())).length || undefined },
   ];
+
+  // Guard: if user is on retainer tab but retainer was disabled, fall back to home.
+  if (tab === 'retainer' && !isRetainer) {
+    setTimeout(() => setTab('home'), 0);
+  }
 
   return (
     <div
@@ -491,6 +513,17 @@ export default function ClientPortal() {
               {tab === 'tasks' && (
                 <TasksTab checklists={checklists} accent={accent} token={token!} />
               )}
+
+              {tab === 'retainer' && isRetainer && (
+                <RetainerTab
+                  client={client}
+                  sessions={sessions}
+                  projects={projects}
+                  showCosts={showCosts}
+                  accent={accent}
+                />
+              )}
+
 
               {tab === 'billing' && (
                 <BillingTab
@@ -830,6 +863,124 @@ function RetainerCard({ total, remaining, carryover = 0, accent }: { total: numb
     </section>
   );
 }
+
+// ── Retainer Tab ────────────────────────────────────────────────────
+
+function RetainerTab({
+  client, sessions, projects, showCosts, accent,
+}: {
+  client: PortalClient;
+  sessions: PortalSession[];
+  projects: PortalProject[];
+  showCosts: boolean;
+  accent: string;
+}) {
+  const cycleStart = client.retainerCycleStart || null;
+  const cycleDays = client.retainerCycleDays || 30;
+  const startDate = cycleStart ? new Date(cycleStart + 'T00:00:00') : null;
+  const endDate = startDate ? new Date(startDate.getTime() + cycleDays * 86400000) : null;
+
+  // Filter sessions to this cycle window
+  const cycleSessions = sessions.filter(s => {
+    if (!startDate || !endDate) return false;
+    try {
+      const d = new Date(s.date + 'T00:00:00');
+      return d >= startDate && d < endDate;
+    } catch { return false; }
+  }).sort((a, b) => (a.date < b.date ? 1 : -1));
+
+  const projectName = (pid: string | null) => projects.find(p => p.id === pid)?.name || null;
+  const totalHours = cycleSessions.reduce((a, s) => a + (Number(s.duration) || 0), 0);
+
+  return (
+    <div className="space-y-6">
+      <RetainerCard
+        total={client.retainerTotal || 0}
+        remaining={client.retainerRemaining || 0}
+        carryover={client.retainerCarryoverHours || 0}
+        accent={accent}
+      />
+
+      {/* Cycle window */}
+      {startDate && endDate && (
+        <div
+          className="rounded border p-4 flex items-center justify-between"
+          style={{ borderColor: 'var(--portal-hairline)', backgroundColor: 'var(--portal-surface)' }}
+        >
+          <div>
+            <div className="text-[11px] uppercase tracking-wide" style={{ color: 'var(--portal-subtle)', fontWeight: 600 }}>Current cycle</div>
+            <div className="text-[13px] font-display font-semibold mt-0.5" style={{ color: 'var(--portal-ink)' }}>
+              {format(startDate, 'MMM d, yyyy')} → {format(endDate, 'MMM d, yyyy')}
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-[11px] uppercase tracking-wide" style={{ color: 'var(--portal-subtle)', fontWeight: 600 }}>Logged this cycle</div>
+            <div className="text-[13px] font-display font-semibold tabular-nums mt-0.5" style={{ color: 'var(--portal-ink)' }}>
+              {fmtHours(totalHours)} · {cycleSessions.length} {cycleSessions.length === 1 ? 'session' : 'sessions'}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Sessions in this cycle */}
+      <section>
+        <SectionTitle icon={Clock} title="Sessions this cycle" count={cycleSessions.length || undefined} accent={accent} />
+        {cycleSessions.length === 0 ? (
+          <div
+            className="rounded border p-10 text-center"
+            style={{ borderColor: 'var(--portal-hairline)', backgroundColor: 'var(--portal-surface)' }}
+          >
+            <Clock className="w-7 h-7 mx-auto mb-3" style={{ color: 'var(--portal-subtle)' }} />
+            <p className="text-[14px] font-display font-semibold" style={{ color: 'var(--portal-ink)' }}>No sessions logged yet</p>
+            <p className="text-[12.5px] mt-1" style={{ color: 'var(--portal-muted)' }}>Sessions logged against this retainer will appear here.</p>
+          </div>
+        ) : (
+          <div
+            className="rounded border divide-y"
+            style={{ borderColor: 'var(--portal-hairline)', backgroundColor: 'var(--portal-surface)' }}
+          >
+            {cycleSessions.map(s => {
+              const pName = projectName(s.project_id);
+              return (
+                <div key={s.id} className="p-4 flex items-start justify-between gap-4">
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[13px] font-display font-semibold truncate" style={{ color: 'var(--portal-ink)' }}>
+                      {s.task || 'Untitled session'}
+                    </div>
+                    <div className="text-[11.5px] mt-1 flex items-center gap-2 flex-wrap" style={{ color: 'var(--portal-muted)' }}>
+                      <span className="tabular-nums">{format(new Date(s.date + 'T00:00:00'), 'MMM d, yyyy')}</span>
+                      {pName && (
+                        <>
+                          <span style={{ color: 'var(--portal-subtle)' }}>·</span>
+                          <span className="truncate">{pName}</span>
+                        </>
+                      )}
+                      {(s.work_tags || []).slice(0, 3).map(t => (
+                        <span key={t} className="text-[10.5px] px-1.5 py-0.5 rounded" style={{ backgroundColor: 'var(--portal-soft)', color: 'var(--portal-subtle)' }}>{t}</span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div className="text-[13px] font-display font-semibold tabular-nums" style={{ color: 'var(--portal-ink)' }}>
+                      {fmtHours(Number(s.duration) || 0)}
+                    </div>
+                    {showCosts && s.revenue != null && (
+                      <div className="text-[11px] tabular-nums mt-0.5" style={{ color: 'var(--portal-muted)' }}>
+                        {fmt$(s.revenue)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
+
 
 // ── Contact Card ────────────────────────────────────────────────────
 
