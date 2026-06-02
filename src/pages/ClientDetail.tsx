@@ -276,11 +276,11 @@ export default function ClientDetail() {
     const map: Record<string, { label: string; color: string; icon: string }> = {
       sent: { label: 'Sent', color: 'hsl(var(--muted-foreground))', icon: '→' },
       delivered: { label: 'Delivered', color: 'hsl(142 71% 45%)', icon: '✓' },
-      opened: { label: 'Opened', color: 'hsl(var(--primary))', icon: '👁' },
+      opened: { label: 'Opened', color: 'var(--primary)', icon: '👁' },
       bounced: { label: 'Bounced', color: 'hsl(var(--destructive))', icon: '✕' },
       complained: { label: 'Complained', color: 'hsl(var(--destructive))', icon: '⚠' },
       delayed: { label: 'Delayed', color: 'hsl(45 60% 50%)', icon: '⏳' },
-      clicked: { label: 'Clicked', color: 'hsl(var(--primary))', icon: '↗' },
+      clicked: { label: 'Clicked', color: 'var(--primary)', icon: '↗' },
     };
     return map[status.event_type] || { label: status.event_type, color: 'hsl(var(--muted-foreground))', icon: '?' };
   };
@@ -2089,10 +2089,10 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
               {/* Segmented bar: carryover first (amber), then base (accent). Hatched = used. */}
               <div className="relative h-3 bg-accent/60 rounded-circle overflow-hidden flex">
                 {carryover > 0 && (
-                  <div className="h-full relative" style={{ width: `${carryoverPct}%`, backgroundColor: 'hsl(var(--warning) / 0.18)' }}>
+                  <div className="h-full relative" style={{ width: `${carryoverPct}%`, backgroundColor: 'color-mix(in srgb, var(--warning) 18%, transparent)' }}>
                     <motion.div
                       className="absolute inset-y-0 left-0"
-                      style={{ backgroundColor: 'hsl(var(--warning))' }}
+                      style={{ backgroundColor: 'var(--warning)' }}
                       initial={{ width: 0 }}
                       animate={{ width: carryover > 0 ? `${(carryoverUsed / carryover) * 100}%` : '0%' }}
                       transition={{ delay: 0.3, duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
@@ -2113,12 +2113,12 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
               {carryover > 0 && (
                 <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-[11.5px] text-muted-foreground">
                   <span className="inline-flex items-center gap-1.5">
-                    <span className="inline-block w-2 h-2 rounded-circle" style={{ backgroundColor: 'hsl(var(--warning))' }} />
+                    <span className="inline-block w-2 h-2 rounded-circle" style={{ backgroundColor: 'var(--warning)' }} />
                     Rollover (used first): <span className="text-foreground tabular-nums" style={{ fontWeight: 500 }}>{Math.round(carryoverUsed * 100) / 100}h</span> / {Math.round(carryover * 100) / 100}h
                     {carryoverRemaining > 0 && <span className="text-muted-foreground">· {Math.round(carryoverRemaining * 100) / 100}h left</span>}
                   </span>
                   <span className="inline-flex items-center gap-1.5">
-                    <span className="inline-block w-2 h-2 rounded-circle" style={{ backgroundColor: 'hsl(var(--primary))' }} />
+                    <span className="inline-block w-2 h-2 rounded-circle" style={{ backgroundColor: 'var(--primary)' }} />
                     This cycle: <span className="text-foreground tabular-nums" style={{ fontWeight: 500 }}>{Math.round(baseUsed * 100) / 100}h</span> / {Math.round(base * 100) / 100}h
                     {baseRemaining > 0 && <span className="text-muted-foreground">· {Math.round(baseRemaining * 100) / 100}h left</span>}
                   </span>
