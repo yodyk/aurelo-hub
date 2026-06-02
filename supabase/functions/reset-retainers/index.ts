@@ -128,6 +128,7 @@ Deno.serve(async (req) => {
         const update: Record<string, unknown> = {
           retainer_total: nextCycleTotal,
           retainer_remaining: nextCycleTotal,
+          retainer_carryover_hours: effectiveCarryover,
           retainer_cycle_start: nextCycleStartStr,
           updated_at: new Date().toISOString(),
         };

@@ -415,11 +415,13 @@ Deno.serve(async (req) => {
           rate: client.rate,
           retainerTotal: client.retainer_total,
           retainerRemaining: client.retainer_remaining,
+          retainerCarryoverHours: client.retainer_carryover_hours || 0,
           lifetimeRevenue: client.lifetime_revenue,
           monthlyEarnings: client.monthly_earnings,
         } : {
           retainerTotal: client.retainer_total,
           retainerRemaining: client.retainer_remaining,
+          retainerCarryoverHours: client.retainer_carryover_hours || 0,
         }),
         hoursLogged: client.hours_logged,
       },
