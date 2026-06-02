@@ -642,7 +642,7 @@ function TaskRow({
 function StatusPill({ status, onSelect, onCycle }: { status: TaskStatus; onSelect: (s: TaskStatus) => void; onCycle?: () => void }) {
   const [open, setOpen] = useState(false);
   const cfg = STATUS_BY_VALUE[status];
-  const StatusIcon = cfg.icon;
+
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
