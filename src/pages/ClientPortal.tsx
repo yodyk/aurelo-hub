@@ -345,6 +345,7 @@ export default function ClientPortal() {
   const { client, portalUpdate, workspaceOwner, showCosts, branding } = data;
   const projects = data.projects ?? [];
   const invoices = data.invoices ?? [];
+  const sessions = data.sessions ?? [];
   const checklists = data.checklists ?? [];
   const resources = data.resources ?? [];
   const questions = data.questions ?? [];
@@ -358,8 +359,14 @@ export default function ClientPortal() {
     { id: 'home', label: 'Home', count: waitingOnYou.length || undefined },
     { id: 'resources', label: 'Resources', count: pendingResources || resources.length || undefined },
     { id: 'tasks', label: 'Tasks', count: checklists.reduce((a, c) => a + c.items.filter(i => i.status !== 'complete').length, 0) || undefined },
+    ...(isRetainer ? [{ id: 'retainer' as PortalTabId, label: 'Retainer' }] : []),
     { id: 'billing', label: 'Billing', count: invoices.filter(i => ['sent','issued','overdue'].includes(i.status.toLowerCase())).length || undefined },
   ];
+
+  // Guard: if user is on retainer tab but retainer was disabled, fall back to home.
+  if (tab === 'retainer' && !isRetainer) {
+    setTimeout(() => setTab('home'), 0);
+  }
 
   return (
     <div
