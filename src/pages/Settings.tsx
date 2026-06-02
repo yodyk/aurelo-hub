@@ -3495,7 +3495,6 @@ function TimerReminderSettings() {
   const handleRequestPermission = async () => {
     const perm = await requestNotificationPermission();
     setPermission(perm);
-    setPermission(perm);
   };
 
   const toggleInterval = (mins: number) => {
@@ -3503,6 +3502,10 @@ function TimerReminderSettings() {
       ? cfg.intervals.filter((m: number) => m !== mins)
       : [...cfg.intervals, mins].sort((a: number, b: number) => a - b);
     update({ intervals });
+  };
+
+  const removeInterval = (mins: number) => {
+    update({ intervals: cfg.intervals.filter((m: number) => m !== mins) });
   };
 
   const addCustom = () => {
@@ -3518,6 +3521,8 @@ function TimerReminderSettings() {
     const m = mins % 60;
     return m === 0 ? `${h}h` : `${h}h ${m}m`;
   };
+
+  const customIntervals = cfg.intervals.filter((m: number) => !PRESET_INTERVALS.includes(m));
 
   return (
     <SectionCard>
