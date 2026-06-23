@@ -1350,7 +1350,7 @@ export function AddProjectModal({ open, onClose, onSave, clients, preSelectedCli
     ? Math.round((new Date(endDate + 'T00:00:00').getTime() - new Date(startDate + 'T00:00:00').getTime()) / (1000 * 60 * 60 * 24))
     : 0;
   const timelineWeeks = timelineDays > 0 ? Math.round(timelineDays / 7) : 0;
-  const weeklyHours = timelineWeeks > 0 && hoursNum > 0 ? (hoursNum / timelineWeeks).toFixed(1) : null;
+  const weeklyHours = timelineWeeks > 0 && hoursNum > 0 ? hoursNum / timelineWeeks : null;
 
   const formatDateDisplay = (dateStr: string) => {
     if (!dateStr) return '';
