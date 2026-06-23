@@ -17,7 +17,7 @@ import { usePlan } from "../data/PlanContext";
 import RecurringSessionsManager from "../components/RecurringSessionsManager";
 import { PageHeader, SegmentedControl, type SegmentOption } from "@/components/primitives/composition";
 import { useRoleAccess } from "@/data/useRoleAccess";
-import { formatMoney } from "@/lib/format";
+import { formatMoney, fmtH } from '@/lib/format';
 import { EmptyState } from "@/components/primitives/EmptyState";
 
 
@@ -257,14 +257,14 @@ export default function TimeLog() {
         subtitle={
           canViewFinancials ? (
             <span className="tabular-nums">
-              {weekStats.hours}h this week
+              {fmtH(weekStats.hours)}h this week
               <span className="opacity-40 mx-1.5">·</span>
-              {weekStats.billableHours}h billable
+              {fmtH(weekStats.billableHours)}h billable
               <span className="opacity-40 mx-1.5">·</span>
               {formatMoney(weekStats.accrued, { precision: "compact" })} accrued
             </span>
           ) : (
-            <span className="tabular-nums">{weekStats.hours}h this week</span>
+            <span className="tabular-nums">{fmtH(weekStats.hours)}h this week</span>
           )
         }
         actions={
@@ -462,7 +462,7 @@ export default function TimeLog() {
                   <div className="sticky top-[64px] z-10 bg-background flex items-baseline justify-between gap-3 py-2 border-b border-[var(--hairline)]">
                     <div className="type-eyebrow">{group.label}</div>
                     <div className="type-meta text-muted-foreground tabular-nums">
-                      {group.totalHours}h
+                      {fmtH(group.totalHours)}h
                       {canViewFinancials && (
                         <>
                           <span className="opacity-40 mx-1.5">·</span>
@@ -502,7 +502,7 @@ export default function TimeLog() {
 
                           {/* Hours + revenue — on mobile, anchor to the right of the top row */}
                           <div className="ml-auto lg:hidden flex items-center gap-3 tabular-nums text-[13px]" style={{ fontWeight: 500 }}>
-                            <span>{session.duration}h</span>
+                            <span>{fmtH(session.duration)}h</span>
                             {canViewFinancials && <span style={{ fontWeight: 600 }}>${session.revenue}</span>}
                           </div>
 
@@ -539,7 +539,7 @@ export default function TimeLog() {
 
                           {/* Desktop hours + revenue */}
                           <div className="hidden lg:block text-right tabular-nums w-14 text-[13px]" style={{ fontWeight: 500 }}>
-                            {session.duration}h
+                            {fmtH(session.duration)}h
                           </div>
                           {canViewFinancials && (
                             <div className="hidden lg:block text-right tabular-nums w-20 text-[13px]" style={{ fontWeight: 600 }}>

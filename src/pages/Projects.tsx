@@ -7,7 +7,7 @@ import { AddProjectModal } from "../components/Modals";
 import { toast } from '@/lib/toast';
 import { usePlan } from "../data/PlanContext";
 import { LimitEnforcementModal } from "../components/PlanEnforcement";
-import { formatMoney } from "@/lib/format";
+import { formatMoney, fmtH } from '@/lib/format';
 import { EmptyState } from "@/components/primitives/EmptyState";
 
 
@@ -226,9 +226,9 @@ export default function Projects() {
             </div>
           </div>
           <div className="text-[32px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 600 }}>
-            {totalHoursLogged}h
+            {fmtH(totalHoursLogged)}h
           </div>
-          <div className="text-[12px] text-muted-foreground mt-1.5">of {totalEstimated}h estimated</div>
+          <div className="text-[12px] text-muted-foreground mt-1.5">of {fmtH(totalEstimated)}h estimated</div>
         </div>
 
         <div className="stat-card">
@@ -414,7 +414,7 @@ export default function Projects() {
                             className="text-[12px] text-muted-foreground tabular-nums flex-shrink-0"
                             style={{ fontWeight: 500 }}
                           >
-                            {project.hours}/{project.estimatedHours}h
+                            {project.hours}/{fmtH(project.estimatedHours)}h
                           </span>
                         </div>
                       </td>

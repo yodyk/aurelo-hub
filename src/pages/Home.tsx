@@ -28,7 +28,7 @@ import { motion } from "motion/react";
 
 import { useData } from "../data/DataContext";
 import { useAuth } from "../data/AuthContext";
-import { formatMoney, formatPercent, formatDate, formatCount } from "@/lib/format";
+import { formatMoney, formatPercent, formatDate, formatCount, fmtH } from '@/lib/format';
 
 import * as settingsApi from "../data/settingsApi";
 import * as invoiceApi from "../data/invoiceApi";
@@ -295,7 +295,7 @@ export default function Today() {
         icon: <Timer className="w-3.5 h-3.5" />,
         tone: r.pct >= 0.9 ? "danger" : "warning",
         title: `${r.name} — ${Math.round(r.pct * 100)}% retainer used`,
-        detail: `${r.remaining}h remaining of ${r.total}h`,
+        detail: `${fmtH(r.remaining)}h remaining of ${fmtH(r.total)}h`,
         onClick: () => navigate(`/clients/${r.id}`),
       });
     }
@@ -313,7 +313,7 @@ export default function Today() {
           icon: <TrendingDown className="w-3.5 h-3.5" />,
           tone: severe ? "danger" : "warning",
           title: `${client.name} — ${p.name} at ${formatMoney(effRate, { precision: "compact" })}/hr`,
-          detail: `Below your ${formatMoney(client.rate, { precision: "compact" })}/hr rate · ${p.hours}h on ${formatMoney(p.totalValue)}`,
+          detail: `Below your ${formatMoney(client.rate, { precision: "compact" })}/hr rate · ${fmtH(p.hours)}h on ${formatMoney(p.totalValue)}`,
 
           onClick: () => navigate(`/clients/${p.clientId}`),
         });
@@ -490,9 +490,9 @@ export default function Today() {
             trailing={
               <>
                 <span className="text-foreground tabular-nums" style={{ fontWeight: 500 }}>
-                  {Math.round(weekHours * 10) / 10}h
+                  {fmtH(Math.round(weekHours * 10) / 10)}h
                 </span>
-                <span className="ml-1">of {weeklyTarget}h</span>
+                <span className="ml-1">of {fmtH(weeklyTarget)}h</span>
               </>
             }
           >
@@ -516,7 +516,7 @@ export default function Today() {
                 <div key={d.label} className="flex-1 flex flex-col items-center gap-0">
                   <div className="relative w-full flex items-end justify-center" style={{ height: 56 }}>
                     {d.hours > 0 && (
-                      <span className="absolute -top-1 type-meta tabular-nums">{Math.round(d.hours * 10) / 10}h</span>
+                      <span className="absolute -top-1 type-meta tabular-nums">{fmtH(Math.round(d.hours * 10) / 10)}h</span>
                     )}
                     <div
                       className="w-full max-w-[28px] transition-all duration-500"
@@ -580,7 +580,7 @@ export default function Today() {
                         <div className="type-meta truncate">{p.clientName}</div>
                       </div>
                       <span className="type-meta tabular-nums flex-shrink-0">
-                        {p.hours || 0}h{p.estimatedHours ? ` / ${p.estimatedHours}h` : ""}
+                        {fmtH(p.hours || 0)}h{p.estimatedHours ? ` / ${fmtH(p.estimatedHours)}h` : ""}
                       </span>
                     </div>
                     {p.estimatedHours > 0 && <HairlineBar value={p.completion} threshold height={1} />}
@@ -624,7 +624,7 @@ export default function Today() {
                             <div className="type-meta truncate">{s.client}</div>
                           </div>
                           <div className="text-right flex-shrink-0">
-                            <div className="type-body tabular-nums" style={{ fontWeight: 500 }}>{s.duration}h</div>
+                            <div className="type-body tabular-nums" style={{ fontWeight: 500 }}>{fmtH(s.duration)}h</div>
                             {canViewFinancials && (s.revenue ?? 0) > 0 && (
                               <div className="type-meta tabular-nums">${s.revenue}</div>
                             )}
@@ -657,7 +657,7 @@ export default function Today() {
                         background: CATEGORY_HUES[cat.category] || "var(--muted-foreground)",
                         opacity: 0.7,
                       }}
-                      title={`${cat.category} · ${cat.hours}h`}
+                      title={`${cat.category} · ${fmtH(cat.hours)}h`}
                     />
                   ))}
                 </div>
@@ -672,7 +672,7 @@ export default function Today() {
                         <span className="type-body truncate">{cat.category}</span>
                       </div>
                       <div className="flex items-baseline gap-3 flex-shrink-0">
-                        <span className="type-body tabular-nums" style={{ fontWeight: 500 }}>{cat.hours}h</span>
+                        <span className="type-body tabular-nums" style={{ fontWeight: 500 }}>{fmtH(cat.hours)}h</span>
                         <span className="type-meta tabular-nums w-8 text-right">{Math.round(cat.pct * 100)}%</span>
                       </div>
                     </li>
@@ -709,7 +709,7 @@ export default function Today() {
                         <div className="flex items-baseline justify-between gap-3 mb-2">
                           <div className="min-w-0">
                             <div className="type-body truncate" style={{ fontWeight: 500 }}>{cr.name}</div>
-                            <div className="type-meta truncate">{cr.hours}h logged</div>
+                            <div className="type-meta truncate">{fmtH(cr.hours)}h logged</div>
                           </div>
                           <div className="text-right flex-shrink-0">
                             <div className="type-body tabular-nums" style={{ fontWeight: 600 }}>

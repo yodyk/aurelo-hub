@@ -12,7 +12,7 @@ import { usePlan } from '@/data/PlanContext';
 import { useRoleAccess } from '@/data/useRoleAccess';
 import { supabase } from '@/integrations/supabase/client';
 import { SettingsSaveBar, UnsavedChangesDialog } from '@/components/SettingsSaveBar';
-import { formatMoney } from '@/lib/format';
+import { formatMoney, fmtH } from '@/lib/format';
 
 import * as settingsApi from '@/data/settingsApi';
 
@@ -730,7 +730,7 @@ export default function ClientEdit() {
                   <div className="flex items-center justify-between text-[13px] mb-2">
                     <span className="text-muted-foreground">Retainer usage</span>
                     <span className="tabular-nums" style={{ fontWeight: 600 }}>
-                      {retainerRemainingNum}h remaining · {retainerUsedPct}% used
+                      {fmtH(retainerRemainingNum)}h remaining · {retainerUsedPct}% used
                     </span>
                   </div>
                   <div className="h-1.5 bg-accent/60 rounded-circle overflow-hidden">

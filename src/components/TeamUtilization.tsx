@@ -4,7 +4,7 @@ import { Users, Clock, DollarSign, TrendingUp, BarChart3 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useData } from "@/data/DataContext";
 import { MemberClientAssignments } from "./ClientAssignmentManager";
-import { formatMoney } from "@/lib/format";
+import { formatMoney, fmtH } from '@/lib/format';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 
 
@@ -80,8 +80,8 @@ export default function TeamUtilization() {
 
   const metricCards = [
     { key: "members", label: "Active members", value: activeMembers.length.toString(), sub: `of ${members.length} total`, icon: Users },
-    { key: "utilization", label: "Billable utilization", value: `${utilizationRate}%`, sub: `${Math.round(billableHours)}h billable`, icon: TrendingUp },
-    { key: "capacity", label: "Avg hours / member", value: avgHoursPerMember.toString(), sub: `of ${totalWeeklyCapacity}h capacity`, icon: Clock },
+    { key: "utilization", label: "Billable utilization", value: `${utilizationRate}%`, sub: `${fmtH(Math.round(billableHours))}h billable`, icon: TrendingUp },
+    { key: "capacity", label: "Avg hours / member", value: avgHoursPerMember.toString(), sub: `of ${fmtH(totalWeeklyCapacity)}h capacity`, icon: Clock },
     { key: "revenue", label: "Team revenue", value: formatMoney(Math.round(totalRevenue), { precision: "compact" }), sub: "this period", icon: DollarSign },
   ];
 
@@ -144,7 +144,7 @@ export default function TeamUtilization() {
                 <span className="text-[13px]" style={{ fontWeight: 500 }}>Billable hours</span>
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-[13px] text-muted-foreground tabular-nums">{Math.round(billableHours)}h</span>
+                <span className="text-[13px] text-muted-foreground tabular-nums">{fmtH(Math.round(billableHours))}h</span>
                 <span className="text-[14px] tabular-nums" style={{ fontWeight: 600 }}>{utilizationRate}%</span>
               </div>
             </div>
@@ -165,7 +165,7 @@ export default function TeamUtilization() {
                 <span className="text-[13px]" style={{ fontWeight: 500 }}>Non-billable hours</span>
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-[13px] text-muted-foreground tabular-nums">{Math.round(nonBillableHours)}h</span>
+                <span className="text-[13px] text-muted-foreground tabular-nums">{fmtH(Math.round(nonBillableHours))}h</span>
                 <span className="text-[14px] tabular-nums" style={{ fontWeight: 600 }}>{totalHours > 0 ? 100 - utilizationRate : 0}%</span>
               </div>
             </div>
@@ -181,7 +181,7 @@ export default function TeamUtilization() {
           <div className="pt-3 border-t border-border">
             <div className="flex justify-between items-baseline mb-2">
               <span className="text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>
-                Weekly capacity ({totalWeeklyCapacity}h total)
+                Weekly capacity ({fmtH(totalWeeklyCapacity)}h total)
               </span>
               <span className="text-[13px] tabular-nums" style={{ fontWeight: 600 }}>{capacityUsed}% used</span>
             </div>
@@ -273,17 +273,17 @@ export default function TeamUtilization() {
                       </TableCell>
                       <TableCell numeric>
                         <span className="text-[13px]" style={{ fontWeight: 500 }}>
-                          {member.weeklyCapacity}h/w
+                          {fmtH(member.weeklyCapacity)}h/w
                         </span>
                         {capacityLabel && (
                           <span className="text-[11px] text-muted-foreground ml-1.5">· {capacityLabel}</span>
                         )}
                       </TableCell>
                       <TableCell numeric className="text-[14px]" style={{ fontWeight: 500 }}>
-                        {Math.round(m.hours * 10) / 10}h
+                        {fmtH(Math.round(m.hours * 10) / 10)}h
                       </TableCell>
                       <TableCell numeric className="text-[14px] text-muted-foreground">
-                        {Math.round(m.billableHours * 10) / 10}h
+                        {fmtH(Math.round(m.billableHours * 10) / 10)}h
                       </TableCell>
                       <TableCell numeric className="text-[14px]" style={{ fontWeight: 500 }}>
                         {formatMoney(Math.round(m.revenue))}

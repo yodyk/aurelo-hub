@@ -1,3 +1,4 @@
+import { fmtH } from '@/lib/format';
 // ── Insights metrics computation ────────────────────────────────────
 
 export interface PerformanceCard {
@@ -323,12 +324,12 @@ export function computeInsightsMetrics(
     ? (rateDiff >= 0
       ? `You're earning $${rateDiff} more per hour than last month`
       : `Down $${Math.abs(rateDiff)}/hr from last month — check if you're logging more non-billable time`)
-    : `Based on ${Math.round(totalHours)}h total`;
+    : `Based on ${fmtH(Math.round(totalHours))}h total`;
 
   const performance: PerformanceCard[] = [
     { key: 'concentration', label: 'Client dependency', value: `${topShare}%`, sub: topClientName || 'top client', detail: topShare > 50 ? 'Most of your income comes from one client — consider diversifying' : 'Your income is spread across multiple clients — healthy', warn: topShare > 50 },
-    { key: 'utilization', label: 'Billable time', value: `${billablePct}%`, sub: 'of your hours earn money', detail: `${Math.round(billableHours)}h billable of ${Math.round(totalHours)}h total ${billableFeedback}` },
-    { key: 'retainer', label: 'Effective rate', value: `$${Math.round(avgHourlyRate)}`, sub: 'avg. per hour worked', detail: `Based on ${Math.round(billableHours)}h billable` },
+    { key: 'utilization', label: 'Billable time', value: `${billablePct}%`, sub: 'of your hours earn money', detail: `${fmtH(Math.round(billableHours))}h billable of ${fmtH(Math.round(totalHours))}h total ${billableFeedback}` },
+    { key: 'retainer', label: 'Effective rate', value: `$${Math.round(avgHourlyRate)}`, sub: 'avg. per hour worked', detail: `Based on ${fmtH(Math.round(billableHours))}h billable` },
     { key: 'margin', label: 'Rate trend', value: `$${currentMonthRate}`, sub: '/hr this month', detail: rateTrendDetail, warn: rateDiff < -5 },
   ];
 
@@ -358,7 +359,7 @@ export function computeInsightsMetrics(
       const used = c.retainerTotal - (c.retainerRemaining || 0);
       const pct = Math.round((used / c.retainerTotal) * 100);
       if (pct >= 70) {
-        forwardSignals.push({ id: forwardSignals.length + 1, type: 'overage', signal: `${c.name} retainer at ${pct}%`, detail: `${c.retainerRemaining}h remaining of ${c.retainerTotal}h`, impact: pct >= 85 ? 'High' : 'Medium', clientId: c.id });
+        forwardSignals.push({ id: forwardSignals.length + 1, type: 'overage', signal: `${c.name} retainer at ${pct}%`, detail: `${fmtH(c.retainerRemaining)}h remaining of ${fmtH(c.retainerTotal)}h`, impact: pct >= 85 ? 'High' : 'Medium', clientId: c.id });
       }
     }
     if (c.status === 'Prospect' || (c.status === 'Active' && !c.lastSessionDate)) {

@@ -170,6 +170,27 @@ export function formatDuration(hours: number | null | undefined, opts: DurationO
   return `${roundFixed(hours, 2)} hrs`;
 }
 
+/**
+ * Format a numeric hour value for inline display (e.g. "8.9", "12", "0.25").
+ * Always caps at 2 decimals and strips trailing zeros. Returns "0" for nullish.
+ * Use alongside a literal "h" suffix: `{fmtH(value)}h`.
+ */
+export function fmtH(value: number | null | undefined): string {
+  if (value == null || !Number.isFinite(value)) return '0';
+  const rounded = Math.round(value * 100) / 100;
+  // toFixed(2) then strip trailing zeros (and trailing dot)
+  return rounded.toFixed(2).replace(/\.?0+$/, '');
+}
+
+/**
+ * Round a numeric percent (0–100) to an integer for inline display.
+ * Returns "0" for nullish/non-finite.
+ */
+export function fmtPct(value: number | null | undefined): string {
+  if (value == null || !Number.isFinite(value)) return '0';
+  return String(Math.round(value));
+}
+
 // ─── bytes ─────────────────────────────────────────────────────
 
 const BYTE_UNITS = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'] as const;
