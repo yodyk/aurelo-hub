@@ -304,7 +304,7 @@ export const NotificationEvents = {
       workspaceId: wsId,
       category: 'team',
       eventType: 'team_session_logged',
-      title: `${memberName} logged ${fmtH(hours.toFixed(1))}h for ${clientName}`,
+      title: `${memberName} logged ${fmtH(hours)}h for ${clientName}`,
       body: meta?.task ? `Task: ${meta.task}` : undefined,
       metadata: meta || {},
     }),
