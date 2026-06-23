@@ -29,6 +29,7 @@ import {
 } from '@/data/taskLinksApi';
 import { useData } from '@/data/DataContext';
 import { DatePicker } from '@/components/ui/date-picker';
+import { fmtH } from '@/lib/format';
 
 
 interface ChecklistPanelProps {
@@ -555,7 +556,7 @@ function TaskRow({
 
               {item.estimatedHours != null && (
                 <span className="inline-flex items-center gap-1 text-[11.5px] px-1.5 py-0.5 rounded bg-accent/50 text-muted-foreground" style={{ fontWeight: 500 }}>
-                  <Clock className="w-3 h-3" /> {item.estimatedHours}h
+                  <Clock className="w-3 h-3" /> {fmtH(item.estimatedHours)}h
                 </span>
               )}
 

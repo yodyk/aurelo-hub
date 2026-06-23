@@ -1,5 +1,5 @@
 import { transitions } from '@/lib/motion';
-import { formatPercent } from '@/lib/format';
+import { formatPercent, fmtH } from '@/lib/format';
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router";
 import {
@@ -2755,7 +2755,7 @@ function TeamTab({ readOnly = false }: { readOnly?: boolean }) {
                         disabled={readOnly}
                         title={readOnly ? "Capacity" : "Click to edit capacity"}
                       >
-                        <span className="text-muted-foreground">{cap}h/w</span>
+                        <span className="text-muted-foreground">{fmtH(cap)}h/w</span>
                         {presetLabel && (
                           <span className="text-muted-foreground/60 ml-1">· {presetLabel}</span>
                         )}
@@ -2817,7 +2817,7 @@ function TeamTab({ readOnly = false }: { readOnly?: boolean }) {
                   const mins = Math.floor(diff / 60000);
                   if (mins < 60) return `${mins}m ago`;
                   const hrs = Math.floor(mins / 60);
-                  if (hrs < 24) return `${hrs}h ago`;
+                  if (hrs < 24) return `${fmtH(hrs)}h ago`;
                   const days = Math.floor(hrs / 24);
                   return `${days}d ago`;
                 })();
@@ -3521,7 +3521,7 @@ function TimerReminderSettings() {
     if (mins < 60) return `${mins}m`;
     const h = Math.floor(mins / 60);
     const m = mins % 60;
-    return m === 0 ? `${h}h` : `${h}h ${m}m`;
+    return m === 0 ? `${fmtH(h)}h` : `${fmtH(h)}h ${m}m`;
   };
 
   const customIntervals = cfg.intervals.filter((m: number) => !PRESET_INTERVALS.includes(m));

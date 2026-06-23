@@ -28,7 +28,7 @@ import { usePlan } from "../data/PlanContext";
 import { PLANS } from "../data/plans";
 import { computeInsightsMetrics, type InsightsMetrics } from "../data/insightsMetrics";
 import * as invoiceApi from "../data/invoiceApi";
-import { formatMoney } from "@/lib/format";
+import { formatMoney, fmtH } from '@/lib/format';
 
 import { PageHeader, SegmentedControl, type SegmentOption } from "@/components/primitives/composition";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
@@ -82,7 +82,7 @@ function ChartTooltip({ active, payload, label }: any) {
           <span className="text-muted-foreground capitalize">{p.dataKey}:</span>
           <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>
             {p.dataKey.includes('hours') || p.dataKey === 'hours'
-              ? `${p.value}h`
+              ? `${fmtH(p.value)}h`
               : formatMoney(Number(p.value), { precision: "display" })}
 
           </span>
@@ -647,7 +647,7 @@ export default function Insights() {
                         )}
                       </div>
                       <div className="flex items-baseline gap-3">
-                        <div className="text-[13px] text-muted-foreground tabular-nums">{alloc.hours}h</div>
+                        <div className="text-[13px] text-muted-foreground tabular-nums">{fmtH(alloc.hours)}h</div>
                         <div className="text-[15px] tabular-nums" style={{ fontWeight: 600 }}>{alloc.percentage}%</div>
                       </div>
                     </div>

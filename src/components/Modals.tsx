@@ -3,7 +3,7 @@ import { X, Loader2, User, Globe, Mail, DollarSign, Clock, Repeat, FolderKanban,
 import { DatePicker } from '@/components/ui/date-picker';
 import { motion, AnimatePresence } from 'motion/react';
 import { useData } from '../data/DataContext';
-import { formatMoney, formatDuration } from '@/lib/format';
+import { formatMoney, formatDuration, fmtH } from '@/lib/format';
 
 // ── Unsaved Changes Confirmation (inline in modal) ─────────────────
 function UnsavedChangesConfirm({ onDiscard, onCancel }: { onDiscard: () => void; onCancel: () => void }) {
@@ -398,7 +398,7 @@ export function AddClientModal({ open, onClose, onSave }: {
         {model === 'Project' && rateNum > 0 && Number(projectBudget) > 0 && (
           <div className="bg-accent/30 rounded-lg px-3.5 py-2.5 flex items-center justify-between text-[13px]">
             <span className="text-muted-foreground">Estimated hours at rate</span>
-            <span className="tabular-nums" style={{ fontWeight: 600 }}>~{Math.round(Number(projectBudget) / rateNum)}h</span>
+            <span className="tabular-nums" style={{ fontWeight: 600 }}>~{fmtH(Math.round(Number(projectBudget) / rateNum))}h</span>
           </div>
         )}
 
@@ -613,7 +613,7 @@ export function EditClientModal({ open, onClose, client, onSave, workspaceId, is
                 <div className="flex items-center justify-between text-[13px] mb-2">
                   <span className="text-muted-foreground">Retainer usage</span>
                   <span className="tabular-nums" style={{ fontWeight: 600 }}>
-                    {retainerRemainingNum}h remaining · {retainerUsedPct}% used
+                    {fmtH(retainerRemainingNum)}h remaining · {retainerUsedPct}% used
                   </span>
                 </div>
                 <div className="h-1.5 bg-accent/60 rounded-full overflow-hidden">
@@ -991,7 +991,7 @@ export function LogSessionModal({ open, onClose, onSave, clients, preSelectedCli
             {selectedClient.model === 'Retainer' && selectedClient.retainerRemaining > 0 && (
               <>
                 <span>·</span>
-                <span className="tabular-nums">{selectedClient.retainerRemaining}h remaining this month</span>
+                <span className="tabular-nums">{fmtH(selectedClient.retainerRemaining)}h remaining this month</span>
               </>
             )}
           </div>
@@ -1031,7 +1031,7 @@ export function LogSessionModal({ open, onClose, onSave, clients, preSelectedCli
                   <Repeat className="w-3.5 h-3.5" />
                   Retainer
                   {selectedClient.retainerRemaining > 0 && (
-                    <span className="text-[11px] opacity-70 tabular-nums ml-0.5">{selectedClient.retainerRemaining}h left</span>
+                    <span className="text-[11px] opacity-70 tabular-nums ml-0.5">{fmtH(selectedClient.retainerRemaining)}h left</span>
                   )}
                 </button>
               )}
@@ -1051,7 +1051,7 @@ export function LogSessionModal({ open, onClose, onSave, clients, preSelectedCli
                   <FolderKanban className="w-3.5 h-3.5" />
                   {proj.name}
                   {proj.estimatedHours > 0 && (
-                    <span className="text-[11px] opacity-70 tabular-nums ml-0.5">{proj.hours || 0}/{proj.estimatedHours}h</span>
+                    <span className="text-[11px] opacity-70 tabular-nums ml-0.5">{proj.hours || 0}/{fmtH(proj.estimatedHours)}h</span>
                   )}
                 </button>
               ))}
@@ -1144,7 +1144,7 @@ export function LogSessionModal({ open, onClose, onSave, clients, preSelectedCli
                   }`}
                   style={{ fontWeight: 500 }}
                 >
-                  {preset}h
+                  {fmtH(preset)}h
                 </button>
               ))}
             </div>
@@ -1231,7 +1231,7 @@ export function LogSessionModal({ open, onClose, onSave, clients, preSelectedCli
                   <div className="mb-2">
                     {(selectedProject.hours || 0) > 0 ? (
                       <div className="text-[11px] text-muted-foreground">
-                        This project: <span className="tabular-nums" style={{ fontWeight: 500, color: '#3B66F0' }}>{formatMoney(Math.round(selectedProject.totalValue / (selectedProject.hours || 1)), { showZeroDecimals: false })}/hr</span> effective across {selectedProject.hours}h logged
+                        This project: <span className="tabular-nums" style={{ fontWeight: 500, color: '#3B66F0' }}>{formatMoney(Math.round(selectedProject.totalValue / (selectedProject.hours || 1)), { showZeroDecimals: false })}/hr</span> effective across {fmtH(selectedProject.hours)}h logged
                       </div>
                     ) : (
                       <div className="text-[11px] text-muted-foreground">
@@ -1293,7 +1293,7 @@ export function LogSessionModal({ open, onClose, onSave, clients, preSelectedCli
         <div className="flex items-center justify-between pt-3 border-t border-border">
           <div className="text-[12px] text-muted-foreground">
             {canSave
-              ? `${durationNum}h ${billable ? 'billable' : 'non-billable'} · ${allocationLabel} · ${dateGroupLabel}`
+              ? `${fmtH(durationNum)}h ${billable ? 'billable' : 'non-billable'} · ${allocationLabel} · ${dateGroupLabel}`
               : allocationType === 'project' && !selectedProjectId
                 ? 'Select a project to apply this time to'
                 : 'Fill in client, description, and duration'}
@@ -1477,7 +1477,7 @@ export function AddProjectModal({ open, onClose, onSave, clients, preSelectedCli
         {timelineDays > 0 && (
           <div className="text-[11px] text-muted-foreground">
             {timelineDays} days ({timelineWeeks} week{timelineWeeks !== 1 ? 's' : ''})
-            {weeklyHours && <> · ~{weeklyHours}h/week at estimated scope</>}
+            {weeklyHours && <> · ~{fmtH(weeklyHours)}h/week at estimated scope</>}
           </div>
         )}
 
@@ -1505,7 +1505,7 @@ export function AddProjectModal({ open, onClose, onSave, clients, preSelectedCli
             {hoursNum > 0 && (
               <div className="flex items-center justify-between text-[11px] text-muted-foreground mt-1.5 pt-1.5 border-t border-border/40">
                 <span>Scope utilization at 0h logged</span>
-                <span className="tabular-nums" style={{ fontWeight: 500 }}>0% · {hoursNum}h remaining</span>
+                <span className="tabular-nums" style={{ fontWeight: 500 }}>0% · {fmtH(hoursNum)}h remaining</span>
               </div>
             )}
           </div>
@@ -1788,7 +1788,7 @@ export function EditSessionModal({ open, onClose, session, onSave, onDelete, cli
                   }`}
                   style={{ fontWeight: 500 }}
                 >
-                  {preset}h
+                  {fmtH(preset)}h
                 </button>
               ))}
             </div>

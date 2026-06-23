@@ -10,6 +10,7 @@ import { toast } from '@/lib/toast';
 import DOMPurify from 'dompurify';
 import * as notesApi from '../data/notesApi';
 import type { ClientNote, NoteType } from '../data/notesApi';
+import { fmtH } from '@/lib/format';
 
 const NoteEditor = lazy(() => import('./NoteEditor'));
 
@@ -45,7 +46,7 @@ function timeAgo(dateStr: string): string {
   if (mins < 1) return 'just now';
   if (mins < 60) return `${mins}m ago`;
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return `${fmtH(hours)}h ago`;
   const days = Math.floor(hours / 24);
   if (days < 7) return `${days}d ago`;
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });

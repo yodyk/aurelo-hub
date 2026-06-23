@@ -28,7 +28,7 @@ interface BatchInvoiceBuilderProps {
   onClose: () => void;
 }
 
-import { formatMoney, formatDate as formatDateFn } from "@/lib/format";
+import { formatMoney, formatDate as formatDateFn, fmtH } from '@/lib/format';
 
 function formatCurrency(amount: number, currency = "USD"): string {
   return formatMoney(amount, { currency, precision: "exact" });
@@ -504,7 +504,7 @@ export default function BatchInvoiceBuilder({
                                           {session.task || "Work session"}
                                         </div>
                                         <div className="text-[11px] text-muted-foreground tabular-nums">
-                                          {formatDate(session.date)} · {session.duration}h
+                                          {formatDate(session.date)} · {fmtH(session.duration)}h
                                         </div>
                                       </div>
                                       <div className="text-[12px] text-foreground tabular-nums flex-shrink-0" style={{ fontWeight: 500 }}>
@@ -535,7 +535,7 @@ export default function BatchInvoiceBuilder({
                                               {session.task || "Work session"}
                                             </div>
                                             <div className="text-[11px] text-muted-foreground tabular-nums">
-                                              {formatDate(session.date)} · {session.duration}h
+                                              {formatDate(session.date)} · {fmtH(session.duration)}h
                                             </div>
                                           </div>
                                           {invNum && (

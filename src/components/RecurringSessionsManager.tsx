@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/data/AuthContext";
 import { toast } from '@/lib/toast';
+import { fmtH } from '@/lib/format';
 
 interface RecurringRule {
   id: string;
@@ -323,7 +324,7 @@ export default function RecurringSessionsManager({ clients, projects = [], fixed
                     )}
                   </div>
                   <div className="flex items-center gap-2 mt-0.5 text-[11px] text-muted-foreground">
-                    <span className="tabular-nums" style={{ fontWeight: 500 }}>{rule.duration}h</span>
+                    <span className="tabular-nums" style={{ fontWeight: 500 }}>{fmtH(rule.duration)}h</span>
                     {!rule.billable && <span>· Non-billable</span>}
                     {getProjectName(rule.project_id) && <span>· {getProjectName(rule.project_id)}</span>}
                     {rule.last_run_date && <span>· Last run: {rule.last_run_date}</span>}

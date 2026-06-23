@@ -1,3 +1,4 @@
+import { fmtH } from '@/lib/format';
 // ── Desktop Push Notifications for Timer ─────────────────────────
 // Uses the Web Notifications API (works on all OS browsers without a service worker)
 
@@ -67,7 +68,7 @@ function formatDuration(minutes: number): string {
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
   if (m === 0) return `${h} hour${h !== 1 ? 's' : ''}`;
-  return `${h}h ${m}m`;
+  return `${fmtH(h)}h ${m}m`;
 }
 
 function fireNotification(minutes: number): void {

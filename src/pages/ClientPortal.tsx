@@ -23,7 +23,7 @@ import {
   Send,
 } from "lucide-react";
 import { format } from "date-fns";
-import { formatMoney, formatDuration, formatDate as formatDateFn } from "@/lib/format";
+import { formatMoney, formatDuration, formatDate as formatDateFn, fmtH } from '@/lib/format';
 
 // ── Types ───────────────────────────────────────────────────────────
 
@@ -207,7 +207,7 @@ function relTime(iso: string) {
     const diff = (Date.now() - d.getTime()) / 1000;
     if (diff < 60) return 'Just now';
     if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+    if (diff < 86400) return `${fmtH(Math.floor(diff / 3600))}h ago`;
     if (diff < 86400 * 7) return `${Math.floor(diff / 86400)}d ago`;
     return format(d, 'MMM d');
   } catch { return ''; }
@@ -1739,7 +1739,7 @@ function PortalChecklistCard({ checklist, accent, token, hideCompleted = false }
                       )}
                       {item.estimated_hours != null && (
                         <span className="inline-flex items-center gap-1 text-[10.5px] px-1.5 py-0.5 rounded" style={{ backgroundColor: 'var(--portal-soft)', color: 'var(--portal-muted)', fontWeight: 500 }}>
-                          <Clock className="w-2.5 h-2.5" /> {item.estimated_hours}h est
+                          <Clock className="w-2.5 h-2.5" /> {fmtH(item.estimated_hours)}h est
                         </span>
                       )}
                     </div>

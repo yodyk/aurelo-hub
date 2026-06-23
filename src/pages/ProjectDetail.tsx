@@ -114,7 +114,7 @@ function getLinkTypeConfig(type: string) {
 
 // ── Helpers ────────────────────────────────────────────────────────
 
-import { formatDate as formatDateFn, formatMoney, formatBytes } from "@/lib/format";
+import { formatDate as formatDateFn, formatMoney, formatBytes, fmtH } from '@/lib/format';
 
 function formatDate(d: string | undefined): string {
   return formatDateFn(d, "medium");
@@ -838,10 +838,10 @@ export default function ProjectDetail() {
                     </span>
                   </div>
                   <div className="text-[24px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 700 }}>
-                    {budgetData.hoursLogged}h
+                    {fmtH(budgetData.hoursLogged)}h
                   </div>
                   <div className="text-[12px] text-muted-foreground mt-1 tabular-nums">
-                    of {budgetData.estimatedHours}h ·{" "}
+                    of {fmtH(budgetData.estimatedHours)}h ·{" "}
                     <span
                       style={{
                         color: budgetData.hoursPct > 100 ? RED : budgetData.hoursPct > 85 ? GOLD : BLUE,
@@ -887,10 +887,10 @@ export default function ProjectDetail() {
                     </span>
                   </div>
                   <div className="text-[24px] leading-none tracking-tight tabular-nums" style={{ fontWeight: 700 }}>
-                    {budgetData.burnRate}h/d
+                    {fmtH(budgetData.burnRate)}h/d
                   </div>
                   <div className="text-[12px] text-muted-foreground mt-1">
-                    {budgetData.hoursRemaining > 0 ? `${budgetData.hoursRemaining}h remaining` : "Estimate complete"}
+                    {budgetData.hoursRemaining > 0 ? `${fmtH(budgetData.hoursRemaining)}h remaining` : "Estimate complete"}
                   </div>
                 </div>
               </div>
@@ -937,7 +937,7 @@ export default function ProjectDetail() {
                       />
                     </div>
                     <div className="text-[11px] text-muted-foreground mt-1.5 tabular-nums">
-                      {budgetData.hoursLogged}h of {budgetData.estimatedHours}h
+                      {fmtH(budgetData.hoursLogged)}h of {fmtH(budgetData.estimatedHours)}h
                     </div>
                   </div>
                   {canViewFinancials && (
@@ -1084,7 +1084,7 @@ export default function ProjectDetail() {
                     </span>
                   </div>
                   <div className="text-[22px] leading-none tabular-nums mb-1" style={{ fontWeight: 700 }}>
-                    {insights?.weeklyPace || 0}h/wk
+                    {fmtH(insights?.weeklyPace || 0)}h/wk
                   </div>
                   <div className="text-[12px] text-muted-foreground">Current velocity</div>
                   {insights && budgetData && budgetData.hoursRemaining > 0 && insights.weeklyPace > 0 && (
@@ -1360,7 +1360,7 @@ export default function ProjectDetail() {
                               {session.task || session.description || "Work session"}
                             </span>
                             <span className="text-[13px] tabular-nums flex-shrink-0" style={{ fontWeight: 600 }}>
-                              {session.duration}h
+                              {fmtH(session.duration)}h
                             </span>
                           </div>
                           <div className="flex items-center justify-between">

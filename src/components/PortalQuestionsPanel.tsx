@@ -9,6 +9,7 @@ import {
   deletePortalQuestion,
 } from "@/data/portalQuestionsApi";
 import { toast } from "@/lib/toast";
+import { fmtH } from '@/lib/format';
 const showError = (m: string) => toast.error(m);
 
 function relTime(iso: string) {
@@ -16,7 +17,7 @@ function relTime(iso: string) {
     const diff = (Date.now() - new Date(iso).getTime()) / 1000;
     if (diff < 60) return "Just now";
     if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+    if (diff < 86400) return `${fmtH(Math.floor(diff / 3600))}h ago`;
     return `${Math.floor(diff / 86400)}d ago`;
   } catch { return ""; }
 }

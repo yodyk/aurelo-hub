@@ -57,7 +57,7 @@ import PortalQuestionsPanel from "../components/PortalQuestionsPanel";
 import SharedResourcesPanel from "../components/SharedResourcesPanel";
 import BulkSessionActions from "../components/BulkSessionActions";
 import { supabase } from "@/integrations/supabase/client";
-import { formatMoney, formatBytes, formatDuration } from "@/lib/format";
+import { formatMoney, formatBytes, formatDuration, fmtH } from '@/lib/format';
 
 import * as settingsApi from "@/data/settingsApi";
 import { usePlan } from "@/data/PlanContext";
@@ -1092,7 +1092,7 @@ function OverviewTab({
                 return (
                   <div className="mt-6">
                     <div className="flex items-baseline justify-between mb-1.5">
-                      <div className="type-meta">Retainer · {hoursUsed}h of {client.retainerTotal || 0}h</div>
+                      <div className="type-meta">Retainer · {fmtH(hoursUsed)}h of {fmtH(client.retainerTotal || 0)}h</div>
                       <div className="type-meta tabular-nums" style={{ fontWeight: 600 }}>{Math.round(pct * 100)}%</div>
                     </div>
                     <HairlineBar value={pct} />
@@ -1175,7 +1175,7 @@ function OverviewTab({
               <div className="flex justify-between py-3 text-[13px]">
                 <dt className="text-muted-foreground">Utilization</dt>
                 <dd className="tabular-nums" style={{ fontWeight: 600 }}>
-                  {utilizationRate}% <span className="type-meta text-muted-foreground">· {billableHours}h of {totalHours}h</span>
+                  {utilizationRate}% <span className="type-meta text-muted-foreground">· {fmtH(billableHours)}h of {fmtH(totalHours)}h</span>
                 </dd>
               </div>
               {canViewFinancials && (
@@ -1210,7 +1210,7 @@ function OverviewTab({
                     Utilization · <span className="tabular-nums">{utilizationRate}%</span>
                   </div>
                   <div className="type-meta text-muted-foreground leading-relaxed">
-                    {billableHours}h billable of {totalHours}h logged.
+                    {fmtH(billableHours)}h billable of {fmtH(totalHours)}h logged.
                   </div>
                 </div>
                 <div className="py-4 border-t border-[var(--hairline)]">
@@ -1781,7 +1781,7 @@ function ProjectsTab({ projects, client, canViewFinancials, onNavigate }: any) {
                       })()}
                     </td>
                   )}
-                  <td className="px-3 py-3 text-[13px] text-right tabular-nums text-muted-foreground">{project.hours || 0}/{project.estimatedHours || 0}h</td>
+                  <td className="px-3 py-3 text-[13px] text-right tabular-nums text-muted-foreground">{project.hours || 0}/{fmtH(project.estimatedHours || 0)}h</td>
                   <td className="px-3 py-3 type-meta text-muted-foreground">{project.startDate}{project.endDate ? ` — ${project.endDate}` : ''}</td>
                 </tr>
               ))}
@@ -1846,7 +1846,7 @@ function SessionsTab({ clientSessions, client: _client, canViewFinancials, selec
                       ))}
                     </div>
                   </td>
-                  <td className="px-3 py-3 text-[13px] text-right tabular-nums" style={{ fontWeight: 600 }}>{session.duration}h</td>
+                  <td className="px-3 py-3 text-[13px] text-right tabular-nums" style={{ fontWeight: 600 }}>{fmtH(session.duration)}h</td>
                   {canViewFinancials && (
                     <td className="px-3 py-3 text-right">
                       <div className="text-[13px] tabular-nums" style={{ fontWeight: 600 }}>{formatMoney(session.revenue)}</div>
@@ -1929,7 +1929,7 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
         retainerTotal: Math.round(((Number(client.retainerTotal) || 0) + addHoursDelta) * 100) / 100,
         retainerRemaining: Math.round(((Number(client.retainerRemaining) || 0) + addHoursDelta) * 100) / 100,
       });
-      toast.success(`Added ${addHoursDelta}h to this cycle`);
+      toast.success(`Added ${fmtH(addHoursDelta)}h to this cycle`);
       setAddAmount('');
       setAddOpen(false);
     } catch {
@@ -2003,7 +2003,7 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
       const { data } = await supabase.from('retainer_history').select('*').eq('client_id', clientId).eq('workspace_id', workspaceId).order('cycle_end', { ascending: false });
       setHistory(data || []);
       setEditingResetPlan(false);
-      toast.success(effectiveCarryover > 0 ? `Retainer reset with ${effectiveCarryover}h carried over` : 'Retainer reset successfully');
+      toast.success(effectiveCarryover > 0 ? `Retainer reset with ${fmtH(effectiveCarryover)}h carried over` : 'Retainer reset successfully');
     } catch (err) {
       toast.error('Failed to reset retainer');
     } finally {
@@ -2081,8 +2081,8 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
             <>
               <div className="flex justify-between items-baseline mb-4">
                 <div className="text-[14px] text-muted-foreground">
-                  <span style={{ fontWeight: 500 }} className="text-foreground">{Math.round(used * 100) / 100}h</span> used of {total}h
-                  <span className="text-muted-foreground ml-1.5">({Math.round(remaining * 100) / 100}h remaining)</span>
+                  <span style={{ fontWeight: 500 }} className="text-foreground">{fmtH(Math.round(used * 100) / 100)}h</span> used of {fmtH(total)}h
+                  <span className="text-muted-foreground ml-1.5">({fmtH(Math.round(remaining * 100) / 100)}h remaining)</span>
                 </div>
                 <div className="text-[24px] tabular-nums" style={{ fontWeight: 600, color: getUsageTextColor(pct) }}>{pct}%</div>
               </div>
@@ -2114,13 +2114,13 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
                 <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-[11.5px] text-muted-foreground">
                   <span className="inline-flex items-center gap-1.5">
                     <span className="inline-block w-2 h-2 rounded-circle" style={{ backgroundColor: 'var(--warning)' }} />
-                    Rollover (used first): <span className="text-foreground tabular-nums" style={{ fontWeight: 500 }}>{Math.round(carryoverUsed * 100) / 100}h</span> / {Math.round(carryover * 100) / 100}h
-                    {carryoverRemaining > 0 && <span className="text-muted-foreground">· {Math.round(carryoverRemaining * 100) / 100}h left</span>}
+                    Rollover (used first): <span className="text-foreground tabular-nums" style={{ fontWeight: 500 }}>{fmtH(Math.round(carryoverUsed * 100) / 100)}h</span> / {fmtH(Math.round(carryover * 100) / 100)}h
+                    {carryoverRemaining > 0 && <span className="text-muted-foreground">· {fmtH(Math.round(carryoverRemaining * 100) / 100)}h left</span>}
                   </span>
                   <span className="inline-flex items-center gap-1.5">
                     <span className="inline-block w-2 h-2 rounded-circle" style={{ backgroundColor: 'var(--primary)' }} />
-                    This cycle: <span className="text-foreground tabular-nums" style={{ fontWeight: 500 }}>{Math.round(baseUsed * 100) / 100}h</span> / {Math.round(base * 100) / 100}h
-                    {baseRemaining > 0 && <span className="text-muted-foreground">· {Math.round(baseRemaining * 100) / 100}h left</span>}
+                    This cycle: <span className="text-foreground tabular-nums" style={{ fontWeight: 500 }}>{fmtH(Math.round(baseUsed * 100) / 100)}h</span> / {fmtH(Math.round(base * 100) / 100)}h
+                    {baseRemaining > 0 && <span className="text-muted-foreground">· {fmtH(Math.round(baseRemaining * 100) / 100)}h left</span>}
                   </span>
                 </div>
               )}
@@ -2278,7 +2278,7 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
                     </button>
                   </div>
                   <span className="text-[11px] text-muted-foreground">
-                    {addHoursDelta > 0 ? <>Adds <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>{addHoursDelta}h</span> → new total {Math.round(((Number(client.retainerTotal) || 0) + addHoursDelta) * 100) / 100}h</> : 'Enter an amount'}
+                    {addHoursDelta > 0 ? <>Adds <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>{fmtH(addHoursDelta)}h</span> → new total {fmtH(Math.round(((Number(client.retainerTotal) || 0) + addHoursDelta) * 100) / 100)}h</> : 'Enter an amount'}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -2365,7 +2365,7 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-[11px] text-muted-foreground">
-                  Only unused hours carry over, up to the cap. Based on current leftover ({client.retainerRemaining || 0}h), next cycle will start at <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>{nextCycleHours}h</span>.
+                  Only unused hours carry over, up to the cap. Based on current leftover ({fmtH(client.retainerRemaining || 0)}h), next cycle will start at <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>{fmtH(nextCycleHours)}h</span>.
                 </span>
               </div>
             </div>
@@ -2373,15 +2373,15 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-[13px]">
               <div className="flex items-center justify-between bg-accent/30 rounded-lg px-3 py-2">
                 <span className="text-muted-foreground">Base hours</span>
-                <span className="tabular-nums" style={{ fontWeight: 500 }}>{scheduledBaseHours}h</span>
+                <span className="tabular-nums" style={{ fontWeight: 500 }}>{fmtH(scheduledBaseHours)}h</span>
               </div>
               <div className="flex items-center justify-between bg-accent/30 rounded-lg px-3 py-2">
                 <span className="text-muted-foreground">Carry-over cap</span>
-                <span className="tabular-nums" style={{ fontWeight: 500 }}>{carryoverCap}h</span>
+                <span className="tabular-nums" style={{ fontWeight: 500 }}>{fmtH(carryoverCap)}h</span>
               </div>
               <div className="flex items-center justify-between bg-accent/30 rounded-lg px-3 py-2">
                 <span className="text-muted-foreground">Next reset starts at</span>
-                <span className="tabular-nums" style={{ fontWeight: 600 }}>{scheduledBaseHours + Math.min(carryoverCap, Math.max(0, Number(client.retainerRemaining || 0)))}h</span>
+                <span className="tabular-nums" style={{ fontWeight: 600 }}>{fmtH(scheduledBaseHours + Math.min(carryoverCap, Math.max(0, Number(client.retainerRemaining || 0))))}h</span>
               </div>
             </div>
 
@@ -2448,8 +2448,8 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
                           <td className="px-3 py-2.5">
                             <span style={{ fontWeight: 500 }}>{format(new Date(h.cycle_start + 'T00:00:00'), 'MMM d')} – {format(new Date(h.cycle_end + 'T00:00:00'), 'MMM d, yyyy')}</span>
                           </td>
-                          <td className="text-right px-3 py-2.5 tabular-nums">{h.hours_used}h</td>
-                          <td className="text-right px-3 py-2.5 tabular-nums text-muted-foreground">{h.hours_total}h</td>
+                          <td className="text-right px-3 py-2.5 tabular-nums">{fmtH(h.hours_used)}h</td>
+                          <td className="text-right px-3 py-2.5 tabular-nums text-muted-foreground">{fmtH(h.hours_total)}h</td>
                           <td className="text-right px-3 py-2.5 tabular-nums" style={{ fontWeight: 500, color: getUsageTextColor(pct) }}>{pct}%</td>
                           <td className="text-right px-3 py-2.5 tabular-nums" style={{ fontWeight: 500 }}>{formatMoney(h.revenue || 0)}</td>
                         </tr>

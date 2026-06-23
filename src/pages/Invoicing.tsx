@@ -72,7 +72,7 @@ const STATUS_CONFIG: Record<InvoiceStatus, { label: string; color: string; bg: s
 
 // ── Helpers ────────────────────────────────────────────────────────
 
-import { formatMoney, formatDate as formatDateFn, formatPercent } from "@/lib/format";
+import { formatMoney, formatDate as formatDateFn, formatPercent, fmtH } from '@/lib/format';
 
 function formatCurrency(amount: number, currency = "USD"): string {
   return formatMoney(amount, { currency, precision: "exact" });
@@ -1564,7 +1564,7 @@ function SessionImportOverlay({
                     </div>
                     <div className="text-right flex-shrink-0">
                       <div className="text-[13px] tabular-nums" style={{ fontWeight: 500 }}>
-                        {s.duration}h
+                        {fmtH(s.duration)}h
                       </div>
                       <div className="text-[11px] text-muted-foreground tabular-nums">
                         {formatCurrency((s.duration || 0) * clientRate)}
@@ -1582,7 +1582,7 @@ function SessionImportOverlay({
         <div className="text-[13px] text-muted-foreground">
           {selected.size} session{selected.size !== 1 ? "s" : ""} ·{" "}
           <span className="tabular-nums" style={{ fontWeight: 500 }}>
-            {totalHours}h
+            {fmtH(totalHours)}h
           </span>{" "}
           ·{" "}
           <span className="tabular-nums" style={{ fontWeight: 600, color: BLUE }}>
