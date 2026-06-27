@@ -13,7 +13,7 @@
  * intentionally composed — never technically complete with placeholders.
  */
 
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import {
   type BillingModel,
   type ProfitabilityResult,

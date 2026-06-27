@@ -4,6 +4,7 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { motion, AnimatePresence } from 'motion/react';
 import { useData } from '../data/DataContext';
 import { formatMoney, formatDuration, fmtH } from '@/lib/format';
+import { BillingModelSelector } from '@/components/BillingModelSelector';
 
 // ── Unsaved Changes Confirmation (inline in modal) ─────────────────
 function UnsavedChangesConfirm({ onDiscard, onCancel }: { onDiscard: () => void; onCancel: () => void }) {
@@ -458,6 +459,7 @@ export function EditClientModal({ open, onClose, client, onSave, workspaceId, is
   const [status, setStatus] = useState<'Active' | 'Prospect' | 'Archived'>('Active');
   const [retainerTotal, setRetainerTotal] = useState('');
   const [retainerRemaining, setRetainerRemaining] = useState('');
+  const [monthlyContractValue, setMonthlyContractValue] = useState('');
   const [showPortalCosts, setShowPortalCosts] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingFavicon, setUploadingFavicon] = useState(false);
@@ -476,6 +478,7 @@ export function EditClientModal({ open, onClose, client, onSave, workspaceId, is
       setStatus(client.status || 'Active');
       setRetainerTotal(String(client.retainerTotal || ''));
       setRetainerRemaining(String(client.retainerRemaining || ''));
+      setMonthlyContractValue(String(client.monthlyContractValue || ''));
       setShowPortalCosts(client.showPortalCosts !== false);
     }
   }, [client]);
@@ -483,7 +486,8 @@ export function EditClientModal({ open, onClose, client, onSave, workspaceId, is
   const rateNum = Number(rate) || 0;
   const retainerTotalNum = Number(retainerTotal) || 0;
   const retainerRemainingNum = Number(retainerRemaining) || 0;
-  const retainerMonthlyValue = rateNum * retainerTotalNum;
+  const monthlyContractValueNum = Number(monthlyContractValue) || 0;
+  const retainerMonthlyValue = monthlyContractValueNum > 0 ? monthlyContractValueNum : rateNum * retainerTotalNum;
   const retainerUsedPct = retainerTotalNum > 0 ? Math.round(((retainerTotalNum - retainerRemainingNum) / retainerTotalNum) * 100) : 0;
 
   // Track what changed for the save summary
@@ -497,6 +501,7 @@ export function EditClientModal({ open, onClose, client, onSave, workspaceId, is
     status !== (client.status || 'Active') ||
     retainerTotal !== String(client.retainerTotal || '') ||
     retainerRemaining !== String(client.retainerRemaining || '') ||
+    monthlyContractValue !== String(client.monthlyContractValue || '') ||
     showPortalCosts !== (client.showPortalCosts !== false)
   );
 
@@ -509,6 +514,7 @@ export function EditClientModal({ open, onClose, client, onSave, workspaceId, is
         contactEmail: contactEmail.trim(),
         website: website.trim(),
         model,
+        billingModel: model === 'Retainer' ? 'Retainer' : model === 'Project' ? 'FixedFee' : 'Hourly',
         rate: rateNum,
         status,
         showPortalCosts,
@@ -518,9 +524,11 @@ export function EditClientModal({ open, onClose, client, onSave, workspaceId, is
       if (model === 'Retainer') {
         updates.retainerTotal = retainerTotalNum;
         updates.retainerRemaining = retainerRemainingNum;
+        updates.monthlyContractValue = monthlyContractValueNum;
       } else {
         updates.retainerTotal = 0;
         updates.retainerRemaining = 0;
+        updates.monthlyContractValue = 0;
       }
 
       await onSave(updates);
@@ -574,12 +582,12 @@ export function EditClientModal({ open, onClose, client, onSave, workspaceId, is
         </div>
 
         <div>
-          <Label>Billing model</Label>
-          <div className="flex gap-2">
-            <ModelButton active={model === 'Hourly'} onClick={() => setModel('Hourly')} icon={Clock} label="Hourly" description="Bill per hour tracked" />
-            <ModelButton active={model === 'Retainer'} onClick={() => setModel('Retainer')} icon={Repeat} label="Retainer" description="Fixed monthly hours" />
-            <ModelButton active={model === 'Project'} onClick={() => setModel('Project')} icon={FolderKanban} label="Project" description="Fixed scope & price" />
-          </div>
+          <Label hint="contract terms — drives revenue recognition">Billing model</Label>
+          <BillingModelSelector
+            value={model === 'Project' ? 'FixedFee' : (model as 'Hourly' | 'Retainer')}
+            onChange={(m) => setModel(m === 'FixedFee' ? 'Project' : m === 'Hourly' || m === 'Retainer' ? m : 'Hourly')}
+            available={['Hourly', 'Retainer', 'FixedFee']}
+          />
         </div>
 
         {/* ── Financial terms ─────────────────── */}
@@ -597,6 +605,10 @@ export function EditClientModal({ open, onClose, client, onSave, workspaceId, is
 
         {model === 'Retainer' && (
           <>
+            <div>
+              <Label hint="recognized once per cycle">Monthly contract value ($)</Label>
+              <Input value={monthlyContractValue} onChange={e => setMonthlyContractValue(e.target.value)} placeholder="e.g. 4,000" className="tabular-nums" />
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>Hours per month</Label>

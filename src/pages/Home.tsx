@@ -46,6 +46,7 @@ import {
   SegmentedControl,
   HairlineBar,
 } from "../components/primitives/composition";
+import { recognizeWorkspaceRevenue, effectiveRate as calcEffectiveRate } from "@/lib/revenue";
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
@@ -142,8 +143,20 @@ export default function Today() {
   const lastMonth = useMemo(() => getMonthSessions(sessions, 1), [sessions]);
   const thisWeek = useMemo(() => getWeekSessions(sessions), [sessions]);
 
-  const gross = useMemo(() => thisMonth.reduce((s, x) => s + (x.revenue || 0), 0), [thisMonth]);
-  const lastGross = useMemo(() => lastMonth.reduce((s, x) => s + (x.revenue || 0), 0), [lastMonth]);
+  // Engine-recognized revenue (single source of financial truth)
+  const monthStart = useMemo(() => { const d = new Date(); d.setDate(1); d.setHours(0,0,0,0); return d; }, []);
+  const monthEnd = useMemo(() => new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0, 23, 59, 59), [monthStart]);
+  const lastMonthStart = useMemo(() => new Date(monthStart.getFullYear(), monthStart.getMonth() - 1, 1), [monthStart]);
+  const lastMonthEnd = useMemo(() => new Date(monthStart.getFullYear(), monthStart.getMonth(), 0, 23, 59, 59), [monthStart]);
+
+  const gross = useMemo(
+    () => recognizeWorkspaceRevenue(clients as any, allProjects as any, sessions as any, { start: monthStart, end: monthEnd }),
+    [clients, allProjects, sessions, monthStart, monthEnd],
+  );
+  const lastGross = useMemo(
+    () => recognizeWorkspaceRevenue(clients as any, allProjects as any, sessions as any, { start: lastMonthStart, end: lastMonthEnd }),
+    [clients, allProjects, sessions, lastMonthStart, lastMonthEnd],
+  );
   const totalHours = useMemo(() => thisMonth.reduce((s, x) => s + (x.duration || 0), 0), [thisMonth]);
   const billableHours = useMemo(
     () => thisMonth.filter((s) => s.billable).reduce((acc, x) => acc + (x.duration || 0), 0),
@@ -158,7 +171,7 @@ export default function Today() {
   const monthChange = previous > 0 ? ((current - previous) / previous) * 100 : 0;
   const isUp = current >= previous;
 
-  const trueRate = totalHours > 0 ? Math.round(current / totalHours) : 0;
+  const trueRate = calcEffectiveRate(current, totalHours) ?? 0;
   const billablePct = totalHours > 0 ? Math.round((billableHours / totalHours) * 100) : 0;
 
   const weekHours = useMemo(() => thisWeek.reduce((s, x) => s + (x.duration || 0), 0), [thisWeek]);
@@ -431,7 +444,7 @@ export default function Today() {
         {canViewFinancials && (
           <motion.section variants={item} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
             <div className="lg:col-span-7">
-              <SectionEyebrow>Earnings this month</SectionEyebrow>
+              <SectionEyebrow>Revenue this month</SectionEyebrow>
               <div className="mt-3">
                 <DisplayMetric
                   value={
