@@ -903,6 +903,48 @@ function RetainerTab({
   const projectName = (pid: string | null) => projects.find(p => p.id === pid)?.name || null;
   const totalHours = cycleSessions.reduce((a, s) => a + (Number(s.duration) || 0), 0);
 
+  // Engine-driven recognition for this cycle. Portal consumes the SAME
+  // service as the freelancer app — no portal-specific math.
+  const cyclePeriod = startDate && endDate
+    ? { start: startDate, end: new Date(endDate.getTime() - 1) }
+    : null;
+  const clientShape = {
+    billingModel: 'Retainer' as const,
+    monthlyContractValue: client.monthlyContractValue ?? null,
+    retainerCycleStart: client.retainerCycleStart ?? null,
+    retainerCycleDays: client.retainerCycleDays ?? 30,
+    rate: client.rate ?? 0,
+  };
+  const recognized = cyclePeriod && showCosts
+    ? recognizeRevenue({
+        client: clientShape,
+        sessions: cycleSessions.map((s: any) => ({
+          duration: s.duration,
+          billable: s.billable !== false,
+          rawDate: s.date,
+          laborValue: s.labor_value ?? s.revenue ?? null,
+        })),
+        period: cyclePeriod,
+      })
+    : null;
+  const cycleLabor = showCosts
+    ? sumLaborValue(
+        cycleSessions.map((s: any) => ({
+          duration: s.duration,
+          laborValue: s.labor_value ?? s.revenue ?? null,
+        })),
+        clientShape,
+      )
+    : 0;
+  const cycleProfitability = showCosts && recognized && recognized.amount > 0
+    ? computeProfitability({
+        revenue: recognized.amount,
+        laborValue: cycleLabor,
+        hours: totalHours,
+        estimatedHours: client.retainerTotal || undefined,
+      })
+    : null;
+
   return (
     <div className="space-y-6">
       <RetainerCard
@@ -911,6 +953,28 @@ function RetainerTab({
         carryover={client.retainerCarryoverHours || 0}
         accent={accent}
       />
+
+      {showCosts && recognized && recognized.amount > 0 && (
+        <div
+          className="rounded border p-4"
+          style={{ borderColor: 'var(--portal-hairline)', backgroundColor: 'var(--portal-surface)' }}
+        >
+          <FinancialSummary
+            revenue={recognized.amount}
+            hoursWorked={totalHours}
+            estimatedHours={client.retainerTotal || null}
+            profitability={cycleProfitability}
+            billingModel="Retainer"
+            revenueLabel="Monthly Revenue"
+            tokens={{
+              ink: 'var(--portal-ink)',
+              muted: 'var(--portal-muted)',
+              subtle: 'var(--portal-subtle)',
+              hairline: 'var(--portal-hairline)',
+            }}
+          />
+        </div>
+      )}
 
       {/* Cycle window */}
       {startDate && endDate && (
