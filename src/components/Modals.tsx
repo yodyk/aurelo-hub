@@ -4,6 +4,7 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { motion, AnimatePresence } from 'motion/react';
 import { useData } from '../data/DataContext';
 import { formatMoney, formatDuration, fmtH } from '@/lib/format';
+import { BillingModelSelector } from '@/components/BillingModelSelector';
 
 // ── Unsaved Changes Confirmation (inline in modal) ─────────────────
 function UnsavedChangesConfirm({ onDiscard, onCancel }: { onDiscard: () => void; onCancel: () => void }) {
