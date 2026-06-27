@@ -242,6 +242,72 @@ export default function Insights() {
 
       <div className="px-4 lg:px-6 py-8">
 
+      {/* ── Observations — engine-derived narrative ─────────────── */}
+      {hasFullInsights && (() => {
+        const obs: { id: string; title: string; detail: string; tone: 'positive' | 'attention' | 'neutral' }[] = [];
+
+        // Top-revenue client this month
+        const topClient = [...metrics.clientRankings].sort((a, b) => b.revenue - a.revenue)[0];
+        if (topClient && topClient.revenue > 0) {
+          obs.push({
+            id: 'top',
+            title: `${topClient.client} is driving ${topClient.share}% of revenue`,
+            detail: `${formatMoney(applyViewMode(topClient.revenue), { precision: 'compact' })} this period · ${formatMoney(applyViewMode(topClient.trueHourlyRate))}/hr effective`,
+            tone: topClient.share >= 40 ? 'attention' : 'positive',
+          });
+        }
+
+        // Best effective rate
+        const bestRate = [...metrics.clientRankings].sort((a, b) => b.trueHourlyRate - a.trueHourlyRate)[0];
+        if (bestRate && bestRate.trueHourlyRate > 0 && bestRate.clientId !== topClient?.clientId) {
+          obs.push({
+            id: 'rate',
+            title: `${bestRate.client} earns your highest effective rate`,
+            detail: `${formatMoney(applyViewMode(bestRate.trueHourlyRate))}/hr — protect and grow this relationship`,
+            tone: 'positive',
+          });
+        }
+
+        // Lowest-margin / unprofitable signal
+        const weakest = [...metrics.profitability]
+          .filter(p => p.totalRevenue > 0)
+          .sort((a, b) => a.effectiveRate - b.effectiveRate)[0];
+        if (weakest && weakest.effectiveRate > 0) {
+          obs.push({
+            id: 'weak',
+            title: `${weakest.clientName} is your lowest-margin engagement`,
+            detail: `Effective rate of ${formatMoney(applyViewMode(weakest.effectiveRate))}/hr across ${fmtH(weakest.totalHours)}h — review scope or pricing`,
+            tone: 'attention',
+          });
+        }
+
+        if (obs.length === 0) return null;
+
+        const toneStyle = (t: 'positive' | 'attention' | 'neutral') =>
+          t === 'positive' ? { dot: 'bg-success', text: 'text-success' }
+          : t === 'attention' ? { dot: 'bg-warning', text: 'text-warning' }
+          : { dot: 'bg-muted-foreground', text: 'text-muted-foreground' };
+
+        return (
+          <motion.div variants={item} className="mb-8">
+            <SectionLabel>Observations</SectionLabel>
+            <div className="bg-card border border-border rounded-xl divide-y divide-border">
+              {obs.slice(0, 3).map((o) => {
+                const s = toneStyle(o.tone);
+                return (
+                  <div key={o.id} className="flex items-start gap-3 px-5 py-4">
+                    <span className={`inline-block w-1.5 h-1.5 rounded-circle mt-2 ${s.dot}`} />
+                    <div className="min-w-0">
+                      <div className="text-[13.5px] text-foreground" style={{ fontWeight: 600 }}>{o.title}</div>
+                      <div className="text-[12px] text-muted-foreground mt-0.5">{o.detail}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
+        );
+      })()}
 
       {/* Performance Panel */}
       <motion.div variants={item} className="mb-8">
@@ -279,6 +345,7 @@ export default function Insights() {
           })}
         </div>
       </motion.div>
+
 
       {/* ── Revenue Trend Chart ─────────────────────────────────── */}
       <motion.div variants={item} className="mb-8">
