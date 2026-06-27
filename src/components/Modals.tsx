@@ -1486,7 +1486,32 @@ export function AddProjectModal({ open, onClose, onSave, clients, preSelectedCli
         )}
 
         {/* ── Budget & scope ─────────────────── */}
-        <SectionDivider icon={DollarSign} label="Budget & scope" />
+        <SectionDivider icon={DollarSign} label="Revenue & scope" />
+
+        <div>
+          <Label>Billing model</Label>
+          <div className="grid grid-cols-3 gap-2">
+            {([
+              { id: 'Hourly', label: 'Hourly', hint: 'Revenue = hours × rate' },
+              { id: 'Retainer', label: 'Retainer', hint: 'Monthly contract' },
+              { id: 'FixedFee', label: 'Fixed Fee', hint: 'Recognized on delivery' },
+            ] as const).map(opt => {
+              const active = billingModel === opt.id;
+              return (
+                <button
+                  key={opt.id}
+                  onClick={() => setBillingModel(opt.id)}
+                  className={`flex flex-col gap-0.5 px-2 py-2 rounded-lg border text-left transition-all duration-200 ${
+                    active ? 'bg-primary/6 border-primary/25 ring-1 ring-primary/15' : 'border-border hover:bg-accent/40'
+                  }`}
+                >
+                  <span className={`text-[12px] ${active ? 'text-primary' : 'text-foreground'}`} style={{ fontWeight: 600 }}>{opt.label}</span>
+                  <span className="text-[10.5px] text-muted-foreground">{opt.hint}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
@@ -1494,7 +1519,9 @@ export function AddProjectModal({ open, onClose, onSave, clients, preSelectedCli
             <Input value={estimatedHours} onChange={e => setEstimatedHours(e.target.value)} placeholder="40" className="tabular-nums" />
           </div>
           <div>
-            <Label>Total value ($)</Label>
+            <Label hint={billingModel === 'FixedFee' ? 'recognized on completion' : 'used for projections'}>
+              {billingModel === 'FixedFee' ? 'Revenue (Contract value)' : 'Revenue ($)'}
+            </Label>
             <Input value={totalValue} onChange={e => setTotalValue(e.target.value)} placeholder="6,000" className="tabular-nums" />
           </div>
         </div>
