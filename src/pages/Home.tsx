@@ -444,7 +444,7 @@ export default function Today() {
         {canViewFinancials && (
           <motion.section variants={item} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
             <div className="lg:col-span-7">
-              <SectionEyebrow>Earnings this month</SectionEyebrow>
+              <SectionEyebrow>Revenue this month</SectionEyebrow>
               <div className="mt-3">
                 <DisplayMetric
                   value={
