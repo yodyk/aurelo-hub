@@ -375,26 +375,36 @@ function ChecklistCard({
 
       <div className="p-4 md:p-5">
         {/* Header */}
-        <div className="flex items-center justify-between mb-3">
-          {editingTitle ? (
-            <div className="flex items-center gap-2 flex-1">
-              <input
-                autoFocus
-                value={titleValue}
-                onChange={(e) => setTitleValue(e.target.value)}
-                className="flex-1 text-[14px] px-2 py-1 bg-transparent border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
-                onKeyDown={(e) => { if (e.key === 'Enter') handleSaveTitle(); if (e.key === 'Escape') { setTitleValue(checklist.title); setEditingTitle(false); } }}
-                style={{ fontWeight: 600 }}
-              />
-              <button onClick={handleSaveTitle} className="p-1 rounded hover:bg-accent/60 text-primary cursor-pointer"><Check className="w-3.5 h-3.5" /></button>
-              <button onClick={() => { setTitleValue(checklist.title); setEditingTitle(false); }} className="p-1 rounded hover:bg-accent/60 text-muted-foreground cursor-pointer"><X className="w-3.5 h-3.5" /></button>
-            </div>
-          ) : (
-            <button onClick={() => setEditingTitle(true)} className="text-[14px] text-foreground hover:text-primary transition-colors group flex items-center gap-1.5 cursor-pointer" style={{ fontWeight: 600 }}>
-              {checklist.title}
-              <Pencil className="w-3 h-3 text-muted-foreground/0 group-hover:text-muted-foreground/60 transition-all" />
+        <div className="flex items-center justify-between mb-3 gap-2">
+          <div className="flex items-center gap-1.5 flex-1 min-w-0">
+            <button
+              onClick={onToggleCollapsed}
+              className="p-1 -ml-1 rounded hover:bg-accent/60 text-muted-foreground hover:text-foreground transition-colors cursor-pointer shrink-0"
+              title={collapsed ? 'Expand list' : 'Collapse list'}
+              aria-label={collapsed ? 'Expand list' : 'Collapse list'}
+            >
+              {collapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
             </button>
-          )}
+            {editingTitle ? (
+              <div className="flex items-center gap-2 flex-1">
+                <input
+                  autoFocus
+                  value={titleValue}
+                  onChange={(e) => setTitleValue(e.target.value)}
+                  className="flex-1 text-[14px] px-2 py-1 bg-transparent border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleSaveTitle(); if (e.key === 'Escape') { setTitleValue(checklist.title); setEditingTitle(false); } }}
+                  style={{ fontWeight: 600 }}
+                />
+                <button onClick={handleSaveTitle} className="p-1 rounded hover:bg-accent/60 text-primary cursor-pointer"><Check className="w-3.5 h-3.5" /></button>
+                <button onClick={() => { setTitleValue(checklist.title); setEditingTitle(false); }} className="p-1 rounded hover:bg-accent/60 text-muted-foreground cursor-pointer"><X className="w-3.5 h-3.5" /></button>
+              </div>
+            ) : (
+              <button onClick={() => setEditingTitle(true)} className="text-[14px] text-foreground hover:text-primary transition-colors group flex items-center gap-1.5 cursor-pointer min-w-0" style={{ fontWeight: 600 }}>
+                <span className="truncate">{checklist.title}</span>
+                <Pencil className="w-3 h-3 text-muted-foreground/0 group-hover:text-muted-foreground/60 transition-all shrink-0" />
+              </button>
+            )}
+          </div>
           <div className="flex items-center gap-2">
             <span className="text-[11px] text-muted-foreground tabular-nums">{completedCount}/{totalCount}</span>
             <button
