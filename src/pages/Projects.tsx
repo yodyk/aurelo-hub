@@ -421,23 +421,32 @@ export default function Projects() {
                         </div>
                       </td>
                       <td className="px-4 py-4 text-right">
-                        <div className="text-[14px] tabular-nums" style={{ fontWeight: 500 }}>
-                          {formatMoney(project.totalValue || 0)}
-                        </div>
-                        {project.totalValue > 0 && project.hours > 0 ? (() => {
-                          const effRate = Math.round(project.totalValue / project.hours);
-                          const rateColor = effRate < (project.clientRate * 0.5) ? 'var(--destructive)' : effRate < project.clientRate ? 'var(--warning)' : 'var(--primary)';
+                        {(() => {
+                          const projectClient = clients.find((c: any) => c.id === project.clientId) || { rate: project.clientRate };
+                          const billingModel = resolveBillingModel(project, projectClient);
+                          const revenue = Number(project.totalValue || 0) || Number(project.contractValue || 0) || Number(project.revenue || 0);
+                          const hours = Number(project.hours || 0);
+                          const laborValue = hours * Number(project.clientRate || 0);
+                          const prof = revenue > 0 || laborValue > 0
+                            ? computeProfitability({
+                                revenue,
+                                laborValue,
+                                hours,
+                                estimatedHours: project.estimatedHours || undefined,
+                                nominalRate: project.clientRate || undefined,
+                              })
+                            : null;
                           return (
-                            <div className="text-[11px] tabular-nums" style={{ fontWeight: 500, color: rateColor }}>
-                              {formatMoney(effRate, { precision: "compact" })}/hr effective
-                            </div>
+                            <FinancialSummary
+                              variant="compact"
+                              billingModel={billingModel}
+                              revenue={revenue}
+                              hoursWorked={hours}
+                              estimatedHours={project.estimatedHours || null}
+                              profitability={prof}
+                            />
                           );
-                        })() : project.revenue > 0 ? (
-                          <div className="text-[11px] text-muted-foreground tabular-nums">
-                            {formatMoney(project.revenue)} earned
-                          </div>
-                        ) : null}
-
+                        })()}
                       </td>
                       <td className="px-4 py-4">
                         <div className="text-[13px] text-muted-foreground">
