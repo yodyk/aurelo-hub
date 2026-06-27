@@ -1382,6 +1382,8 @@ export function AddProjectModal({ open, onClose, onSave, clients, preSelectedCli
         revenue: 0,
         estimatedHours: hoursNum,
         totalValue: valueNum,
+        billingModel,
+        contractValue: billingModel === 'FixedFee' ? valueNum : 0,
         startDate: startDate || new Date().toISOString().split('T')[0],
         endDate: endDate || null,
       }, resolvedClientId);
