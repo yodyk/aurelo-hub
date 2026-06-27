@@ -1070,6 +1070,7 @@ function OverviewTab({
   client, viewMode, setViewMode, netMultiplier, canViewFinancials,
   revenueShare, revenueTrend, lastMonthEarnings, utilizationRate, billableHours, totalHours,
   projects, clientSessions,
+  recognizedRevenue, profitabilityResult, billingModelResolved, monthHours,
 }: any) {
   // 7-day sparkline
   const last7Days = useMemo(() => {
@@ -1094,13 +1095,39 @@ function OverviewTab({
   }).join(' ');
   const sparkFillPoints = `0,40 ${sparkPoints} 200,40`;
 
-  const monthly = client.monthlyEarnings || 0;
-  const monthlyDisplay = viewMode === 'net' ? Math.round(monthly * netMultiplier) : monthly;
+  // ── Engine-derived hero metrics (single source of financial truth) ──
+  // `recognizedRevenue` and `profitabilityResult` are computed in the parent
+  // via the RevenueRecognition service — never recompute Hours × Rate here.
+  const monthlyEngine = Number(recognizedRevenue ?? 0);
+  const monthlyDisplay = viewMode === 'net' ? Math.round(monthlyEngine * netMultiplier) : monthlyEngine;
   const lifetime = client.lifetimeRevenue || 0;
   const lifetimeDisplay = viewMode === 'net' ? Math.round(lifetime * netMultiplier) : lifetime;
-  const effRate = client.trueHourlyRate || 0;
+  // Effective rate from the engine — Revenue ÷ Hours this period.
+  const effRate = monthHours > 0 && monthlyEngine > 0
+    ? Math.round(monthlyEngine / monthHours)
+    : (client.trueHourlyRate || 0);
   const effRateDisplay = viewMode === 'net' ? Math.round(effRate * netMultiplier) : effRate;
-  const deltaPct = Math.abs(Math.round(((monthly - lastMonthEarnings) / Math.max(lastMonthEarnings, 1)) * 100));
+  const deltaPct = Math.abs(Math.round(((monthlyEngine - lastMonthEarnings) / Math.max(lastMonthEarnings, 1)) * 100));
+
+  // Contract terms — surfaced separately from revenue per "separate revenue from contracts".
+  const contractTerms = (() => {
+    if (billingModelResolved === 'Retainer') {
+      const monthly = Number(client.monthlyContractValue ?? 0);
+      return {
+        label: 'Monthly contract',
+        value: monthly > 0 ? formatMoney(monthly) : '—',
+        sub: client.retainerTotal ? `${fmtH(client.retainerTotal)}h / month allotment` : 'No allotment set',
+      };
+    }
+    if (billingModelResolved === 'FixedFee') {
+      return { label: 'Engagement model', value: 'Fixed fee', sub: 'Per-project contract values' };
+    }
+    return {
+      label: 'Hourly rate',
+      value: client.rate ? `${formatMoney(client.rate)}/hr` : '—',
+      sub: 'Billed per logged hour',
+    };
+  })();
 
   return (
     <>
@@ -1121,14 +1148,14 @@ function OverviewTab({
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-10">
-            {/* Display metric */}
+            {/* Display metric — Revenue this month */}
             <div className="lg:col-span-2">
-              <div className="type-meta mb-2">This month</div>
+              <div className="type-meta mb-2">Revenue this month</div>
               <div className="flex items-baseline gap-3 flex-wrap">
                 <div className="type-display tabular-nums">
                   {formatMoney(monthlyDisplay, { precision: "compact" })}
                 </div>
-                {revenueTrend !== 'flat' && (
+                {revenueTrend !== 'flat' && lastMonthEarnings > 0 && (
                   <div
                     className={`flex items-center gap-1 type-meta ${revenueTrend === 'up' ? 'text-success' : 'text-destructive'}`}
                     style={{ fontWeight: 600 }}
@@ -1139,7 +1166,14 @@ function OverviewTab({
                 )}
               </div>
 
-              {client.model === 'Retainer' && (() => {
+              {/* Profitability — engine-derived, restrained presentation */}
+              {profitabilityResult && monthlyEngine > 0 && (
+                <div className="mt-3">
+                  <ProfitabilityBadge tone={profitabilityResult.tone} />
+                </div>
+              )}
+
+              {billingModelResolved === 'Retainer' && (() => {
                 const hoursUsed = (client.retainerTotal || 0) - (client.retainerRemaining || 0);
                 const pct = client.retainerTotal ? hoursUsed / client.retainerTotal : 0;
                 return (
@@ -1170,15 +1204,36 @@ function OverviewTab({
                 </div>
               </div>
               <div className="px-4 py-4 last:pr-0">
-                <div className="type-eyebrow mb-2">Hours logged</div>
+                <div className="type-eyebrow mb-2">Hours this month</div>
                 <div className="text-[20px] tabular-nums" style={{ fontWeight: 600, letterSpacing: '-0.02em' }}>
-                  {client.hoursLogged || 0}
+                  {fmtH(monthHours || 0)}
                 </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ── Contract terms — separate surface from revenue ───── */}
+          <div className="mt-6 pt-5 border-t border-[var(--hairline)] grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <div className="type-eyebrow mb-1.5">Billing model</div>
+              <div className="text-[13.5px]" style={{ fontWeight: 600 }}>{billingModelResolved}</div>
+            </div>
+            <div>
+              <div className="type-eyebrow mb-1.5">{contractTerms.label}</div>
+              <div className="text-[13.5px] tabular-nums" style={{ fontWeight: 600 }}>{contractTerms.value}</div>
+              <div className="type-meta text-muted-foreground mt-0.5">{contractTerms.sub}</div>
+            </div>
+            <div>
+              <div className="type-eyebrow mb-1.5">Active projects</div>
+              <div className="text-[13.5px] tabular-nums" style={{ fontWeight: 600 }}>
+                {projects.filter((p: any) => p.status === 'In Progress' || p.status === 'Active').length}
+                <span className="type-meta text-muted-foreground ml-1">of {projects.length}</span>
               </div>
             </div>
           </div>
         </section>
       )}
+
 
       {/* ── Activity + Insights — two column hairline grid ─────── */}
       <section>
