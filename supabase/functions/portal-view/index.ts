@@ -172,8 +172,17 @@ Deno.serve(async (req) => {
       end_date: p.end_date,
       hours: p.hours,
       estimated_hours: p.estimated_hours,
+      // Phase 1 — Financial foundation
+      billing_model: p.billing_model || null,
+      completed_at: p.completed_at || null,
       next_milestone: pickNextMilestone(p.id),
-      ...(showCosts ? { revenue: p.revenue, total_value: p.total_value, budget_amount: p.budget_amount, budget_type: p.budget_type } : {}),
+      ...(showCosts ? {
+        revenue: p.revenue,
+        total_value: p.total_value,
+        contract_value: p.contract_value || 0,
+        budget_amount: p.budget_amount,
+        budget_type: p.budget_type,
+      } : {}),
     }));
 
     const invoices = showCosts
