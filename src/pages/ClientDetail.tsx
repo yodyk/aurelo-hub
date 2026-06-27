@@ -784,6 +784,10 @@ export default function ClientDetail() {
                 riskLevel={riskLevel}
                 priorityCfg={priorityCfg}
                 riskCfg={riskCfg}
+                recognizedRevenue={recognizedRevenue}
+                profitabilityResult={profitabilityResult}
+                billingModelResolved={billingModelResolved}
+                monthHours={monthHours}
               />
             )}
 
