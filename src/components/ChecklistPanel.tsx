@@ -57,6 +57,59 @@ export default function ChecklistPanel({ clientId, projectId, workspaceId }: Che
   const [clientNotes, setClientNotes] = useState<ClientNote[]>([]);
   const [clientFiles, setClientFiles] = useState<StoredFile[]>([]);
 
+  // Per-scope persisted UI state: order + collapsed groups
+  const scopeKey = `aurelo_checklist_ui_${clientId}_${projectId ?? 'all'}`;
+  const [orderIds, setOrderIds] = useState<string[]>([]);
+  const [collapsedMap, setCollapsedMap] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(scopeKey);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed?.order)) setOrderIds(parsed.order);
+        if (parsed?.collapsed && typeof parsed.collapsed === 'object') setCollapsedMap(parsed.collapsed);
+      }
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scopeKey]);
+
+  const persistUi = useCallback((order: string[], collapsed: Record<string, boolean>) => {
+    try { localStorage.setItem(scopeKey, JSON.stringify({ order, collapsed })); } catch {}
+  }, [scopeKey]);
+
+  const orderedChecklists = useMemo(() => {
+    if (checklists.length === 0) return checklists;
+    const byId = new Map(checklists.map(c => [c.id, c]));
+    const seen = new Set<string>();
+    const result: Checklist[] = [];
+    for (const id of orderIds) {
+      const c = byId.get(id);
+      if (c) { result.push(c); seen.add(id); }
+    }
+    for (const c of checklists) if (!seen.has(c.id)) result.push(c);
+    return result;
+  }, [checklists, orderIds]);
+
+  const toggleCollapsed = useCallback((id: string) => {
+    setCollapsedMap(prev => {
+      const next = { ...prev, [id]: !prev[id] };
+      persistUi(orderedChecklists.map(c => c.id), next);
+      return next;
+    });
+  }, [orderedChecklists, persistUi]);
+
+  const moveChecklist = useCallback((id: string, dir: -1 | 1) => {
+    const ids = orderedChecklists.map(c => c.id);
+    const idx = ids.indexOf(id);
+    const target = idx + dir;
+    if (idx < 0 || target < 0 || target >= ids.length) return;
+    [ids[idx], ids[target]] = [ids[target], ids[idx]];
+    setOrderIds(ids);
+    persistUi(ids, collapsedMap);
+  }, [orderedChecklists, collapsedMap, persistUi]);
+
+
   const refresh = useCallback(async () => {
     const [data, links, notes, files] = await Promise.all([
       loadChecklists(clientId, projectId),
