@@ -1624,10 +1624,11 @@ const PORTAL_STATUSES: { value: PortalTask['status']; label: string; dot: string
 function portalDueChip(due?: string | null) {
   const label = dueLabel(due);
   if (!label) return null;
-  const d = new Date(due!);
+  const d = parseLocalDate(due!);
+  d.setHours(0, 0, 0, 0);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const diff = Math.floor((d.getTime() - today.getTime()) / 86400000);
+  const diff = Math.round((d.getTime() - today.getTime()) / 86400000);
   if (diff < 0) return { label, color: '#b91c1c', bg: '#fee2e2' };
   if (diff <= 3) return { label, color: '#b45309', bg: '#fef3c7' };
   return { label, color: '#6b7280', bg: '#f3f4f6' };
