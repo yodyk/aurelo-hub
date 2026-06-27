@@ -44,6 +44,8 @@ interface PortalClient {
   status: string;
   portalGreeting?: string | null;
   rate?: number;
+  billingModel?: string | null;
+  monthlyContractValue?: number | null;
   retainerTotal?: number;
   retainerRemaining?: number;
   retainerCarryoverHours?: number;
