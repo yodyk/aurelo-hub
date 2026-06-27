@@ -605,6 +605,10 @@ export function EditClientModal({ open, onClose, client, onSave, workspaceId, is
 
         {model === 'Retainer' && (
           <>
+            <div>
+              <Label hint="recognized once per cycle">Monthly contract value ($)</Label>
+              <Input value={monthlyContractValue} onChange={e => setMonthlyContractValue(e.target.value)} placeholder="e.g. 4,000" className="tabular-nums" />
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>Hours per month</Label>
