@@ -405,7 +405,27 @@ function ChecklistCard({
               </button>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 shrink-0">
+            <div className="flex items-center mr-1">
+              <button
+                onClick={onMoveUp}
+                disabled={!canMoveUp}
+                title="Move list up"
+                aria-label="Move list up"
+                className="p-1 rounded hover:bg-accent/60 text-muted-foreground hover:text-foreground transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <ArrowUp className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={onMoveDown}
+                disabled={!canMoveDown}
+                title="Move list down"
+                aria-label="Move list down"
+                className="p-1 rounded hover:bg-accent/60 text-muted-foreground hover:text-foreground transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <ArrowDown className="w-3.5 h-3.5" />
+              </button>
+            </div>
             <span className="text-[11px] text-muted-foreground tabular-nums">{completedCount}/{totalCount}</span>
             <button
               onClick={handleToggleShared}
