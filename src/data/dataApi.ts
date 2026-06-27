@@ -246,12 +246,15 @@ export async function loadSessions(workspaceId: string) {
 export async function addSession(workspaceId: string, session: any) {
   // Get current user id for logged_by
   const { data: { user } } = await supabase.auth.getUser();
+  const laborValue = session.laborValue ?? session.revenue ?? 0;
   const row: any = {
     workspace_id: workspaceId,
     client_id: session.clientId,
     date: session.rawDate || new Date().toISOString().split('T')[0],
     duration: session.duration || 0,
-    revenue: session.revenue || 0,
+    // Phase 1: write to both `labor_value` (engine) and `revenue` (legacy mirror).
+    revenue: laborValue,
+    labor_value: laborValue,
     billable: session.billable ?? true,
     task: session.task || null,
     notes: session.notes || null,
