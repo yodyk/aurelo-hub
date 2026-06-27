@@ -585,7 +585,8 @@ export function EditClientModal({ open, onClose, client, onSave, workspaceId, is
           <Label hint="contract terms — drives revenue recognition">Billing model</Label>
           <BillingModelSelector
             value={model === 'Project' ? 'FixedFee' : (model as 'Hourly' | 'Retainer')}
-            onChange={(m) => setModel(m === 'FixedFee' ? 'Project' : m)}
+            onChange={(m) => setModel(m === 'FixedFee' ? 'Project' : m === 'Hourly' || m === 'Retainer' ? m : 'Hourly')}
+            available={['Hourly', 'Retainer', 'FixedFee']}
           />
         </div>
 
