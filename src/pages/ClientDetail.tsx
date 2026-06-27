@@ -914,21 +914,36 @@ export default function ClientDetail() {
                 )}
 
                 <section>
-                  <div className="type-eyebrow mb-4">Rate &amp; terms</div>
+                  <div className="type-eyebrow mb-4">This month</div>
+                  <FinancialSummary
+                    revenue={recognizedRevenue}
+                    hoursWorked={monthHours}
+                    estimatedHours={monthEstimatedHours}
+                    profitability={profitabilityResult}
+                    billingModel={billingModelResolved}
+                    revenueLabel={billingModelResolved === 'Retainer' ? 'Monthly Revenue' : 'Revenue'}
+                  />
+                </section>
+
+                <section>
+                  <div className="type-eyebrow mb-4">Contract terms</div>
                   <dl className="divide-y divide-[var(--hairline)] border-y border-[var(--hairline)]">
                     <div className="flex justify-between py-3 text-[13.5px]">
                       <dt className="text-muted-foreground">Billing model</dt>
-                      <dd style={{ fontWeight: 500 }}>{client.model}</dd>
+                      <dd style={{ fontWeight: 500 }}>{billingModelResolved === 'FixedFee' ? 'Fixed Fee' : billingModelResolved}</dd>
                     </div>
-                    <div className="flex justify-between py-3 text-[13.5px]">
-                      <dt className="text-muted-foreground">Base rate</dt>
-                      <dd className="tabular-nums" style={{ fontWeight: 500 }}>{formatMoney(client.rate || 0)}/hr</dd>
-                    </div>
-                    <div className="flex justify-between py-3 text-[13.5px]">
-                      <dt className="text-muted-foreground">Effective rate</dt>
-                      <dd className="tabular-nums" style={{ fontWeight: 500 }}>{formatMoney(effectiveRate)}/hr</dd>
-
-                    </div>
+                    {(client.rate || 0) > 0 && (
+                      <div className="flex justify-between py-3 text-[13.5px]">
+                        <dt className="text-muted-foreground">Base rate</dt>
+                        <dd className="tabular-nums" style={{ fontWeight: 500 }}>{formatMoney(client.rate || 0)}/hr</dd>
+                      </div>
+                    )}
+                    {billingModelResolved === 'Retainer' && (client.monthlyContractValue || 0) > 0 && (
+                      <div className="flex justify-between py-3 text-[13.5px]">
+                        <dt className="text-muted-foreground">Monthly contract value</dt>
+                        <dd className="tabular-nums" style={{ fontWeight: 500 }}>{formatMoney(client.monthlyContractValue || 0)}</dd>
+                      </div>
+                    )}
                     {client.paymentTerms && (
                       <div className="flex justify-between py-3 text-[13.5px]">
                         <dt className="text-muted-foreground">Payment terms</dt>
