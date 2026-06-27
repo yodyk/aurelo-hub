@@ -1321,6 +1321,7 @@ export function AddProjectModal({ open, onClose, onSave, clients, preSelectedCli
   const [status, setStatus] = useState<'Not Started' | 'In Progress' | 'On Hold' | 'Complete'>('In Progress');
   const [estimatedHours, setEstimatedHours] = useState('');
   const [totalValue, setTotalValue] = useState('');
+  const [billingModel, setBillingModel] = useState<'Hourly' | 'Retainer' | 'FixedFee'>('Hourly');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [saving, setSaving] = useState(false);
@@ -1339,6 +1340,7 @@ export function AddProjectModal({ open, onClose, onSave, clients, preSelectedCli
   const reset = () => {
     setName(''); setDescription(''); setClientId(''); setStatus('In Progress');
     setEstimatedHours(''); setTotalValue(''); setStartDate(''); setEndDate('');
+    setBillingModel('Hourly');
   };
 
   const hoursNum = Number(estimatedHours) || 0;
