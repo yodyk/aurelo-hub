@@ -317,6 +317,7 @@ export type Database = {
       clients: {
         Row: {
           address: string | null
+          billing_model: string
           contact_email: string | null
           contact_name: string | null
           created_at: string
@@ -327,6 +328,7 @@ export type Database = {
           last_session_date: string | null
           lifetime_revenue: number | null
           model: string
+          monthly_contract_value: number | null
           monthly_earnings: number | null
           name: string
           phone: string | null
@@ -351,6 +353,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          billing_model?: string
           contact_email?: string | null
           contact_name?: string | null
           created_at?: string
@@ -361,6 +364,7 @@ export type Database = {
           last_session_date?: string | null
           lifetime_revenue?: number | null
           model?: string
+          monthly_contract_value?: number | null
           monthly_earnings?: number | null
           name: string
           phone?: string | null
@@ -385,6 +389,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          billing_model?: string
           contact_email?: string | null
           contact_name?: string | null
           created_at?: string
@@ -395,6 +400,7 @@ export type Database = {
           last_session_date?: string | null
           lifetime_revenue?: number | null
           model?: string
+          monthly_contract_value?: number | null
           monthly_earnings?: number | null
           name?: string
           phone?: string | null
@@ -1274,9 +1280,12 @@ export type Database = {
       }
       projects: {
         Row: {
+          billing_model: string | null
           budget_amount: number | null
           budget_type: string | null
           client_id: string
+          completed_at: string | null
+          contract_value: number | null
           created_at: string
           description: string | null
           end_date: string | null
@@ -1293,9 +1302,12 @@ export type Database = {
           workspace_id: string
         }
         Insert: {
+          billing_model?: string | null
           budget_amount?: number | null
           budget_type?: string | null
           client_id: string
+          completed_at?: string | null
+          contract_value?: number | null
           created_at?: string
           description?: string | null
           end_date?: string | null
@@ -1312,9 +1324,12 @@ export type Database = {
           workspace_id: string
         }
         Update: {
+          billing_model?: string | null
           budget_amount?: number | null
           budget_type?: string | null
           client_id?: string
+          completed_at?: string | null
+          contract_value?: number | null
           created_at?: string
           description?: string | null
           end_date?: string | null
@@ -1561,6 +1576,7 @@ export type Database = {
           date: string
           duration: number
           id: string
+          labor_value: number | null
           logged_by: string
           notes: string | null
           project_id: string | null
@@ -1579,6 +1595,7 @@ export type Database = {
           date: string
           duration?: number
           id?: string
+          labor_value?: number | null
           logged_by: string
           notes?: string | null
           project_id?: string | null
@@ -1597,6 +1614,7 @@ export type Database = {
           date?: string
           duration?: number
           id?: string
+          labor_value?: number | null
           logged_by?: string
           notes?: string | null
           project_id?: string | null

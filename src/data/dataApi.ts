@@ -48,6 +48,12 @@ function snakeToCamel(row: Record<string, any>): Record<string, any> {
     priority_level: 'priorityLevel',
     risk_level: 'riskLevel',
     custom_fields: 'customFields',
+    // Phase 1 — Financial foundation
+    billing_model: 'billingModel',
+    monthly_contract_value: 'monthlyContractValue',
+    contract_value: 'contractValue',
+    completed_at: 'completedAt',
+    labor_value: 'laborValue',
   };
   const out: Record<string, any> = {};
   for (const [k, v] of Object.entries(row)) {
@@ -91,6 +97,12 @@ function camelToSnake(obj: Record<string, any>): Record<string, any> {
     priorityLevel: 'priority_level',
     riskLevel: 'risk_level',
     customFields: 'custom_fields',
+    // Phase 1 — Financial foundation
+    billingModel: 'billing_model',
+    monthlyContractValue: 'monthly_contract_value',
+    contractValue: 'contract_value',
+    completedAt: 'completed_at',
+    laborValue: 'labor_value',
   };
   const out: Record<string, any> = {};
   for (const [k, v] of Object.entries(obj)) {
@@ -234,12 +246,15 @@ export async function loadSessions(workspaceId: string) {
 export async function addSession(workspaceId: string, session: any) {
   // Get current user id for logged_by
   const { data: { user } } = await supabase.auth.getUser();
+  const laborValue = session.laborValue ?? session.revenue ?? 0;
   const row: any = {
     workspace_id: workspaceId,
     client_id: session.clientId,
     date: session.rawDate || new Date().toISOString().split('T')[0],
     duration: session.duration || 0,
-    revenue: session.revenue || 0,
+    // Phase 1: write to both `labor_value` (engine) and `revenue` (legacy mirror).
+    revenue: laborValue,
+    labor_value: laborValue,
     billable: session.billable ?? true,
     task: session.task || null,
     notes: session.notes || null,
@@ -269,7 +284,11 @@ export async function updateSession(workspaceId: string, sessionId: string, upda
   if (updates.task !== undefined) row.task = updates.task;
   if (updates.notes !== undefined) row.notes = updates.notes;
   if (updates.duration !== undefined) row.duration = updates.duration;
-  if (updates.revenue !== undefined) row.revenue = updates.revenue;
+  if (updates.revenue !== undefined || updates.laborValue !== undefined) {
+    const lv = updates.laborValue ?? updates.revenue;
+    row.revenue = lv;
+    row.labor_value = lv;
+  }
   if (updates.billable !== undefined) row.billable = updates.billable;
   if (updates.workTags !== undefined) row.work_tags = updates.workTags;
   if (updates.rawDate !== undefined) row.date = updates.rawDate;
@@ -331,6 +350,9 @@ export async function addProject(workspaceId: string, clientId: string, project:
     estimated_hours: project.estimatedHours || 0,
     revenue: project.revenue || 0,
     total_value: project.totalValue || 0,
+    // Phase 1 — Financial foundation
+    billing_model: project.billingModel ?? null,
+    contract_value: project.contractValue ?? project.totalValue ?? 0,
     start_date: project.startDate || null,
     end_date: project.endDate || null,
     description: project.description || null,
