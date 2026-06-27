@@ -1626,10 +1626,24 @@ function ProjectDetailsTab({ project, onUpdate, canViewFinancials }: { project: 
 
           {canViewFinancials && (
             <>
-              {/* Total value */}
+              {/* Billing model — engine-canonical revenue recognition switch */}
+              <div className="md:col-span-2">
+                <label className={labelClass} style={{ fontWeight: 600 }}>Billing model</label>
+                <BillingModelSelector value={billingModel} onChange={handleBillingModelChange} variant="compact" />
+              </div>
+
+              {/* Total value / Contract value */}
               <div>
-                <label className={labelClass} style={{ fontWeight: 600 }}>Total project value ($)</label>
+                <label className={labelClass} style={{ fontWeight: 600 }}>
+                  {billingModel === 'FixedFee' ? 'Contract value ($)' : 'Total project value ($)'}
+                </label>
                 <input type="number" value={totalValue} onChange={handleChange(setTotalValue)} min="0" step="1" placeholder="0" className={fieldClass} />
+                {billingModel === 'FixedFee' && (
+                  <div className="text-[10.5px] text-muted-foreground mt-1">Revenue recognized on completion</div>
+                )}
+                {billingModel === 'Retainer' && (
+                  <div className="text-[10.5px] text-muted-foreground mt-1">Monthly contract is set on the client</div>
+                )}
               </div>
 
               {/* Budget type */}
