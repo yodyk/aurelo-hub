@@ -1652,9 +1652,8 @@ function ProjectDetailsTab({ project, onUpdate, canViewFinancials }: { project: 
                 <label className={labelClass} style={{ fontWeight: 600 }}>Budget type</label>
                 <select value={budgetType} onChange={handleChange(setBudgetType)} className={fieldClass}>
                   <option value="">None</option>
-                  <option value="fixed">Fixed price</option>
-                  <option value="hourly">Hourly</option>
-                  <option value="retainer">Retainer</option>
+                  <option value="hours">Hours cap</option>
+                  <option value="dollars">Dollar cap</option>
                 </select>
               </div>
 
