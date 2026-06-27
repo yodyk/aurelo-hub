@@ -513,6 +513,7 @@ export function EditClientModal({ open, onClose, client, onSave, workspaceId, is
         contactEmail: contactEmail.trim(),
         website: website.trim(),
         model,
+        billingModel: model === 'Retainer' ? 'Retainer' : model === 'Project' ? 'FixedFee' : 'Hourly',
         rate: rateNum,
         status,
         showPortalCosts,
@@ -522,9 +523,11 @@ export function EditClientModal({ open, onClose, client, onSave, workspaceId, is
       if (model === 'Retainer') {
         updates.retainerTotal = retainerTotalNum;
         updates.retainerRemaining = retainerRemainingNum;
+        updates.monthlyContractValue = monthlyContractValueNum;
       } else {
         updates.retainerTotal = 0;
         updates.retainerRemaining = 0;
+        updates.monthlyContractValue = 0;
       }
 
       await onSave(updates);
