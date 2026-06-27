@@ -9,6 +9,8 @@ import { usePlan } from "../data/PlanContext";
 import { LimitEnforcementModal } from "../components/PlanEnforcement";
 import { formatMoney, fmtH } from '@/lib/format';
 import { EmptyState } from "@/components/primitives/EmptyState";
+import { FinancialSummary } from "@/components/FinancialSummary";
+import { resolveBillingModel, profitability as computeProfitability, effectiveRate as calcEffectiveRate } from "@/lib/revenue";
 
 
 const container = {
