@@ -48,6 +48,12 @@ function snakeToCamel(row: Record<string, any>): Record<string, any> {
     priority_level: 'priorityLevel',
     risk_level: 'riskLevel',
     custom_fields: 'customFields',
+    // Phase 1 — Financial foundation
+    billing_model: 'billingModel',
+    monthly_contract_value: 'monthlyContractValue',
+    contract_value: 'contractValue',
+    completed_at: 'completedAt',
+    labor_value: 'laborValue',
   };
   const out: Record<string, any> = {};
   for (const [k, v] of Object.entries(row)) {
@@ -91,6 +97,12 @@ function camelToSnake(obj: Record<string, any>): Record<string, any> {
     priorityLevel: 'priority_level',
     riskLevel: 'risk_level',
     customFields: 'custom_fields',
+    // Phase 1 — Financial foundation
+    billingModel: 'billing_model',
+    monthlyContractValue: 'monthly_contract_value',
+    contractValue: 'contract_value',
+    completedAt: 'completed_at',
+    laborValue: 'labor_value',
   };
   const out: Record<string, any> = {};
   for (const [k, v] of Object.entries(obj)) {
