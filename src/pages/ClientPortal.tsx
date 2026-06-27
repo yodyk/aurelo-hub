@@ -24,6 +24,8 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { formatMoney, formatDuration, formatDate as formatDateFn, fmtH } from '@/lib/format';
+import { FinancialSummary } from "@/components/FinancialSummary";
+import { recognizeRevenue, profitability as computeProfitability, sumLaborValue, resolveBillingModel } from "@/lib/revenue";
 
 // ── Types ───────────────────────────────────────────────────────────
 
