@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   Plus, Trash2, Pencil, X, Check, Loader2, MoreHorizontal, Calendar, Clock,
-  Tag, AlignLeft, Filter, ChevronDown, Eye, EyeOff, UserPlus,
+  Tag, AlignLeft, Filter, ChevronDown, ChevronUp, ChevronRight, Eye, EyeOff, UserPlus,
+  ArrowUp, ArrowDown,
   Link2, FileText, Paperclip, ExternalLink,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -55,6 +56,59 @@ export default function ChecklistPanel({ clientId, projectId, workspaceId }: Che
   const [linksByItem, setLinksByItem] = useState<Record<string, TaskLink[]>>({});
   const [clientNotes, setClientNotes] = useState<ClientNote[]>([]);
   const [clientFiles, setClientFiles] = useState<StoredFile[]>([]);
+
+  // Per-scope persisted UI state: order + collapsed groups
+  const scopeKey = `aurelo_checklist_ui_${clientId}_${projectId ?? 'all'}`;
+  const [orderIds, setOrderIds] = useState<string[]>([]);
+  const [collapsedMap, setCollapsedMap] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(scopeKey);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed?.order)) setOrderIds(parsed.order);
+        if (parsed?.collapsed && typeof parsed.collapsed === 'object') setCollapsedMap(parsed.collapsed);
+      }
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scopeKey]);
+
+  const persistUi = useCallback((order: string[], collapsed: Record<string, boolean>) => {
+    try { localStorage.setItem(scopeKey, JSON.stringify({ order, collapsed })); } catch {}
+  }, [scopeKey]);
+
+  const orderedChecklists = useMemo(() => {
+    if (checklists.length === 0) return checklists;
+    const byId = new Map(checklists.map(c => [c.id, c]));
+    const seen = new Set<string>();
+    const result: Checklist[] = [];
+    for (const id of orderIds) {
+      const c = byId.get(id);
+      if (c) { result.push(c); seen.add(id); }
+    }
+    for (const c of checklists) if (!seen.has(c.id)) result.push(c);
+    return result;
+  }, [checklists, orderIds]);
+
+  const toggleCollapsed = useCallback((id: string) => {
+    setCollapsedMap(prev => {
+      const next = { ...prev, [id]: !prev[id] };
+      persistUi(orderedChecklists.map(c => c.id), next);
+      return next;
+    });
+  }, [orderedChecklists, persistUi]);
+
+  const moveChecklist = useCallback((id: string, dir: -1 | 1) => {
+    const ids = orderedChecklists.map(c => c.id);
+    const idx = ids.indexOf(id);
+    const target = idx + dir;
+    if (idx < 0 || target < 0 || target >= ids.length) return;
+    [ids[idx], ids[target]] = [ids[target], ids[idx]];
+    setOrderIds(ids);
+    persistUi(ids, collapsedMap);
+  }, [orderedChecklists, collapsedMap, persistUi]);
+
 
   const refresh = useCallback(async () => {
     const [data, links, notes, files] = await Promise.all([
@@ -151,7 +205,7 @@ export default function ChecklistPanel({ clientId, projectId, workspaceId }: Che
         </div>
       )}
 
-      {checklists.map((checklist) => (
+      {orderedChecklists.map((checklist, idx) => (
         <ChecklistCard
           key={checklist.id}
           checklist={checklist}
@@ -166,6 +220,12 @@ export default function ChecklistPanel({ clientId, projectId, workspaceId }: Che
           clientNotes={clientNotes}
           clientFiles={clientFiles}
           onLinksChanged={refreshLinks}
+          collapsed={collapsedMap[checklist.id] === true}
+          onToggleCollapsed={() => toggleCollapsed(checklist.id)}
+          canMoveUp={idx > 0}
+          canMoveDown={idx < orderedChecklists.length - 1}
+          onMoveUp={() => moveChecklist(checklist.id, -1)}
+          onMoveDown={() => moveChecklist(checklist.id, 1)}
         />
       ))}
 
@@ -227,6 +287,7 @@ function FilterChip({ active, onClick, label, count }: { active: boolean; onClic
 function ChecklistCard({
   checklist, clientId, workspaceId, onDelete, onRefresh, statusFilter, tagFilter, workCategoryNames,
   linksByItem, clientNotes, clientFiles, onLinksChanged,
+  collapsed, onToggleCollapsed, canMoveUp, canMoveDown, onMoveUp, onMoveDown,
 }: {
   checklist: Checklist;
   clientId: string;
@@ -240,6 +301,12 @@ function ChecklistCard({
   clientNotes: ClientNote[];
   clientFiles: StoredFile[];
   onLinksChanged: () => void;
+  collapsed: boolean;
+  onToggleCollapsed: () => void;
+  canMoveUp: boolean;
+  canMoveDown: boolean;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
 }) {
   const [items, setItems] = useState<ChecklistItem[]>(checklist.items);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
@@ -308,27 +375,57 @@ function ChecklistCard({
 
       <div className="p-4 md:p-5">
         {/* Header */}
-        <div className="flex items-center justify-between mb-3">
-          {editingTitle ? (
-            <div className="flex items-center gap-2 flex-1">
-              <input
-                autoFocus
-                value={titleValue}
-                onChange={(e) => setTitleValue(e.target.value)}
-                className="flex-1 text-[14px] px-2 py-1 bg-transparent border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
-                onKeyDown={(e) => { if (e.key === 'Enter') handleSaveTitle(); if (e.key === 'Escape') { setTitleValue(checklist.title); setEditingTitle(false); } }}
-                style={{ fontWeight: 600 }}
-              />
-              <button onClick={handleSaveTitle} className="p-1 rounded hover:bg-accent/60 text-primary cursor-pointer"><Check className="w-3.5 h-3.5" /></button>
-              <button onClick={() => { setTitleValue(checklist.title); setEditingTitle(false); }} className="p-1 rounded hover:bg-accent/60 text-muted-foreground cursor-pointer"><X className="w-3.5 h-3.5" /></button>
-            </div>
-          ) : (
-            <button onClick={() => setEditingTitle(true)} className="text-[14px] text-foreground hover:text-primary transition-colors group flex items-center gap-1.5 cursor-pointer" style={{ fontWeight: 600 }}>
-              {checklist.title}
-              <Pencil className="w-3 h-3 text-muted-foreground/0 group-hover:text-muted-foreground/60 transition-all" />
+        <div className="flex items-center justify-between mb-3 gap-2">
+          <div className="flex items-center gap-1.5 flex-1 min-w-0">
+            <button
+              onClick={onToggleCollapsed}
+              className="p-1 -ml-1 rounded hover:bg-accent/60 text-muted-foreground hover:text-foreground transition-colors cursor-pointer shrink-0"
+              title={collapsed ? 'Expand list' : 'Collapse list'}
+              aria-label={collapsed ? 'Expand list' : 'Collapse list'}
+            >
+              {collapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
             </button>
-          )}
-          <div className="flex items-center gap-2">
+            {editingTitle ? (
+              <div className="flex items-center gap-2 flex-1">
+                <input
+                  autoFocus
+                  value={titleValue}
+                  onChange={(e) => setTitleValue(e.target.value)}
+                  className="flex-1 text-[14px] px-2 py-1 bg-transparent border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleSaveTitle(); if (e.key === 'Escape') { setTitleValue(checklist.title); setEditingTitle(false); } }}
+                  style={{ fontWeight: 600 }}
+                />
+                <button onClick={handleSaveTitle} className="p-1 rounded hover:bg-accent/60 text-primary cursor-pointer"><Check className="w-3.5 h-3.5" /></button>
+                <button onClick={() => { setTitleValue(checklist.title); setEditingTitle(false); }} className="p-1 rounded hover:bg-accent/60 text-muted-foreground cursor-pointer"><X className="w-3.5 h-3.5" /></button>
+              </div>
+            ) : (
+              <button onClick={() => setEditingTitle(true)} className="text-[14px] text-foreground hover:text-primary transition-colors group flex items-center gap-1.5 cursor-pointer min-w-0" style={{ fontWeight: 600 }}>
+                <span className="truncate">{checklist.title}</span>
+                <Pencil className="w-3 h-3 text-muted-foreground/0 group-hover:text-muted-foreground/60 transition-all shrink-0" />
+              </button>
+            )}
+          </div>
+          <div className="flex items-center gap-1 shrink-0">
+            <div className="flex items-center mr-1">
+              <button
+                onClick={onMoveUp}
+                disabled={!canMoveUp}
+                title="Move list up"
+                aria-label="Move list up"
+                className="p-1 rounded hover:bg-accent/60 text-muted-foreground hover:text-foreground transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <ArrowUp className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={onMoveDown}
+                disabled={!canMoveDown}
+                title="Move list down"
+                aria-label="Move list down"
+                className="p-1 rounded hover:bg-accent/60 text-muted-foreground hover:text-foreground transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <ArrowDown className="w-3.5 h-3.5" />
+              </button>
+            </div>
             <span className="text-[11px] text-muted-foreground tabular-nums">{completedCount}/{totalCount}</span>
             <button
               onClick={handleToggleShared}
@@ -370,48 +467,52 @@ function ChecklistCard({
 
         </div>
 
-        {/* Tasks */}
-        <div className="space-y-1.5">
-          <AnimatePresence initial={false}>
-            {filteredItems.map((item) => (
-              <TaskRow
-                key={item.id}
-                item={item}
-                clientId={clientId}
-                workspaceId={workspaceId}
-                workCategoryNames={workCategoryNames}
-                links={linksByItem[item.id] || []}
-                clientNotes={clientNotes}
-                clientFiles={clientFiles}
-                onLinksChanged={onLinksChanged}
-                onUpdate={(patch) => updateLocal(item.id, patch)}
-                onDeleted={() => setItems(prev => prev.filter(i => i.id !== item.id))}
-                onUndoDelete={(restored) => setItems(prev => prev.some(i => i.id === restored.id) ? prev : [...prev, restored].sort((a, b) => a.sortOrder - b.sortOrder))}
-                parentShared={shared}
-                onRefresh={onRefresh}
-              />
-            ))}
-          </AnimatePresence>
-          {filteredItems.length === 0 && items.length > 0 && (
-            <div className="text-center py-4 text-[12px] text-muted-foreground">No tasks match the current filters.</div>
-          )}
-        </div>
+        {!collapsed && (
+          <>
+            {/* Tasks */}
+            <div className="space-y-1.5">
+              <AnimatePresence initial={false}>
+                {filteredItems.map((item) => (
+                  <TaskRow
+                    key={item.id}
+                    item={item}
+                    clientId={clientId}
+                    workspaceId={workspaceId}
+                    workCategoryNames={workCategoryNames}
+                    links={linksByItem[item.id] || []}
+                    clientNotes={clientNotes}
+                    clientFiles={clientFiles}
+                    onLinksChanged={onLinksChanged}
+                    onUpdate={(patch) => updateLocal(item.id, patch)}
+                    onDeleted={() => setItems(prev => prev.filter(i => i.id !== item.id))}
+                    onUndoDelete={(restored) => setItems(prev => prev.some(i => i.id === restored.id) ? prev : [...prev, restored].sort((a, b) => a.sortOrder - b.sortOrder))}
+                    parentShared={shared}
+                    onRefresh={onRefresh}
+                  />
+                ))}
+              </AnimatePresence>
+              {filteredItems.length === 0 && items.length > 0 && (
+                <div className="text-center py-4 text-[12px] text-muted-foreground">No tasks match the current filters.</div>
+              )}
+            </div>
 
-        {/* Add task */}
-        {showQuickAdd ? (
-          <TaskComposer
-            workCategoryNames={workCategoryNames}
-            onCancel={() => setShowQuickAdd(false)}
-            onSubmit={handleQuickAdd}
-          />
-        ) : (
-          <button
-            onClick={() => setShowQuickAdd(true)}
-            className="mt-3 inline-flex items-center gap-1.5 text-[12px] text-muted-foreground hover:text-primary transition-colors cursor-pointer"
-            style={{ fontWeight: 500 }}
-          >
-            <Plus className="w-3.5 h-3.5" /> Add task
-          </button>
+            {/* Add task */}
+            {showQuickAdd ? (
+              <TaskComposer
+                workCategoryNames={workCategoryNames}
+                onCancel={() => setShowQuickAdd(false)}
+                onSubmit={handleQuickAdd}
+              />
+            ) : (
+              <button
+                onClick={() => setShowQuickAdd(true)}
+                className="mt-3 inline-flex items-center gap-1.5 text-[12px] text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                style={{ fontWeight: 500 }}
+              >
+                <Plus className="w-3.5 h-3.5" /> Add task
+              </button>
+            )}
+          </>
         )}
       </div>
     </div>
