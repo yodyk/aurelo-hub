@@ -581,12 +581,11 @@ export function EditClientModal({ open, onClose, client, onSave, workspaceId, is
         </div>
 
         <div>
-          <Label>Billing model</Label>
-          <div className="flex gap-2">
-            <ModelButton active={model === 'Hourly'} onClick={() => setModel('Hourly')} icon={Clock} label="Hourly" description="Bill per hour tracked" />
-            <ModelButton active={model === 'Retainer'} onClick={() => setModel('Retainer')} icon={Repeat} label="Retainer" description="Fixed monthly hours" />
-            <ModelButton active={model === 'Project'} onClick={() => setModel('Project')} icon={FolderKanban} label="Project" description="Fixed scope & price" />
-          </div>
+          <Label hint="contract terms — drives revenue recognition">Billing model</Label>
+          <BillingModelSelector
+            value={model === 'Project' ? 'FixedFee' : (model as 'Hourly' | 'Retainer')}
+            onChange={(m) => setModel(m === 'FixedFee' ? 'Project' : m)}
+          />
         </div>
 
         {/* ── Financial terms ─────────────────── */}
