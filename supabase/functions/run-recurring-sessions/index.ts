@@ -115,6 +115,7 @@ Deno.serve(async (req) => {
         billable: rule.billable,
         date: today,
         revenue,
+        labor_value: revenue,
         logged_by: workspace.owner_id,
         allocation_type: rule.clients?.model === "Retainer" ? "retainer" : null,
       });
