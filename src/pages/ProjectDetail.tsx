@@ -46,6 +46,7 @@ import {
   deleteMilestone,
   type ProjectMilestone,
 } from "@/data/portalContentApi";
+import { resolveBillingModel } from "@/lib/revenue";
 
 // ── Constants ──────────────────────────────────────────────────────
 
