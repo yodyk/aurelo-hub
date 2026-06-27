@@ -500,6 +500,7 @@ export function EditClientModal({ open, onClose, client, onSave, workspaceId, is
     status !== (client.status || 'Active') ||
     retainerTotal !== String(client.retainerTotal || '') ||
     retainerRemaining !== String(client.retainerRemaining || '') ||
+    monthlyContractValue !== String(client.monthlyContractValue || '') ||
     showPortalCosts !== (client.showPortalCosts !== false)
   );
 
