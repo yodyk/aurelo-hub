@@ -458,6 +458,7 @@ export function EditClientModal({ open, onClose, client, onSave, workspaceId, is
   const [status, setStatus] = useState<'Active' | 'Prospect' | 'Archived'>('Active');
   const [retainerTotal, setRetainerTotal] = useState('');
   const [retainerRemaining, setRetainerRemaining] = useState('');
+  const [monthlyContractValue, setMonthlyContractValue] = useState('');
   const [showPortalCosts, setShowPortalCosts] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingFavicon, setUploadingFavicon] = useState(false);
