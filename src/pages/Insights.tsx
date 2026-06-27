@@ -175,6 +175,7 @@ export default function Insights() {
     if (hasInvoicing) {
       invoiceApi.loadInvoices().then(setInvoices).catch(() => {});
     }
+    loadAllProjects().catch(() => {});
   }, [hasInvoicing]);
 
   // Recompute metrics with invoices included
