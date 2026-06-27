@@ -485,28 +485,47 @@ export default function Today() {
               </div>
             </div>
 
-            {/* Inline stat rail */}
+            {/* Inline stat rail — health first (Effective rate · Margin · Hours) */}
             <div className="lg:col-span-5 grid grid-cols-3 gap-6">
-              <div>
-                <div className="type-eyebrow mb-2">Hours</div>
-                <div className="type-section tabular-nums">
-                  {Math.round(totalHours * 10) / 10}
-                  <span className="type-meta ml-1">h</span>
-                </div>
-              </div>
               <div>
                 <div className="type-eyebrow mb-2">Effective rate</div>
                 <div className="type-section tabular-nums">
                   ${trueRate}
                   <span className="type-meta ml-1">/h</span>
                 </div>
+                <div className="type-meta mt-1">this month</div>
               </div>
               <div>
-                <div className="type-eyebrow mb-2">Billable</div>
-                <div className="type-section tabular-nums">
-                  {billablePct}
-                  <span className="type-meta ml-1">%</span>
+                <div className="type-eyebrow mb-2">Margin</div>
+                <div
+                  className="type-section tabular-nums"
+                  style={{
+                    color:
+                      marginPct == null
+                        ? undefined
+                        : marginPct >= 40
+                          ? 'var(--success)'
+                          : marginPct >= 15
+                            ? undefined
+                            : marginPct < 0
+                              ? 'var(--destructive)'
+                              : 'var(--warning)',
+                  }}
+                >
+                  {marginPct == null ? '—' : `${marginPct}`}
+                  {marginPct != null && <span className="type-meta ml-1">%</span>}
                 </div>
+                <div className="type-meta mt-1 tabular-nums">
+                  {marginAbs >= 0 ? '+' : '−'}${Math.abs(Math.round(marginAbs))}
+                </div>
+              </div>
+              <div>
+                <div className="type-eyebrow mb-2">Hours</div>
+                <div className="type-section tabular-nums">
+                  {fmtH(totalHours)}
+                  <span className="type-meta ml-1">h</span>
+                </div>
+                <div className="type-meta mt-1">{billablePct}% billable</div>
               </div>
             </div>
           </motion.section>
