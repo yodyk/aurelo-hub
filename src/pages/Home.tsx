@@ -46,6 +46,7 @@ import {
   SegmentedControl,
   HairlineBar,
 } from "../components/primitives/composition";
+import { recognizeWorkspaceRevenue, effectiveRate as calcEffectiveRate } from "@/lib/revenue";
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
