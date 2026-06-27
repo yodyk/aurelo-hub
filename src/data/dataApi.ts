@@ -284,7 +284,11 @@ export async function updateSession(workspaceId: string, sessionId: string, upda
   if (updates.task !== undefined) row.task = updates.task;
   if (updates.notes !== undefined) row.notes = updates.notes;
   if (updates.duration !== undefined) row.duration = updates.duration;
-  if (updates.revenue !== undefined) row.revenue = updates.revenue;
+  if (updates.revenue !== undefined || updates.laborValue !== undefined) {
+    const lv = updates.laborValue ?? updates.revenue;
+    row.revenue = lv;
+    row.labor_value = lv;
+  }
   if (updates.billable !== undefined) row.billable = updates.billable;
   if (updates.workTags !== undefined) row.work_tags = updates.workTags;
   if (updates.rawDate !== undefined) row.date = updates.rawDate;
@@ -346,6 +350,9 @@ export async function addProject(workspaceId: string, clientId: string, project:
     estimated_hours: project.estimatedHours || 0,
     revenue: project.revenue || 0,
     total_value: project.totalValue || 0,
+    // Phase 1 — Financial foundation
+    billing_model: project.billingModel ?? null,
+    contract_value: project.contractValue ?? project.totalValue ?? 0,
     start_date: project.startDate || null,
     end_date: project.endDate || null,
     description: project.description || null,
