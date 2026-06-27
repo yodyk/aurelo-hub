@@ -152,7 +152,7 @@ export default function ChecklistPanel({ clientId, projectId, workspaceId }: Che
         </div>
       )}
 
-      {checklists.map((checklist) => (
+      {orderedChecklists.map((checklist, idx) => (
         <ChecklistCard
           key={checklist.id}
           checklist={checklist}
@@ -167,6 +167,12 @@ export default function ChecklistPanel({ clientId, projectId, workspaceId }: Che
           clientNotes={clientNotes}
           clientFiles={clientFiles}
           onLinksChanged={refreshLinks}
+          collapsed={collapsedMap[checklist.id] === true}
+          onToggleCollapsed={() => toggleCollapsed(checklist.id)}
+          canMoveUp={idx > 0}
+          canMoveDown={idx < orderedChecklists.length - 1}
+          onMoveUp={() => moveChecklist(checklist.id, -1)}
+          onMoveDown={() => moveChecklist(checklist.id, 1)}
         />
       ))}
 
