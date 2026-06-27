@@ -46,7 +46,7 @@ import {
   SegmentedControl,
   HairlineBar,
 } from "../components/primitives/composition";
-import { recognizeWorkspaceRevenue, effectiveRate as calcEffectiveRate } from "@/lib/revenue";
+import { recognizeWorkspaceRevenue, effectiveRate as calcEffectiveRate, sumLaborValue } from "@/lib/revenue";
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
@@ -173,6 +173,21 @@ export default function Today() {
 
   const trueRate = calcEffectiveRate(current, totalHours) ?? 0;
   const billablePct = totalHours > 0 ? Math.round((billableHours / totalHours) * 100) : 0;
+
+  // Workspace margin this month (engine-derived: revenue − labor value).
+  const monthLabor = useMemo(() => {
+    let total = 0;
+    for (const c of clients as any[]) {
+      const cs = (sessions as any[]).filter(
+        (s) => s.clientId === c.id && (s.rawDate || s.date) &&
+          (() => { const r = s.rawDate || s.date; return r >= `${monthStart.getFullYear()}-${String(monthStart.getMonth()+1).padStart(2,'0')}-01`; })()
+      );
+      total += sumLaborValue(cs, c);
+    }
+    return total;
+  }, [clients, sessions, monthStart]);
+  const marginAbs = current - (viewMode === 'gross' ? monthLabor : Math.round(monthLabor * netMult));
+  const marginPct = current > 0 ? Math.round((marginAbs / current) * 100) : null;
 
   const weekHours = useMemo(() => thisWeek.reduce((s, x) => s + (x.duration || 0), 0), [thisWeek]);
   const weeklyTarget = financialDefaults.weeklyTarget || 40;
@@ -470,28 +485,47 @@ export default function Today() {
               </div>
             </div>
 
-            {/* Inline stat rail */}
+            {/* Inline stat rail — health first (Effective rate · Margin · Hours) */}
             <div className="lg:col-span-5 grid grid-cols-3 gap-6">
-              <div>
-                <div className="type-eyebrow mb-2">Hours</div>
-                <div className="type-section tabular-nums">
-                  {Math.round(totalHours * 10) / 10}
-                  <span className="type-meta ml-1">h</span>
-                </div>
-              </div>
               <div>
                 <div className="type-eyebrow mb-2">Effective rate</div>
                 <div className="type-section tabular-nums">
                   ${trueRate}
                   <span className="type-meta ml-1">/h</span>
                 </div>
+                <div className="type-meta mt-1">this month</div>
               </div>
               <div>
-                <div className="type-eyebrow mb-2">Billable</div>
-                <div className="type-section tabular-nums">
-                  {billablePct}
-                  <span className="type-meta ml-1">%</span>
+                <div className="type-eyebrow mb-2">Margin</div>
+                <div
+                  className="type-section tabular-nums"
+                  style={{
+                    color:
+                      marginPct == null
+                        ? undefined
+                        : marginPct >= 40
+                          ? 'var(--success)'
+                          : marginPct >= 15
+                            ? undefined
+                            : marginPct < 0
+                              ? 'var(--destructive)'
+                              : 'var(--warning)',
+                  }}
+                >
+                  {marginPct == null ? '—' : `${marginPct}`}
+                  {marginPct != null && <span className="type-meta ml-1">%</span>}
                 </div>
+                <div className="type-meta mt-1 tabular-nums">
+                  {marginAbs >= 0 ? '+' : '−'}${Math.abs(Math.round(marginAbs))}
+                </div>
+              </div>
+              <div>
+                <div className="type-eyebrow mb-2">Hours</div>
+                <div className="type-section tabular-nums">
+                  {fmtH(totalHours)}
+                  <span className="type-meta ml-1">h</span>
+                </div>
+                <div className="type-meta mt-1">{billablePct}% billable</div>
               </div>
             </div>
           </motion.section>

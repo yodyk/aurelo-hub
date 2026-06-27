@@ -27,6 +27,7 @@ import { useData } from "../data/DataContext";
 import { usePlan } from "../data/PlanContext";
 import { PLANS } from "../data/plans";
 import { computeInsightsMetrics, type InsightsMetrics } from "../data/insightsMetrics";
+import { profitability as calcProfitability, resolveBillingModel, sumLaborValue, hoursVariance, recognizeRevenue } from "@/lib/revenue";
 import * as invoiceApi from "../data/invoiceApi";
 import { formatMoney, fmtH } from '@/lib/format';
 
@@ -158,7 +159,7 @@ function SectionLabel({ children, pro, count }: { children: React.ReactNode; pro
 export default function Insights() {
   const navigate = useNavigate();
   const { canViewInsights } = useRoleAccess();
-  const { sessions, clients, netMultiplier, insightsMetrics: baseMetrics } = useData();
+  const { sessions, clients, netMultiplier, insightsMetrics: baseMetrics, allProjects, loadAllProjects } = useData();
   const { can } = usePlan();
 
 
@@ -174,6 +175,7 @@ export default function Insights() {
     if (hasInvoicing) {
       invoiceApi.loadInvoices().then(setInvoices).catch(() => {});
     }
+    loadAllProjects().catch(() => {});
   }, [hasInvoicing]);
 
   // Recompute metrics with invoices included
@@ -277,6 +279,54 @@ export default function Insights() {
             id: 'weak',
             title: `${weakest.clientName} is your lowest-margin engagement`,
             detail: `Effective rate of ${formatMoney(applyViewMode(weakest.effectiveRate))}/hr across ${fmtH(weakest.totalHours)}h — review scope or pricing`,
+            tone: 'attention',
+          });
+        }
+
+        // Fixed-fee profitability variance — engine-derived
+        // Surfaces the worst FixedFee engagement (most over estimate or unprofitable margin).
+        const fixedFeeFindings = (allProjects as any[])
+          .map((p) => {
+            const model = resolveBillingModel(p, null);
+            if (model !== 'FixedFee') return null;
+            const client = (clients as any[]).find((c) => c.id === p.clientId);
+            if (!client) return null;
+            const projectSessions = (sessions as any[]).filter((s) => s.projectId === p.id);
+            const hours = projectSessions.reduce((sum, s) => sum + (s.duration || 0), 0);
+            if (hours <= 0) return null;
+            const labor = sumLaborValue(projectSessions, client);
+            // Recognize revenue across all-time for the project (FixedFee = on completion).
+            const revenue = recognizeRevenue({
+              project: p, client, sessions: projectSessions,
+              period: { start: new Date(0), end: new Date(8640000000000000) },
+            }).amount;
+            // For in-progress fixed-fee, fall back to contract value as the anchor.
+            const anchor = revenue > 0 ? revenue : Number(p.contractValue ?? p.totalValue ?? 0);
+            if (anchor <= 0) return null;
+            const prof = calcProfitability({
+              revenue: anchor, laborValue: labor,
+              hours, estimatedHours: p.estimatedHours, nominalRate: client.rate,
+            });
+            const variance = p.estimatedHours > 0 ? hoursVariance(hours, p.estimatedHours) : null;
+            return { project: p, client, prof, variance, hours, labor, anchor };
+          })
+          .filter(Boolean) as Array<{ project: any; client: any; prof: any; variance: any; hours: number; labor: number; anchor: number }>;
+
+        const worstFixed = fixedFeeFindings
+          .filter((f) => f.prof.tone === 'unprofitable' || f.prof.tone === 'attention' || (f.variance?.tone === 'over' && (f.variance?.pct ?? 0) >= 25))
+          .sort((a, b) => (a.prof.marginAbs - b.prof.marginAbs))[0];
+
+        if (worstFixed) {
+          const overText = worstFixed.variance?.tone === 'over'
+            ? `${fmtH(Math.abs(worstFixed.variance.delta))}h over the ${fmtH(worstFixed.project.estimatedHours)}h estimate`
+            : `${fmtH(worstFixed.hours)}h logged`;
+          const marginText = worstFixed.prof.marginPct != null
+            ? `${worstFixed.prof.marginPct}% margin`
+            : `${formatMoney(worstFixed.prof.marginAbs)} margin`;
+          obs.push({
+            id: `fixed-${worstFixed.project.id}`,
+            title: `${worstFixed.client.name} — ${worstFixed.project.name} ${worstFixed.prof.tone === 'unprofitable' ? 'is running unprofitable' : 'is squeezing margin'}`,
+            detail: `${overText} · ${marginText} on this fixed-fee engagement`,
             tone: 'attention',
           });
         }
