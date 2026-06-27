@@ -287,6 +287,7 @@ function FilterChip({ active, onClick, label, count }: { active: boolean; onClic
 function ChecklistCard({
   checklist, clientId, workspaceId, onDelete, onRefresh, statusFilter, tagFilter, workCategoryNames,
   linksByItem, clientNotes, clientFiles, onLinksChanged,
+  collapsed, onToggleCollapsed, canMoveUp, canMoveDown, onMoveUp, onMoveDown,
 }: {
   checklist: Checklist;
   clientId: string;
@@ -300,6 +301,12 @@ function ChecklistCard({
   clientNotes: ClientNote[];
   clientFiles: StoredFile[];
   onLinksChanged: () => void;
+  collapsed: boolean;
+  onToggleCollapsed: () => void;
+  canMoveUp: boolean;
+  canMoveDown: boolean;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
 }) {
   const [items, setItems] = useState<ChecklistItem[]>(checklist.items);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
