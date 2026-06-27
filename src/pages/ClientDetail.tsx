@@ -65,6 +65,13 @@ import { useRoleAccess } from "@/data/useRoleAccess";
 import RecurringSessionsManager from "../components/RecurringSessionsManager";
 import ClientAssignmentManager from "../components/ClientAssignmentManager";
 import { SegmentedControl, HairlineBar, type SegmentOption } from "@/components/primitives/composition";
+import { FinancialSummary } from "@/components/FinancialSummary";
+import {
+  recognizeClientRevenue,
+  resolveBillingModel,
+  profitability as computeProfitability,
+  sumLaborValue,
+} from "@/lib/revenue";
 
 // ── Animation variants ──────────────────────────────────────────────
 const container = {
