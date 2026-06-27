@@ -174,6 +174,21 @@ export default function Today() {
   const trueRate = calcEffectiveRate(current, totalHours) ?? 0;
   const billablePct = totalHours > 0 ? Math.round((billableHours / totalHours) * 100) : 0;
 
+  // Workspace margin this month (engine-derived: revenue − labor value).
+  const monthLabor = useMemo(() => {
+    let total = 0;
+    for (const c of clients as any[]) {
+      const cs = (sessions as any[]).filter(
+        (s) => s.clientId === c.id && (s.rawDate || s.date) &&
+          (() => { const r = s.rawDate || s.date; return r >= `${monthStart.getFullYear()}-${String(monthStart.getMonth()+1).padStart(2,'0')}-01`; })()
+      );
+      total += sumLaborValue(cs, c);
+    }
+    return total;
+  }, [clients, sessions, monthStart]);
+  const marginAbs = current - (viewMode === 'gross' ? monthLabor : Math.round(monthLabor * netMult));
+  const marginPct = current > 0 ? Math.round((marginAbs / current) * 100) : null;
+
   const weekHours = useMemo(() => thisWeek.reduce((s, x) => s + (x.duration || 0), 0), [thisWeek]);
   const weeklyTarget = financialDefaults.weeklyTarget || 40;
 
