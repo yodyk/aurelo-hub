@@ -477,6 +477,7 @@ export function EditClientModal({ open, onClose, client, onSave, workspaceId, is
       setStatus(client.status || 'Active');
       setRetainerTotal(String(client.retainerTotal || ''));
       setRetainerRemaining(String(client.retainerRemaining || ''));
+      setMonthlyContractValue(String(client.monthlyContractValue || ''));
       setShowPortalCosts(client.showPortalCosts !== false);
     }
   }, [client]);
