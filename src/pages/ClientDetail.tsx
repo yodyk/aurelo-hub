@@ -65,6 +65,13 @@ import { useRoleAccess } from "@/data/useRoleAccess";
 import RecurringSessionsManager from "../components/RecurringSessionsManager";
 import ClientAssignmentManager from "../components/ClientAssignmentManager";
 import { SegmentedControl, HairlineBar, type SegmentOption } from "@/components/primitives/composition";
+import { FinancialSummary } from "@/components/FinancialSummary";
+import {
+  recognizeClientRevenue,
+  resolveBillingModel,
+  profitability as computeProfitability,
+  sumLaborValue,
+} from "@/lib/revenue";
 
 // ── Animation variants ──────────────────────────────────────────────
 const container = {
@@ -384,6 +391,33 @@ export default function ClientDetail() {
   const effectiveRate = billableHours > 0
     ? (client.lifetimeRevenue || 0) / billableHours
     : (client.rate || 0);
+
+  // ── Financial engine (single source of truth) ────────────────────
+  const monthStart = new Date();
+  monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
+  const monthEnd = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0, 23, 59, 59);
+  const billingModelResolved = resolveBillingModel(null, client);
+  const recognizedRevenue = recognizeClientRevenue(
+    client, projects, clientSessions, { start: monthStart, end: monthEnd },
+  );
+  const monthSessions = clientSessions.filter((s: any) => {
+    if (!s.rawDate && !s.date) return false;
+    const [y, m, d] = String(s.rawDate ?? s.date).split('-').map(Number);
+    const dt = new Date(y, (m ?? 1) - 1, d ?? 1).getTime();
+    return dt >= monthStart.getTime() && dt <= monthEnd.getTime();
+  });
+  const monthHours = monthSessions.reduce((sum: number, s: any) => sum + (Number(s.duration) || 0), 0);
+  const monthLaborValue = sumLaborValue(monthSessions, client);
+  const monthEstimatedHours = billingModelResolved === 'Retainer'
+    ? (client.retainerTotal || null)
+    : null;
+  const profitabilityResult = computeProfitability({
+    revenue: recognizedRevenue,
+    laborValue: monthLaborValue,
+    hours: monthHours,
+    estimatedHours: monthEstimatedHours ?? undefined,
+    nominalRate: client.rate || undefined,
+  });
 
   const priorityLevel = client.priorityLevel || 'medium';
   const riskLevel = client.riskLevel || 'low';
@@ -880,21 +914,36 @@ export default function ClientDetail() {
                 )}
 
                 <section>
-                  <div className="type-eyebrow mb-4">Rate &amp; terms</div>
+                  <div className="type-eyebrow mb-4">This month</div>
+                  <FinancialSummary
+                    revenue={recognizedRevenue}
+                    hoursWorked={monthHours}
+                    estimatedHours={monthEstimatedHours}
+                    profitability={profitabilityResult}
+                    billingModel={billingModelResolved}
+                    revenueLabel={billingModelResolved === 'Retainer' ? 'Monthly Revenue' : 'Revenue'}
+                  />
+                </section>
+
+                <section>
+                  <div className="type-eyebrow mb-4">Contract terms</div>
                   <dl className="divide-y divide-[var(--hairline)] border-y border-[var(--hairline)]">
                     <div className="flex justify-between py-3 text-[13.5px]">
                       <dt className="text-muted-foreground">Billing model</dt>
-                      <dd style={{ fontWeight: 500 }}>{client.model}</dd>
+                      <dd style={{ fontWeight: 500 }}>{billingModelResolved === 'FixedFee' ? 'Fixed Fee' : billingModelResolved}</dd>
                     </div>
-                    <div className="flex justify-between py-3 text-[13.5px]">
-                      <dt className="text-muted-foreground">Base rate</dt>
-                      <dd className="tabular-nums" style={{ fontWeight: 500 }}>{formatMoney(client.rate || 0)}/hr</dd>
-                    </div>
-                    <div className="flex justify-between py-3 text-[13.5px]">
-                      <dt className="text-muted-foreground">Effective rate</dt>
-                      <dd className="tabular-nums" style={{ fontWeight: 500 }}>{formatMoney(effectiveRate)}/hr</dd>
-
-                    </div>
+                    {(client.rate || 0) > 0 && (
+                      <div className="flex justify-between py-3 text-[13.5px]">
+                        <dt className="text-muted-foreground">Base rate</dt>
+                        <dd className="tabular-nums" style={{ fontWeight: 500 }}>{formatMoney(client.rate || 0)}/hr</dd>
+                      </div>
+                    )}
+                    {billingModelResolved === 'Retainer' && (client.monthlyContractValue || 0) > 0 && (
+                      <div className="flex justify-between py-3 text-[13.5px]">
+                        <dt className="text-muted-foreground">Monthly contract value</dt>
+                        <dd className="tabular-nums" style={{ fontWeight: 500 }}>{formatMoney(client.monthlyContractValue || 0)}</dd>
+                      </div>
+                    )}
                     {client.paymentTerms && (
                       <div className="flex justify-between py-3 text-[13.5px]">
                         <dt className="text-muted-foreground">Payment terms</dt>

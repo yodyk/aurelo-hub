@@ -1321,6 +1321,7 @@ export function AddProjectModal({ open, onClose, onSave, clients, preSelectedCli
   const [status, setStatus] = useState<'Not Started' | 'In Progress' | 'On Hold' | 'Complete'>('In Progress');
   const [estimatedHours, setEstimatedHours] = useState('');
   const [totalValue, setTotalValue] = useState('');
+  const [billingModel, setBillingModel] = useState<'Hourly' | 'Retainer' | 'FixedFee'>('Hourly');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [saving, setSaving] = useState(false);
@@ -1339,6 +1340,7 @@ export function AddProjectModal({ open, onClose, onSave, clients, preSelectedCli
   const reset = () => {
     setName(''); setDescription(''); setClientId(''); setStatus('In Progress');
     setEstimatedHours(''); setTotalValue(''); setStartDate(''); setEndDate('');
+    setBillingModel('Hourly');
   };
 
   const hoursNum = Number(estimatedHours) || 0;
@@ -1380,6 +1382,8 @@ export function AddProjectModal({ open, onClose, onSave, clients, preSelectedCli
         revenue: 0,
         estimatedHours: hoursNum,
         totalValue: valueNum,
+        billingModel,
+        contractValue: billingModel === 'FixedFee' ? valueNum : 0,
         startDate: startDate || new Date().toISOString().split('T')[0],
         endDate: endDate || null,
       }, resolvedClientId);
@@ -1482,7 +1486,32 @@ export function AddProjectModal({ open, onClose, onSave, clients, preSelectedCli
         )}
 
         {/* ── Budget & scope ─────────────────── */}
-        <SectionDivider icon={DollarSign} label="Budget & scope" />
+        <SectionDivider icon={DollarSign} label="Revenue & scope" />
+
+        <div>
+          <Label>Billing model</Label>
+          <div className="grid grid-cols-3 gap-2">
+            {([
+              { id: 'Hourly', label: 'Hourly', hint: 'Revenue = hours × rate' },
+              { id: 'Retainer', label: 'Retainer', hint: 'Monthly contract' },
+              { id: 'FixedFee', label: 'Fixed Fee', hint: 'Recognized on delivery' },
+            ] as const).map(opt => {
+              const active = billingModel === opt.id;
+              return (
+                <button
+                  key={opt.id}
+                  onClick={() => setBillingModel(opt.id)}
+                  className={`flex flex-col gap-0.5 px-2 py-2 rounded-lg border text-left transition-all duration-200 ${
+                    active ? 'bg-primary/6 border-primary/25 ring-1 ring-primary/15' : 'border-border hover:bg-accent/40'
+                  }`}
+                >
+                  <span className={`text-[12px] ${active ? 'text-primary' : 'text-foreground'}`} style={{ fontWeight: 600 }}>{opt.label}</span>
+                  <span className="text-[10.5px] text-muted-foreground">{opt.hint}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
@@ -1490,7 +1519,9 @@ export function AddProjectModal({ open, onClose, onSave, clients, preSelectedCli
             <Input value={estimatedHours} onChange={e => setEstimatedHours(e.target.value)} placeholder="40" className="tabular-nums" />
           </div>
           <div>
-            <Label>Total value ($)</Label>
+            <Label hint={billingModel === 'FixedFee' ? 'recognized on completion' : 'used for projections'}>
+              {billingModel === 'FixedFee' ? 'Revenue (Contract value)' : 'Revenue ($)'}
+            </Label>
             <Input value={totalValue} onChange={e => setTotalValue(e.target.value)} placeholder="6,000" className="tabular-nums" />
           </div>
         </div>
