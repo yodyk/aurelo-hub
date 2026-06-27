@@ -392,6 +392,33 @@ export default function ClientDetail() {
     ? (client.lifetimeRevenue || 0) / billableHours
     : (client.rate || 0);
 
+  // ── Financial engine (single source of truth) ────────────────────
+  const monthStart = new Date();
+  monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
+  const monthEnd = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0, 23, 59, 59);
+  const billingModelResolved = resolveBillingModel(null, client);
+  const recognizedRevenue = recognizeClientRevenue(
+    client, projects, clientSessions, { start: monthStart, end: monthEnd },
+  );
+  const monthSessions = clientSessions.filter((s: any) => {
+    if (!s.rawDate && !s.date) return false;
+    const [y, m, d] = String(s.rawDate ?? s.date).split('-').map(Number);
+    const dt = new Date(y, (m ?? 1) - 1, d ?? 1).getTime();
+    return dt >= monthStart.getTime() && dt <= monthEnd.getTime();
+  });
+  const monthHours = monthSessions.reduce((sum: number, s: any) => sum + (Number(s.duration) || 0), 0);
+  const monthLaborValue = sumLaborValue(monthSessions, client);
+  const monthEstimatedHours = billingModelResolved === 'Retainer'
+    ? (client.retainerTotal || null)
+    : null;
+  const profitabilityResult = computeProfitability({
+    revenue: recognizedRevenue,
+    laborValue: monthLaborValue,
+    hours: monthHours,
+    estimatedHours: monthEstimatedHours ?? undefined,
+    nominalRate: client.rate || undefined,
+  });
+
   const priorityLevel = client.priorityLevel || 'medium';
   const riskLevel = client.riskLevel || 'low';
   const priorityCfg = PRIORITY_CONFIG[priorityLevel] || PRIORITY_CONFIG.medium;
