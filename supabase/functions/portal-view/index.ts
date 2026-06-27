@@ -409,18 +409,22 @@ Deno.serve(async (req) => {
       client: {
         name: client.name,
         model: client.model,
+        // Phase 1 — Financial foundation
+        billingModel: client.billing_model || null,
         status: client.status,
         portalGreeting: client.portal_greeting || null,
         retainerCycleStart: client.retainer_cycle_start || null,
         retainerCycleDays: client.retainer_cycle_days || 30,
         ...(showCosts ? {
           rate: client.rate,
+          monthlyContractValue: client.monthly_contract_value || 0,
           retainerTotal: client.retainer_total,
           retainerRemaining: client.retainer_remaining,
           retainerCarryoverHours: client.retainer_carryover_hours || 0,
           lifetimeRevenue: client.lifetime_revenue,
           monthlyEarnings: client.monthly_earnings,
         } : {
+          monthlyContractValue: client.monthly_contract_value || 0,
           retainerTotal: client.retainer_total,
           retainerRemaining: client.retainer_remaining,
           retainerCarryoverHours: client.retainer_carryover_hours || 0,
