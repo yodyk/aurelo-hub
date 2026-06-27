@@ -115,6 +115,7 @@ function getLinkTypeConfig(type: string) {
 // ── Helpers ────────────────────────────────────────────────────────
 
 import { formatDate as formatDateFn, formatMoney, formatBytes, fmtH } from '@/lib/format';
+import { BillingModelSelector } from '@/components/BillingModelSelector';
 
 function formatDate(d: string | undefined): string {
   return formatDateFn(d, "medium");
