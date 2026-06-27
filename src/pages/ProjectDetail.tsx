@@ -115,6 +115,7 @@ function getLinkTypeConfig(type: string) {
 // ── Helpers ────────────────────────────────────────────────────────
 
 import { formatDate as formatDateFn, formatMoney, formatBytes, fmtH } from '@/lib/format';
+import { BillingModelSelector } from '@/components/BillingModelSelector';
 
 function formatDate(d: string | undefined): string {
   return formatDateFn(d, "medium");
@@ -1524,10 +1525,16 @@ function ProjectDetailsTab({ project, onUpdate, canViewFinancials }: { project: 
   const [startDate, setStartDate] = useState(project.startDate || "");
   const [endDate, setEndDate] = useState(project.endDate || "");
   const [estimatedHours, setEstimatedHours] = useState(String(project.estimatedHours || ""));
-  const [totalValue, setTotalValue] = useState(String(project.totalValue || ""));
+  const [totalValue, setTotalValue] = useState(String(project.totalValue || project.contractValue || ""));
   const [budgetType, setBudgetType] = useState(project.budgetType || "");
   const [budgetAmount, setBudgetAmount] = useState(String(project.budgetAmount || ""));
   const [description, setDescription] = useState(project.description || "");
+  // Engine-aligned billing model — the canonical revenue-recognition switch.
+  const initialBillingModel: 'Hourly' | 'Retainer' | 'FixedFee' =
+    project.billingModel === 'Retainer' ? 'Retainer'
+    : project.billingModel === 'FixedFee' ? 'FixedFee'
+    : 'Hourly';
+  const [billingModel, setBillingModel] = useState<'Hourly' | 'Retainer' | 'FixedFee'>(initialBillingModel);
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
 
@@ -1536,13 +1543,22 @@ function ProjectDetailsTab({ project, onUpdate, canViewFinancials }: { project: 
     setDirty(true);
   };
 
+  const handleBillingModelChange = (m: 'Hourly' | 'Retainer' | 'FixedFee') => {
+    setBillingModel(m);
+    setDirty(true);
+  };
+
   const handleSave = async () => {
     setSaving(true);
+    const valueNum = parseFloat(totalValue) || 0;
     await onUpdate({
       startDate: startDate || null,
       endDate: endDate || null,
       estimatedHours: parseFloat(estimatedHours) || 0,
-      totalValue: parseFloat(totalValue) || 0,
+      totalValue: valueNum,
+      // Persist the engine-canonical fields so RevenueRecognition reads them.
+      billingModel,
+      contractValue: billingModel === 'FixedFee' ? valueNum : 0,
       budgetType: budgetType || null,
       budgetAmount: parseFloat(budgetAmount) || 0,
       description: description.trim(),
@@ -1611,10 +1627,24 @@ function ProjectDetailsTab({ project, onUpdate, canViewFinancials }: { project: 
 
           {canViewFinancials && (
             <>
-              {/* Total value */}
+              {/* Billing model — engine-canonical revenue recognition switch */}
+              <div className="md:col-span-2">
+                <label className={labelClass} style={{ fontWeight: 600 }}>Billing model</label>
+                <BillingModelSelector value={billingModel} onChange={handleBillingModelChange} variant="compact" />
+              </div>
+
+              {/* Total value / Contract value */}
               <div>
-                <label className={labelClass} style={{ fontWeight: 600 }}>Total project value ($)</label>
+                <label className={labelClass} style={{ fontWeight: 600 }}>
+                  {billingModel === 'FixedFee' ? 'Contract value ($)' : 'Total project value ($)'}
+                </label>
                 <input type="number" value={totalValue} onChange={handleChange(setTotalValue)} min="0" step="1" placeholder="0" className={fieldClass} />
+                {billingModel === 'FixedFee' && (
+                  <div className="text-[10.5px] text-muted-foreground mt-1">Revenue recognized on completion</div>
+                )}
+                {billingModel === 'Retainer' && (
+                  <div className="text-[10.5px] text-muted-foreground mt-1">Monthly contract is set on the client</div>
+                )}
               </div>
 
               {/* Budget type */}
