@@ -485,7 +485,8 @@ export function EditClientModal({ open, onClose, client, onSave, workspaceId, is
   const rateNum = Number(rate) || 0;
   const retainerTotalNum = Number(retainerTotal) || 0;
   const retainerRemainingNum = Number(retainerRemaining) || 0;
-  const retainerMonthlyValue = rateNum * retainerTotalNum;
+  const monthlyContractValueNum = Number(monthlyContractValue) || 0;
+  const retainerMonthlyValue = monthlyContractValueNum > 0 ? monthlyContractValueNum : rateNum * retainerTotalNum;
   const retainerUsedPct = retainerTotalNum > 0 ? Math.round(((retainerTotalNum - retainerRemainingNum) / retainerTotalNum) * 100) : 0;
 
   // Track what changed for the save summary
