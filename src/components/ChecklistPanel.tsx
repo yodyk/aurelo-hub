@@ -467,48 +467,52 @@ function ChecklistCard({
 
         </div>
 
-        {/* Tasks */}
-        <div className="space-y-1.5">
-          <AnimatePresence initial={false}>
-            {filteredItems.map((item) => (
-              <TaskRow
-                key={item.id}
-                item={item}
-                clientId={clientId}
-                workspaceId={workspaceId}
-                workCategoryNames={workCategoryNames}
-                links={linksByItem[item.id] || []}
-                clientNotes={clientNotes}
-                clientFiles={clientFiles}
-                onLinksChanged={onLinksChanged}
-                onUpdate={(patch) => updateLocal(item.id, patch)}
-                onDeleted={() => setItems(prev => prev.filter(i => i.id !== item.id))}
-                onUndoDelete={(restored) => setItems(prev => prev.some(i => i.id === restored.id) ? prev : [...prev, restored].sort((a, b) => a.sortOrder - b.sortOrder))}
-                parentShared={shared}
-                onRefresh={onRefresh}
-              />
-            ))}
-          </AnimatePresence>
-          {filteredItems.length === 0 && items.length > 0 && (
-            <div className="text-center py-4 text-[12px] text-muted-foreground">No tasks match the current filters.</div>
-          )}
-        </div>
+        {!collapsed && (
+          <>
+            {/* Tasks */}
+            <div className="space-y-1.5">
+              <AnimatePresence initial={false}>
+                {filteredItems.map((item) => (
+                  <TaskRow
+                    key={item.id}
+                    item={item}
+                    clientId={clientId}
+                    workspaceId={workspaceId}
+                    workCategoryNames={workCategoryNames}
+                    links={linksByItem[item.id] || []}
+                    clientNotes={clientNotes}
+                    clientFiles={clientFiles}
+                    onLinksChanged={onLinksChanged}
+                    onUpdate={(patch) => updateLocal(item.id, patch)}
+                    onDeleted={() => setItems(prev => prev.filter(i => i.id !== item.id))}
+                    onUndoDelete={(restored) => setItems(prev => prev.some(i => i.id === restored.id) ? prev : [...prev, restored].sort((a, b) => a.sortOrder - b.sortOrder))}
+                    parentShared={shared}
+                    onRefresh={onRefresh}
+                  />
+                ))}
+              </AnimatePresence>
+              {filteredItems.length === 0 && items.length > 0 && (
+                <div className="text-center py-4 text-[12px] text-muted-foreground">No tasks match the current filters.</div>
+              )}
+            </div>
 
-        {/* Add task */}
-        {showQuickAdd ? (
-          <TaskComposer
-            workCategoryNames={workCategoryNames}
-            onCancel={() => setShowQuickAdd(false)}
-            onSubmit={handleQuickAdd}
-          />
-        ) : (
-          <button
-            onClick={() => setShowQuickAdd(true)}
-            className="mt-3 inline-flex items-center gap-1.5 text-[12px] text-muted-foreground hover:text-primary transition-colors cursor-pointer"
-            style={{ fontWeight: 500 }}
-          >
-            <Plus className="w-3.5 h-3.5" /> Add task
-          </button>
+            {/* Add task */}
+            {showQuickAdd ? (
+              <TaskComposer
+                workCategoryNames={workCategoryNames}
+                onCancel={() => setShowQuickAdd(false)}
+                onSubmit={handleQuickAdd}
+              />
+            ) : (
+              <button
+                onClick={() => setShowQuickAdd(true)}
+                className="mt-3 inline-flex items-center gap-1.5 text-[12px] text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                style={{ fontWeight: 500 }}
+              >
+                <Plus className="w-3.5 h-3.5" /> Add task
+              </button>
+            )}
+          </>
         )}
       </div>
     </div>
