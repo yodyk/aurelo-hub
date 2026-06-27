@@ -27,6 +27,7 @@ import { useData } from "../data/DataContext";
 import { usePlan } from "../data/PlanContext";
 import { PLANS } from "../data/plans";
 import { computeInsightsMetrics, type InsightsMetrics } from "../data/insightsMetrics";
+import { profitability as calcProfitability, resolveBillingModel, sumLaborValue, hoursVariance, recognizeRevenue } from "@/lib/revenue";
 import * as invoiceApi from "../data/invoiceApi";
 import { formatMoney, fmtH } from '@/lib/format';
 
