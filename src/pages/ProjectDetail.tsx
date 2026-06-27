@@ -252,9 +252,14 @@ export default function ProjectDetail() {
     if (!project) return null;
     const hoursLogged = project.hours || 0;
     const estimatedHours = project.estimatedHours || 0;
-    const totalValue = project.totalValue || 0;
-    const revenueEarned = project.revenue || 0;
+    const contractValue = Number(project.contractValue ?? project.totalValue ?? 0);
+    const totalValue = contractValue;
     const rate = client?.rate || 0;
+    const laborValue = Number(project.revenue || 0);
+    const billingModel = resolveBillingModel(project as any, client as any);
+    // FixedFee: the fee is the revenue. Coming in under hours = higher effective rate, not less revenue.
+    const revenueEarned =
+      billingModel === 'FixedFee' && contractValue > 0 ? contractValue : laborValue;
     const hoursPct = estimatedHours > 0 ? Math.round((hoursLogged / estimatedHours) * 100) : 0;
     const budgetPct = totalValue > 0 ? Math.round((revenueEarned / totalValue) * 100) : 0;
     const effectiveRate = hoursLogged > 0 ? Math.round(revenueEarned / hoursLogged) : rate;
