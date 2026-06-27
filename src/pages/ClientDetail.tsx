@@ -1323,7 +1323,7 @@ function OverviewTab({
                 </div>
                 <div className="py-4 border-t border-[var(--hairline)]">
                   <div className="text-[13px] mb-1" style={{ fontWeight: 600 }}>
-                    Pacing · <span className="tabular-nums">{formatMoney(Math.round(monthly * 1.15), { precision: "compact" })}</span>
+                    Pacing · <span className="tabular-nums">{formatMoney(Math.round(monthlyEngine * 1.15), { precision: "compact" })}</span>
                   </div>
                   <div className="type-meta text-muted-foreground leading-relaxed">
                     Projected month-end at current cadence.
