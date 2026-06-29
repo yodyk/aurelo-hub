@@ -31,6 +31,7 @@ import {
 import { useData } from '@/data/DataContext';
 import { DatePicker } from '@/components/ui/date-picker';
 import { fmtH } from '@/lib/format';
+import RichDescriptionEditor from '@/components/RichDescriptionEditor';
 
 
 interface ChecklistPanelProps {
