@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import DOMPurify from "dompurify";
 import { motion, AnimatePresence } from "motion/react";
 import { containerVariants, itemVariants } from "@/lib/motion";
 import { useParams, useSearchParams } from "react-router";
@@ -1793,7 +1794,16 @@ function PortalChecklistCard({ checklist, accent, token, hideCompleted = false }
                       )}
                     </div>
                     {item.description && (
-                      <div className="text-[12px] mt-1 whitespace-pre-wrap" style={{ color: 'var(--portal-muted)' }}>{item.description}</div>
+                      <div
+                        className="note-editor-content text-[12px] mt-1"
+                        style={{ color: 'var(--portal-muted)' }}
+                        dangerouslySetInnerHTML={{
+                          __html: DOMPurify.sanitize(
+                            /<[a-z][\s\S]*>/i.test(item.description) ? item.description : `<p>${item.description.replace(/</g,'&lt;').replace(/\n/g,'<br/>')}</p>`,
+                            { ALLOWED_TAGS: ['p','br','ul','ol','li','strong','em','s','u','h3','a','input'], ALLOWED_ATTR: ['href','target','rel','type','checked','disabled'] }
+                          ),
+                        }}
+                      />
                     )}
                     <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
                       <span

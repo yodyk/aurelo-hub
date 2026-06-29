@@ -31,6 +31,7 @@ import {
 import { useData } from '@/data/DataContext';
 import { DatePicker } from '@/components/ui/date-picker';
 import { fmtH } from '@/lib/format';
+import RichDescriptionEditor from '@/components/RichDescriptionEditor';
 
 
 interface ChecklistPanelProps {
@@ -837,13 +838,10 @@ function TaskInlineEditor({
         <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mb-1" style={{ fontWeight: 500 }}>
           <AlignLeft className="w-3 h-3" /> Description
         </div>
-        <textarea
-          value={desc}
-          onChange={(e) => setDesc(e.target.value)}
-          onBlur={() => { if (desc !== (item.description || '')) onChange({ description: desc || null }, { description: desc || null }); }}
-          placeholder="Add a note or details for this task…"
-          rows={2}
-          className="w-full text-[12.5px] bg-accent/30 border border-border rounded-md px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary/30 resize-y"
+        <RichDescriptionEditor
+          taskId={item.id}
+          value={item.description || ''}
+          onSave={(d) => { setDesc(d || ''); onChange({ description: d }, { description: d }); }}
         />
       </div>
 
