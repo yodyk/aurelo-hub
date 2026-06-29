@@ -25,6 +25,7 @@ import {
   materializeRecurrence, type ChecklistItem,
 } from '@/data/checklistsApi';
 import { DatePicker } from '@/components/ui/date-picker';
+import RichDescriptionEditor from '@/components/RichDescriptionEditor';
 import { toast } from '@/lib/toast';
 import { deferredDelete } from '@/lib/deferredDelete';
 import {
