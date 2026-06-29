@@ -537,7 +537,7 @@ function NoteComposer({
                 ))}
               </select>
               <FolderKanban className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground pointer-events-none" />
-              <ChevronDown className="absolute right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground pointer-events-none" />
+              
             </div>
           )}
         </div>
