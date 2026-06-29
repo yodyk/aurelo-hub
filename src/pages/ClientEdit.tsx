@@ -845,7 +845,6 @@ export default function ClientEdit() {
                             <option value="">Select…</option>
                             {(schema.options || []).filter(Boolean).map((opt, i) => <option key={i} value={opt}>{opt}</option>)}
                           </select>
-                          <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
                         </div>
                       )}
                     </div>
