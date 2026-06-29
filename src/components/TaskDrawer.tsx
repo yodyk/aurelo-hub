@@ -383,22 +383,14 @@ function TitleField({ task, onSave }: { task: ChecklistItem; onSave: (text: stri
 }
 
 function DescriptionField({ task, onSave }: { task: ChecklistItem; onSave: (text: string | null) => void }) {
-  const [value, setValue] = useState(task.description || '');
-  useEffect(() => setValue(task.description || ''), [task.id, task.description]);
   return (
     <div className="flex flex-col gap-1">
       <div className="type-eyebrow">Description</div>
-      <textarea
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        onBlur={() => {
-          const v = value.trim() || null;
-          if (v !== (task.description || null)) onSave(v);
-        }}
+      <RichDescriptionEditor
+        taskId={task.id}
+        value={task.description || ''}
+        onSave={onSave}
         placeholder="Add a description…"
-        rows={4}
-        className="w-full text-[13px] bg-transparent border border-border px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary/30 resize-y"
-        style={{ borderRadius: 4 }}
       />
     </div>
   );
