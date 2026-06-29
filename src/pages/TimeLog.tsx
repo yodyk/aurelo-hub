@@ -611,19 +611,16 @@ function FilterSelect({
   options: Array<string | { value: string; label: string }>;
 }) {
   return (
-    <div className="relative">
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="appearance-none h-9 pl-3 pr-7 bg-transparent border border-[var(--hairline)] rounded-md text-[13px] cursor-pointer focus:outline-none focus:border-primary/40 transition-colors"
-        style={{ fontWeight: 500 }}
-      >
-        {options.map((opt) => {
-          if (typeof opt === "string") return <option key={opt} value={opt}>{opt}</option>;
-          return <option key={opt.value} value={opt.value}>{opt.label}</option>;
-        })}
-      </select>
-      <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground pointer-events-none" />
-    </div>
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="h-9 pl-3 bg-transparent border border-[var(--hairline)] rounded-md text-[13px] cursor-pointer focus:outline-none focus:border-primary/40 transition-colors"
+      style={{ fontWeight: 500 }}
+    >
+      {options.map((opt) => {
+        if (typeof opt === "string") return <option key={opt} value={opt}>{opt}</option>;
+        return <option key={opt.value} value={opt.value}>{opt.label}</option>;
+      })}
+    </select>
   );
 }
