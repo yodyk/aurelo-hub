@@ -1449,7 +1449,7 @@ function WorkspaceCustomFieldsSection() {
                   >
                     {WS_FIELD_TYPES.map(ft => <option key={ft.value} value={ft.value}>{ft.label}</option>)}
                   </select>
-                  <ChevronRight className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none rotate-90" />
+                  
                 </div>
               </div>
               <button onClick={() => removeField(idx)} className="p-1 text-muted-foreground hover:text-destructive transition-colors mt-1 flex-shrink-0">
