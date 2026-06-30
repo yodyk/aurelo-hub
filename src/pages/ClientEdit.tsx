@@ -428,6 +428,7 @@ export default function ClientEdit() {
     setRate(String(client.rate || ''));
     setRetainerTotal(String(client.retainerTotal || ''));
     setRetainerRemaining(String(client.retainerRemaining || ''));
+    setMonthlyContractValue(String(client.monthlyContractValue || ''));
     setShowPortalCosts(client.showPortalCosts !== false);
     setPortalGreeting(client.portalGreeting || '');
     setPriorityLevel(client.priorityLevel || 'medium');
