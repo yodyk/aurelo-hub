@@ -251,8 +251,12 @@ export function recognizeRevenue(args: RecognizeArgs): RevenueResult {
       if (monthly <= 0) {
         return { amount: 0, reason: 'no_contract', model };
       }
-      const cycles = cyclesEndingIn(args.client, period);
-      return { amount: round2(monthly * cycles), reason: 'ok', model };
+      // Retainer revenue is recognized per calendar month the engagement is
+      // active in the period. We deliberately don't tie this to cycle-end
+      // boundaries — a freelancer with a monthly contract earns that fee in
+      // the month it covers, regardless of when their billing cycle resets.
+      const months = calendarMonthsIn(period);
+      return { amount: round2(monthly * months), reason: 'ok', model };
     }
 
     case 'FixedFee': {
