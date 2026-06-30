@@ -481,6 +481,7 @@ export default function ClientEdit() {
     rate !== String(client.rate || '') ||
     retainerTotal !== String(client.retainerTotal || '') ||
     retainerRemaining !== String(client.retainerRemaining || '') ||
+    monthlyContractValue !== String(client.monthlyContractValue || '') ||
     showPortalCosts !== (client.showPortalCosts !== false) ||
     portalGreeting !== (client.portalGreeting || '') ||
     priorityLevel !== (client.priorityLevel || 'medium') ||
