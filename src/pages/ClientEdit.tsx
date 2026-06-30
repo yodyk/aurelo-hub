@@ -721,6 +721,18 @@ export default function ClientEdit() {
 
           {model === 'Retainer' && (
             <>
+              <div>
+                <FieldLabel hint="fixed monthly fee — overrides rate × hours">Monthly contract value ($)</FieldLabel>
+                <FieldInput
+                  value={monthlyContractValue}
+                  onChange={e => setMonthlyContractValue(e.target.value)}
+                  placeholder="e.g. 800"
+                  className="tabular-nums"
+                />
+                <div className="text-[11px] text-muted-foreground mt-1">
+                  This is the revenue recognized each month, independent of hours logged.
+                </div>
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <FieldLabel>Hours per month</FieldLabel>
@@ -731,6 +743,7 @@ export default function ClientEdit() {
                   <FieldInput value={retainerRemaining} onChange={e => setRetainerRemaining(e.target.value)} className="tabular-nums" />
                 </div>
               </div>
+
 
               {retainerTotalNum > 0 && (
                 <div className="bg-accent/30 rounded-lg px-3.5 py-3">
