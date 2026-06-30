@@ -545,6 +545,7 @@ export default function ClientEdit() {
       if (model === 'Retainer') {
         updates.retainerTotal = retainerTotalNum;
         updates.retainerRemaining = retainerRemainingNum;
+        updates.monthlyContractValue = monthlyContractValueNum;
         // Auto-set cycle start if not already set
         if (!client.retainerCycleStart && retainerTotalNum > 0) {
           updates.retainerCycleStart = new Date().toISOString().split('T')[0];
@@ -552,6 +553,7 @@ export default function ClientEdit() {
       } else {
         updates.retainerTotal = 0;
         updates.retainerRemaining = 0;
+        updates.monthlyContractValue = 0;
       }
 
       if (isPro) {
