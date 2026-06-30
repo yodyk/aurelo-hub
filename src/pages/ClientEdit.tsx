@@ -520,7 +520,10 @@ export default function ClientEdit() {
   const rateNum = Number(rate) || 0;
   const retainerTotalNum = Number(retainerTotal) || 0;
   const retainerRemainingNum = Number(retainerRemaining) || 0;
-  const retainerMonthlyValue = rateNum * retainerTotalNum;
+  const monthlyContractValueNum = Number(monthlyContractValue) || 0;
+  // Prefer the fixed monthly contract value when the freelancer has set one;
+  // fall back to rate × allotted hours so legacy clients keep working.
+  const retainerMonthlyValue = monthlyContractValueNum > 0 ? monthlyContractValueNum : rateNum * retainerTotalNum;
   const retainerUsedPct = retainerTotalNum > 0 ? Math.round(((retainerTotalNum - retainerRemainingNum) / retainerTotalNum) * 100) : 0;
 
   const handleSave = async () => {
