@@ -387,6 +387,7 @@ export default function ClientEdit() {
   const [rate, setRate] = useState('');
   const [retainerTotal, setRetainerTotal] = useState('');
   const [retainerRemaining, setRetainerRemaining] = useState('');
+  const [monthlyContractValue, setMonthlyContractValue] = useState('');
 
   // ── Portal & Visibility
   const [showPortalCosts, setShowPortalCosts] = useState(true);
