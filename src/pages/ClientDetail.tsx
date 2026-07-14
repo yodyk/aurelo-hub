@@ -458,15 +458,24 @@ export default function ClientDetail() {
     toast.success("Project added");
   };
 
-  const handleFileUpload = async (file: File) => {
+  const handleFileUpload = async (input: File | FileList | File[]) => {
     if (!clientId) return;
+    const list: File[] = input instanceof File ? [input] : Array.from(input as any);
+    if (list.length === 0) return;
     setUploading(true);
+    let ok = 0;
     try {
-      const result = await dataApi.uploadFile(workspaceId!, clientId, file);
-      setFiles((prev) => [...prev, result]);
-      toast.success("File uploaded");
-    } catch (err: any) { toast.error(err.message || "Upload failed"); }
-    finally { setUploading(false); }
+      for (const file of list) {
+        try {
+          const result = await dataApi.uploadFile(workspaceId!, clientId, file);
+          setFiles((prev) => [...prev, result]);
+          ok++;
+        } catch (err: any) {
+          toast.error(`${file.name}: ${err.message || "Upload failed"}`);
+        }
+      }
+      if (ok > 0) toast.success(ok === 1 ? "File uploaded" : `${ok} files uploaded`);
+    } finally { setUploading(false); }
   };
 
   const handleFileDelete = async (fileName: string) => {
