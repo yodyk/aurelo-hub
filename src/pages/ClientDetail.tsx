@@ -2691,7 +2691,7 @@ function FilesTab({ files, uploading, fileInputRef, onUpload, onDelete, onDrop, 
         )}
         <span className="text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>{uploading ? "Uploading..." : "Drop files here or click to upload"}</span>
       </div>
-      <input ref={fileInputRef} type="file" className="hidden" onChange={(e) => { if (e.target.files?.[0]) onUpload(e.target.files[0]); }} />
+      <input ref={fileInputRef} type="file" multiple className="hidden" onChange={(e) => { if (e.target.files?.length) { onUpload(e.target.files); e.target.value = ""; } }} />
     </SectionCard>
   );
 }
