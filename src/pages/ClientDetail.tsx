@@ -625,7 +625,7 @@ export default function ClientDetail() {
     } catch (err: any) { toast.error(err.message || "Failed to create invoice"); }
   };
 
-  const handleDrop = (e: React.DragEvent) => { e.preventDefault(); const file = e.dataTransfer.files[0]; if (file) handleFileUpload(file); };
+  const handleDrop = (e: React.DragEvent) => { e.preventDefault(); const files = e.dataTransfer.files; if (files && files.length) handleFileUpload(files); };
   const formatFileSize = (bytes: number) => formatBytes(bytes);
 
 
