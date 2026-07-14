@@ -458,15 +458,24 @@ export default function ClientDetail() {
     toast.success("Project added");
   };
 
-  const handleFileUpload = async (file: File) => {
+  const handleFileUpload = async (input: File | FileList | File[]) => {
     if (!clientId) return;
+    const list: File[] = input instanceof File ? [input] : Array.from(input as any);
+    if (list.length === 0) return;
     setUploading(true);
+    let ok = 0;
     try {
-      const result = await dataApi.uploadFile(workspaceId!, clientId, file);
-      setFiles((prev) => [...prev, result]);
-      toast.success("File uploaded");
-    } catch (err: any) { toast.error(err.message || "Upload failed"); }
-    finally { setUploading(false); }
+      for (const file of list) {
+        try {
+          const result = await dataApi.uploadFile(workspaceId!, clientId, file);
+          setFiles((prev) => [...prev, result]);
+          ok++;
+        } catch (err: any) {
+          toast.error(`${file.name}: ${err.message || "Upload failed"}`);
+        }
+      }
+      if (ok > 0) toast.success(ok === 1 ? "File uploaded" : `${ok} files uploaded`);
+    } finally { setUploading(false); }
   };
 
   const handleFileDelete = async (fileName: string) => {
@@ -616,7 +625,7 @@ export default function ClientDetail() {
     } catch (err: any) { toast.error(err.message || "Failed to create invoice"); }
   };
 
-  const handleDrop = (e: React.DragEvent) => { e.preventDefault(); const file = e.dataTransfer.files[0]; if (file) handleFileUpload(file); };
+  const handleDrop = (e: React.DragEvent) => { e.preventDefault(); const files = e.dataTransfer.files; if (files && files.length) handleFileUpload(files); };
   const formatFileSize = (bytes: number) => formatBytes(bytes);
 
 
@@ -2682,7 +2691,7 @@ function FilesTab({ files, uploading, fileInputRef, onUpload, onDelete, onDrop, 
         )}
         <span className="text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>{uploading ? "Uploading..." : "Drop files here or click to upload"}</span>
       </div>
-      <input ref={fileInputRef} type="file" className="hidden" onChange={(e) => { if (e.target.files?.[0]) onUpload(e.target.files[0]); }} />
+      <input ref={fileInputRef} type="file" multiple className="hidden" onChange={(e) => { if (e.target.files?.length) { onUpload(e.target.files); e.target.value = ""; } }} />
     </SectionCard>
   );
 }

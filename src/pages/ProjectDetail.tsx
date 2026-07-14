@@ -449,21 +449,38 @@ export default function ProjectDetail() {
     toast.success("Link removed");
   };
 
-  const handleUploadFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !clientId) return;
+  const uploadFiles = async (list: File[]) => {
+    if (!clientId || list.length === 0) return;
     setUploading(true);
+    let ok = 0;
     try {
-      const saved = await dataApi.uploadFile(workspaceId!, clientId, file);
-      setFiles((prev) => [...prev, saved]);
-      toast.success("File uploaded");
-    } catch (err) {
-      console.error("Upload failed:", err);
-      toast.error("Failed to upload file");
+      for (const file of list) {
+        try {
+          const saved = await dataApi.uploadFile(workspaceId!, clientId, file);
+          setFiles((prev) => [...prev, saved]);
+          ok++;
+        } catch (err) {
+          console.error("Upload failed:", err);
+          toast.error(`${file.name}: Failed to upload`);
+        }
+      }
+      if (ok > 0) toast.success(ok === 1 ? "File uploaded" : `${ok} files uploaded`);
     } finally {
       setUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
     }
+  };
+
+  const handleUploadFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    await uploadFiles(Array.from(files));
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleFileDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const files = e.dataTransfer.files;
+    if (files && files.length) uploadFiles(Array.from(files));
   };
 
   // ── Loading / Not Found ──────────────────────────────────────────
@@ -1463,10 +1480,12 @@ export default function ProjectDetail() {
                   Upload
                 </button>
               </div>
-              <input ref={fileInputRef} type="file" className="hidden" onChange={handleUploadFile} />
+              <input ref={fileInputRef} type="file" multiple className="hidden" onChange={handleUploadFile} />
               <div
                 className="bg-card border border-border rounded-xl overflow-hidden"
                 style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.02)" }}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={handleFileDrop}
               >
                 {files.length === 0 ? (
                   <div className="py-8 text-center">
