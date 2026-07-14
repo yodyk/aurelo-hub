@@ -1480,10 +1480,12 @@ export default function ProjectDetail() {
                   Upload
                 </button>
               </div>
-              <input ref={fileInputRef} type="file" className="hidden" onChange={handleUploadFile} />
+              <input ref={fileInputRef} type="file" multiple className="hidden" onChange={handleUploadFile} />
               <div
                 className="bg-card border border-border rounded-xl overflow-hidden"
                 style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.02)" }}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={handleFileDrop}
               >
                 {files.length === 0 ? (
                   <div className="py-8 text-center">
