@@ -461,7 +461,7 @@ function ClientTable({
                     </div>
                   </div>
                 )}
-                {totalRows > 1 && (
+                {rows.length > 1 && (
                   <div className="lg:hidden flex flex-col items-center justify-center">
                     <button
                       type="button"
