@@ -122,7 +122,12 @@ export default function Clients() {
     const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
     if (swapIdx < 0 || swapIdx >= sourceRows.length) return;
     const other = sourceRows[swapIdx];
-    await swapClientOrder(clientId, other.id);
+    try {
+      await swapClientOrder(clientId, other.id);
+    } catch (err: any) {
+      console.error('Reorder failed:', err);
+      toast.error(err?.message || 'Failed to reorder client');
+    }
   };
 
   const segments: SegmentOption<StatusFilter>[] = [
