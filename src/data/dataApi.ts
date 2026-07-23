@@ -225,20 +225,13 @@ export async function updateClient(workspaceId: string, clientId: string, update
 
 export async function reorderClients(workspaceId: string, orderedIds: string[]) {
   if (!orderedIds.length) return;
-  const { error } = await supabase.rpc('reorder_clients', {
-    p_workspace_id: workspaceId,
-    p_ordered_ids: orderedIds,
-  });
-  if (error) {
-    // Fallback: update each row individually
-    for (let i = 0; i < orderedIds.length; i++) {
-      const { error: upError } = await supabase
-        .from('clients')
-        .update({ sort_order: (i + 1) * 10 })
-        .eq('id', orderedIds[i])
-        .eq('workspace_id', workspaceId);
-      if (upError) throw new Error(`Failed to reorder clients: ${upError.message}`);
-    }
+  for (let i = 0; i < orderedIds.length; i++) {
+    const { error: upError } = await supabase
+      .from('clients')
+      .update({ sort_order: (i + 1) * 10 })
+      .eq('id', orderedIds[i])
+      .eq('workspace_id', workspaceId);
+    if (upError) throw new Error(`Failed to reorder clients: ${upError.message}`);
   }
 }
 
