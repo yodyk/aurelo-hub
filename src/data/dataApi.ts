@@ -133,7 +133,7 @@ function formatSessionRow(row: any): any {
 
 export async function loadInitData(workspaceId: string) {
   const [clientsRes, sessionsRes, settingsRes, avatarUrl, logoUrls] = await Promise.all([
-    supabase.from('clients').select('*').eq('workspace_id', workspaceId).order('name'),
+    supabase.from('clients').select('*').eq('workspace_id', workspaceId).order('sort_order', { ascending: true }).order('name'),
     supabase.from('sessions').select('*, clients!inner(name)').eq('workspace_id', workspaceId).order('date', { ascending: false }).limit(500),
     supabase.from('workspace_settings').select('section, data').eq('workspace_id', workspaceId),
     storage.getAvatarUrl(workspaceId),
