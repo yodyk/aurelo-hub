@@ -345,28 +345,81 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const handleUpdateSession = useCallback(async (sessionId: string, updates: any) => {
     const wsId = workspaceIdRef.current;
     if (!wsId) throw new Error('No workspace');
+    const prevSession = sessions.find(s => s.id === sessionId);
     const saved = await api.updateSession(wsId, sessionId, updates);
     setSessions(prev => prev.map(s => s.id === sessionId ? saved : s));
-    // Refresh client data from DB (trigger recalculates aggregates server-side)
+
+    // Reconcile retainer_remaining by delta so edits (down or up) reflect immediately
+    try {
+      const prevRetainer = prevSession && prevSession.allocationType === 'retainer' && prevSession.billable
+        ? (prevSession.duration || 0) : 0;
+      const nextRetainer = saved && saved.allocationType === 'retainer' && saved.billable
+        ? (saved.duration || 0) : 0;
+      const prevClientId = prevSession?.clientId;
+      const nextClientId = saved?.clientId || updates.clientId;
+
+      const adjust = async (cid: string, delta: number) => {
+        if (!cid || !delta) return;
+        const client = clientsRef.current.find((c: any) => c.id === cid);
+        if (!client || client.model !== 'Retainer') return;
+        const total = client.retainerTotal || 0;
+        const currentRemaining = client.retainerRemaining || 0;
+        // delta > 0 means MORE hours consumed → remaining decreases
+        const newRemaining = Math.max(0, Math.min(total, currentRemaining - delta));
+        if (newRemaining === currentRemaining) return;
+        await api.updateClient(wsId, cid, { retainerRemaining: newRemaining });
+        setClients(prev => prev.map(c => c.id === cid ? { ...c, retainerRemaining: newRemaining } : c));
+      };
+
+      if (prevClientId && nextClientId && prevClientId === nextClientId) {
+        await adjust(nextClientId, nextRetainer - prevRetainer);
+      } else {
+        // Client changed on the session — restore old, consume new
+        if (prevClientId) await adjust(prevClientId, -prevRetainer);
+        if (nextClientId) await adjust(nextClientId, nextRetainer);
+      }
+    } catch (e) {
+      console.error('[DataContext] Retainer reconcile (update) error:', e);
+    }
+
+    // Refresh client data from DB (trigger recalculates hours/revenue aggregates)
     const clientId = saved.clientId || updates.clientId;
     if (clientId) {
       api.loadClients(wsId).then(cl => { if (cl?.length) setClients(cl); });
     }
     return saved;
-  }, []);
+  }, [sessions]);
 
   const handleDeleteSession = useCallback(async (sessionId: string) => {
     const wsId = workspaceIdRef.current;
     if (!wsId) throw new Error('No workspace');
-    // Capture client ID before removing from state
     const session = sessions.find(s => s.id === sessionId);
     await api.deleteSession(wsId, sessionId);
     setSessions(prev => prev.filter(s => s.id !== sessionId));
-    // Refresh client data from DB (trigger recalculates aggregates server-side)
+
+    // Restore retainer hours if the deleted session consumed retainer time
+    try {
+      if (session && session.clientId && session.allocationType === 'retainer' && session.billable) {
+        const client = clientsRef.current.find((c: any) => c.id === session.clientId);
+        if (client && client.model === 'Retainer') {
+          const total = client.retainerTotal || 0;
+          const currentRemaining = client.retainerRemaining || 0;
+          const newRemaining = Math.max(0, Math.min(total, currentRemaining + (session.duration || 0)));
+          if (newRemaining !== currentRemaining) {
+            await api.updateClient(wsId, session.clientId, { retainerRemaining: newRemaining });
+            setClients(prev => prev.map(c => c.id === session.clientId ? { ...c, retainerRemaining: newRemaining } : c));
+          }
+        }
+      }
+    } catch (e) {
+      console.error('[DataContext] Retainer reconcile (delete) error:', e);
+    }
+
     if (session?.clientId) {
       api.loadClients(wsId).then(cl => { if (cl?.length) setClients(cl); });
     }
   }, [sessions]);
+
 
   const getProjects = useCallback((clientId: string) => projectsCacheRef.current[clientId] || [], []);
 
