@@ -235,6 +235,22 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setAllProjects(prev => prev.filter(p => p.clientId !== clientId));
   }, []);
 
+  const handleSwapClientOrder = useCallback(async (clientIdA: string, clientIdB: string) => {
+    const wsId = workspaceIdRef.current;
+    if (!wsId) return;
+    const a = clientsRef.current.find(c => c.id === clientIdA);
+    const b = clientsRef.current.find(c => c.id === clientIdB);
+    if (!a || !b) return;
+    await api.swapClientOrder(wsId, clientIdA, clientIdB);
+    const orderA = a.sortOrder ?? 0;
+    const orderB = b.sortOrder ?? 0;
+    setClients(prev => prev.map(c => {
+      if (c.id === clientIdA) return { ...c, sortOrder: orderB };
+      if (c.id === clientIdB) return { ...c, sortOrder: orderA };
+      return c;
+    }));
+  }, []);
+
   const getProjectsForClient = useCallback((clientId: string) => projectsCacheRef.current[clientId] || [], []);
 
   const handleAddSession = useCallback(async (session: any) => {
