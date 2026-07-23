@@ -1,0 +1,2 @@
+ALTER TABLE public.projects DROP CONSTRAINT IF EXISTS projects_status_check;
+ALTER TABLE public.projects ADD CONSTRAINT projects_status_check CHECK (status = ANY (ARRAY['Not Started'::text, 'Active'::text, 'In Progress'::text, 'On Hold'::text, 'Complete'::text, 'Archived'::text]));
