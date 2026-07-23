@@ -31,6 +31,7 @@ interface DataContextType {
   addClient: (client: any) => Promise<any>;
   updateClient: (clientId: string, updates: any) => Promise<void>;
   deleteClient: (clientId: string) => Promise<void>;
+  reorderClients: (orderedIds: string[]) => Promise<void>;
   addSession: (session: any) => Promise<any>;
   updateSession: (sessionId: string, updates: any) => Promise<any>;
   deleteSession: (sessionId: string) => Promise<void>;
