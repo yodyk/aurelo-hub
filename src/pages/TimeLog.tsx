@@ -53,6 +53,12 @@ export default function TimeLog() {
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
   const retainerHistory = useRetainerHistory(workspaceId);
 
+  useEffect(() => {
+    if (can("clientInvoicing")) invoiceApi.loadInvoices().then(setInvoices).catch(() => {});
+    loadAllProjects().catch(() => {});
+  }, [can]);
+
+
 
   const invoicedSessionMap = useMemo(() => {
     const map = new Map<string, string>();
