@@ -196,6 +196,8 @@ export default function Clients() {
               canViewFinancials={canViewFinancials}
               maxMonthlyEarnings={maxMonthlyEarnings}
               archived={false}
+              onMoveUp={(id) => moveClient(id, 'up', nonArchivedRows)}
+              onMoveDown={(id) => moveClient(id, 'down', nonArchivedRows)}
             />
           </motion.div>
         ) : (
