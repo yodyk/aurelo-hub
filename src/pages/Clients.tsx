@@ -302,7 +302,7 @@ function ClientTable({
 
 
       <div className="divide-y divide-[var(--hairline)]">
-        {rows.map((client: any) => {
+        {rows.map((client: any, i: number) => {
           const sessionCount = sessionsThisMonth[client.id] || 0;
           const earnings = archived ? (client.lifetimeRevenue || 0) : (client.monthlyEarnings || 0);
           const progress = archived ? 0 : Math.min(1, earnings / maxMonthlyEarnings);
