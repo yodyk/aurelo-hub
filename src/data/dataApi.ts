@@ -229,17 +229,15 @@ export async function swapClientOrder(workspaceId: string, clientIdA: string, cl
     .select('id, sort_order')
     .in('id', [clientIdA, clientIdB])
     .eq('workspace_id', workspaceId);
-  console.log('swapClientOrder fetch', workspaceId, rows, fetchError);
   if (fetchError) throw new Error(`Failed to load client order: ${fetchError.message}`);
   const map = new Map((rows || []).map(r => [r.id, r.sort_order ?? 0]));
   const orderA = map.get(clientIdA) ?? 0;
   const orderB = map.get(clientIdB) ?? 0;
 
   const [resA, resB] = await Promise.all([
-    supabase.from('clients').update({ sort_order: orderB }).eq('id', clientIdA).eq('workspace_id', workspaceId),
-    supabase.from('clients').update({ sort_order: orderA }).eq('id', clientIdB).eq('workspace_id', workspaceId),
+    supabase.from('clients').update({ sort_order: orderB }).eq('id', clientIdA).eq('workspace_id', workspaceId).select(),
+    supabase.from('clients').update({ sort_order: orderA }).eq('id', clientIdB).eq('workspace_id', workspaceId).select(),
   ]);
-  console.log('swapClientOrder update', resA, resB);
   if (resA.error) throw new Error(`Failed to reorder client: ${resA.error.message}`);
   if (resB.error) throw new Error(`Failed to reorder client: ${resB.error.message}`);
 }
