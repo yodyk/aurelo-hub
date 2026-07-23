@@ -185,7 +185,7 @@ export async function loadInitData(workspaceId: string) {
 // ── Clients ─────────────────────────────────────────────────────────
 
 export async function loadClients(workspaceId: string) {
-  const { data, error } = await supabase.from('clients').select('*').eq('workspace_id', workspaceId).order('name');
+  const { data, error } = await supabase.from('clients').select('*').eq('workspace_id', workspaceId).order('sort_order', { ascending: true }).order('name');
   if (error) { console.error('[dataApi] loadClients:', error); return []; }
   return (data || []).map(snakeToCamel);
 }
