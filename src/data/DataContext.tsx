@@ -241,7 +241,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         if (c.id === clientIdB) return { ...c, sortOrder: orderA };
         return c;
       });
-      return next.sort((x, y) => (x.sortOrder ?? 0) - (y.sortOrder ?? 0) || x.name.localeCompare(y.name));
+      return [...next].sort((x, y) => (x.sortOrder ?? 0) - (y.sortOrder ?? 0) || x.name.localeCompare(y.name));
     });
   }, []);
 
