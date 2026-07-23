@@ -223,16 +223,23 @@ export async function updateClient(workspaceId: string, clientId: string, update
   dispatchWebhookEvent(workspaceId, 'client.updated', { id: clientId, updates });
 }
 
-export async function reorderClients(workspaceId: string, orderedIds: string[]) {
-  if (!orderedIds.length) return;
-  for (let i = 0; i < orderedIds.length; i++) {
-    const { error: upError } = await supabase
-      .from('clients')
-      .update({ sort_order: (i + 1) * 10 })
-      .eq('id', orderedIds[i])
-      .eq('workspace_id', workspaceId);
-    if (upError) throw new Error(`Failed to reorder clients: ${upError.message}`);
-  }
+export async function swapClientOrder(workspaceId: string, clientIdA: string, clientIdB: string) {
+  const { data: rows, error: fetchError } = await supabase
+    .from('clients')
+    .select('id, sort_order')
+    .in('id', [clientIdA, clientIdB])
+    .eq('workspace_id', workspaceId);
+  if (fetchError) throw new Error(`Failed to load client order: ${fetchError.message}`);
+  const map = new Map((rows || []).map(r => [r.id, r.sort_order ?? 0]));
+  const orderA = map.get(clientIdA) ?? 0;
+  const orderB = map.get(clientIdB) ?? 0;
+
+  const [resA, resB] = await Promise.all([
+    supabase.from('clients').update({ sort_order: orderB }).eq('id', clientIdA).eq('workspace_id', workspaceId),
+    supabase.from('clients').update({ sort_order: orderA }).eq('id', clientIdB).eq('workspace_id', workspaceId),
+  ]);
+  if (resA.error) throw new Error(`Failed to reorder client: ${resA.error.message}`);
+  if (resB.error) throw new Error(`Failed to reorder client: ${resB.error.message}`);
 }
 
 export async function deleteClient(workspaceId: string, clientId: string) {
