@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { Plus, ChevronDown, Download, FolderKanban, Repeat, Pencil, Search, X, CheckSquare, Square, Receipt, Clock, SlidersHorizontal } from "lucide-react";
+import { Plus, Download, Pencil, Search, X, CheckSquare, Square, Receipt, Clock, SlidersHorizontal } from "lucide-react";
 import { BottomSheet } from "@/components/primitives/BottomSheet";
 import { motion } from "motion/react";
 import { useData } from "../data/DataContext";
@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from '@/lib/toast';
 import { useAuth } from "@/data/AuthContext";
 import { NotificationEvents } from "@/data/notificationsApi";
-import { startOfDay, subDays, startOfMonth, startOfQuarter, startOfYear, isBefore, isAfter, startOfWeek, endOfWeek, format as formatDateFn, addDays } from "date-fns";
+import { startOfDay, subDays, startOfMonth, startOfQuarter, startOfYear, isBefore, isAfter, startOfWeek, endOfWeek } from "date-fns";
 import * as invoiceApi from "../data/invoiceApi";
 import type { Invoice } from "../data/invoiceApi";
 import { usePlan } from "../data/PlanContext";
@@ -19,6 +19,8 @@ import { PageHeader, SegmentedControl, type SegmentOption } from "@/components/p
 import { useRoleAccess } from "@/data/useRoleAccess";
 import { formatMoney, fmtH } from '@/lib/format';
 import { EmptyState } from "@/components/primitives/EmptyState";
+import { SessionAllocationTag, useRetainerHistory } from "@/components/SessionAllocationTag";
+
 
 
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.04 } } };
