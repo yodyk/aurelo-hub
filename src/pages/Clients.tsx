@@ -274,6 +274,8 @@ function ClientTable({
   canViewFinancials,
   maxMonthlyEarnings,
   archived,
+  onMoveUp,
+  onMoveDown,
 }: {
   rows: any[];
   faviconUrls: Record<string, string>;
@@ -281,6 +283,8 @@ function ClientTable({
   canViewFinancials: boolean;
   maxMonthlyEarnings: number;
   archived: boolean;
+  onMoveUp?: (id: string) => void;
+  onMoveDown?: (id: string) => void;
 }) {
   return (
     <div>
