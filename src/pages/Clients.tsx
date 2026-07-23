@@ -115,6 +115,16 @@ export default function Clients() {
     else setShowAddModal(true);
   };
 
+  const moveClient = async (clientId: string, direction: 'up' | 'down', sourceRows: any[]) => {
+    if (!workspaceId) return;
+    const idx = sourceRows.findIndex(c => c.id === clientId);
+    if (idx === -1) return;
+    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (swapIdx < 0 || swapIdx >= sourceRows.length) return;
+    const other = sourceRows[swapIdx];
+    await swapClientOrder(clientId, other.id);
+  };
+
   const segments: SegmentOption<StatusFilter>[] = [
     { value: "all", label: "All", count: counts.all },
     { value: "Active", label: "Active", count: counts.Active },
