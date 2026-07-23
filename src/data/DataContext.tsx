@@ -235,11 +235,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
     await api.swapClientOrder(wsId, clientIdA, clientIdB);
     const orderA = a.sortOrder ?? 0;
     const orderB = b.sortOrder ?? 0;
-    setClients(prev => prev.map(c => {
-      if (c.id === clientIdA) return { ...c, sortOrder: orderB };
-      if (c.id === clientIdB) return { ...c, sortOrder: orderA };
-      return c;
-    }));
+    setClients(prev => {
+      const next = prev.map(c => {
+        if (c.id === clientIdA) return { ...c, sortOrder: orderB };
+        if (c.id === clientIdB) return { ...c, sortOrder: orderA };
+        return c;
+      });
+      return next.sort((x, y) => (x.sortOrder ?? 0) - (y.sortOrder ?? 0) || x.name.localeCompare(y.name));
+    });
   }, []);
 
   const getProjectsForClient = useCallback((clientId: string) => projectsCacheRef.current[clientId] || [], []);
