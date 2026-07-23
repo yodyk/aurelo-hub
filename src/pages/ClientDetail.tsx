@@ -1918,26 +1918,36 @@ function ProjectsTab({ projects, client, canViewFinancials, onNavigate }: any) {
 // ═══════════════════════════════════════════════════════════════════
 // Sessions Tab
 // ═══════════════════════════════════════════════════════════════════
-function SessionsTab({ clientSessions, client: _client, canViewFinancials, selectedIds, onToggleSelect, onToggleSelectAll, onEditSession }: any) {
+function SessionsTab({ clientSessions, client, canViewFinancials, selectedIds, onToggleSelect, onToggleSelectAll, onEditSession }: any) {
+  const retainerHistory = useRetainerHistory(client?.workspaceId || client?.workspace_id, client?.id);
   return (
     <div>
 
       {clientSessions.length > 0 ? (
         <div className="overflow-x-auto border-y border-[var(--hairline)]">
-          <table className="w-full min-w-[600px]">
+          <table className="w-full min-w-[720px] table-fixed">
+            <colgroup>
+              <col style={{ width: '40px' }} />
+              <col style={{ width: '110px' }} />
+              <col />
+              <col style={{ width: '140px' }} />
+              <col style={{ width: '90px' }} />
+              {canViewFinancials && <col style={{ width: '110px' }} />}
+              <col style={{ width: '40px' }} />
+            </colgroup>
             <thead>
               <tr>
-                <th className="w-10 px-2 py-2.5">
+                <th className="px-2 py-2.5">
                   <button onClick={onToggleSelectAll} className="w-5 h-5 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
                     {selectedIds.size === clientSessions.length && clientSessions.length > 0 ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4" />}
                   </button>
                 </th>
                 <th className="text-left px-3 py-2.5 type-eyebrow">Date</th>
                 <th className="text-left px-3 py-2.5 type-eyebrow">Description</th>
-                <th className="text-left px-3 py-2.5 type-eyebrow">Tags</th>
+                <th className="text-left px-3 py-2.5 type-eyebrow">Applied to</th>
                 <th className="text-right px-3 py-2.5 type-eyebrow">Duration</th>
-                {canViewFinancials && <th className="text-right px-3 py-2.5 type-eyebrow">Cost</th>}
-                <th className="w-10 px-2 py-2.5" />
+                {canViewFinancials && <th className="text-right px-3 py-2.5 type-eyebrow">Revenue</th>}
+                <th className="px-2 py-2.5" />
               </tr>
             </thead>
             <tbody>
@@ -1951,17 +1961,24 @@ function SessionsTab({ clientSessions, client: _client, canViewFinancials, selec
                       {selectedIds.has(session.id) ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4" />}
                     </button>
                   </td>
-                  <td className="px-3 py-3 type-meta text-muted-foreground tabular-nums">{session.date}</td>
-                  <td className="px-3 py-3">
-                    <div className="text-[13px]" style={{ fontWeight: 600 }}>{session.task || '—'}</div>
-                    {session.projectName && <div className="type-meta text-muted-foreground mt-0.5">{session.projectName}</div>}
+                  <td className="px-3 py-3 type-meta text-muted-foreground tabular-nums truncate">{session.date}</td>
+                  <td className="px-3 py-3 min-w-0">
+                    <div className="text-[13px] truncate" style={{ fontWeight: 600 }}>{session.task || '—'}</div>
+                    {(session.workTags || []).length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-0.5">
+                        {(session.workTags || []).map((tag: string, i: number) => (
+                          <span key={i} className="type-meta text-muted-foreground">#{tag}</span>
+                        ))}
+                      </div>
+                    )}
                   </td>
                   <td className="px-3 py-3">
-                    <div className="flex flex-wrap gap-1">
-                      {(session.workTags || []).map((tag: string, i: number) => (
-                        <span key={i} className="type-meta text-muted-foreground">#{tag}</span>
-                      ))}
-                    </div>
+                    <SessionAllocationTag
+                      session={session}
+                      client={client}
+                      retainerHistory={retainerHistory}
+                      className="inline-flex max-w-full"
+                    />
                   </td>
                   <td className="px-3 py-3 text-[13px] text-right tabular-nums" style={{ fontWeight: 600 }}>{fmtH(session.duration)}h</td>
                   {canViewFinancials && (
@@ -1991,6 +2008,7 @@ function SessionsTab({ clientSessions, client: _client, canViewFinancials, selec
     </div>
   );
 }
+
 
 // ═══════════════════════════════════════════════════════════════════
 // Retainer Tab
