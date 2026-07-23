@@ -521,15 +521,12 @@ export default function TimeLog() {
                             {session.task}
                           </div>
 
-                          {session.allocationType && session.allocationType !== "general" && (
-                            <div className="hidden md:inline-flex items-center gap-1 text-[11px] text-muted-foreground/80">
-                              {session.allocationType === "retainer" ? (
-                                <><Repeat className="w-2.5 h-2.5" />Retainer</>
-                              ) : (
-                                <><FolderKanban className="w-2.5 h-2.5" />{session.projectName || "Project"}</>
-                              )}
-                            </div>
-                          )}
+                          <SessionAllocationTag
+                            session={session}
+                            client={clients.find((c: any) => c.id === session.clientId)}
+                            retainerHistory={retainerHistory}
+                          />
+
 
                           {invoicedSessionMap.has(String(session.id)) && (
                             <div
