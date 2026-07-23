@@ -25,6 +25,7 @@ function snakeToCamel(row: Record<string, any>): Record<string, any> {
     retainer_cycle_days: 'retainerCycleDays',
     retainer_status: 'retainerStatus',
     retainer_carryover_hours: 'retainerCarryoverHours',
+    sort_order: 'sortOrder',
     true_hourly_rate: 'trueHourlyRate',
     last_session_date: 'lastSessionDate',
     external_links: 'externalLinks',
