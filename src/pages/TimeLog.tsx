@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { Plus, ChevronDown, Download, FolderKanban, Repeat, Pencil, Search, X, CheckSquare, Square, Receipt, Clock, SlidersHorizontal } from "lucide-react";
+import { Plus, Download, Pencil, Search, X, CheckSquare, Square, Receipt, Clock, SlidersHorizontal } from "lucide-react";
 import { BottomSheet } from "@/components/primitives/BottomSheet";
 import { motion } from "motion/react";
 import { useData } from "../data/DataContext";
@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from '@/lib/toast';
 import { useAuth } from "@/data/AuthContext";
 import { NotificationEvents } from "@/data/notificationsApi";
-import { startOfDay, subDays, startOfMonth, startOfQuarter, startOfYear, isBefore, isAfter, startOfWeek, endOfWeek, format as formatDateFn, addDays } from "date-fns";
+import { startOfDay, subDays, startOfMonth, startOfQuarter, startOfYear, isBefore, isAfter, startOfWeek, endOfWeek } from "date-fns";
 import * as invoiceApi from "../data/invoiceApi";
 import type { Invoice } from "../data/invoiceApi";
 import { usePlan } from "../data/PlanContext";
@@ -19,6 +19,8 @@ import { PageHeader, SegmentedControl, type SegmentOption } from "@/components/p
 import { useRoleAccess } from "@/data/useRoleAccess";
 import { formatMoney, fmtH } from '@/lib/format';
 import { EmptyState } from "@/components/primitives/EmptyState";
+import { SessionAllocationTag, useRetainerHistory } from "@/components/SessionAllocationTag";
+
 
 
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.04 } } };
@@ -49,21 +51,14 @@ export default function TimeLog() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
-  const [retainerHistory, setRetainerHistory] = useState<Array<{ client_id: string; cycle_start: string; cycle_end: string }>>([]);
+  const retainerHistory = useRetainerHistory(workspaceId);
 
   useEffect(() => {
     if (can("clientInvoicing")) invoiceApi.loadInvoices().then(setInvoices).catch(() => {});
     loadAllProjects().catch(() => {});
   }, [can]);
 
-  useEffect(() => {
-    if (!workspaceId) return;
-    supabase
-      .from('retainer_history')
-      .select('client_id, cycle_start, cycle_end')
-      .eq('workspace_id', workspaceId)
-      .then(({ data }) => { if (data) setRetainerHistory(data as any); });
-  }, [workspaceId]);
+
 
   const invoicedSessionMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -464,8 +459,31 @@ export default function TimeLog() {
               </div>
             )}
 
+            {/* Column widths — kept in sync between header + row */}
+            {(() => null)()}
             {/* Date-grouped ledger */}
             <div className="space-y-0">
+              {/* Desktop column header */}
+              {groupedSessions.length > 0 && (
+                <div
+                  className="hidden lg:grid gap-x-3 items-center px-3 py-2 border-b border-[var(--hairline)] type-eyebrow text-muted-foreground"
+                  style={{
+                    gridTemplateColumns: canViewFinancials
+                      ? "20px 140px minmax(0,1fr) 130px 90px 60px 80px 28px"
+                      : "20px 140px minmax(0,1fr) 130px 90px 60px 28px",
+                  }}
+                >
+                  <div />
+                  <div>Client</div>
+                  <div>Description</div>
+                  <div>Applied to</div>
+                  <div>Invoice</div>
+                  <div className="text-right">Hours</div>
+                  {canViewFinancials && <div className="text-right">Revenue</div>}
+                  <div />
+                </div>
+              )}
+
               {groupedSessions.map((group) => (
                 <div key={group.label}>
                   {/* Sticky date header */}
@@ -485,82 +503,117 @@ export default function TimeLog() {
                   <div className="divide-y divide-[var(--hairline)]">
                     {group.sessions.map((session: any) => {
                       const isSelected = selectedIds.has(session.id);
+                      const client = clients.find((c: any) => c.id === session.clientId);
+                      const invoiceNum = invoicedSessionMap.get(String(session.id));
                       return (
                         <div
                           key={session.id}
-                          className={`flex flex-wrap lg:flex-nowrap items-center gap-x-3 gap-y-1 px-3 py-2.5 hover:bg-accent/20 transition-colors group ${isSelected ? "bg-primary/[0.04]" : ""}`}
+                          className={`hover:bg-accent/20 transition-colors group ${isSelected ? "bg-primary/[0.04]" : ""}`}
                         >
-                          <button
-                            onClick={(e) => { e.stopPropagation(); toggleSelect(session.id); }}
-                            className="flex-shrink-0 w-4 h-4 inline-flex items-center justify-center cursor-pointer"
-                            aria-label="Select session"
-                          >
-                            {isSelected ? (
-                              <CheckSquare className="w-3.5 h-3.5 text-primary" />
-                            ) : (
-                              <Square className="w-3.5 h-3.5 text-muted-foreground lg:opacity-0 group-hover:opacity-100 transition-opacity" />
-                            )}
-                          </button>
-
-                          <button
-                            onClick={() => session.clientId && navigate(`/clients/${session.clientId}`)}
-                            className="text-[13px] truncate w-auto max-w-[40%] lg:w-32 text-left text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-                            style={{ fontWeight: 500 }}
-                          >
-                            {session.client}
-                          </button>
-
-                          {/* Hours + revenue — on mobile, anchor to the right of the top row */}
-                          <div className="ml-auto lg:hidden flex items-center gap-3 tabular-nums text-[13px]" style={{ fontWeight: 500 }}>
-                            <span>{fmtH(session.duration)}h</span>
-                            {canViewFinancials && <span style={{ fontWeight: 600 }}>${session.revenue}</span>}
-                          </div>
-
-                          {/* Description — full width on mobile (second row) */}
-                          <div className="basis-full lg:basis-auto lg:flex-1 text-[13px] text-muted-foreground truncate min-w-0 pl-7 lg:pl-0">
-                            {session.task}
-                          </div>
-
-                          <SessionAllocationTag
-                            session={session}
-                            client={clients.find((c: any) => c.id === session.clientId)}
-                            retainerHistory={retainerHistory}
-                          />
-
-
-                          {invoicedSessionMap.has(String(session.id)) && (
-                            <div
-                              className="hidden md:inline-flex items-center gap-1 text-[10.5px] text-muted-foreground"
-                              title={`Invoiced on #${invoicedSessionMap.get(String(session.id))}`}
+                          {/* Mobile: stacked flex layout (unchanged) */}
+                          <div className="lg:hidden flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2.5">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); toggleSelect(session.id); }}
+                              className="flex-shrink-0 w-4 h-4 inline-flex items-center justify-center cursor-pointer"
+                              aria-label="Select session"
                             >
-                              <Receipt className="w-2.5 h-2.5" />
-                              #{invoicedSessionMap.get(String(session.id))}
+                              {isSelected ? (
+                                <CheckSquare className="w-3.5 h-3.5 text-primary" />
+                              ) : (
+                                <Square className="w-3.5 h-3.5 text-muted-foreground" />
+                              )}
+                            </button>
+                            <button
+                              onClick={() => session.clientId && navigate(`/clients/${session.clientId}`)}
+                              className="text-[13px] truncate max-w-[40%] text-left text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                              style={{ fontWeight: 500 }}
+                            >
+                              {session.client}
+                            </button>
+                            <div className="ml-auto flex items-center gap-3 tabular-nums text-[13px]" style={{ fontWeight: 500 }}>
+                              <span>{fmtH(session.duration)}h</span>
+                              {canViewFinancials && <span style={{ fontWeight: 600 }}>${session.revenue}</span>}
                             </div>
-                          )}
-
-                          {!session.billable && (
-                            <span className="text-[10.5px] text-muted-foreground/70" style={{ fontWeight: 500 }}>
-                              Non-billable
-                            </span>
-                          )}
-
-                          {/* Desktop hours + revenue */}
-                          <div className="hidden lg:block text-right tabular-nums w-14 text-[13px]" style={{ fontWeight: 500 }}>
-                            {fmtH(session.duration)}h
+                            <div className="basis-full text-[13px] text-muted-foreground truncate min-w-0 pl-7">
+                              {session.task}
+                            </div>
                           </div>
-                          {canViewFinancials && (
-                            <div className="hidden lg:block text-right tabular-nums w-20 text-[13px]" style={{ fontWeight: 600 }}>
-                              ${session.revenue}
-                            </div>
-                          )}
 
-                          <button
-                            onClick={(e) => { e.stopPropagation(); setEditingSession(session); }}
-                            className="hidden lg:inline-flex flex-shrink-0 w-7 h-7 items-center justify-center rounded opacity-0 group-hover:opacity-100 hover:bg-accent/60 text-muted-foreground hover:text-foreground transition-all cursor-pointer"
-                            aria-label="Edit session"
+                          {/* Desktop: fixed grid */}
+                          <div
+                            className="hidden lg:grid gap-x-3 items-center px-3 py-2.5"
+                            style={{
+                              gridTemplateColumns: canViewFinancials
+                                ? "20px 140px minmax(0,1fr) 130px 90px 60px 80px 28px"
+                                : "20px 140px minmax(0,1fr) 130px 90px 60px 28px",
+                            }}
                           >
-                            <Pencil className="w-3 h-3" />
-                          </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); toggleSelect(session.id); }}
+                              className="w-4 h-4 inline-flex items-center justify-center cursor-pointer"
+                              aria-label="Select session"
+                            >
+                              {isSelected ? (
+                                <CheckSquare className="w-3.5 h-3.5 text-primary" />
+                              ) : (
+                                <Square className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                              )}
+                            </button>
+                            <button
+                              onClick={() => session.clientId && navigate(`/clients/${session.clientId}`)}
+                              className="text-[13px] truncate text-left text-muted-foreground hover:text-foreground transition-colors cursor-pointer min-w-0"
+                              style={{ fontWeight: 500 }}
+                            >
+                              {session.client}
+                            </button>
+                            <div className="text-[13px] text-muted-foreground truncate min-w-0 flex items-center gap-2">
+                              <span className="truncate">{session.task || "—"}</span>
+                              {!session.billable && (
+                                <span
+                                  className="flex-shrink-0 text-[10.5px] text-muted-foreground/70"
+                                  style={{ fontWeight: 500 }}
+                                >
+                                  Non-billable
+                                </span>
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <SessionAllocationTag
+                                session={session}
+                                client={client}
+                                retainerHistory={retainerHistory}
+                                className="inline-flex max-w-full"
+                              />
+                            </div>
+                            <div className="min-w-0">
+                              {invoiceNum ? (
+                                <div
+                                  className="inline-flex items-center gap-1 text-[10.5px] text-muted-foreground truncate"
+                                  title={`Invoiced on #${invoiceNum}`}
+                                >
+                                  <Receipt className="w-2.5 h-2.5 flex-shrink-0" />
+                                  <span className="truncate">#{invoiceNum}</span>
+                                </div>
+                              ) : (
+                                <span className="text-[10.5px] text-muted-foreground/40">—</span>
+                              )}
+                            </div>
+                            <div className="text-right tabular-nums text-[13px]" style={{ fontWeight: 500 }}>
+                              {fmtH(session.duration)}h
+                            </div>
+                            {canViewFinancials && (
+                              <div className="text-right tabular-nums text-[13px]" style={{ fontWeight: 600 }}>
+                                ${session.revenue}
+                              </div>
+                            )}
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setEditingSession(session); }}
+                              className="w-7 h-7 inline-flex items-center justify-center rounded opacity-0 group-hover:opacity-100 hover:bg-accent/60 text-muted-foreground hover:text-foreground transition-all cursor-pointer"
+                              aria-label="Edit session"
+                            >
+                              <Pencil className="w-3 h-3" />
+                            </button>
+                          </div>
                         </div>
                       );
                     })}
@@ -568,6 +621,7 @@ export default function TimeLog() {
                   </div>
                 </div>
               ))}
+
 
               {groupedSessions.length === 0 && (
                 <EmptyState
@@ -632,104 +686,3 @@ function FilterSelect({
   );
 }
 
-// ── Session allocation tag ─────────────────────────────────────────
-function getRetainerCycleLabel(
-  session: any,
-  client: any,
-  retainerHistory: Array<{ client_id: string; cycle_start: string; cycle_end: string }>,
-): string {
-  if (!session?.date) return "Retainer";
-  const parseISO = (iso: string) => {
-    const [y, m, d] = iso.split("-").map(Number);
-    if (!y || !m || !d) return null;
-    return new Date(y, m - 1, d);
-  };
-  const sDate = parseISO(session.date);
-  if (!sDate) return "Retainer";
-
-  // Current cycle window on the client
-  if (client?.retainerCycleStart) {
-    const start = parseISO(client.retainerCycleStart);
-    const days = Number(client.retainerCycleDays) || 30;
-    if (start) {
-      const end = addDays(start, days);
-      if (sDate >= start && sDate < end) {
-        return `${formatDateFn(start, "MMMM yyyy")} Cycle`;
-      }
-    }
-  }
-
-  // Historical cycles
-  const match = retainerHistory.find((r) => {
-    if (r.client_id !== session.clientId) return false;
-    const cs = parseISO(r.cycle_start);
-    const ce = parseISO(r.cycle_end);
-    if (!cs || !ce) return false;
-    return sDate >= cs && sDate < ce;
-  });
-  if (match) {
-    const cs = parseISO(match.cycle_start);
-    if (cs) return `${formatDateFn(cs, "MMMM yyyy")} Cycle`;
-  }
-  return "Retainer";
-}
-
-function SessionAllocationTag({
-  session,
-  client,
-  retainerHistory,
-}: {
-  session: any;
-  client: any;
-  retainerHistory: Array<{ client_id: string; cycle_start: string; cycle_end: string }>;
-}) {
-  const type = (session?.allocationType as "retainer" | "project" | "general" | null | undefined) || "general";
-
-  if (type === "retainer") {
-    const label = getRetainerCycleLabel(session, client, retainerHistory);
-    return (
-      <span
-        title={label}
-        className="hidden md:inline-flex items-center gap-1 h-5 px-1.5 rounded-[4px] text-[10.5px] tabular-nums cursor-default"
-        style={{
-          background: "color-mix(in oklab, var(--primary) 10%, transparent)",
-          color: "var(--primary)",
-          fontWeight: 600,
-        }}
-      >
-        <Repeat className="w-2.5 h-2.5" strokeWidth={2} />
-        Retainer
-      </span>
-    );
-  }
-
-  if (type === "project") {
-    const name = session.projectName || "Project";
-    return (
-      <span
-        title={name}
-        className="hidden md:inline-flex items-center gap-1 h-5 px-1.5 rounded-[4px] text-[10.5px] text-foreground/80 cursor-default"
-        style={{
-          background: "var(--surface-sunken)",
-          fontWeight: 600,
-        }}
-      >
-        <FolderKanban className="w-2.5 h-2.5" strokeWidth={2} />
-        <span className="max-w-[120px] truncate">{name}</span>
-      </span>
-    );
-  }
-
-  return (
-    <span
-      title="Not linked to a project or retainer"
-      className="hidden md:inline-flex items-center gap-1 h-5 px-1.5 rounded-[4px] text-[10.5px] text-muted-foreground cursor-default"
-      style={{
-        background: "var(--surface-sunken)",
-        fontWeight: 500,
-      }}
-    >
-      General
-    </span>
-  );
-}
