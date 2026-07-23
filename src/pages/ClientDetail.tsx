@@ -66,6 +66,8 @@ import RecurringSessionsManager from "../components/RecurringSessionsManager";
 import ClientAssignmentManager from "../components/ClientAssignmentManager";
 import { SegmentedControl, HairlineBar, type SegmentOption } from "@/components/primitives/composition";
 import { FinancialSummary, ProfitabilityBadge } from "@/components/FinancialSummary";
+import { SessionAllocationTag, useRetainerHistory } from "@/components/SessionAllocationTag";
+
 import {
   recognizeClientRevenue,
   resolveBillingModel,
