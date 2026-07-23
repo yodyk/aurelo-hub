@@ -20,10 +20,21 @@ import {
 
 export type NumericPrecision = 'exact' | 'display' | 'compact';
 
-const DEFAULT_LOCALE =
-  typeof navigator !== 'undefined' && navigator.language
-    ? navigator.language
-    : 'en-US';
+function sanitizeLocale(locale: string | undefined): string {
+  if (!locale) return 'en-US';
+  // Strip POSIX/variant extensions (e.g. "en-US@posix") that Intl.NumberFormat rejects
+  const base = locale.split('@')[0].replace(/_/g, '-');
+  try {
+    Intl.NumberFormat.supportedLocalesOf([base]);
+    return base;
+  } catch {
+    return 'en-US';
+  }
+}
+
+const DEFAULT_LOCALE = sanitizeLocale(
+  typeof navigator !== 'undefined' ? navigator.language : 'en-US'
+);
 
 // ─── money ─────────────────────────────────────────────────────
 

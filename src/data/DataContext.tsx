@@ -31,6 +31,7 @@ interface DataContextType {
   addClient: (client: any) => Promise<any>;
   updateClient: (clientId: string, updates: any) => Promise<void>;
   deleteClient: (clientId: string) => Promise<void>;
+  swapClientOrder: (clientIdA: string, clientIdB: string) => Promise<void>;
   addSession: (session: any) => Promise<any>;
   updateSession: (sessionId: string, updates: any) => Promise<any>;
   deleteSession: (sessionId: string) => Promise<void>;
@@ -80,6 +81,7 @@ const safeDefaults: DataContextType = {
   addClient: async () => ({}),
   updateClient: async () => {},
   deleteClient: async () => {},
+  swapClientOrder: async () => {},
   addSession: async () => ({}),
   updateSession: async () => ({}),
   deleteSession: async () => {},
@@ -213,6 +215,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setClients(prev => prev.map(c => c.id === clientId ? { ...c, ...updates } : c));
   }, []);
 
+
   const handleDeleteClient = useCallback(async (clientId: string) => {
     const wsId = workspaceIdRef.current;
     if (!wsId) throw new Error('No workspace');
@@ -221,6 +224,25 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setSessions(prev => prev.filter(s => s.clientId !== clientId));
     setProjectsCache(prev => { const next = { ...prev }; delete next[clientId]; return next; });
     setAllProjects(prev => prev.filter(p => p.clientId !== clientId));
+  }, []);
+
+  const handleSwapClientOrder = useCallback(async (clientIdA: string, clientIdB: string) => {
+    const wsId = workspaceIdRef.current;
+    if (!wsId) return;
+    const a = clientsRef.current.find(c => c.id === clientIdA);
+    const b = clientsRef.current.find(c => c.id === clientIdB);
+    if (!a || !b) return;
+    await api.swapClientOrder(wsId, clientIdA, clientIdB);
+    const orderA = a.sortOrder ?? 0;
+    const orderB = b.sortOrder ?? 0;
+    setClients(prev => {
+      const next = prev.map(c => {
+        if (c.id === clientIdA) return { ...c, sortOrder: orderB };
+        if (c.id === clientIdB) return { ...c, sortOrder: orderA };
+        return c;
+      });
+      return [...next].sort((x, y) => (x.sortOrder ?? 0) - (y.sortOrder ?? 0) || x.name.localeCompare(y.name));
+    });
   }, []);
 
   const getProjectsForClient = useCallback((clientId: string) => projectsCacheRef.current[clientId] || [], []);
@@ -405,6 +427,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       setIdentityAndCategories: handleSetIdentityAndCategories,
       updateWorkCategories: handleUpdateWorkCategories,
       addClient: handleAddClient, updateClient: handleUpdateClient, deleteClient: handleDeleteClient,
+      swapClientOrder: handleSwapClientOrder,
       addSession: handleAddSession, updateSession: handleUpdateSession, deleteSession: handleDeleteSession,
       getProjects, loadProjectsForClient,
       addProject: handleAddProject, updateProject: handleUpdateProject,

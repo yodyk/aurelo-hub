@@ -25,6 +25,7 @@ function snakeToCamel(row: Record<string, any>): Record<string, any> {
     retainer_cycle_days: 'retainerCycleDays',
     retainer_status: 'retainerStatus',
     retainer_carryover_hours: 'retainerCarryoverHours',
+    sort_order: 'sortOrder',
     true_hourly_rate: 'trueHourlyRate',
     last_session_date: 'lastSessionDate',
     external_links: 'externalLinks',
@@ -76,6 +77,7 @@ function camelToSnake(obj: Record<string, any>): Record<string, any> {
     retainerCycleDays: 'retainer_cycle_days',
     retainerStatus: 'retainer_status',
     retainerCarryoverHours: 'retainer_carryover_hours',
+    sortOrder: 'sort_order',
     trueHourlyRate: 'true_hourly_rate',
     lastSessionDate: 'last_session_date',
     externalLinks: 'external_links',
@@ -131,7 +133,7 @@ function formatSessionRow(row: any): any {
 
 export async function loadInitData(workspaceId: string) {
   const [clientsRes, sessionsRes, settingsRes, avatarUrl, logoUrls] = await Promise.all([
-    supabase.from('clients').select('*').eq('workspace_id', workspaceId).order('name'),
+    supabase.from('clients').select('*').eq('workspace_id', workspaceId).order('sort_order', { ascending: true }).order('name'),
     supabase.from('sessions').select('*, clients!inner(name)').eq('workspace_id', workspaceId).order('date', { ascending: false }).limit(500),
     supabase.from('workspace_settings').select('section, data').eq('workspace_id', workspaceId),
     storage.getAvatarUrl(workspaceId),
@@ -183,7 +185,7 @@ export async function loadInitData(workspaceId: string) {
 // ── Clients ─────────────────────────────────────────────────────────
 
 export async function loadClients(workspaceId: string) {
-  const { data, error } = await supabase.from('clients').select('*').eq('workspace_id', workspaceId).order('name');
+  const { data, error } = await supabase.from('clients').select('*').eq('workspace_id', workspaceId).order('sort_order', { ascending: true }).order('name');
   if (error) { console.error('[dataApi] loadClients:', error); return []; }
   return (data || []).map(snakeToCamel);
 }
@@ -191,7 +193,16 @@ export async function loadClients(workspaceId: string) {
 export async function addClient(workspaceId: string, client: any) {
   const slug = client.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
   const snaked = camelToSnake(client);
-  const row: Record<string, any> = { ...snaked, workspace_id: workspaceId, slug, name: client.name };
+  // Place new clients at the end of the manual order
+  const { data: maxRow } = await supabase
+    .from('clients')
+    .select('sort_order')
+    .eq('workspace_id', workspaceId)
+    .order('sort_order', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const nextSortOrder = (maxRow?.sort_order ?? 0) + 10;
+  const row: Record<string, any> = { ...snaked, workspace_id: workspaceId, slug, name: client.name, sort_order: nextSortOrder };
   // Remove fields that shouldn't be inserted
   delete row.id;
   delete row.createdAt;
@@ -210,6 +221,25 @@ export async function updateClient(workspaceId: string, clientId: string, update
   const { error } = await supabase.from('clients').update(row).eq('id', clientId).eq('workspace_id', workspaceId);
   if (error) throw new Error(`Failed to update client: ${error.message}`);
   dispatchWebhookEvent(workspaceId, 'client.updated', { id: clientId, updates });
+}
+
+export async function swapClientOrder(workspaceId: string, clientIdA: string, clientIdB: string) {
+  const { data: rows, error: fetchError } = await supabase
+    .from('clients')
+    .select('id, sort_order')
+    .in('id', [clientIdA, clientIdB])
+    .eq('workspace_id', workspaceId);
+  if (fetchError) throw new Error(`Failed to load client order: ${fetchError.message}`);
+  const map = new Map((rows || []).map(r => [r.id, r.sort_order ?? 0]));
+  const orderA = map.get(clientIdA) ?? 0;
+  const orderB = map.get(clientIdB) ?? 0;
+
+  const [resA, resB] = await Promise.all([
+    supabase.from('clients').update({ sort_order: orderB }).eq('id', clientIdA).eq('workspace_id', workspaceId).select(),
+    supabase.from('clients').update({ sort_order: orderA }).eq('id', clientIdB).eq('workspace_id', workspaceId).select(),
+  ]);
+  if (resA.error) throw new Error(`Failed to reorder client: ${resA.error.message}`);
+  if (resB.error) throw new Error(`Failed to reorder client: ${resB.error.message}`);
 }
 
 export async function deleteClient(workspaceId: string, clientId: string) {

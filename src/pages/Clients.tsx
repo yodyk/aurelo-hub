@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router";
 import { motion } from "motion/react";
-import { ArrowUpRight, Search, Plus, ChevronRight, Users } from "lucide-react";
+import { ArrowUpRight, Search, Plus, ChevronRight, Users, ChevronUp, ChevronDown } from "lucide-react";
 import { useData } from "../data/DataContext";
 import { AddClientModal } from "../components/Modals";
 import { toast } from '@/lib/toast';
@@ -34,7 +34,7 @@ const statusDot: Record<string, string> = {
 };
 
 export default function Clients() {
-  const { clients, sessions, addClient, workspaceId } = useData();
+  const { clients, sessions, addClient, workspaceId, swapClientOrder } = useData();
   const { limit } = usePlan();
   const { canViewFinancials } = useRoleAccess();
   const [searchQuery, setSearchQuery] = useState("");
@@ -115,6 +115,24 @@ export default function Clients() {
     else setShowAddModal(true);
   };
 
+  const moveClient = async (clientId: string, direction: 'up' | 'down', sourceRows: any[]) => {
+    console.log('moveClient', clientId, direction, sourceRows.length);
+    if (!workspaceId) return;
+    const idx = sourceRows.findIndex(c => c.id === clientId);
+    if (idx === -1) return;
+    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (swapIdx < 0 || swapIdx >= sourceRows.length) return;
+    const other = sourceRows[swapIdx];
+    console.log('swapping', clientId, 'with', other.id, 'sortOrders', sourceRows[idx].sortOrder, other.sortOrder);
+    try {
+      await swapClientOrder(clientId, other.id);
+      console.log('swap done');
+    } catch (err: any) {
+      console.error('swap error', err);
+      toast.error(err?.message || 'Failed to reorder client');
+    }
+  };
+
   const segments: SegmentOption<StatusFilter>[] = [
     { value: "all", label: "All", count: counts.all },
     { value: "Active", label: "Active", count: counts.Active },
@@ -186,6 +204,8 @@ export default function Clients() {
               canViewFinancials={canViewFinancials}
               maxMonthlyEarnings={maxMonthlyEarnings}
               archived={false}
+              onMoveUp={(id) => moveClient(id, 'up', nonArchivedRows)}
+              onMoveDown={(id) => moveClient(id, 'down', nonArchivedRows)}
             />
           </motion.div>
         ) : (
@@ -219,6 +239,8 @@ export default function Clients() {
                   canViewFinancials={canViewFinancials}
                   maxMonthlyEarnings={maxMonthlyEarnings}
                   archived={true}
+                  onMoveUp={(id) => moveClient(id, 'up', archivedRows)}
+                  onMoveDown={(id) => moveClient(id, 'down', archivedRows)}
                 />
               </div>
             )}
@@ -233,6 +255,8 @@ export default function Clients() {
             canViewFinancials={canViewFinancials}
             maxMonthlyEarnings={maxMonthlyEarnings}
             archived={true}
+            onMoveUp={(id) => moveClient(id, 'up', archivedVisible)}
+            onMoveDown={(id) => moveClient(id, 'down', archivedVisible)}
           />
         )}
       </div>
@@ -250,6 +274,37 @@ export default function Clients() {
   );
 }
 
+function ReorderControls({ rowIndex, totalRows, onMoveUp, onMoveDown }: {
+  rowIndex: number;
+  totalRows: number;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+}) {
+  if (totalRows <= 1) return <div />;
+  return (
+    <div className="hidden lg:flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+      <button
+        type="button"
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onMoveUp(); }}
+        disabled={rowIndex === 0}
+        className="p-0.5 -mb-0.5 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+        aria-label="Move up"
+      >
+        <ChevronUp className="w-3 h-3" />
+      </button>
+      <button
+        type="button"
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onMoveDown(); }}
+        disabled={rowIndex === totalRows - 1}
+        className="p-0.5 -mt-0.5 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+        aria-label="Move down"
+      >
+        <ChevronDown className="w-3 h-3" />
+      </button>
+    </div>
+  );
+}
+
 // ── Ledger-style table ──────────────────────────────────────────────
 function ClientTable({
   rows,
@@ -258,6 +313,8 @@ function ClientTable({
   canViewFinancials,
   maxMonthlyEarnings,
   archived,
+  onMoveUp,
+  onMoveDown,
 }: {
   rows: any[];
   faviconUrls: Record<string, string>;
@@ -265,11 +322,14 @@ function ClientTable({
   canViewFinancials: boolean;
   maxMonthlyEarnings: number;
   archived: boolean;
+  onMoveUp?: (id: string) => void;
+  onMoveDown?: (id: string) => void;
 }) {
   return (
     <div>
       {/* Eyebrow header — desktop only */}
-      <div className="hidden lg:grid grid-cols-[1fr_90px_100px_110px_80px_140px] gap-4 px-3 py-2 border-b border-[var(--hairline)] type-eyebrow text-muted-foreground">
+      <div className="hidden lg:grid grid-cols-[28px_1fr_90px_100px_110px_80px_140px] gap-4 px-3 py-2 border-b border-[var(--hairline)] type-eyebrow text-muted-foreground">
+        <div />
         <div>Client</div>
         <div>Status</div>
         <div>Type</div>
@@ -282,7 +342,7 @@ function ClientTable({
 
 
       <div className="divide-y divide-[var(--hairline)]">
-        {rows.map((client: any) => {
+        {rows.map((client: any, i: number) => {
           const sessionCount = sessionsThisMonth[client.id] || 0;
           const earnings = archived ? (client.lifetimeRevenue || 0) : (client.monthlyEarnings || 0);
           const progress = archived ? 0 : Math.min(1, earnings / maxMonthlyEarnings);
@@ -296,7 +356,13 @@ function ClientTable({
               className={`block hover:bg-accent/30 transition-colors group ${archived ? "opacity-60 hover:opacity-100" : ""}`}
             >
               {/* Desktop grid row */}
-              <div className="hidden lg:grid grid-cols-[1fr_90px_100px_110px_80px_140px] gap-4 items-center px-3 h-14">
+              <div className="hidden lg:grid grid-cols-[28px_1fr_90px_100px_110px_80px_140px] gap-4 items-center px-3 h-14">
+                <ReorderControls
+                  rowIndex={i}
+                  totalRows={rows.length}
+                  onMoveUp={() => onMoveUp?.(client.id)}
+                  onMoveDown={() => onMoveDown?.(client.id)}
+                />
                 <div className="flex items-center gap-3 min-w-0">
                   {faviconUrl ? (
                     <img
@@ -402,6 +468,28 @@ function ClientTable({
                     <div className="type-meta text-muted-foreground tabular-nums mt-0.5">
                       {sessionCount} {sessionCount === 1 ? "session" : "sessions"}
                     </div>
+                  </div>
+                )}
+                {rows.length > 1 && (
+                  <div className="lg:hidden flex flex-col items-center justify-center">
+                    <button
+                      type="button"
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); onMoveUp?.(client.id); }}
+                      disabled={i === 0}
+                      className="p-0.5 -mb-0.5 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                      aria-label="Move up"
+                    >
+                      <ChevronUp className="w-3 h-3" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); onMoveDown?.(client.id); }}
+                      disabled={i === rows.length - 1}
+                      className="p-0.5 -mt-0.5 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                      aria-label="Move down"
+                    >
+                      <ChevronDown className="w-3 h-3" />
+                    </button>
                   </div>
                 )}
                 <ChevronRight className="w-4 h-4 text-muted-foreground/50 flex-shrink-0" />
