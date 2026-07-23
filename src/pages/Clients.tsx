@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router";
 import { motion } from "motion/react";
-import { ArrowUpRight, Search, Plus, ChevronRight, Users } from "lucide-react";
+import { ArrowUpRight, Search, Plus, ChevronRight, Users, CaretUp, CaretDown } from "lucide-react";
 import { useData } from "../data/DataContext";
 import { AddClientModal } from "../components/Modals";
 import { toast } from '@/lib/toast';
