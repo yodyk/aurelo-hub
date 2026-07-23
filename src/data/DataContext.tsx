@@ -215,15 +215,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setClients(prev => prev.map(c => c.id === clientId ? { ...c, ...updates } : c));
   }, []);
 
-  const handleReorderClients = useCallback(async (orderedIds: string[]) => {
-    const wsId = workspaceIdRef.current;
-    if (!wsId) return;
-    await api.reorderClients(wsId, orderedIds);
-    setClients(prev => {
-      const byId = new Map(prev.map(c => [c.id, c]));
-      return orderedIds.map((id, i) => ({ ...byId.get(id), sortOrder: (i + 1) * 10 })).filter(Boolean);
-    });
-  }, []);
 
   const handleDeleteClient = useCallback(async (clientId: string) => {
     const wsId = workspaceIdRef.current;
