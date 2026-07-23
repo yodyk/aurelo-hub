@@ -116,19 +116,15 @@ export default function Clients() {
   };
 
   const moveClient = async (clientId: string, direction: 'up' | 'down', sourceRows: any[]) => {
-    console.log('moveClient', clientId, direction, sourceRows.length);
     if (!workspaceId) return;
     const idx = sourceRows.findIndex(c => c.id === clientId);
     if (idx === -1) return;
     const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
     if (swapIdx < 0 || swapIdx >= sourceRows.length) return;
     const other = sourceRows[swapIdx];
-    console.log('swapping', clientId, 'with', other.id);
     try {
       await swapClientOrder(clientId, other.id);
-      console.log('swap done');
     } catch (err: any) {
-      console.error('Reorder failed:', err);
       toast.error(err?.message || 'Failed to reorder client');
     }
   };
