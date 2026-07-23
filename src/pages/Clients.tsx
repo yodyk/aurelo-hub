@@ -34,7 +34,7 @@ const statusDot: Record<string, string> = {
 };
 
 export default function Clients() {
-  const { clients, sessions, addClient, workspaceId } = useData();
+  const { clients, sessions, addClient, workspaceId, swapClientOrder } = useData();
   const { limit } = usePlan();
   const { canViewFinancials } = useRoleAccess();
   const [searchQuery, setSearchQuery] = useState("");
