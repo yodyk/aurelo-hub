@@ -49,11 +49,21 @@ export default function TimeLog() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+  const [retainerHistory, setRetainerHistory] = useState<Array<{ client_id: string; cycle_start: string; cycle_end: string }>>([]);
 
   useEffect(() => {
     if (can("clientInvoicing")) invoiceApi.loadInvoices().then(setInvoices).catch(() => {});
     loadAllProjects().catch(() => {});
   }, [can]);
+
+  useEffect(() => {
+    if (!workspaceId) return;
+    supabase
+      .from('retainer_history')
+      .select('client_id, cycle_start, cycle_end')
+      .eq('workspace_id', workspaceId)
+      .then(({ data }) => { if (data) setRetainerHistory(data as any); });
+  }, [workspaceId]);
 
   const invoicedSessionMap = useMemo(() => {
     const map = new Map<string, string>();
