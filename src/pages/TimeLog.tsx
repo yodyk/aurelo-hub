@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from '@/lib/toast';
 import { useAuth } from "@/data/AuthContext";
 import { NotificationEvents } from "@/data/notificationsApi";
-import { startOfDay, subDays, startOfMonth, startOfQuarter, startOfYear, isBefore, isAfter, startOfWeek, endOfWeek } from "date-fns";
+import { startOfDay, subDays, startOfMonth, startOfQuarter, startOfYear, isBefore, isAfter, startOfWeek, endOfWeek, format as formatDateFn, addDays } from "date-fns";
 import * as invoiceApi from "../data/invoiceApi";
 import type { Invoice } from "../data/invoiceApi";
 import { usePlan } from "../data/PlanContext";
@@ -49,11 +49,21 @@ export default function TimeLog() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+  const [retainerHistory, setRetainerHistory] = useState<Array<{ client_id: string; cycle_start: string; cycle_end: string }>>([]);
 
   useEffect(() => {
     if (can("clientInvoicing")) invoiceApi.loadInvoices().then(setInvoices).catch(() => {});
     loadAllProjects().catch(() => {});
   }, [can]);
+
+  useEffect(() => {
+    if (!workspaceId) return;
+    supabase
+      .from('retainer_history')
+      .select('client_id, cycle_start, cycle_end')
+      .eq('workspace_id', workspaceId)
+      .then(({ data }) => { if (data) setRetainerHistory(data as any); });
+  }, [workspaceId]);
 
   const invoicedSessionMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -511,15 +521,12 @@ export default function TimeLog() {
                             {session.task}
                           </div>
 
-                          {session.allocationType && session.allocationType !== "general" && (
-                            <div className="hidden md:inline-flex items-center gap-1 text-[11px] text-muted-foreground/80">
-                              {session.allocationType === "retainer" ? (
-                                <><Repeat className="w-2.5 h-2.5" />Retainer</>
-                              ) : (
-                                <><FolderKanban className="w-2.5 h-2.5" />{session.projectName || "Project"}</>
-                              )}
-                            </div>
-                          )}
+                          <SessionAllocationTag
+                            session={session}
+                            client={clients.find((c: any) => c.id === session.clientId)}
+                            retainerHistory={retainerHistory}
+                          />
+
 
                           {invoicedSessionMap.has(String(session.id)) && (
                             <div
@@ -622,5 +629,107 @@ function FilterSelect({
         return <option key={opt.value} value={opt.value}>{opt.label}</option>;
       })}
     </select>
+  );
+}
+
+// ── Session allocation tag ─────────────────────────────────────────
+function getRetainerCycleLabel(
+  session: any,
+  client: any,
+  retainerHistory: Array<{ client_id: string; cycle_start: string; cycle_end: string }>,
+): string {
+  if (!session?.date) return "Retainer";
+  const parseISO = (iso: string) => {
+    const [y, m, d] = iso.split("-").map(Number);
+    if (!y || !m || !d) return null;
+    return new Date(y, m - 1, d);
+  };
+  const sDate = parseISO(session.date);
+  if (!sDate) return "Retainer";
+
+  // Current cycle window on the client
+  if (client?.retainerCycleStart) {
+    const start = parseISO(client.retainerCycleStart);
+    const days = Number(client.retainerCycleDays) || 30;
+    if (start) {
+      const end = addDays(start, days);
+      if (sDate >= start && sDate < end) {
+        return `${formatDateFn(start, "MMMM yyyy")} Cycle`;
+      }
+    }
+  }
+
+  // Historical cycles
+  const match = retainerHistory.find((r) => {
+    if (r.client_id !== session.clientId) return false;
+    const cs = parseISO(r.cycle_start);
+    const ce = parseISO(r.cycle_end);
+    if (!cs || !ce) return false;
+    return sDate >= cs && sDate < ce;
+  });
+  if (match) {
+    const cs = parseISO(match.cycle_start);
+    if (cs) return `${formatDateFn(cs, "MMMM yyyy")} Cycle`;
+  }
+  return "Retainer";
+}
+
+function SessionAllocationTag({
+  session,
+  client,
+  retainerHistory,
+}: {
+  session: any;
+  client: any;
+  retainerHistory: Array<{ client_id: string; cycle_start: string; cycle_end: string }>;
+}) {
+  const type = (session?.allocationType as "retainer" | "project" | "general" | null | undefined) || "general";
+
+  if (type === "retainer") {
+    const label = getRetainerCycleLabel(session, client, retainerHistory);
+    return (
+      <span
+        title={label}
+        className="hidden md:inline-flex items-center gap-1 h-5 px-1.5 rounded-[4px] text-[10.5px] tabular-nums cursor-default"
+        style={{
+          background: "color-mix(in oklab, var(--primary) 10%, transparent)",
+          color: "var(--primary)",
+          fontWeight: 600,
+        }}
+      >
+        <Repeat className="w-2.5 h-2.5" strokeWidth={2} />
+        Retainer
+      </span>
+    );
+  }
+
+  if (type === "project") {
+    const name = session.projectName || "Project";
+    return (
+      <span
+        title={name}
+        className="hidden md:inline-flex items-center gap-1 h-5 px-1.5 rounded-[4px] text-[10.5px] text-foreground/80 cursor-default"
+        style={{
+          background: "var(--surface-sunken)",
+          fontWeight: 600,
+        }}
+      >
+        <FolderKanban className="w-2.5 h-2.5" strokeWidth={2} />
+        <span className="max-w-[120px] truncate">{name}</span>
+      </span>
+    );
+  }
+
+  return (
+    <span
+      title="Not linked to a project or retainer"
+      className="hidden md:inline-flex items-center gap-1 h-5 px-1.5 rounded-[4px] text-[10.5px] text-muted-foreground cursor-default"
+      style={{
+        background: "var(--surface-sunken)",
+        fontWeight: 500,
+      }}
+    >
+      General
+    </span>
   );
 }
