@@ -631,3 +631,105 @@ function FilterSelect({
     </select>
   );
 }
+
+// ── Session allocation tag ─────────────────────────────────────────
+function getRetainerCycleLabel(
+  session: any,
+  client: any,
+  retainerHistory: Array<{ client_id: string; cycle_start: string; cycle_end: string }>,
+): string {
+  if (!session?.date) return "Retainer";
+  const parseISO = (iso: string) => {
+    const [y, m, d] = iso.split("-").map(Number);
+    if (!y || !m || !d) return null;
+    return new Date(y, m - 1, d);
+  };
+  const sDate = parseISO(session.date);
+  if (!sDate) return "Retainer";
+
+  // Current cycle window on the client
+  if (client?.retainerCycleStart) {
+    const start = parseISO(client.retainerCycleStart);
+    const days = Number(client.retainerCycleDays) || 30;
+    if (start) {
+      const end = addDays(start, days);
+      if (sDate >= start && sDate < end) {
+        return `${formatDateFn(start, "MMMM yyyy")} Cycle`;
+      }
+    }
+  }
+
+  // Historical cycles
+  const match = retainerHistory.find((r) => {
+    if (r.client_id !== session.clientId) return false;
+    const cs = parseISO(r.cycle_start);
+    const ce = parseISO(r.cycle_end);
+    if (!cs || !ce) return false;
+    return sDate >= cs && sDate < ce;
+  });
+  if (match) {
+    const cs = parseISO(match.cycle_start);
+    if (cs) return `${formatDateFn(cs, "MMMM yyyy")} Cycle`;
+  }
+  return "Retainer";
+}
+
+function SessionAllocationTag({
+  session,
+  client,
+  retainerHistory,
+}: {
+  session: any;
+  client: any;
+  retainerHistory: Array<{ client_id: string; cycle_start: string; cycle_end: string }>;
+}) {
+  const type = (session?.allocationType as "retainer" | "project" | "general" | null | undefined) || "general";
+
+  if (type === "retainer") {
+    const label = getRetainerCycleLabel(session, client, retainerHistory);
+    return (
+      <span
+        title={label}
+        className="hidden md:inline-flex items-center gap-1 h-5 px-1.5 rounded-[4px] text-[10.5px] tabular-nums cursor-default"
+        style={{
+          background: "color-mix(in oklab, var(--primary) 10%, transparent)",
+          color: "var(--primary)",
+          fontWeight: 600,
+        }}
+      >
+        <Repeat className="w-2.5 h-2.5" strokeWidth={2} />
+        Retainer
+      </span>
+    );
+  }
+
+  if (type === "project") {
+    const name = session.projectName || "Project";
+    return (
+      <span
+        title={name}
+        className="hidden md:inline-flex items-center gap-1 h-5 px-1.5 rounded-[4px] text-[10.5px] text-foreground/80 cursor-default"
+        style={{
+          background: "var(--surface-sunken)",
+          fontWeight: 600,
+        }}
+      >
+        <FolderKanban className="w-2.5 h-2.5" strokeWidth={2} />
+        <span className="max-w-[120px] truncate">{name}</span>
+      </span>
+    );
+  }
+
+  return (
+    <span
+      title="Not linked to a project or retainer"
+      className="hidden md:inline-flex items-center gap-1 h-5 px-1.5 rounded-[4px] text-[10.5px] text-muted-foreground cursor-default"
+      style={{
+        background: "var(--surface-sunken)",
+        fontWeight: 500,
+      }}
+    >
+      General
+    </span>
+  );
+}
