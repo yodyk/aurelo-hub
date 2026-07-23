@@ -289,7 +289,7 @@ function ClientTable({
   return (
     <div>
       {/* Eyebrow header — desktop only */}
-      <div className="hidden lg:grid grid-cols-[1fr_90px_100px_110px_80px_140px] gap-4 px-3 py-2 border-b border-[var(--hairline)] type-eyebrow text-muted-foreground">
+      <div className="hidden lg:grid grid-cols-[28px_1fr_90px_100px_110px_80px_140px] gap-4 px-3 py-2 border-b border-[var(--hairline)] type-eyebrow text-muted-foreground">
         <div>Client</div>
         <div>Status</div>
         <div>Type</div>
