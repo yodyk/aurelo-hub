@@ -266,6 +266,37 @@ export default function Clients() {
   );
 }
 
+function ReorderControls({ rowIndex, totalRows, onMoveUp, onMoveDown }: {
+  rowIndex: number;
+  totalRows: number;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+}) {
+  if (totalRows <= 1) return <div />;
+  return (
+    <div className="hidden lg:flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+      <button
+        type="button"
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onMoveUp(); }}
+        disabled={rowIndex === 0}
+        className="p-0.5 -mb-0.5 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+        aria-label="Move up"
+      >
+        <ChevronUp className="w-3 h-3" />
+      </button>
+      <button
+        type="button"
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onMoveDown(); }}
+        disabled={rowIndex === totalRows - 1}
+        className="p-0.5 -mt-0.5 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+        aria-label="Move down"
+      >
+        <ChevronDown className="w-3 h-3" />
+      </button>
+    </div>
+  );
+}
+
 // ── Ledger-style table ──────────────────────────────────────────────
 function ClientTable({
   rows,
