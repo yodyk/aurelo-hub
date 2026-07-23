@@ -81,6 +81,7 @@ const safeDefaults: DataContextType = {
   addClient: async () => ({}),
   updateClient: async () => {},
   deleteClient: async () => {},
+  reorderClients: async () => {},
   addSession: async () => ({}),
   updateSession: async () => ({}),
   deleteSession: async () => {},
@@ -212,6 +213,16 @@ export function DataProvider({ children }: { children: ReactNode }) {
     if (!wsId) return;
     await api.updateClient(wsId, clientId, updates);
     setClients(prev => prev.map(c => c.id === clientId ? { ...c, ...updates } : c));
+  }, []);
+
+  const handleReorderClients = useCallback(async (orderedIds: string[]) => {
+    const wsId = workspaceIdRef.current;
+    if (!wsId) return;
+    await api.reorderClients(wsId, orderedIds);
+    setClients(prev => {
+      const byId = new Map(prev.map(c => [c.id, c]));
+      return orderedIds.map((id, i) => ({ ...byId.get(id), sortOrder: (i + 1) * 10 })).filter(Boolean);
+    });
   }, []);
 
   const handleDeleteClient = useCallback(async (clientId: string) => {
