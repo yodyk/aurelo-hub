@@ -461,6 +461,28 @@ function ClientTable({
                     </div>
                   </div>
                 )}
+                {totalRows > 1 && (
+                  <div className="lg:hidden flex flex-col items-center justify-center">
+                    <button
+                      type="button"
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); onMoveUp?.(client.id); }}
+                      disabled={i === 0}
+                      className="p-0.5 -mb-0.5 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                      aria-label="Move up"
+                    >
+                      <ChevronUp className="w-3 h-3" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); onMoveDown?.(client.id); }}
+                      disabled={i === rows.length - 1}
+                      className="p-0.5 -mt-0.5 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                      aria-label="Move down"
+                    >
+                      <ChevronDown className="w-3 h-3" />
+                    </button>
+                  </div>
+                )}
                 <ChevronRight className="w-4 h-4 text-muted-foreground/50 flex-shrink-0" />
               </div>
             </Link>
