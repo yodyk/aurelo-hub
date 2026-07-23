@@ -193,7 +193,16 @@ export async function loadClients(workspaceId: string) {
 export async function addClient(workspaceId: string, client: any) {
   const slug = client.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
   const snaked = camelToSnake(client);
-  const row: Record<string, any> = { ...snaked, workspace_id: workspaceId, slug, name: client.name };
+  // Place new clients at the end of the manual order
+  const { data: maxRow } = await supabase
+    .from('clients')
+    .select('sort_order')
+    .eq('workspace_id', workspaceId)
+    .order('sort_order', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const nextSortOrder = (maxRow?.sort_order ?? 0) + 10;
+  const row: Record<string, any> = { ...snaked, workspace_id: workspaceId, slug, name: client.name, sort_order: nextSortOrder };
   // Remove fields that shouldn't be inserted
   delete row.id;
   delete row.createdAt;
