@@ -1921,7 +1921,9 @@ function ProjectsTab({ projects, client, canViewFinancials, onNavigate }: any) {
 // Sessions Tab
 // ═══════════════════════════════════════════════════════════════════
 function SessionsTab({ clientSessions, client, canViewFinancials, selectedIds, onToggleSelect, onToggleSelectAll, onEditSession }: any) {
-  const retainerHistory = useRetainerHistory(client?.workspaceId || client?.workspace_id, client?.id);
+  const { workspaceId } = useAuth();
+  const retainerHistory = useRetainerHistory(workspaceId, client?.id);
+
   return (
     <div>
 
