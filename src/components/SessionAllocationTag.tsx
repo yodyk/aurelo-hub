@@ -17,8 +17,9 @@ export function getRetainerCycleLabel(
   client: any,
   retainerHistory: RetainerCycle[],
 ): string {
-  if (!session?.date) return "Retainer";
-  const sDate = parseISO(session.date);
+  const iso = session?.rawDate || session?.date;
+  if (!iso) return "Retainer";
+  const sDate = parseISO(iso);
   if (!sDate) return "Retainer";
 
   if (client?.retainerCycleStart) {
@@ -81,7 +82,7 @@ export function SessionAllocationTag({
     const label = getRetainerCycleLabel(session, client, retainerHistory);
     return (
       <span
-        title={label}
+        title={label === "Retainer" ? "Retainer (cycle not found)" : label}
         className={`${className} items-center gap-1 h-5 px-1.5 rounded-[4px] text-[10.5px] tabular-nums cursor-default`}
         style={{
           background: "color-mix(in oklab, var(--primary) 10%, transparent)",
@@ -90,7 +91,7 @@ export function SessionAllocationTag({
         }}
       >
         <Repeat className="w-2.5 h-2.5" strokeWidth={2} />
-        Retainer
+        {label === "Retainer" ? "Retainer" : label.replace(" Cycle", "")}
       </span>
     );
   }
