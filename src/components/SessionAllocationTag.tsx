@@ -129,8 +129,12 @@ export function SessionAllocationTag({
     return (
       <Tip label={name}>
         <span
-          className={`${className} items-center gap-1 h-5 px-1.5 rounded-[4px] text-[10.5px] text-foreground/80 cursor-default`}
-          style={{ background: "var(--surface-sunken)", fontWeight: 600 }}
+          className={`${className} items-center gap-1 h-5 px-1.5 rounded-[4px] text-[10.5px] cursor-default`}
+          style={{
+            background: "color-mix(in oklab, var(--success) 10%, transparent)",
+            color: "var(--success)",
+            fontWeight: 600,
+          }}
         >
           <FolderKanban className="w-2.5 h-2.5" strokeWidth={2} />
           <span className="max-w-[120px] truncate">{name}</span>
