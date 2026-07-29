@@ -90,13 +90,13 @@ const item = {
 function getUsageBarColor(usagePct: number): string {
   if (usagePct >= 85) return "var(--destructive)";
   if (usagePct >= 70) return "var(--warning)";
-  return "linear-gradient(90deg, var(--primary), var(--chart-2))";
+  return "var(--success)";
 }
 
 function getUsageTextColor(usagePct: number): string {
   if (usagePct >= 85) return "var(--destructive)";
   if (usagePct >= 70) return "var(--warning)";
-  return "var(--primary)";
+  return "var(--success)";
 }
 
 const PRIORITY_CONFIG: Record<string, { color: string; bg: string; icon: string }> = {
