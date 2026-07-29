@@ -79,6 +79,7 @@ export function SessionAllocationTag({
 
   if (type === "retainer") {
     const label = getRetainerCycleLabel(session, client, retainerHistory);
+    if (typeof window !== "undefined") { console.log("[tag]", { sid: session.id, sdate: session.date, cid: session.clientId, hasClient: !!client, rcs: client?.retainerCycleStart, rcd: client?.retainerCycleDays, rh: retainerHistory.length, label }); }
     return (
       <span
         title={label}
