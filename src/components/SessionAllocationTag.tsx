@@ -17,8 +17,9 @@ export function getRetainerCycleLabel(
   client: any,
   retainerHistory: RetainerCycle[],
 ): string {
-  if (!session?.date) return "Retainer";
-  const sDate = parseISO(session.date);
+  const iso = session?.rawDate || session?.date;
+  if (!iso) return "Retainer";
+  const sDate = parseISO(iso);
   if (!sDate) return "Retainer";
 
   if (client?.retainerCycleStart) {
