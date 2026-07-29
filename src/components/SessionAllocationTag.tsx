@@ -1,7 +1,33 @@
 import { FolderKanban, Repeat } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, ReactNode } from "react";
 import { format as formatDateFn, addDays } from "date-fns";
+import * as Tooltip from "@radix-ui/react-tooltip";
 import { supabase } from "@/integrations/supabase/client";
+
+function Tip({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <Tooltip.Provider delayDuration={150}>
+      <Tooltip.Root>
+        <Tooltip.Trigger asChild>{children}</Tooltip.Trigger>
+        <Tooltip.Portal>
+          <Tooltip.Content
+            side="top"
+            sideOffset={6}
+            className="z-50 px-2 py-1 rounded-[4px] text-[11px] font-medium shadow-md"
+            style={{
+              background: "var(--foreground)",
+              color: "var(--background)",
+            }}
+          >
+            {label}
+            <Tooltip.Arrow style={{ fill: "var(--foreground)" }} />
+          </Tooltip.Content>
+        </Tooltip.Portal>
+      </Tooltip.Root>
+    </Tooltip.Provider>
+  );
+}
+
 
 type RetainerCycle = { client_id: string; cycle_start: string; cycle_end: string };
 
