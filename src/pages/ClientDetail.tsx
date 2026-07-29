@@ -90,13 +90,13 @@ const item = {
 function getUsageBarColor(usagePct: number): string {
   if (usagePct >= 85) return "var(--destructive)";
   if (usagePct >= 70) return "var(--warning)";
-  return "linear-gradient(90deg, var(--primary), var(--chart-2))";
+  return "var(--success)";
 }
 
 function getUsageTextColor(usagePct: number): string {
   if (usagePct >= 85) return "var(--destructive)";
   if (usagePct >= 70) return "var(--warning)";
-  return "var(--primary)";
+  return "var(--success)";
 }
 
 const PRIORITY_CONFIG: Record<string, { color: string; bg: string; icon: string }> = {
@@ -2549,7 +2549,7 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
                 {history.slice(0, 12).reverse().map((h, i) => {
                   const pct = h.hours_total > 0 ? (h.hours_used / h.hours_total) * 100 : 0;
                   const barH = Math.max((pct / 100) * 72, 3);
-                  const color = pct >= 85 ? 'var(--destructive)' : pct >= 70 ? 'var(--warning)' : 'var(--primary)';
+                  const color = getUsageBarColor(pct);
                   return (
                     <div key={h.id} className="flex-1 flex flex-col items-center gap-1" title={`${format(new Date(h.cycle_start + 'T00:00:00'), 'MMM d')} – ${format(new Date(h.cycle_end + 'T00:00:00'), 'MMM d')}: ${Math.round(pct)}% used`}>
                       <div className="w-full rounded-t transition-all" style={{ height: barH, backgroundColor: color, opacity: 0.6, maxWidth: 28 }} />
