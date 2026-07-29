@@ -1,7 +1,33 @@
 import { FolderKanban, Repeat } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, ReactNode } from "react";
 import { format as formatDateFn, addDays } from "date-fns";
+import * as Tooltip from "@radix-ui/react-tooltip";
 import { supabase } from "@/integrations/supabase/client";
+
+function Tip({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <Tooltip.Provider delayDuration={150}>
+      <Tooltip.Root>
+        <Tooltip.Trigger asChild>{children}</Tooltip.Trigger>
+        <Tooltip.Portal>
+          <Tooltip.Content
+            side="top"
+            sideOffset={6}
+            className="z-50 px-2 py-1 rounded-[4px] text-[11px] font-medium shadow-md"
+            style={{
+              background: "var(--foreground)",
+              color: "var(--background)",
+            }}
+          >
+            {label}
+            <Tooltip.Arrow style={{ fill: "var(--foreground)" }} />
+          </Tooltip.Content>
+        </Tooltip.Portal>
+      </Tooltip.Root>
+    </Tooltip.Provider>
+  );
+}
+
 
 type RetainerCycle = { client_id: string; cycle_start: string; cycle_end: string };
 
@@ -80,43 +106,48 @@ export function SessionAllocationTag({
 
   if (type === "retainer") {
     const label = getRetainerCycleLabel(session, client, retainerHistory);
+    const tip = label === "Retainer" ? "Retainer (cycle not found)" : label;
     return (
-      <span
-        title={label === "Retainer" ? "Retainer (cycle not found)" : label}
-        className={`${className} items-center gap-1 h-5 px-1.5 rounded-[4px] text-[10.5px] tabular-nums cursor-default`}
-        style={{
-          background: "color-mix(in oklab, var(--primary) 10%, transparent)",
-          color: "var(--primary)",
-          fontWeight: 600,
-        }}
-      >
-        <Repeat className="w-2.5 h-2.5" strokeWidth={2} />
-        {label === "Retainer" ? "Retainer" : label.replace(" Cycle", "")}
-      </span>
+      <Tip label={tip}>
+        <span
+          className={`${className} items-center gap-1 h-5 px-1.5 rounded-[4px] text-[10.5px] tabular-nums cursor-default`}
+          style={{
+            background: "color-mix(in oklab, var(--primary) 10%, transparent)",
+            color: "var(--primary)",
+            fontWeight: 600,
+          }}
+        >
+          <Repeat className="w-2.5 h-2.5" strokeWidth={2} />
+          {label === "Retainer" ? "Retainer" : label.replace(" Cycle", "")}
+        </span>
+      </Tip>
     );
   }
 
   if (type === "project") {
     const name = session.projectName || "Project";
     return (
-      <span
-        title={name}
-        className={`${className} items-center gap-1 h-5 px-1.5 rounded-[4px] text-[10.5px] text-foreground/80 cursor-default`}
-        style={{ background: "var(--surface-sunken)", fontWeight: 600 }}
-      >
-        <FolderKanban className="w-2.5 h-2.5" strokeWidth={2} />
-        <span className="max-w-[120px] truncate">{name}</span>
-      </span>
+      <Tip label={name}>
+        <span
+          className={`${className} items-center gap-1 h-5 px-1.5 rounded-[4px] text-[10.5px] text-foreground/80 cursor-default`}
+          style={{ background: "var(--surface-sunken)", fontWeight: 600 }}
+        >
+          <FolderKanban className="w-2.5 h-2.5" strokeWidth={2} />
+          <span className="max-w-[120px] truncate">{name}</span>
+        </span>
+      </Tip>
     );
   }
 
   return (
-    <span
-      title="Not linked to a project or retainer"
-      className={`${className} items-center gap-1 h-5 px-1.5 rounded-[4px] text-[10.5px] text-muted-foreground cursor-default`}
-      style={{ background: "var(--surface-sunken)", fontWeight: 500 }}
-    >
-      General
-    </span>
+    <Tip label="Not linked to a project or retainer">
+      <span
+        className={`${className} items-center gap-1 h-5 px-1.5 rounded-[4px] text-[10.5px] text-muted-foreground cursor-default`}
+        style={{ background: "var(--surface-sunken)", fontWeight: 500 }}
+      >
+        General
+      </span>
+    </Tip>
   );
 }
+
