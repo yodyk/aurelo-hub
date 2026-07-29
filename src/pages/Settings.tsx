@@ -4414,7 +4414,7 @@ function DataTab() {
         <div className="flex items-center gap-2 px-1 py-3">
           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[11px]" style={{ fontWeight: 600, letterSpacing: '0.02em' }}>
             <Clock className="w-3 h-3" />
-            Coming April 2026
+            Coming Soon
           </div>
           <span className="text-[12px] text-muted-foreground">Data export is being rebuilt with download history and scheduled exports.</span>
         </div>
