@@ -106,43 +106,48 @@ export function SessionAllocationTag({
 
   if (type === "retainer") {
     const label = getRetainerCycleLabel(session, client, retainerHistory);
+    const tip = label === "Retainer" ? "Retainer (cycle not found)" : label;
     return (
-      <span
-        title={label === "Retainer" ? "Retainer (cycle not found)" : label}
-        className={`${className} items-center gap-1 h-5 px-1.5 rounded-[4px] text-[10.5px] tabular-nums cursor-default`}
-        style={{
-          background: "color-mix(in oklab, var(--primary) 10%, transparent)",
-          color: "var(--primary)",
-          fontWeight: 600,
-        }}
-      >
-        <Repeat className="w-2.5 h-2.5" strokeWidth={2} />
-        {label === "Retainer" ? "Retainer" : label.replace(" Cycle", "")}
-      </span>
+      <Tip label={tip}>
+        <span
+          className={`${className} items-center gap-1 h-5 px-1.5 rounded-[4px] text-[10.5px] tabular-nums cursor-default`}
+          style={{
+            background: "color-mix(in oklab, var(--primary) 10%, transparent)",
+            color: "var(--primary)",
+            fontWeight: 600,
+          }}
+        >
+          <Repeat className="w-2.5 h-2.5" strokeWidth={2} />
+          {label === "Retainer" ? "Retainer" : label.replace(" Cycle", "")}
+        </span>
+      </Tip>
     );
   }
 
   if (type === "project") {
     const name = session.projectName || "Project";
     return (
-      <span
-        title={name}
-        className={`${className} items-center gap-1 h-5 px-1.5 rounded-[4px] text-[10.5px] text-foreground/80 cursor-default`}
-        style={{ background: "var(--surface-sunken)", fontWeight: 600 }}
-      >
-        <FolderKanban className="w-2.5 h-2.5" strokeWidth={2} />
-        <span className="max-w-[120px] truncate">{name}</span>
-      </span>
+      <Tip label={name}>
+        <span
+          className={`${className} items-center gap-1 h-5 px-1.5 rounded-[4px] text-[10.5px] text-foreground/80 cursor-default`}
+          style={{ background: "var(--surface-sunken)", fontWeight: 600 }}
+        >
+          <FolderKanban className="w-2.5 h-2.5" strokeWidth={2} />
+          <span className="max-w-[120px] truncate">{name}</span>
+        </span>
+      </Tip>
     );
   }
 
   return (
-    <span
-      title="Not linked to a project or retainer"
-      className={`${className} items-center gap-1 h-5 px-1.5 rounded-[4px] text-[10.5px] text-muted-foreground cursor-default`}
-      style={{ background: "var(--surface-sunken)", fontWeight: 500 }}
-    >
-      General
-    </span>
+    <Tip label="Not linked to a project or retainer">
+      <span
+        className={`${className} items-center gap-1 h-5 px-1.5 rounded-[4px] text-[10.5px] text-muted-foreground cursor-default`}
+        style={{ background: "var(--surface-sunken)", fontWeight: 500 }}
+      >
+        General
+      </span>
+    </Tip>
   );
 }
+
