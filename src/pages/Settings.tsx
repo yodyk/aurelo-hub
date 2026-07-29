@@ -2094,7 +2094,7 @@ function FinancialTab() {
               onChange={(e) => updateFin({ processingFee: e.target.value })}
               className="!w-full tabular-nums"
             />
-            <div className="text-[11px] text-muted-foreground mt-1">e.g. Stripe's cut</div>
+            <div className="text-[11px] text-muted-foreground mt-1">e.g. Stripe's cut (typically 2.9%)</div>
           </div>
           <div>
             <FieldLabel>Currency</FieldLabel>
