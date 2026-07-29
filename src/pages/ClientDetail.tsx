@@ -2577,11 +2577,27 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
                       <th className="text-right px-3 py-2 text-muted-foreground" style={{ fontWeight: 600 }}>Total</th>
                       <th className="text-right px-3 py-2 text-muted-foreground" style={{ fontWeight: 600 }}>Utilization</th>
                       <th className="text-right px-3 py-2 text-muted-foreground" style={{ fontWeight: 600 }}>Revenue</th>
+                      <th
+                        className="text-right px-3 py-2 text-muted-foreground"
+                        style={{ fontWeight: 600 }}
+                        title="Contract value minus the value of hours you actually worked and the value of hours rolling over to next cycle (which the client gets for free)."
+                      >
+                        Bonus
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     {history.map((h) => {
                       const pct = h.hours_total > 0 ? Math.round((h.hours_used / h.hours_total) * 100) : 0;
+                      const contractRev = Number(client.monthlyContractValue || 0) > 0
+                        ? Number(client.monthlyContractValue)
+                        : Number(h.revenue || 0);
+                      const perHour = h.hours_total > 0 ? contractRev / h.hours_total : 0;
+                      const unused = Math.max(0, h.hours_total - h.hours_used);
+                      const rolledOver = Math.min(Number(carryoverCap) || 0, unused);
+                      const bonus = (h.hours_total - h.hours_used - rolledOver) * perHour;
+                      const bonusPositive = bonus > 0.005;
+                      const bonusNegative = bonus < -0.005;
                       return (
                         <tr key={h.id} className="border-b border-border last:border-0 hover:bg-accent/20 transition-colors">
                           <td className="px-3 py-2.5">
@@ -2590,7 +2606,14 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
                           <td className="text-right px-3 py-2.5 tabular-nums">{fmtH(h.hours_used)}h</td>
                           <td className="text-right px-3 py-2.5 tabular-nums text-muted-foreground">{fmtH(h.hours_total)}h</td>
                           <td className="text-right px-3 py-2.5 tabular-nums" style={{ fontWeight: 500, color: getUsageTextColor(pct) }}>{pct}%</td>
-                          <td className="text-right px-3 py-2.5 tabular-nums" style={{ fontWeight: 500 }}>{formatMoney(h.revenue || 0)}</td>
+                          <td className="text-right px-3 py-2.5 tabular-nums" style={{ fontWeight: 500 }}>{formatMoney(contractRev)}</td>
+                          <td
+                            className="text-right px-3 py-2.5 tabular-nums"
+                            style={{ fontWeight: 500, color: bonusPositive ? 'var(--success)' : bonusNegative ? 'var(--destructive)' : undefined }}
+                            title={rolledOver > 0 ? `Excludes ${fmtH(rolledOver)}h (${formatMoney(rolledOver * perHour)}) rolling over to next cycle` : undefined}
+                          >
+                            {bonusPositive ? '+' : ''}{formatMoney(bonus)}
+                          </td>
                         </tr>
                       );
                     })}
