@@ -289,37 +289,6 @@ export default function Clients() {
   );
 }
 
-function ReorderControls({ rowIndex, totalRows, onMoveUp, onMoveDown }: {
-  rowIndex: number;
-  totalRows: number;
-  onMoveUp: () => void;
-  onMoveDown: () => void;
-}) {
-  if (totalRows <= 1) return <div />;
-  return (
-    <div className="hidden lg:flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-      <button
-        type="button"
-        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onMoveUp(); }}
-        disabled={rowIndex === 0}
-        className="p-0.5 -mb-0.5 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-        aria-label="Move up"
-      >
-        <ChevronUp className="w-3 h-3" />
-      </button>
-      <button
-        type="button"
-        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onMoveDown(); }}
-        disabled={rowIndex === totalRows - 1}
-        className="p-0.5 -mt-0.5 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-        aria-label="Move down"
-      >
-        <ChevronDown className="w-3 h-3" />
-      </button>
-    </div>
-  );
-}
-
 // ── Ledger-style table ──────────────────────────────────────────────
 function ClientTable({
   rows,
@@ -328,8 +297,7 @@ function ClientTable({
   canViewFinancials,
   maxMonthlyEarnings,
   archived,
-  onMoveUp,
-  onMoveDown,
+  onReorder,
 }: {
   rows: any[];
   faviconUrls: Record<string, string>;
@@ -337,9 +305,91 @@ function ClientTable({
   canViewFinancials: boolean;
   maxMonthlyEarnings: number;
   archived: boolean;
-  onMoveUp?: (id: string) => void;
-  onMoveDown?: (id: string) => void;
+  onReorder: (draggedId: string, targetId: string) => void;
 }) {
+  const [dragClientId, setDragClientId] = useState<string | null>(null);
+  const [dragOverClientId, setDragOverClientId] = useState<string | null>(null);
+
+  const handleDragStart = (clientId: string) => {
+    setDragClientId(clientId);
+    setDragOverClientId(clientId);
+  };
+
+  const handleDragEnd = () => {
+    setDragClientId(null);
+    setDragOverClientId(null);
+  };
+
+  const handleDragOver = (e: React.DragEvent, clientId: string) => {
+    e.preventDefault();
+    setDragOverClientId(clientId);
+  };
+
+  const handleDrop = async (e: React.DragEvent, clientId: string) => {
+    e.preventDefault();
+    if (dragClientId && dragClientId !== clientId) {
+      await onReorder(dragClientId, clientId);
+    }
+    setDragClientId(null);
+    setDragOverClientId(null);
+  };
+
+  const handleTouchStart = (clientId: string) => (e: React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragClientId(clientId);
+    setDragOverClientId(clientId);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!dragClientId) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const touch = e.touches[0];
+    if (!touch) return;
+    const target = document.elementFromPoint(touch.clientX, touch.clientY);
+    const row = target?.closest('[data-client-id]');
+    if (row) {
+      setDragOverClientId(row.getAttribute('data-client-id'));
+    }
+  };
+
+  const handleTouchEnd = async (e: React.TouchEvent) => {
+    if (dragClientId && dragOverClientId && dragClientId !== dragOverClientId) {
+      e.preventDefault();
+      e.stopPropagation();
+      await onReorder(dragClientId, dragOverClientId);
+    }
+    setDragClientId(null);
+    setDragOverClientId(null);
+  };
+
+  function DragHandle({ clientId }: { clientId: string }) {
+    const disabled = rows.length <= 1;
+    return (
+      <div
+        draggable={!disabled}
+        onDragStart={(e) => {
+          e.dataTransfer.effectAllowed = 'move';
+          handleDragStart(clientId);
+        }}
+        onDragEnd={handleDragEnd}
+        onTouchStart={handleTouchStart(clientId)}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onClick={(e) => e.stopPropagation()}
+        className={cn(
+          "flex-shrink-0 p-0.5 rounded text-muted-foreground/50 hover:text-muted-foreground transition-colors cursor-grab active:cursor-grabbing",
+          "lg:opacity-0 lg:group-hover:opacity-100",
+          disabled && "opacity-30 cursor-not-allowed"
+        )}
+        title={disabled ? "Cannot reorder" : "Drag to reorder"}
+      >
+        <GripVertical className="w-3.5 h-3.5" />
+      </div>
+    );
+  }
+
   return (
     <div>
       {/* Eyebrow header — desktop only */}
@@ -357,27 +407,36 @@ function ClientTable({
 
 
       <div className="divide-y divide-[var(--hairline)]">
-        {rows.map((client: any, i: number) => {
+        {rows.map((client: any) => {
           const sessionCount = sessionsThisMonth[client.id] || 0;
           const earnings = archived ? (client.lifetimeRevenue || 0) : (client.monthlyEarnings || 0);
           const progress = archived ? 0 : Math.min(1, earnings / maxMonthlyEarnings);
           const faviconUrl = faviconUrls[client.id];
           const dot = statusDot[client.status] || "var(--muted-foreground)";
+          const isDragging = dragClientId === client.id;
+          const isDropTarget = dragOverClientId === client.id && dragClientId !== client.id;
 
           return (
             <Link
               key={client.id}
               to={`/clients/${client.id}`}
-              className={`block hover:bg-accent/30 transition-colors group ${archived ? "opacity-60 hover:opacity-100" : ""}`}
+              data-client-id={client.id}
+              className={cn(
+                "block hover:bg-accent/30 transition-colors group",
+                archived ? "opacity-60 hover:opacity-100" : "",
+                (isDragging || isDropTarget) && "bg-accent/40"
+              )}
+              onClick={(e) => { if (dragClientId) e.preventDefault(); }}
             >
               {/* Desktop grid row */}
-              <div className="hidden lg:grid grid-cols-[28px_1fr_90px_100px_80px_80px_140px] gap-4 items-center px-3 h-14">
-                <ReorderControls
-                  rowIndex={i}
-                  totalRows={rows.length}
-                  onMoveUp={() => onMoveUp?.(client.id)}
-                  onMoveDown={() => onMoveDown?.(client.id)}
-                />
+              <div
+                className="hidden lg:grid grid-cols-[28px_1fr_90px_100px_80px_80px_140px] gap-4 items-center px-3 h-14"
+                onDragOver={(e) => handleDragOver(e, client.id)}
+                onDrop={(e) => handleDrop(e, client.id)}
+              >
+                <div className="flex items-center justify-center px-1">
+                  <DragHandle clientId={client.id} />
+                </div>
                 <div className="flex items-center gap-3 min-w-0">
                   {faviconUrl ? (
                     <img
@@ -442,7 +501,11 @@ function ClientTable({
               </div>
 
               {/* Mobile stacked row */}
-              <div className="lg:hidden flex items-center gap-3 px-3 py-3.5 min-w-0">
+              <div
+                className="lg:hidden flex items-center gap-3 px-3 py-3.5 min-w-0"
+                onDragOver={(e) => handleDragOver(e, client.id)}
+                onDrop={(e) => handleDrop(e, client.id)}
+              >
                 {faviconUrl ? (
                   <img
                     src={faviconUrl}
@@ -486,25 +549,8 @@ function ClientTable({
                   </div>
                 )}
                 {rows.length > 1 && (
-                  <div className="lg:hidden flex flex-col items-center justify-center">
-                    <button
-                      type="button"
-                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); onMoveUp?.(client.id); }}
-                      disabled={i === 0}
-                      className="p-0.5 -mb-0.5 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-                      aria-label="Move up"
-                    >
-                      <ChevronUp className="w-3 h-3" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); onMoveDown?.(client.id); }}
-                      disabled={i === rows.length - 1}
-                      className="p-0.5 -mt-0.5 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-                      aria-label="Move down"
-                    >
-                      <ChevronDown className="w-3 h-3" />
-                    </button>
+                  <div className="flex items-center justify-center">
+                    <DragHandle clientId={client.id} />
                   </div>
                 )}
                 <ChevronRight className="w-4 h-4 text-muted-foreground/50 flex-shrink-0" />
