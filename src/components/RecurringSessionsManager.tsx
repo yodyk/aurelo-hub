@@ -128,7 +128,11 @@ export default function RecurringSessionsManager({ clients, projects = [], fixed
   };
 
   const frequencyLabel: Record<string, string> = { daily: "Daily", weekly: "Weekly", monthly: "Monthly" };
-  const clientProjects = projects.filter((p: any) => p.clientId === (fixedClientId || clientId));
+  const activeClientId = fixedClientId || clientId;
+  const clientProjects = projects.filter((p: any) => p.clientId === activeClientId);
+  const activeClient = clients.find((c: any) => c.id === activeClientId);
+  const isRetainerClient = activeClient?.model === "Retainer";
+  const allocationLabel: Record<string, string> = { general: "General", project: "Project", retainer: "Retainer" };
 
   return (
     <div>
