@@ -18,7 +18,7 @@ import * as settingsApi from '@/data/settingsApi';
 
 // ── Types ───────────────────────────────────────────────────────────
 
-type FieldType = 'text' | 'textarea' | 'toggle' | 'checkbox' | 'select';
+type FieldType = 'text' | 'textarea' | 'toggle' | 'checkbox' | 'select' | 'link';
 
 interface CustomField {
   id: string;
@@ -194,6 +194,7 @@ function LevelSelector({ value, onChange, config, label }: {
 const FIELD_TYPES: { value: FieldType; label: string }[] = [
   { value: 'text', label: 'Text' },
   { value: 'textarea', label: 'Text Area' },
+  { value: 'link', label: 'Link' },
   { value: 'toggle', label: 'Toggle' },
   { value: 'checkbox', label: 'Checkbox' },
   { value: 'select', label: 'Select' },
@@ -246,6 +247,15 @@ function CustomFieldEditor({ field, onChange, onRemove }: {
             onChange={e => onChange({ ...field, value: e.target.value })}
             placeholder="Value"
             maxLength={200}
+          />
+        )}
+        {field.type === 'link' && (
+          <FieldInput
+            value={typeof field.value === 'string' ? field.value : ''}
+            onChange={e => onChange({ ...field, value: e.target.value })}
+            placeholder="https://example.com"
+            maxLength={500}
+            inputMode="url"
           />
         )}
         {field.type === 'textarea' && (
@@ -827,6 +837,15 @@ export default function ClientEdit() {
                           onChange={e => setWsFieldValues(prev => ({ ...prev, [schema.id]: e.target.value }))}
                           placeholder="Enter value…"
                           maxLength={200}
+                        />
+                      )}
+                      {schema.type === 'link' && (
+                        <FieldInput
+                          value={typeof val === 'string' ? val : ''}
+                          onChange={e => setWsFieldValues(prev => ({ ...prev, [schema.id]: e.target.value }))}
+                          placeholder="https://example.com"
+                          maxLength={500}
+                          inputMode="url"
                         />
                       )}
                       {schema.type === 'textarea' && (

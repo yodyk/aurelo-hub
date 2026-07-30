@@ -60,6 +60,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatMoney, formatBytes, formatDuration, fmtH } from '@/lib/format';
 
 import * as settingsApi from "@/data/settingsApi";
+import { normalizeUrl } from "@/components/editor/linkUtils";
 import { usePlan } from "@/data/PlanContext";
 import { useRoleAccess } from "@/data/useRoleAccess";
 import RecurringSessionsManager from "../components/RecurringSessionsManager";
@@ -1377,7 +1378,7 @@ function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (
   // New custom field form
   const [showAddField, setShowAddField] = useState(false);
   const [newFieldLabel, setNewFieldLabel] = useState('');
-  const [newFieldType, setNewFieldType] = useState<'text' | 'textarea' | 'toggle' | 'select'>('text');
+  const [newFieldType, setNewFieldType] = useState<'text' | 'textarea' | 'toggle' | 'select' | 'link'>('text');
   const [newFieldOptions, setNewFieldOptions] = useState('');
 
   useEffect(() => {
@@ -1565,6 +1566,30 @@ function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (
     let displayText = value;
     if (type === 'date' && value) {
       try { displayText = format(parseISO(value), 'MMM d, yyyy'); } catch { displayText = value; }
+    }
+
+    if (type === 'link') {
+      const href = normalizeUrl(typeof value === 'string' ? value : '');
+      return (
+        <div className="flex items-center justify-between gap-2 group/field -mx-1 px-1 py-0.5 rounded hover:bg-accent/40 transition-colors">
+          {href ? (
+            <a
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              className="text-[14px] text-primary hover:underline truncate flex items-center gap-1.5 min-w-0"
+            >
+              <span className="truncate">{String(value)}</span>
+              <ExternalLink className="w-3 h-3 flex-shrink-0" />
+            </a>
+          ) : (
+            <span className="text-[13px] text-muted-foreground/50 italic">Empty — click to set</span>
+          )}
+          <button onClick={() => startEdit(fieldKey, value)} className="flex-shrink-0" aria-label="Edit link">
+            <Pencil className="w-3 h-3 text-muted-foreground/0 group-hover/field:text-muted-foreground/50 transition-all" />
+          </button>
+        </div>
+      );
     }
 
     const displayValue = displayText !== undefined && displayText !== '' && displayText !== null
@@ -1789,6 +1814,7 @@ function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (
                       >
                         <option value="text">Text</option>
                         <option value="textarea">Long text</option>
+                        <option value="link">Link</option>
                         <option value="toggle">Toggle</option>
                         <option value="select">Dropdown</option>
                       </select>
