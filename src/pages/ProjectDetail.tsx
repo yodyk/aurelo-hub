@@ -31,6 +31,7 @@ import {
   Link2,
   CheckSquare,
   ChevronUp,
+  GripVertical,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from '@/lib/toast';
@@ -180,6 +181,8 @@ export default function ProjectDetail() {
   const [addingMilestone, setAddingMilestone] = useState(false);
   const [editingMilestoneId, setEditingMilestoneId] = useState<string | null>(null);
   const [editingMilestoneTitle, setEditingMilestoneTitle] = useState("");
+  const [dragMilestoneIndex, setDragMilestoneIndex] = useState<number | null>(null);
+  const [dragOverMilestoneIndex, setDragOverMilestoneIndex] = useState<number | null>(null);
 
 
   // External links
@@ -449,6 +452,25 @@ export default function ProjectDetail() {
       setMilestones(prev);
     }
   };
+
+  const handleDropMilestone = async (from: number, to: number) => {
+    if (from === to || from < 0 || to < 0 || from >= milestones.length || to >= milestones.length) return;
+    const prev = milestones;
+    const next = [...milestones];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    const reordered = next.map((m, i) => ({ ...m, sortOrder: i }));
+    setMilestones(reordered);
+    try {
+      const changed = reordered.filter((m, i) => prev[i]?.id !== m.id);
+      await Promise.all(changed.map((m) => updateMilestone(m.id, { sortOrder: m.sortOrder })));
+    } catch (err: any) {
+      toast.error(err.message || "Failed to reorder milestone");
+      setMilestones(prev);
+    }
+  };
+
+
 
 
   const handleDeleteMilestone = async (id: string) => {
@@ -1335,9 +1357,36 @@ export default function ProjectDetail() {
                       return (
                         <div
                           key={m.id}
-                          className={`flex items-center gap-3 py-2.5 group ${i < milestones.length - 1 ? "border-b border-border/50" : ""}`}
+                          onDragOver={(e) => {
+                            if (dragMilestoneIndex === null) return;
+                            e.preventDefault();
+                            setDragOverMilestoneIndex(i);
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            if (dragMilestoneIndex !== null) handleDropMilestone(dragMilestoneIndex, i);
+                            setDragMilestoneIndex(null);
+                            setDragOverMilestoneIndex(null);
+                          }}
+                          className={`flex items-center gap-2 py-2.5 group transition-colors ${i < milestones.length - 1 ? "border-b border-border/50" : ""} ${dragMilestoneIndex === i ? "opacity-40" : ""} ${dragOverMilestoneIndex === i && dragMilestoneIndex !== null && dragMilestoneIndex !== i ? "bg-accent/40" : ""}`}
                         >
+                          <div
+                            draggable
+                            onDragStart={(e) => {
+                              e.dataTransfer.effectAllowed = "move";
+                              setDragMilestoneIndex(i);
+                            }}
+                            onDragEnd={() => {
+                              setDragMilestoneIndex(null);
+                              setDragOverMilestoneIndex(null);
+                            }}
+                            title="Drag to reorder"
+                            className="flex-shrink-0 -ml-1 p-0.5 rounded text-muted-foreground/40 hover:text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing"
+                          >
+                            <GripVertical className="w-3.5 h-3.5" />
+                          </div>
                           <button onClick={() => handleToggleMilestone(m.id)} className="flex-shrink-0 cursor-pointer">
+
                             {done ? (
                               <Check className="w-4 h-4 text-primary" />
                             ) : (
