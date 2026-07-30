@@ -1368,7 +1368,7 @@ function WorkspaceTab() {
 
 // ── Workspace Custom Fields Section (Studio) ────────────────────────
 
-type WsFieldType = 'text' | 'textarea' | 'toggle' | 'checkbox' | 'select';
+type WsFieldType = 'text' | 'textarea' | 'toggle' | 'checkbox' | 'select' | 'link';
 
 interface WsFieldSchema {
   id: string;
@@ -1380,6 +1380,7 @@ interface WsFieldSchema {
 const WS_FIELD_TYPES: { value: WsFieldType; label: string }[] = [
   { value: 'text', label: 'Text' },
   { value: 'textarea', label: 'Text Area' },
+  { value: 'link', label: 'Link' },
   { value: 'toggle', label: 'Toggle' },
   { value: 'checkbox', label: 'Checkbox' },
   { value: 'select', label: 'Select' },
