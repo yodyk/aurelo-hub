@@ -30,6 +30,7 @@ import {
   ExternalLink,
   Link2,
   CheckSquare,
+  ChevronUp,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from '@/lib/toast';
@@ -427,6 +428,25 @@ export default function ProjectDetail() {
     } catch (err: any) {
       toast.error(err.message || "Failed to rename milestone");
       setMilestones((prev) => prev.map((x) => (x.id === id ? { ...x, title: m.title } : x)));
+    }
+  };
+
+  const handleMoveMilestone = async (index: number, direction: -1 | 1) => {
+    const target = index + direction;
+    if (target < 0 || target >= milestones.length) return;
+    const prev = milestones;
+    const next = [...milestones];
+    [next[index], next[target]] = [next[target], next[index]];
+    const reordered = next.map((m, i) => ({ ...m, sortOrder: i }));
+    setMilestones(reordered);
+    try {
+      await Promise.all([
+        updateMilestone(reordered[index].id, { sortOrder: index }),
+        updateMilestone(reordered[target].id, { sortOrder: target }),
+      ]);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to reorder milestone");
+      setMilestones(prev);
     }
   };
 
@@ -1354,6 +1374,24 @@ export default function ProjectDetail() {
                           {due && (
                             <span className="text-[11px] text-muted-foreground tabular-nums">{due}</span>
                           )}
+                          <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={() => handleMoveMilestone(i, -1)}
+                              disabled={i === 0}
+                              title="Move up"
+                              className="p-1 rounded hover:bg-accent/60 text-muted-foreground hover:text-foreground disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                            >
+                              <ChevronUp className="w-3 h-3" />
+                            </button>
+                            <button
+                              onClick={() => handleMoveMilestone(i, 1)}
+                              disabled={i === milestones.length - 1}
+                              title="Move down"
+                              className="p-1 rounded hover:bg-accent/60 text-muted-foreground hover:text-foreground disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                            >
+                              <ChevronDown className="w-3 h-3" />
+                            </button>
+                          </div>
                           <button
                             onClick={() => handleDeleteMilestone(m.id)}
                             className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-accent/60 text-muted-foreground hover:text-destructive transition-all cursor-pointer"
