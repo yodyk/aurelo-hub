@@ -14,7 +14,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['TASA Orbiter', 'Inter', 'system-ui', 'sans-serif'],
         display: ['TASA Orbiter', 'Inter', 'system-ui', 'sans-serif'],
       },
       colors: {
