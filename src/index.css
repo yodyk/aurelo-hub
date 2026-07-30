@@ -1079,8 +1079,9 @@ select {
 /* Rendered note content (read-only cards) */
 .note-rendered-content ul,
 .note-rendered-content ol {
-  padding-left: 1.25em;
-  margin: 0.25em 0;
+  padding-left: 1.6em;
+  margin: 0.4em 0;
+  list-style-position: outside;
 }
 .note-rendered-content ul {
   list-style-type: disc;
@@ -1088,9 +1089,15 @@ select {
 .note-rendered-content ol {
   list-style-type: decimal;
 }
+.note-rendered-content ul ul { list-style-type: circle; }
+.note-rendered-content ol ol { list-style-type: lower-alpha; }
 .note-rendered-content li {
-  margin: 0.125em 0;
+  margin: 0.15em 0;
+  padding-left: 0.15em;
 }
+.note-rendered-content li::marker { color: hsl(var(--muted-foreground)); }
+.note-rendered-content li p { margin: 0; }
+
 .note-rendered-content strong {
   font-weight: 600;
 }
