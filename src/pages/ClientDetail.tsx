@@ -1789,6 +1789,7 @@ function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (
                       >
                         <option value="text">Text</option>
                         <option value="textarea">Long text</option>
+                        <option value="link">Link</option>
                         <option value="toggle">Toggle</option>
                         <option value="select">Dropdown</option>
                       </select>
