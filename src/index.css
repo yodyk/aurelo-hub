@@ -13,9 +13,9 @@
 :root {
   --font-size: 16px;
 
-  /* Type families — Inter (body) + Inter Tight (display proxy for Inter Display) */
+  /* Type families — Inter (body) + TASA Orbiter (display) */
   --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-display: 'Inter Tight', 'Inter', system-ui, sans-serif;
+  --font-display: 'TASA Orbiter', 'Inter', system-ui, sans-serif;
 
   /* Surfaces — Cool Graphite paper, layered cool-neutral grayscale */
   --background: #FBFCFD;          /* cool paper, faintest blue cast */
