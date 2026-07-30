@@ -1,8 +1,8 @@
 /**
- * ClientAvatar — small circular client favicon with initial fallback.
+ * ClientAvatar — small rounded-rectangle client favicon with initial fallback.
  *
- * Always renders a perfect 1:1 circle. Pair with useClientFavicons() to
- * resolve favicon URLs from the workspace `logos` bucket once per list.
+ * Renders with the design system's max 4px radius. Pair with useClientFavicons()
+ * to resolve favicon URLs from the workspace `logos` bucket once per list.
  */
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -46,7 +46,7 @@ export function ClientAvatar({
         src={url}
         alt=""
         aria-hidden="true"
-        className="rounded-circle object-cover flex-shrink-0"
+        className="rounded object-cover flex-shrink-0"
         style={{ ...box, boxShadow: '0 0 0 1px var(--hairline)' }}
       />
     );
@@ -55,7 +55,7 @@ export function ClientAvatar({
   return (
     <div
       aria-hidden="true"
-      className="rounded-circle flex items-center justify-center flex-shrink-0"
+      className="rounded flex items-center justify-center flex-shrink-0"
       style={{ ...box, background: 'color-mix(in srgb, var(--primary) 8%, transparent)' }}
     >
       <span
