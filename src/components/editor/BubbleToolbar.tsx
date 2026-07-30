@@ -69,7 +69,7 @@ export default function BubbleToolbar({ editor, features }: Props) {
   return (
     <BubbleMenu
       editor={editor}
-      options={{ placement: 'top', offset: 8 }}
+      options={{ placement: 'top', offset: 12 }}
       shouldShow={({ editor: e, from, to }) => {
         if (!e.isEditable) return false;
         if (e.isActive('codeBlock')) return false;
