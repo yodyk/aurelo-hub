@@ -177,6 +177,9 @@ export default function ProjectDetail() {
   const [milestones, setMilestones] = useState<ProjectMilestone[]>([]);
   const [newMilestone, setNewMilestone] = useState("");
   const [addingMilestone, setAddingMilestone] = useState(false);
+  const [editingMilestoneId, setEditingMilestoneId] = useState<string | null>(null);
+  const [editingMilestoneTitle, setEditingMilestoneTitle] = useState("");
+
 
   // External links
   const [addingLink, setAddingLink] = useState(false);
@@ -410,6 +413,23 @@ export default function ProjectDetail() {
       setMilestones((prev) => prev.map((x) => (x.id === id ? { ...x, status: m.status } : x)));
     }
   };
+
+  const handleSaveMilestoneTitle = async () => {
+    const id = editingMilestoneId;
+    if (!id) return;
+    const m = milestones.find((x) => x.id === id);
+    const title = editingMilestoneTitle.trim();
+    setEditingMilestoneId(null);
+    if (!m || !title || title === m.title) return;
+    setMilestones((prev) => prev.map((x) => (x.id === id ? { ...x, title } : x)));
+    try {
+      await updateMilestone(id, { title });
+    } catch (err: any) {
+      toast.error(err.message || "Failed to rename milestone");
+      setMilestones((prev) => prev.map((x) => (x.id === id ? { ...x, title: m.title } : x)));
+    }
+  };
+
 
   const handleDeleteMilestone = async (id: string) => {
     const prev = milestones;
@@ -1304,12 +1324,33 @@ export default function ProjectDetail() {
                               <Circle className="w-4 h-4 text-muted-foreground/40 hover:text-muted-foreground transition-colors" />
                             )}
                           </button>
-                          <span
-                            className={`text-[13px] flex-1 ${done ? "text-muted-foreground line-through" : ""}`}
-                            style={{ fontWeight: 500 }}
-                          >
-                            {m.title}
-                          </span>
+                          {editingMilestoneId === m.id ? (
+                            <input
+                              autoFocus
+                              value={editingMilestoneTitle}
+                              onChange={(e) => setEditingMilestoneTitle(e.target.value)}
+                              onBlur={handleSaveMilestoneTitle}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") handleSaveMilestoneTitle();
+                                if (e.key === "Escape") setEditingMilestoneId(null);
+                              }}
+                              className="flex-1 text-[13px] bg-transparent outline-none border-b border-primary/50"
+                              style={{ fontWeight: 500 }}
+                            />
+                          ) : (
+                            <span
+                              onClick={() => {
+                                setEditingMilestoneId(m.id);
+                                setEditingMilestoneTitle(m.title);
+                              }}
+                              title="Click to rename"
+                              className={`text-[13px] flex-1 cursor-text rounded px-1 -mx-1 hover:bg-accent/50 transition-colors ${done ? "text-muted-foreground line-through" : ""}`}
+                              style={{ fontWeight: 500 }}
+                            >
+                              {m.title}
+                            </span>
+                          )}
+
                           {due && (
                             <span className="text-[11px] text-muted-foreground tabular-nums">{due}</span>
                           )}
