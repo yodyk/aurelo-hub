@@ -6,6 +6,7 @@ import {
   Tag, FolderKanban, Search, ChevronDown, MoreHorizontal, Pencil, Eye, EyeOff,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { createPortal } from 'react-dom';
 import { toast } from '@/lib/toast';
 import DOMPurify from 'dompurify';
 import * as notesApi from '../data/notesApi';
@@ -366,6 +367,25 @@ function NoteComposer({
   const [showTagSuggestions, setShowTagSuggestions] = useState(false);
   const textareaRef = useRef<HTMLDivElement>(null);
   const tagInputRef = useRef<HTMLInputElement>(null);
+  const [tagMenuPos, setTagMenuPos] = useState<{ top: number; left: number } | null>(null);
+
+  const updateTagMenuPos = useCallback(() => {
+    const el = tagInputRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    setTagMenuPos({ top: r.bottom + 4, left: r.left });
+  }, []);
+
+  useEffect(() => {
+    if (!showTagSuggestions) return;
+    updateTagMenuPos();
+    window.addEventListener('scroll', updateTagMenuPos, true);
+    window.addEventListener('resize', updateTagMenuPos);
+    return () => {
+      window.removeEventListener('scroll', updateTagMenuPos, true);
+      window.removeEventListener('resize', updateTagMenuPos);
+    };
+  }, [showTagSuggestions, updateTagMenuPos]);
 
   // no-op: editor handles focus
 
@@ -489,27 +509,30 @@ function NoteComposer({
               data-form-type="other"
               className="min-w-[80px] max-w-[140px] text-[12px] bg-transparent focus:outline-none text-muted-foreground placeholder:text-muted-foreground/40 py-0.5"
             />
-            <AnimatePresence>
-              {showTagSuggestions && filteredSuggestions.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 4 }}
-                  className="absolute left-0 top-full mt-1 w-40 bg-card border border-border rounded-lg overflow-hidden z-20"
-                  style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
-                >
-                  {filteredSuggestions.slice(0, 6).map(s => (
-                    <button
-                      key={s}
-                      onMouseDown={e => { e.preventDefault(); handleAddTag(s); }}
-                      className="w-full text-left px-3 py-1.5 text-[12px] text-muted-foreground hover:bg-accent/40 hover:text-foreground transition-colors"
-                    >
-                      {s}
-                    </button>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {createPortal(
+              <AnimatePresence>
+                {showTagSuggestions && tagMenuPos && filteredSuggestions.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 4 }}
+                    className="fixed w-40 max-h-56 overflow-y-auto bg-popover border border-border rounded-lg z-[100]"
+                    style={{ top: tagMenuPos.top, left: tagMenuPos.left, boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
+                  >
+                    {filteredSuggestions.slice(0, 6).map(s => (
+                      <button
+                        key={s}
+                        onMouseDown={e => { e.preventDefault(); handleAddTag(s); }}
+                        className="w-full text-left px-3 py-1.5 text-[12px] text-muted-foreground hover:bg-accent/40 hover:text-foreground transition-colors"
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>,
+              document.body
+            )}
           </div>
         </div>
       </div>
