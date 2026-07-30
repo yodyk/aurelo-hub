@@ -31,6 +31,7 @@ import {
   Link2,
   CheckSquare,
   ChevronUp,
+  GripVertical,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from '@/lib/toast';
