@@ -295,7 +295,11 @@ export default function RecurringSessionsManager({ clients, projects = [], fixed
                     />
                   </button>
                   <span className="text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Billable</span>
+                  {allocationType === "retainer" && !billable && (
+                    <span className="text-[11px] text-muted-foreground/70">Logged to the retainer, but won't use retainer hours</span>
+                  )}
                 </div>
+
                 <button
                   onClick={handleCreate}
                   className="px-4 py-2 text-[12px] bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-all"
