@@ -346,6 +346,11 @@ export default function RecurringSessionsManager({ clients, projects = [], fixed
                     <span className="text-[10px] bg-accent/80 text-muted-foreground px-1.5 py-0.5 rounded-md flex-shrink-0" style={{ fontWeight: 600 }}>
                       {frequencyLabel[rule.frequency]}
                     </span>
+                    {rule.allocation_type && (
+                      <span className="text-[10px] bg-accent/60 text-muted-foreground px-1.5 py-0.5 rounded-md flex-shrink-0" style={{ fontWeight: 600 }}>
+                        {allocationLabel[rule.allocation_type] || rule.allocation_type}
+                      </span>
+                    )}
                     {rule.skip_weekends && (
                       <span className="text-[10px] text-muted-foreground/60 flex-shrink-0" style={{ fontWeight: 500 }}>
                         Weekdays only
