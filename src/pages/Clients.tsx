@@ -426,7 +426,6 @@ function ClientTable({
                 archived ? "opacity-60 hover:opacity-100" : "",
                 (isDragging || isDropTarget) && "bg-accent/40"
               )}
-              onClick={(e) => { if (dragClientId) e.preventDefault(); }}
             >
               {/* Desktop grid row */}
               <div
