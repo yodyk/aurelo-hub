@@ -1033,8 +1033,9 @@ select {
 }
 .note-editor-content ul,
 .note-editor-content ol {
-  padding-left: 1.25em;
-  margin: 0.25em 0;
+  padding-left: 1.6em;
+  margin: 0.4em 0;
+  list-style-position: outside;
 }
 .note-editor-content ul {
   list-style-type: disc;
@@ -1042,9 +1043,14 @@ select {
 .note-editor-content ol {
   list-style-type: decimal;
 }
+.note-editor-content ul ul { list-style-type: circle; }
+.note-editor-content ol ol { list-style-type: lower-alpha; }
 .note-editor-content li {
-  margin: 0.125em 0;
+  margin: 0.15em 0;
+  padding-left: 0.15em;
 }
+.note-editor-content li::marker { color: hsl(var(--muted-foreground)); }
+
 .note-editor-content li p {
   margin: 0;
 }
