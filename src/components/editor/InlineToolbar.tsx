@@ -64,6 +64,7 @@ export default function InlineToolbar({ editor, features, onLink }: Props) {
           <CheckSquare className="w-3.5 h-3.5" />
         </Btn>
       )}
+      <span className="rich-bubble-sep" aria-hidden />
       {features.blockquote && (
         <Btn onClick={() => editor.chain().focus().toggleBlockquote().run()} active={editor.isActive('blockquote')} label="Quote">
           <Quote className="w-3.5 h-3.5" />
@@ -77,6 +78,7 @@ export default function InlineToolbar({ editor, features, onLink }: Props) {
           <Link2 className="w-3.5 h-3.5" />
         </Btn>
       )}
+
     </div>
   );
 }
