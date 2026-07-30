@@ -1346,12 +1346,12 @@ select {
 }
 /* Active formatting reads as a filled chip so state is never ambiguous */
 .rich-tool-btn.is-active {
-  background: hsl(var(--muted));
-  border-color: hsl(var(--border));
+  background: hsl(var(--foreground) / 0.09);
+  border-color: hsl(var(--foreground) / 0.14);
   color: hsl(var(--foreground));
   font-weight: 600;
 }
-.rich-tool-btn.is-active:hover { background: hsl(var(--muted)); }
+.rich-tool-btn.is-active:hover { background: hsl(var(--foreground) / 0.13); }
 .rich-tool-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .rich-link-input {
@@ -1424,4 +1424,4 @@ select {
   color: var(--muted-foreground);
   flex-shrink: 0;
 }
-.rich-touch-btn.is-active { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
+.rich-touch-btn.is-active { background: hsl(var(--foreground) / 0.09); color: hsl(var(--foreground)); }
