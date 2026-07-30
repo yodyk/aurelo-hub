@@ -182,7 +182,7 @@ export default function RecurringSessionsManager({ clients, projects = [], fixed
                     <label className="text-[11px] text-muted-foreground mb-1 block" style={{ fontWeight: 600 }}>Client</label>
                     <select
                       value={clientId}
-                      onChange={e => { setClientId(e.target.value); setProjectId(""); }}
+                      onChange={e => { setClientId(e.target.value); setProjectId(""); setAllocationType("general"); }}
                       className="w-full h-9 px-3 rounded-md border border-border bg-input-background text-[13px]"
                     >
                       <option value="">Select client…</option>
@@ -193,20 +193,37 @@ export default function RecurringSessionsManager({ clients, projects = [], fixed
                   </div>
                 )}
 
-                {/* Project */}
+                {/* Allocation */}
                 <div>
-                  <label className="text-[11px] text-muted-foreground mb-1 block" style={{ fontWeight: 600 }}>Project (optional)</label>
+                  <label className="text-[11px] text-muted-foreground mb-1 block" style={{ fontWeight: 600 }}>Applies to</label>
                   <select
-                    value={projectId}
-                    onChange={e => setProjectId(e.target.value)}
+                    value={allocationType}
+                    onChange={e => { setAllocationType(e.target.value); if (e.target.value !== "project") setProjectId(""); }}
                     className="w-full h-9 px-3 rounded-md border border-border bg-input-background text-[13px]"
                   >
-                    <option value="">None</option>
-                    {clientProjects.map((p: any) => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
-                    ))}
+                    <option value="general">General</option>
+                    <option value="project">Project</option>
+                    {isRetainerClient && <option value="retainer">Retainer</option>}
                   </select>
                 </div>
+
+                {/* Project */}
+                {allocationType === "project" && (
+                  <div>
+                    <label className="text-[11px] text-muted-foreground mb-1 block" style={{ fontWeight: 600 }}>Project</label>
+                    <select
+                      value={projectId}
+                      onChange={e => setProjectId(e.target.value)}
+                      className="w-full h-9 px-3 rounded-md border border-border bg-input-background text-[13px]"
+                    >
+                      <option value="">None</option>
+                      {clientProjects.map((p: any) => (
+                        <option key={p.id} value={p.id}>{p.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
 
                 {/* Task */}
                 <div>
