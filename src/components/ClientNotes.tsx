@@ -733,7 +733,7 @@ function NoteCard({
                     {!confirmDelete ? (
                       <button
                         onClick={() => setConfirmDelete(true)}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-stone-400 hover:text-stone-600 hover:bg-accent/40 transition-colors"
+                        className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-destructive hover:text-destructive hover:bg-destructive/10 transition-colors"
                         style={{ fontWeight: 500 }}
                       >
                         <Trash2 className="w-3 h-3" />
@@ -742,7 +742,7 @@ function NoteCard({
                     ) : (
                       <button
                         onClick={() => { onDelete(note.id); setMenuOpen(false); }}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-stone-500 bg-stone-50 hover:bg-stone-100 transition-colors"
+                        className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-destructive bg-destructive/10 hover:bg-destructive/20 transition-colors"
                         style={{ fontWeight: 500 }}
                       >
                         <Trash2 className="w-3 h-3" />
