@@ -1567,6 +1567,30 @@ function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (
       try { displayText = format(parseISO(value), 'MMM d, yyyy'); } catch { displayText = value; }
     }
 
+    if (type === 'link') {
+      const href = normalizeUrl(typeof value === 'string' ? value : '');
+      return (
+        <div className="flex items-center justify-between gap-2 group/field -mx-1 px-1 py-0.5 rounded hover:bg-accent/40 transition-colors">
+          {href ? (
+            <a
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              className="text-[14px] text-primary hover:underline truncate flex items-center gap-1.5 min-w-0"
+            >
+              <span className="truncate">{String(value)}</span>
+              <ExternalLink className="w-3 h-3 flex-shrink-0" />
+            </a>
+          ) : (
+            <span className="text-[13px] text-muted-foreground/50 italic">Empty — click to set</span>
+          )}
+          <button onClick={() => startEdit(fieldKey, value)} className="flex-shrink-0" aria-label="Edit link">
+            <Pencil className="w-3 h-3 text-muted-foreground/0 group-hover/field:text-muted-foreground/50 transition-all" />
+          </button>
+        </div>
+      );
+    }
+
     const displayValue = displayText !== undefined && displayText !== '' && displayText !== null
       ? <span className="text-[14px] text-foreground">{String(displayText)}</span>
       : <span className="text-[13px] text-muted-foreground/50 italic">Empty — click to set</span>;
