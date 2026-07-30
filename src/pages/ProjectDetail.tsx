@@ -30,6 +30,8 @@ import {
   ExternalLink,
   Link2,
   CheckSquare,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from '@/lib/toast';
