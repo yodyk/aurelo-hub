@@ -509,25 +509,30 @@ function NoteComposer({
               data-form-type="other"
               className="min-w-[80px] max-w-[140px] text-[12px] bg-transparent focus:outline-none text-muted-foreground placeholder:text-muted-foreground/40 py-0.5"
             />
-            <AnimatePresence>
-              {showTagSuggestions && filteredSuggestions.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 4 }}
-                  className="absolute left-0 top-full mt-1 w-40 bg-card border border-border rounded-lg overflow-hidden z-20"
-                  style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
-                >
-                  {filteredSuggestions.slice(0, 6).map(s => (
-                    <button
-                      key={s}
-                      onMouseDown={e => { e.preventDefault(); handleAddTag(s); }}
-                      className="w-full text-left px-3 py-1.5 text-[12px] text-muted-foreground hover:bg-accent/40 hover:text-foreground transition-colors"
-                    >
-                      {s}
-                    </button>
-                  ))}
-                </motion.div>
+            {createPortal(
+              <AnimatePresence>
+                {showTagSuggestions && tagMenuPos && filteredSuggestions.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 4 }}
+                    className="fixed w-40 max-h-56 overflow-y-auto bg-popover border border-border rounded-lg z-[100]"
+                    style={{ top: tagMenuPos.top, left: tagMenuPos.left, boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
+                  >
+                    {filteredSuggestions.slice(0, 6).map(s => (
+                      <button
+                        key={s}
+                        onMouseDown={e => { e.preventDefault(); handleAddTag(s); }}
+                        className="w-full text-left px-3 py-1.5 text-[12px] text-muted-foreground hover:bg-accent/40 hover:text-foreground transition-colors"
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>,
+              document.body
+            )}
               )}
             </AnimatePresence>
           </div>
