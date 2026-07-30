@@ -9,6 +9,7 @@ import Placeholder from '@tiptap/extension-placeholder';
 import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
 import BubbleToolbar from './BubbleToolbar';
+import InlineToolbar from './InlineToolbar';
 import MobileFormatBar from './MobileFormatBar';
 import { SlashMenu, type SlashMenuHandle } from './SlashMenu';
 import { SlashCommand } from './slashCommand';
@@ -198,7 +199,10 @@ export default function RichEditor({
         />
       )}
       {editable && !touchEditing && (
-        <BubbleToolbar editor={editor} features={config.features} />
+        <>
+          <InlineToolbar editor={editor} features={config.features} onLink={handleTouchLink} />
+          <BubbleToolbar editor={editor} features={config.features} />
+        </>
       )}
       <EditorContent
         editor={editor}
