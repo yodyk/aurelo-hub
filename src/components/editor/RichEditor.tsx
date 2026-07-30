@@ -199,7 +199,10 @@ export default function RichEditor({
         />
       )}
       {editable && !touchEditing && (
-        <BubbleToolbar editor={editor} features={config.features} />
+        <>
+          <InlineToolbar editor={editor} features={config.features} onLink={handleTouchLink} />
+          <BubbleToolbar editor={editor} features={config.features} />
+        </>
       )}
       <EditorContent
         editor={editor}
