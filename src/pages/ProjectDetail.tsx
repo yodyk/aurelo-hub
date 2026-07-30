@@ -450,6 +450,25 @@ export default function ProjectDetail() {
     }
   };
 
+  const handleDropMilestone = async (from: number, to: number) => {
+    if (from === to || from < 0 || to < 0 || from >= milestones.length || to >= milestones.length) return;
+    const prev = milestones;
+    const next = [...milestones];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    const reordered = next.map((m, i) => ({ ...m, sortOrder: i }));
+    setMilestones(reordered);
+    try {
+      const changed = reordered.filter((m, i) => prev[i]?.id !== m.id);
+      await Promise.all(changed.map((m) => updateMilestone(m.id, { sortOrder: m.sortOrder })));
+    } catch (err: any) {
+      toast.error(err.message || "Failed to reorder milestone");
+      setMilestones(prev);
+    }
+  };
+
+
+
 
   const handleDeleteMilestone = async (id: string) => {
     const prev = milestones;
