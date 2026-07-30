@@ -160,8 +160,9 @@ function SectionLabel({ children, pro, count }: { children: React.ReactNode; pro
 export default function Insights() {
   const navigate = useNavigate();
   const { canViewInsights } = useRoleAccess();
-  const { sessions, clients, netMultiplier, insightsMetrics: baseMetrics, allProjects, loadAllProjects } = useData();
+  const { workspaceId, sessions, clients, netMultiplier, insightsMetrics: baseMetrics, allProjects, loadAllProjects } = useData();
   const { can } = usePlan();
+  const faviconUrls = useClientFavicons(workspaceId);
 
 
   const [viewMode, setViewMode] = useState<"gross" | "net">("gross");
