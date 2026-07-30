@@ -1374,6 +1374,24 @@ export default function ProjectDetail() {
                           {due && (
                             <span className="text-[11px] text-muted-foreground tabular-nums">{due}</span>
                           )}
+                          <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={() => handleMoveMilestone(i, -1)}
+                              disabled={i === 0}
+                              title="Move up"
+                              className="p-1 rounded hover:bg-accent/60 text-muted-foreground hover:text-foreground disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                            >
+                              <ChevronUp className="w-3 h-3" />
+                            </button>
+                            <button
+                              onClick={() => handleMoveMilestone(i, 1)}
+                              disabled={i === milestones.length - 1}
+                              title="Move down"
+                              className="p-1 rounded hover:bg-accent/60 text-muted-foreground hover:text-foreground disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                            >
+                              <ChevronDown className="w-3 h-3" />
+                            </button>
+                          </div>
                           <button
                             onClick={() => handleDeleteMilestone(m.id)}
                             className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-accent/60 text-muted-foreground hover:text-destructive transition-all cursor-pointer"
