@@ -839,6 +839,15 @@ export default function ClientEdit() {
                           maxLength={200}
                         />
                       )}
+                      {schema.type === 'link' && (
+                        <FieldInput
+                          value={typeof val === 'string' ? val : ''}
+                          onChange={e => setWsFieldValues(prev => ({ ...prev, [schema.id]: e.target.value }))}
+                          placeholder="https://example.com"
+                          maxLength={500}
+                          inputMode="url"
+                        />
+                      )}
                       {schema.type === 'textarea' && (
                         <FieldTextarea
                           value={typeof val === 'string' ? val : ''}
