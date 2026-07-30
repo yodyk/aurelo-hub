@@ -249,6 +249,15 @@ function CustomFieldEditor({ field, onChange, onRemove }: {
             maxLength={200}
           />
         )}
+        {field.type === 'link' && (
+          <FieldInput
+            value={typeof field.value === 'string' ? field.value : ''}
+            onChange={e => onChange({ ...field, value: e.target.value })}
+            placeholder="https://example.com"
+            maxLength={500}
+            inputMode="url"
+          />
+        )}
         {field.type === 'textarea' && (
           <FieldTextarea
             value={typeof field.value === 'string' ? field.value : ''}
