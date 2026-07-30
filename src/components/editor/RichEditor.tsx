@@ -200,10 +200,14 @@ export default function RichEditor({
       )}
       {editable && !touchEditing && (
         <>
-          <InlineToolbar editor={editor} features={config.features} onLink={handleTouchLink} />
+          {/* Only one bar at a time: the bubble owns selections, the inline bar owns the caret. */}
+          {!hasSelection && (
+            <InlineToolbar editor={editor} features={config.features} onLink={handleTouchLink} />
+          )}
           <BubbleToolbar editor={editor} features={config.features} />
         </>
       )}
+
       <EditorContent
         editor={editor}
         onFocus={() => setFocused(true)}
