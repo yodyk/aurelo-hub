@@ -222,8 +222,7 @@ export default function Clients() {
               canViewFinancials={canViewFinancials}
               maxMonthlyEarnings={maxMonthlyEarnings}
               archived={false}
-              onMoveUp={(id) => moveClient(id, 'up', nonArchivedRows)}
-              onMoveDown={(id) => moveClient(id, 'down', nonArchivedRows)}
+              onReorder={(draggedId, targetId) => moveClientByDrag(draggedId, targetId, false)}
             />
           </motion.div>
         ) : (
@@ -257,8 +256,7 @@ export default function Clients() {
                   canViewFinancials={canViewFinancials}
                   maxMonthlyEarnings={maxMonthlyEarnings}
                   archived={true}
-                  onMoveUp={(id) => moveClient(id, 'up', archivedRows)}
-                  onMoveDown={(id) => moveClient(id, 'down', archivedRows)}
+                  onReorder={(draggedId, targetId) => moveClientByDrag(draggedId, targetId, true)}
                 />
               </div>
             )}
