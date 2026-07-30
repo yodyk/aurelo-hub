@@ -1326,19 +1326,33 @@ select {
 }
 
 .rich-tool-btn {
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 3px;
-  color: var(--muted-foreground);
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: hsl(var(--muted-foreground));
   cursor: pointer;
-  transition: background-color 120ms ease, color 120ms ease;
+  transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
 }
-.rich-tool-btn:hover { background: hsl(var(--accent) / 0.6); color: hsl(var(--foreground)); }
-.rich-tool-btn.is-active { background: hsl(var(--primary) / 0.12); color: hsl(var(--primary)); }
+.rich-tool-btn:hover { background: hsl(var(--muted) / 0.7); color: hsl(var(--foreground)); }
+.rich-tool-btn:focus-visible {
+  outline: none;
+  border-color: hsl(var(--primary) / 0.5);
+  background: hsl(var(--muted) / 0.6);
+}
+/* Active formatting reads as a filled chip so state is never ambiguous */
+.rich-tool-btn.is-active {
+  background: hsl(var(--muted));
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+  font-weight: 600;
+}
+.rich-tool-btn.is-active:hover { background: hsl(var(--muted)); }
 .rich-tool-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
 .rich-link-input {
   width: 200px;
   height: 26px;
