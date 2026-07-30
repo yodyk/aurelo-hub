@@ -533,8 +533,6 @@ function NoteComposer({
               </AnimatePresence>,
               document.body
             )}
-              )}
-            </AnimatePresence>
           </div>
         </div>
       </div>
