@@ -1,7 +1,7 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router";
 import { motion } from "motion/react";
-import { ArrowUpRight, Search, Plus, ChevronRight, Users, ChevronUp, ChevronDown } from "lucide-react";
+import { ArrowUpRight, Search, Plus, ChevronRight, Users, GripVertical } from "lucide-react";
 import { useData } from "../data/DataContext";
 import { AddClientModal } from "../components/Modals";
 import { toast } from '@/lib/toast';
@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PageHeader, SegmentedControl, HairlineBar, type SegmentOption } from "@/components/primitives/composition";
 import { EmptyState } from "@/components/primitives/EmptyState";
 import { formatMoney } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
 
 const container = {
@@ -35,6 +36,8 @@ const statusDot: Record<string, string> = {
 
 export default function Clients() {
   const { clients, sessions, addClient, workspaceId, swapClientOrder } = useData();
+  const clientsRef = useRef(clients);
+  useEffect(() => { clientsRef.current = clients; }, [clients]);
   const { limit } = usePlan();
   const { canViewFinancials } = useRoleAccess();
   const [searchQuery, setSearchQuery] = useState("");
@@ -115,23 +118,38 @@ export default function Clients() {
     else setShowAddModal(true);
   };
 
-  const moveClient = async (clientId: string, direction: 'up' | 'down', sourceRows: any[]) => {
-    console.log('moveClient', clientId, direction, sourceRows.length);
-    if (!workspaceId) return;
-    const idx = sourceRows.findIndex(c => c.id === clientId);
-    if (idx === -1) return;
-    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
-    if (swapIdx < 0 || swapIdx >= sourceRows.length) return;
-    const other = sourceRows[swapIdx];
-    console.log('swapping', clientId, 'with', other.id, 'sortOrders', sourceRows[idx].sortOrder, other.sortOrder);
+  const moveClientByDrag = useCallback(async (draggedId: string, targetId: string, archived: boolean) => {
+    if (!workspaceId || draggedId === targetId) return;
+
+    const getRows = () => clientsRef.current
+      .filter(c => archived ? c.status === "Archived" : c.status !== "Archived")
+      .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.name.localeCompare(b.name));
+
+    const sourceRows = getRows();
+    const fromIndex = sourceRows.findIndex(c => c.id === draggedId);
+    const toIndex = sourceRows.findIndex(c => c.id === targetId);
+    if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex) return;
+
     try {
-      await swapClientOrder(clientId, other.id);
-      console.log('swap done');
+      if (fromIndex < toIndex) {
+        for (let i = fromIndex; i < toIndex; i++) {
+          const currentRows = getRows();
+          const currentIdx = currentRows.findIndex(c => c.id === draggedId);
+          if (currentIdx === -1 || currentIdx >= currentRows.length - 1) break;
+          await swapClientOrder(draggedId, currentRows[currentIdx + 1].id);
+        }
+      } else {
+        for (let i = fromIndex; i > toIndex; i--) {
+          const currentRows = getRows();
+          const currentIdx = currentRows.findIndex(c => c.id === draggedId);
+          if (currentIdx <= 0) break;
+          await swapClientOrder(draggedId, currentRows[currentIdx - 1].id);
+        }
+      }
     } catch (err: any) {
-      console.error('swap error', err);
       toast.error(err?.message || 'Failed to reorder client');
     }
-  };
+  }, [workspaceId, swapClientOrder]);
 
   const segments: SegmentOption<StatusFilter>[] = [
     { value: "all", label: "All", count: counts.all },
@@ -204,8 +222,7 @@ export default function Clients() {
               canViewFinancials={canViewFinancials}
               maxMonthlyEarnings={maxMonthlyEarnings}
               archived={false}
-              onMoveUp={(id) => moveClient(id, 'up', nonArchivedRows)}
-              onMoveDown={(id) => moveClient(id, 'down', nonArchivedRows)}
+              onReorder={(draggedId, targetId) => moveClientByDrag(draggedId, targetId, false)}
             />
           </motion.div>
         ) : (
@@ -239,8 +256,7 @@ export default function Clients() {
                   canViewFinancials={canViewFinancials}
                   maxMonthlyEarnings={maxMonthlyEarnings}
                   archived={true}
-                  onMoveUp={(id) => moveClient(id, 'up', archivedRows)}
-                  onMoveDown={(id) => moveClient(id, 'down', archivedRows)}
+                  onReorder={(draggedId, targetId) => moveClientByDrag(draggedId, targetId, true)}
                 />
               </div>
             )}
@@ -255,8 +271,7 @@ export default function Clients() {
             canViewFinancials={canViewFinancials}
             maxMonthlyEarnings={maxMonthlyEarnings}
             archived={true}
-            onMoveUp={(id) => moveClient(id, 'up', archivedVisible)}
-            onMoveDown={(id) => moveClient(id, 'down', archivedVisible)}
+            onReorder={(draggedId, targetId) => moveClientByDrag(draggedId, targetId, true)}
           />
         )}
       </div>
@@ -274,37 +289,6 @@ export default function Clients() {
   );
 }
 
-function ReorderControls({ rowIndex, totalRows, onMoveUp, onMoveDown }: {
-  rowIndex: number;
-  totalRows: number;
-  onMoveUp: () => void;
-  onMoveDown: () => void;
-}) {
-  if (totalRows <= 1) return <div />;
-  return (
-    <div className="hidden lg:flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-      <button
-        type="button"
-        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onMoveUp(); }}
-        disabled={rowIndex === 0}
-        className="p-0.5 -mb-0.5 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-        aria-label="Move up"
-      >
-        <ChevronUp className="w-3 h-3" />
-      </button>
-      <button
-        type="button"
-        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onMoveDown(); }}
-        disabled={rowIndex === totalRows - 1}
-        className="p-0.5 -mt-0.5 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-        aria-label="Move down"
-      >
-        <ChevronDown className="w-3 h-3" />
-      </button>
-    </div>
-  );
-}
-
 // ── Ledger-style table ──────────────────────────────────────────────
 function ClientTable({
   rows,
@@ -313,8 +297,7 @@ function ClientTable({
   canViewFinancials,
   maxMonthlyEarnings,
   archived,
-  onMoveUp,
-  onMoveDown,
+  onReorder,
 }: {
   rows: any[];
   faviconUrls: Record<string, string>;
@@ -322,9 +305,91 @@ function ClientTable({
   canViewFinancials: boolean;
   maxMonthlyEarnings: number;
   archived: boolean;
-  onMoveUp?: (id: string) => void;
-  onMoveDown?: (id: string) => void;
+  onReorder: (draggedId: string, targetId: string) => void;
 }) {
+  const [dragClientId, setDragClientId] = useState<string | null>(null);
+  const [dragOverClientId, setDragOverClientId] = useState<string | null>(null);
+
+  const handleDragStart = (clientId: string) => {
+    setDragClientId(clientId);
+    setDragOverClientId(clientId);
+  };
+
+  const handleDragEnd = () => {
+    setDragClientId(null);
+    setDragOverClientId(null);
+  };
+
+  const handleDragOver = (e: React.DragEvent, clientId: string) => {
+    e.preventDefault();
+    setDragOverClientId(clientId);
+  };
+
+  const handleDrop = async (e: React.DragEvent, clientId: string) => {
+    e.preventDefault();
+    if (dragClientId && dragClientId !== clientId) {
+      await onReorder(dragClientId, clientId);
+    }
+    setDragClientId(null);
+    setDragOverClientId(null);
+  };
+
+  const handleTouchStart = (clientId: string) => (e: React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragClientId(clientId);
+    setDragOverClientId(clientId);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!dragClientId) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const touch = e.touches[0];
+    if (!touch) return;
+    const target = document.elementFromPoint(touch.clientX, touch.clientY);
+    const row = target?.closest('[data-client-id]');
+    if (row) {
+      setDragOverClientId(row.getAttribute('data-client-id'));
+    }
+  };
+
+  const handleTouchEnd = async (e: React.TouchEvent) => {
+    if (dragClientId && dragOverClientId && dragClientId !== dragOverClientId) {
+      e.preventDefault();
+      e.stopPropagation();
+      await onReorder(dragClientId, dragOverClientId);
+    }
+    setDragClientId(null);
+    setDragOverClientId(null);
+  };
+
+  function DragHandle({ clientId }: { clientId: string }) {
+    const disabled = rows.length <= 1;
+    return (
+      <div
+        draggable={!disabled}
+        onDragStart={(e) => {
+          e.dataTransfer.effectAllowed = 'move';
+          handleDragStart(clientId);
+        }}
+        onDragEnd={handleDragEnd}
+        onTouchStart={handleTouchStart(clientId)}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onClick={(e) => e.stopPropagation()}
+        className={cn(
+          "flex-shrink-0 p-0.5 rounded text-muted-foreground/50 hover:text-muted-foreground transition-colors cursor-grab active:cursor-grabbing",
+          "lg:opacity-0 lg:group-hover:opacity-100",
+          disabled && "opacity-30 lg:group-hover:opacity-30 cursor-not-allowed"
+        )}
+        title={disabled ? "Cannot reorder" : "Drag to reorder"}
+      >
+        <GripVertical className="w-3.5 h-3.5" />
+      </div>
+    );
+  }
+
   return (
     <div>
       {/* Eyebrow header — desktop only */}
@@ -342,27 +407,35 @@ function ClientTable({
 
 
       <div className="divide-y divide-[var(--hairline)]">
-        {rows.map((client: any, i: number) => {
+        {rows.map((client: any) => {
           const sessionCount = sessionsThisMonth[client.id] || 0;
           const earnings = archived ? (client.lifetimeRevenue || 0) : (client.monthlyEarnings || 0);
           const progress = archived ? 0 : Math.min(1, earnings / maxMonthlyEarnings);
           const faviconUrl = faviconUrls[client.id];
           const dot = statusDot[client.status] || "var(--muted-foreground)";
+          const isDragging = dragClientId === client.id;
+          const isDropTarget = dragOverClientId === client.id && dragClientId !== client.id;
 
           return (
             <Link
               key={client.id}
               to={`/clients/${client.id}`}
-              className={`block hover:bg-accent/30 transition-colors group ${archived ? "opacity-60 hover:opacity-100" : ""}`}
+              data-client-id={client.id}
+              className={cn(
+                "block hover:bg-accent/30 transition-colors group",
+                archived ? "opacity-60 hover:opacity-100" : "",
+                (isDragging || isDropTarget) && "bg-accent/40"
+              )}
             >
               {/* Desktop grid row */}
-              <div className="hidden lg:grid grid-cols-[28px_1fr_90px_100px_80px_80px_140px] gap-4 items-center px-3 h-14">
-                <ReorderControls
-                  rowIndex={i}
-                  totalRows={rows.length}
-                  onMoveUp={() => onMoveUp?.(client.id)}
-                  onMoveDown={() => onMoveDown?.(client.id)}
-                />
+              <div
+                className="hidden lg:grid grid-cols-[28px_1fr_90px_100px_80px_80px_140px] gap-4 items-center px-3 h-14"
+                onDragOver={(e) => handleDragOver(e, client.id)}
+                onDrop={(e) => handleDrop(e, client.id)}
+              >
+                <div className="flex items-center justify-center px-1">
+                  <DragHandle clientId={client.id} />
+                </div>
                 <div className="flex items-center gap-3 min-w-0">
                   {faviconUrl ? (
                     <img
@@ -427,7 +500,11 @@ function ClientTable({
               </div>
 
               {/* Mobile stacked row */}
-              <div className="lg:hidden flex items-center gap-3 px-3 py-3.5 min-w-0">
+              <div
+                className="lg:hidden flex items-center gap-3 px-3 py-3.5 min-w-0"
+                onDragOver={(e) => handleDragOver(e, client.id)}
+                onDrop={(e) => handleDrop(e, client.id)}
+              >
                 {faviconUrl ? (
                   <img
                     src={faviconUrl}
@@ -471,25 +548,8 @@ function ClientTable({
                   </div>
                 )}
                 {rows.length > 1 && (
-                  <div className="lg:hidden flex flex-col items-center justify-center">
-                    <button
-                      type="button"
-                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); onMoveUp?.(client.id); }}
-                      disabled={i === 0}
-                      className="p-0.5 -mb-0.5 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-                      aria-label="Move up"
-                    >
-                      <ChevronUp className="w-3 h-3" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); onMoveDown?.(client.id); }}
-                      disabled={i === rows.length - 1}
-                      className="p-0.5 -mt-0.5 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-                      aria-label="Move down"
-                    >
-                      <ChevronDown className="w-3 h-3" />
-                    </button>
+                  <div className="flex items-center justify-center">
+                    <DragHandle clientId={client.id} />
                   </div>
                 )}
                 <ChevronRight className="w-4 h-4 text-muted-foreground/50 flex-shrink-0" />
