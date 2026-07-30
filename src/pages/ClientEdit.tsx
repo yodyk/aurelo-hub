@@ -18,7 +18,7 @@ import * as settingsApi from '@/data/settingsApi';
 
 // ── Types ───────────────────────────────────────────────────────────
 
-type FieldType = 'text' | 'textarea' | 'toggle' | 'checkbox' | 'select';
+type FieldType = 'text' | 'textarea' | 'toggle' | 'checkbox' | 'select' | 'link';
 
 interface CustomField {
   id: string;
