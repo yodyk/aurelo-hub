@@ -381,7 +381,7 @@ function ClientTable({
         className={cn(
           "flex-shrink-0 p-0.5 rounded text-muted-foreground/50 hover:text-muted-foreground transition-colors cursor-grab active:cursor-grabbing",
           "lg:opacity-0 lg:group-hover:opacity-100",
-          disabled && "opacity-30 cursor-not-allowed"
+          disabled && "opacity-30 lg:group-hover:opacity-30 cursor-not-allowed"
         )}
         title={disabled ? "Cannot reorder" : "Drag to reorder"}
       >
