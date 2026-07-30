@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=TASA+Orbiter:wght@500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=TASA+Orbiter:wght@500;600;700&display=swap");
 
 @import "tailwindcss";
 
@@ -13,8 +13,8 @@
 :root {
   --font-size: 16px;
 
-  /* Type families — Inter (body) + TASA Orbiter (display) */
-  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* Type families — DM Sans (body) + TASA Orbiter (display) */
+  --font-sans: 'DM Sans', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-display: 'TASA Orbiter', 'Inter', system-ui, sans-serif;
 
   /* Surfaces — Cool Graphite paper, layered cool-neutral grayscale */
