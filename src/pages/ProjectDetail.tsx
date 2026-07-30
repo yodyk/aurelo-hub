@@ -431,6 +431,25 @@ export default function ProjectDetail() {
     }
   };
 
+  const handleMoveMilestone = async (index: number, direction: -1 | 1) => {
+    const target = index + direction;
+    if (target < 0 || target >= milestones.length) return;
+    const prev = milestones;
+    const next = [...milestones];
+    [next[index], next[target]] = [next[target], next[index]];
+    const reordered = next.map((m, i) => ({ ...m, sortOrder: i }));
+    setMilestones(reordered);
+    try {
+      await Promise.all([
+        updateMilestone(reordered[index].id, { sortOrder: index }),
+        updateMilestone(reordered[target].id, { sortOrder: target }),
+      ]);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to reorder milestone");
+      setMilestones(prev);
+    }
+  };
+
 
   const handleDeleteMilestone = async (id: string) => {
     const prev = milestones;
