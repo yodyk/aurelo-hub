@@ -1377,7 +1377,7 @@ function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (
   // New custom field form
   const [showAddField, setShowAddField] = useState(false);
   const [newFieldLabel, setNewFieldLabel] = useState('');
-  const [newFieldType, setNewFieldType] = useState<'text' | 'textarea' | 'toggle' | 'select'>('text');
+  const [newFieldType, setNewFieldType] = useState<'text' | 'textarea' | 'toggle' | 'select' | 'link'>('text');
   const [newFieldOptions, setNewFieldOptions] = useState('');
 
   useEffect(() => {
