@@ -36,6 +36,8 @@ const statusDot: Record<string, string> = {
 
 export default function Clients() {
   const { clients, sessions, addClient, workspaceId, swapClientOrder } = useData();
+  const clientsRef = useRef(clients);
+  useEffect(() => { clientsRef.current = clients; }, [clients]);
   const { limit } = usePlan();
   const { canViewFinancials } = useRoleAccess();
   const [searchQuery, setSearchQuery] = useState("");
