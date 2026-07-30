@@ -118,23 +118,38 @@ export default function Clients() {
     else setShowAddModal(true);
   };
 
-  const moveClient = async (clientId: string, direction: 'up' | 'down', sourceRows: any[]) => {
-    console.log('moveClient', clientId, direction, sourceRows.length);
-    if (!workspaceId) return;
-    const idx = sourceRows.findIndex(c => c.id === clientId);
-    if (idx === -1) return;
-    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
-    if (swapIdx < 0 || swapIdx >= sourceRows.length) return;
-    const other = sourceRows[swapIdx];
-    console.log('swapping', clientId, 'with', other.id, 'sortOrders', sourceRows[idx].sortOrder, other.sortOrder);
+  const moveClientByDrag = useCallback(async (draggedId: string, targetId: string, archived: boolean) => {
+    if (!workspaceId || draggedId === targetId) return;
+
+    const getRows = () => clientsRef.current
+      .filter(c => archived ? c.status === "Archived" : c.status !== "Archived")
+      .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.name.localeCompare(b.name));
+
+    const sourceRows = getRows();
+    const fromIndex = sourceRows.findIndex(c => c.id === draggedId);
+    const toIndex = sourceRows.findIndex(c => c.id === targetId);
+    if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex) return;
+
     try {
-      await swapClientOrder(clientId, other.id);
-      console.log('swap done');
+      if (fromIndex < toIndex) {
+        for (let i = fromIndex; i < toIndex; i++) {
+          const currentRows = getRows();
+          const currentIdx = currentRows.findIndex(c => c.id === draggedId);
+          if (currentIdx === -1 || currentIdx >= currentRows.length - 1) break;
+          await swapClientOrder(draggedId, currentRows[currentIdx + 1].id);
+        }
+      } else {
+        for (let i = fromIndex; i > toIndex; i--) {
+          const currentRows = getRows();
+          const currentIdx = currentRows.findIndex(c => c.id === draggedId);
+          if (currentIdx <= 0) break;
+          await swapClientOrder(draggedId, currentRows[currentIdx - 1].id);
+        }
+      }
     } catch (err: any) {
-      console.error('swap error', err);
       toast.error(err?.message || 'Failed to reorder client');
     }
-  };
+  }, [workspaceId, swapClientOrder]);
 
   const segments: SegmentOption<StatusFilter>[] = [
     { value: "all", label: "All", count: counts.all },
