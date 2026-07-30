@@ -60,16 +60,11 @@ Swap the display font used across Aurelo from `Inter Tight` to a different Googl
 - `src/pages/Login.tsx` / `src/pages/Signup.tsx`
 
 ## Open Decision
-Which Google Font should replace `Inter Tight`? Options that pair well with `Inter` and fit the current minimal/graphite direction include:
-- **Space Grotesk** — geometric, modern, slightly technical
-- **Plus Jakarta Sans** — clean, friendly, great at display sizes
-- **Syne** — expressive, editorial, more personality
-- **Manrope** — rounded, contemporary, close to Inter feel
-- **Outfit** — circular, friendly, modern SaaS look
-- **DM Sans** — understated, elegant, similar weight range
-- A custom font you provide via download (would be hosted as a Lovable Asset / CDN asset instead of Google Fonts)
+- **Resolved**: Replacement font is **TASA Orbiter** from Google Fonts.
+- **Pending approval**: Switch from plan mode to build mode so the changes can be applied to `src/index.css` and `tailwind.config.ts`.
 
 ## Risks & Notes
 - Changing the display font affects brand identity. Best to preview on the heaviest type pages first.
-- If the new font has fewer weights than 500/600/700, some `font-semibold` / `font-bold` may fall back to the closest available weight.
-- If the font is downloaded (not Google Fonts), we need to add an `@font-face` declaration and host the files via Lovable Assets instead of using the Google Fonts import.
+- TASA Orbiter is served by Google Fonts as static 500/600/700 instances; we will request only those weights.
+- `Inter` remains the body/fallback font, so any text rendering before the webfont loads still looks acceptable.
+- If visual metrics look off after preview, we may tune the `--type-display-*` / `--type-page-*` altitude tokens in a follow-up pass.
