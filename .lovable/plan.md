@@ -1,45 +1,73 @@
+# Plan: Replace Display Font (Inter Tight → New Google Font)
+
 ## Goal
+Swap the display font used across Aurelo from `Inter Tight` to a different Google Font, while keeping `Inter` as the body font. The change should be centralized so it propagates everywhere `font-display` or `var(--font-display)` is used.
 
-Replace the plain "Retainer" / "Project name" inline text on each Time Log row with a small, styled **tag** that shows the session's allocation type — **General**, **Project**, or **Retainer** — and, on hover, reveals a tooltip with contextual detail (project name, or retainer cycle like "July 2026 Cycle").
+## Current State
+- Body font: `Inter` (loaded from Google Fonts in `src/index.css`).
+- Display font: `Inter Tight` (loaded from the same Google Fonts URL, declared as CSS variable `--font-display`, mapped in `tailwind.config.ts` as `fontFamily.display`).
+- Usage is widespread (~70+ references) via the `font-display` Tailwind class or `var(--font-display)` in CSS. No hardcoded `Inter Tight` strings exist in React components outside of the font-stack definitions.
 
-## What changes (all UI-only)
+## Process
 
-**Only touched file:** `src/pages/TimeLog.tsx` (with one small helper added inline or in `src/lib/format.ts` for the cycle label).
+1. **Choose the replacement font**
+   - Confirm the Google Font name and the exact weights needed (e.g., 500, 600, 700).
+   - Verify Google Fonts supports the desired weights/axes so the URL is valid.
 
-### 1. Add a `SessionAllocationTag` component (local to `TimeLog.tsx`)
+2. **Update the Google Fonts import**
+   - File: `src/index.css` (line 1).
+   - Replace the `family=Inter+Tight:wght@500;600;700` portion of the URL with the new font family and weights.
+   - Keep `Inter` (body) in the same URL to maintain a single request.
 
-A single small pill rendered per row:
+3. **Update CSS custom property**
+   - File: `src/index.css` (~line 18).
+   - Change `--font-display: 'Inter Tight', ...` to `--font-display: '<New Font>', 'Inter', system-ui, sans-serif`.
+   - Keep `Inter` as the fallback so the UI remains acceptable during slow loading.
 
-- **General** — neutral tone, `Circle` glyph, no tooltip (or minimal "Not linked").
-- **Project** — accent tone, `FolderKanban` glyph, tooltip = full project name (useful when name is truncated).
-- **Retainer** — primary tone, `Repeat` glyph, tooltip = the retainer cycle label (e.g. `July 2026 Cycle`).
+4. **Update Tailwind config**
+   - File: `tailwind.config.ts` (~line 18).
+   - Change `display: ['Inter Tight', 'Inter', 'system-ui', 'sans-serif']` to `display: ['<New Font>', 'Inter', 'system-ui', 'sans-serif']`.
 
-Visual language matches existing hairline/muted style used elsewhere in the row (11px text, subtle background via `color-mix`, 4px radius, `IconFrame` conventions kept lightweight — this is a tag, not a frame). Uses Radix `Tooltip` (already used elsewhere in the app) so it portals and won't clip.
+5. **Update descriptive comments**
+   - File: `src/index.css` (~lines 16 and 108).
+   - Change comments referencing "Inter Tight" to the new font name.
 
-Show the tag for **all three types** including General, since the user's use case (batch invoicing past sessions) benefits from seeing "this is unaligned" at a glance. If that feels too busy in practice, we can hide General later — trivial one-line change.
+6. **Tune typography altitude tokens (optional)**
+   - File: `src/index.css` (type altitude section, ~lines 108-140).
+   - If the new font has different metrics (x-height, spacing, weight), adjust `--type-display-*`, `--type-page-*`, etc., and tracking values to preserve visual hierarchy.
 
-### 2. Derive the retainer cycle label
+7. **Audit the portal theme**
+   - File: `src/index.css` (dark/portal section if any overrides exist).
+   - Ensure no portal-specific `--font-display` override still references the old font.
 
-Add a small helper `getRetainerCycleLabel(session, client, retainerHistory)`:
+8. **Verify build + preview**
+   - Run `bun run build` to confirm no broken CSS/Tailwind references.
+   - Spot-check pages that use display type heavily: `Home`, `ClientDetail`, `ProjectDetail`, `ClientPortal`, `Insights`, and auth screens.
+   - Check for FOUT/FOUC and ensure weights render correctly.
 
-- If `session.date` falls within `[client.retainerCycleStart, client.retainerCycleStart + retainerCycleDays)` → label from that start date (e.g. `"July 2026 Cycle"` via `date-fns` `format(start, "MMMM yyyy")` + `" Cycle"`).
-- Otherwise, look up the matching row in `retainer_history` where `cycle_start <= session.date < cycle_end` and label from that `cycle_start`.
-- Fallback: `"Retainer"` (no cycle found).
+## Files to Change
+- `src/index.css` (Google Fonts URL, `--font-display`, comments, optional altitude tokens)
+- `tailwind.config.ts` (`fontFamily.display`)
 
-`retainer_history` isn't currently fetched by `DataContext`, so we add a lightweight fetch (scoped by `workspaceId`, one-time on Time Log mount) and pass the rows into the tag. Kept local to Time Log to avoid touching the global data layer.
+## Files to Review (no edits expected, but confirm visually)
+- `src/pages/Home.tsx`
+- `src/pages/ClientDetail.tsx`
+- `src/pages/ProjectDetail.tsx`
+- `src/pages/ClientPortal.tsx`
+- `src/pages/Insights.tsx`
+- `src/pages/Login.tsx` / `src/pages/Signup.tsx`
 
-### 3. Replace lines 514–522 in `TimeLog.tsx`
+## Open Decision
+Which Google Font should replace `Inter Tight`? Options that pair well with `Inter` and fit the current minimal/graphite direction include:
+- **Space Grotesk** — geometric, modern, slightly technical
+- **Plus Jakarta Sans** — clean, friendly, great at display sizes
+- **Syne** — expressive, editorial, more personality
+- **Manrope** — rounded, contemporary, close to Inter feel
+- **Outfit** — circular, friendly, modern SaaS look
+- **DM Sans** — understated, elegant, similar weight range
+- A custom font you provide via download (would be hosted as a Lovable Asset / CDN asset instead of Google Fonts)
 
-The current inline `<Repeat/> Retainer` / `<FolderKanban/> ProjectName` block is swapped for `<SessionAllocationTag session={session} .../>`. Mobile visibility rules preserved (`hidden md:inline-flex`).
-
-## Out of scope
-
-- No database changes.
-- No changes to session creation, editing, or the retainer engine.
-- No changes to other tables that list sessions (ClientDetail, Portal) — can follow in a later pass if you like the pattern.
-
-## Technical notes
-
-- Radix Tooltip import via existing shadcn wrapper (`@/components/ui/tooltip`) — confirmed available.
-- Cycle label uses local-date parsing (`parseLocalDate` from `src/lib/format.ts`) to avoid the timezone off-by-one we fixed previously.
-- `retainer_history` fetch is `SELECT client_id, cycle_start, cycle_end` only, no PII, already RLS-protected.
+## Risks & Notes
+- Changing the display font affects brand identity. Best to preview on the heaviest type pages first.
+- If the new font has fewer weights than 500/600/700, some `font-semibold` / `font-bold` may fall back to the closest available weight.
+- If the font is downloaded (not Google Fonts), we need to add an `@font-face` declaration and host the files via Lovable Assets instead of using the Google Fonts import.
