@@ -414,6 +414,23 @@ export default function ProjectDetail() {
     }
   };
 
+  const handleSaveMilestoneTitle = async () => {
+    const id = editingMilestoneId;
+    if (!id) return;
+    const m = milestones.find((x) => x.id === id);
+    const title = editingMilestoneTitle.trim();
+    setEditingMilestoneId(null);
+    if (!m || !title || title === m.title) return;
+    setMilestones((prev) => prev.map((x) => (x.id === id ? { ...x, title } : x)));
+    try {
+      await updateMilestone(id, { title });
+    } catch (err: any) {
+      toast.error(err.message || "Failed to rename milestone");
+      setMilestones((prev) => prev.map((x) => (x.id === id ? { ...x, title: m.title } : x)));
+    }
+  };
+
+
   const handleDeleteMilestone = async (id: string) => {
     const prev = milestones;
     setMilestones((curr) => curr.filter((m) => m.id !== id));
