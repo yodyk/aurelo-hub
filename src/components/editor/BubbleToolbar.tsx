@@ -69,7 +69,11 @@ export default function BubbleToolbar({ editor, features }: Props) {
   return (
     <BubbleMenu
       editor={editor}
-      options={{ placement: 'top', offset: 12 }}
+      // Render into <body> so no ancestor overflow / stacking context can clip
+      // or paint over the bubble (focus rings, cards, drawers).
+      appendTo={() => document.body}
+      options={{ placement: 'top', offset: 12, strategy: 'fixed' }}
+
       shouldShow={({ editor: e, from, to }) => {
         if (!e.isEditable) return false;
         if (e.isActive('codeBlock')) return false;

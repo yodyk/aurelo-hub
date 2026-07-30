@@ -1275,8 +1275,13 @@ select {
 }
 
 /* Persistent formatting bar */
+.rich-inline-bar.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
 .rich-inline-bar {
   position: relative;
+  transition: opacity 100ms ease;
   z-index: 1;
   display: flex;
   align-items: center;

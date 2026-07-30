@@ -12,6 +12,8 @@ interface Props {
   editor: Editor;
   features: EditorFeatureSet;
   onLink: () => void;
+  /** Kept mounted (no layout jump) but faded out while a selection bubble is up. */
+  hidden?: boolean;
 }
 
 function Btn({
@@ -31,9 +33,14 @@ function Btn({
   );
 }
 
-export default function InlineToolbar({ editor, features, onLink }: Props) {
+export default function InlineToolbar({ editor, features, onLink, hidden }: Props) {
   return (
-    <div role="toolbar" aria-label="Text formatting" className="rich-inline-bar">
+    <div
+      role="toolbar"
+      aria-label="Text formatting"
+      aria-hidden={hidden || undefined}
+      className={`rich-inline-bar${hidden ? ' is-hidden' : ''}`}
+    >
       <Btn onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive('bold')} label="Bold">
         <Bold className="w-3.5 h-3.5" />
       </Btn>
