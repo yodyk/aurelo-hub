@@ -105,6 +105,10 @@ Deno.serve(async (req) => {
 
       if (!workspace) continue;
 
+      // Allocation: explicit rule setting wins, otherwise infer from context
+      const allocation = rule.allocation_type
+        || (rule.project_id ? "project" : (rule.clients?.model === "Retainer" ? "retainer" : "general"));
+
       const { error: insertErr } = await supabase.from("sessions").insert({
         workspace_id: rule.workspace_id,
         client_id: rule.client_id,
