@@ -367,6 +367,25 @@ function NoteComposer({
   const [showTagSuggestions, setShowTagSuggestions] = useState(false);
   const textareaRef = useRef<HTMLDivElement>(null);
   const tagInputRef = useRef<HTMLInputElement>(null);
+  const [tagMenuPos, setTagMenuPos] = useState<{ top: number; left: number } | null>(null);
+
+  const updateTagMenuPos = useCallback(() => {
+    const el = tagInputRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    setTagMenuPos({ top: r.bottom + 4, left: r.left });
+  }, []);
+
+  useEffect(() => {
+    if (!showTagSuggestions) return;
+    updateTagMenuPos();
+    window.addEventListener('scroll', updateTagMenuPos, true);
+    window.addEventListener('resize', updateTagMenuPos);
+    return () => {
+      window.removeEventListener('scroll', updateTagMenuPos, true);
+      window.removeEventListener('resize', updateTagMenuPos);
+    };
+  }, [showTagSuggestions, updateTagMenuPos]);
 
   // no-op: editor handles focus
 
