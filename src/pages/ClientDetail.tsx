@@ -60,6 +60,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatMoney, formatBytes, formatDuration, fmtH } from '@/lib/format';
 
 import * as settingsApi from "@/data/settingsApi";
+import { normalizeUrl } from "@/components/editor/linkUtils";
 import { usePlan } from "@/data/PlanContext";
 import { useRoleAccess } from "@/data/useRoleAccess";
 import RecurringSessionsManager from "../components/RecurringSessionsManager";
