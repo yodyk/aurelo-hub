@@ -1249,6 +1249,17 @@ select {
   opacity: 0.5;
 }
 
+/* Persistent formatting bar */
+.rich-inline-bar {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  flex-wrap: wrap;
+  margin-bottom: 0.35rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid hsl(var(--border) / 0.6);
+}
+
 /* Selection bubble */
 .rich-bubble-wrap { z-index: 60; }
 .rich-bubble {
