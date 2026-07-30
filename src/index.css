@@ -1251,24 +1251,30 @@ select {
 
 /* Persistent formatting bar */
 .rich-inline-bar {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   gap: 1px;
   flex-wrap: wrap;
   margin-bottom: 0.35rem;
   padding-bottom: 0.25rem;
+  background: hsl(var(--background));
   border-bottom: 1px solid hsl(var(--border) / 0.6);
 }
 
 /* Selection bubble */
-.rich-bubble-wrap { z-index: 60; }
+.rich-bubble-wrap { z-index: 2147483000; }
 .rich-bubble {
   position: relative;
+  z-index: 2147483000;
   display: flex;
   align-items: center;
   gap: 1px;
   padding: 3px;
-  background: hsl(var(--popover));
+  background-color: hsl(var(--popover));
+  background-image: none;
+  backdrop-filter: none;
   border: 1px solid hsl(var(--border));
   border-radius: 4px;
   box-shadow: var(--elev-2, 0 6px 20px rgb(0 0 0 / 0.12));
@@ -1283,15 +1289,17 @@ select {
   position: absolute;
   top: calc(100% + 4px);
   right: 0;
+  z-index: 2147483001;
   display: flex;
   align-items: center;
   gap: 1px;
   padding: 3px;
-  background: hsl(var(--popover));
+  background-color: hsl(var(--popover));
   border: 1px solid hsl(var(--border));
   border-radius: 4px;
   box-shadow: var(--elev-2, 0 6px 20px rgb(0 0 0 / 0.12));
 }
+
 .rich-tool-btn {
   width: 26px;
   height: 26px;
