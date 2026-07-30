@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Inter+Tight:wght@500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=TASA+Orbiter:wght@500;600;700&display=swap");
 
 @import "tailwindcss";
 
@@ -13,9 +13,9 @@
 :root {
   --font-size: 16px;
 
-  /* Type families — Inter (body) + Inter Tight (display proxy for Inter Display) */
+  /* Type families — Inter (body) + TASA Orbiter (display) */
   --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-display: 'Inter Tight', 'Inter', system-ui, sans-serif;
+  --font-display: 'TASA Orbiter', 'Inter', system-ui, sans-serif;
 
   /* Surfaces — Cool Graphite paper, layered cool-neutral grayscale */
   --background: #FBFCFD;          /* cool paper, faintest blue cast */
@@ -105,7 +105,7 @@
   --dur-base: 200ms;
   --dur-slow: 320ms;
 
-  /* Typography altitudes — 5-level hierarchy on Inter / Inter Tight */
+  /* Typography altitudes — 5-level hierarchy on Inter / TASA Orbiter */
   --type-display-size: 40px;
   --type-display-weight: 640;
   --type-display-tracking: -0.035em;
