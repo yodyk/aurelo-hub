@@ -30,6 +30,7 @@ import { computeInsightsMetrics, type InsightsMetrics } from "../data/insightsMe
 import { profitability as calcProfitability, resolveBillingModel, sumLaborValue, hoursVariance, recognizeRevenue } from "@/lib/revenue";
 import * as invoiceApi from "../data/invoiceApi";
 import { formatMoney, fmtH } from '@/lib/format';
+import { ClientAvatar, useClientFavicons } from '@/components/ClientAvatar';
 
 import { PageHeader, SegmentedControl, type SegmentOption } from "@/components/primitives/composition";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
