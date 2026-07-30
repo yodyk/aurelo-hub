@@ -18,6 +18,7 @@ interface RecurringRule {
   frequency: string;
   skip_weekends: boolean;
   active: boolean;
+  allocation_type: string | null;
   last_run_date: string | null;
   created_at: string;
 }
@@ -38,6 +39,7 @@ export default function RecurringSessionsManager({ clients, projects = [], fixed
   // Form state
   const [clientId, setClientId] = useState(fixedClientId || "");
   const [projectId, setProjectId] = useState("");
+  const [allocationType, setAllocationType] = useState("general");
   const [task, setTask] = useState("");
   const [duration, setDuration] = useState("8");
   const [frequency, setFrequency] = useState("daily");
@@ -67,6 +69,7 @@ export default function RecurringSessionsManager({ clients, projects = [], fixed
   const resetForm = () => {
     setClientId(fixedClientId || "");
     setProjectId("");
+    setAllocationType("general");
     setTask("");
     setDuration("8");
     setFrequency("daily");
@@ -84,7 +87,8 @@ export default function RecurringSessionsManager({ clients, projects = [], fixed
     const { error } = await supabase.from("recurring_sessions").insert({
       workspace_id: workspaceId,
       client_id: cid,
-      project_id: projectId || null,
+      project_id: allocationType === "project" ? (projectId || null) : null,
+      allocation_type: allocationType,
       task: task || null,
       duration: dur,
       billable,
@@ -124,7 +128,11 @@ export default function RecurringSessionsManager({ clients, projects = [], fixed
   };
 
   const frequencyLabel: Record<string, string> = { daily: "Daily", weekly: "Weekly", monthly: "Monthly" };
-  const clientProjects = projects.filter((p: any) => p.clientId === (fixedClientId || clientId));
+  const activeClientId = fixedClientId || clientId;
+  const clientProjects = projects.filter((p: any) => p.clientId === activeClientId);
+  const activeClient = clients.find((c: any) => c.id === activeClientId);
+  const isRetainerClient = activeClient?.model === "Retainer";
+  const allocationLabel: Record<string, string> = { general: "General", project: "Project", retainer: "Retainer" };
 
   return (
     <div>
@@ -174,7 +182,7 @@ export default function RecurringSessionsManager({ clients, projects = [], fixed
                     <label className="text-[11px] text-muted-foreground mb-1 block" style={{ fontWeight: 600 }}>Client</label>
                     <select
                       value={clientId}
-                      onChange={e => { setClientId(e.target.value); setProjectId(""); }}
+                      onChange={e => { setClientId(e.target.value); setProjectId(""); setAllocationType("general"); }}
                       className="w-full h-9 px-3 rounded-md border border-border bg-input-background text-[13px]"
                     >
                       <option value="">Select client…</option>
@@ -185,20 +193,37 @@ export default function RecurringSessionsManager({ clients, projects = [], fixed
                   </div>
                 )}
 
-                {/* Project */}
+                {/* Allocation */}
                 <div>
-                  <label className="text-[11px] text-muted-foreground mb-1 block" style={{ fontWeight: 600 }}>Project (optional)</label>
+                  <label className="text-[11px] text-muted-foreground mb-1 block" style={{ fontWeight: 600 }}>Applies to</label>
                   <select
-                    value={projectId}
-                    onChange={e => setProjectId(e.target.value)}
+                    value={allocationType}
+                    onChange={e => { setAllocationType(e.target.value); if (e.target.value !== "project") setProjectId(""); }}
                     className="w-full h-9 px-3 rounded-md border border-border bg-input-background text-[13px]"
                   >
-                    <option value="">None</option>
-                    {clientProjects.map((p: any) => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
-                    ))}
+                    <option value="general">General</option>
+                    <option value="project">Project</option>
+                    {isRetainerClient && <option value="retainer">Retainer</option>}
                   </select>
                 </div>
+
+                {/* Project */}
+                {allocationType === "project" && (
+                  <div>
+                    <label className="text-[11px] text-muted-foreground mb-1 block" style={{ fontWeight: 600 }}>Project</label>
+                    <select
+                      value={projectId}
+                      onChange={e => setProjectId(e.target.value)}
+                      className="w-full h-9 px-3 rounded-md border border-border bg-input-background text-[13px]"
+                    >
+                      <option value="">None</option>
+                      {clientProjects.map((p: any) => (
+                        <option key={p.id} value={p.id}>{p.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
 
                 {/* Task */}
                 <div>
@@ -270,7 +295,11 @@ export default function RecurringSessionsManager({ clients, projects = [], fixed
                     />
                   </button>
                   <span className="text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>Billable</span>
+                  {allocationType === "retainer" && !billable && (
+                    <span className="text-[11px] text-muted-foreground/70">Logged to the retainer, but won't use retainer hours</span>
+                  )}
                 </div>
+
                 <button
                   onClick={handleCreate}
                   className="px-4 py-2 text-[12px] bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-all"
@@ -317,6 +346,11 @@ export default function RecurringSessionsManager({ clients, projects = [], fixed
                     <span className="text-[10px] bg-accent/80 text-muted-foreground px-1.5 py-0.5 rounded-md flex-shrink-0" style={{ fontWeight: 600 }}>
                       {frequencyLabel[rule.frequency]}
                     </span>
+                    {rule.allocation_type && (
+                      <span className="text-[10px] bg-accent/60 text-muted-foreground px-1.5 py-0.5 rounded-md flex-shrink-0" style={{ fontWeight: 600 }}>
+                        {allocationLabel[rule.allocation_type] || rule.allocation_type}
+                      </span>
+                    )}
                     {rule.skip_weekends && (
                       <span className="text-[10px] text-muted-foreground/60 flex-shrink-0" style={{ fontWeight: 500 }}>
                         Weekdays only

@@ -1382,6 +1382,7 @@ export type Database = {
       recurring_sessions: {
         Row: {
           active: boolean
+          allocation_type: string | null
           billable: boolean
           client_id: string
           created_at: string
@@ -1398,6 +1399,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          allocation_type?: string | null
           billable?: boolean
           client_id: string
           created_at?: string
@@ -1414,6 +1416,7 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          allocation_type?: string | null
           billable?: boolean
           client_id?: string
           created_at?: string

@@ -105,6 +105,10 @@ Deno.serve(async (req) => {
 
       if (!workspace) continue;
 
+      // Allocation: explicit rule setting wins, otherwise infer from context
+      const allocation = rule.allocation_type
+        || (rule.project_id ? "project" : (rule.clients?.model === "Retainer" ? "retainer" : "general"));
+
       const { error: insertErr } = await supabase.from("sessions").insert({
         workspace_id: rule.workspace_id,
         client_id: rule.client_id,
@@ -117,7 +121,7 @@ Deno.serve(async (req) => {
         revenue,
         labor_value: revenue,
         logged_by: workspace.owner_id,
-        allocation_type: rule.clients?.model === "Retainer" ? "retainer" : null,
+        allocation_type: allocation,
       });
 
       if (insertErr) {
@@ -125,8 +129,9 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      // Update retainer remaining if applicable
-      if (rule.clients?.model === "Retainer" && rule.billable) {
+      // Only billable retainer-allocated time consumes the retainer balance
+      if (allocation === "retainer" && rule.billable) {
+
         const newRemaining = Math.max(
           0,
           Number(rule.clients.retainer_remaining || 0) - Number(rule.duration)
