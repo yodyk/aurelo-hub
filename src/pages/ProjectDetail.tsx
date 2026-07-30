@@ -177,6 +177,9 @@ export default function ProjectDetail() {
   const [milestones, setMilestones] = useState<ProjectMilestone[]>([]);
   const [newMilestone, setNewMilestone] = useState("");
   const [addingMilestone, setAddingMilestone] = useState(false);
+  const [editingMilestoneId, setEditingMilestoneId] = useState<string | null>(null);
+  const [editingMilestoneTitle, setEditingMilestoneTitle] = useState("");
+
 
   // External links
   const [addingLink, setAddingLink] = useState(false);
