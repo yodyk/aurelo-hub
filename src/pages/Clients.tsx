@@ -271,8 +271,7 @@ export default function Clients() {
             canViewFinancials={canViewFinancials}
             maxMonthlyEarnings={maxMonthlyEarnings}
             archived={true}
-            onMoveUp={(id) => moveClient(id, 'up', archivedVisible)}
-            onMoveDown={(id) => moveClient(id, 'down', archivedVisible)}
+            onReorder={(draggedId, targetId) => moveClientByDrag(draggedId, targetId, true)}
           />
         )}
       </div>
