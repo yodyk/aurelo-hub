@@ -368,7 +368,7 @@ function TaskRow({
         <TaskStatusPopover status={task.status} onChange={onStatus} />
       </div>
 
-      <ClientAvatar name={client?.name} url={faviconUrl} size={36} />
+      <ClientAvatar name={client?.name} url={faviconUrl} size={24} />
 
       <div className="flex-1 min-w-0">
         <div className={`type-body truncate ${task.status === 'complete' ? 'line-through text-muted-foreground' : 'text-foreground'}`} style={{ fontWeight: 500 }}>
