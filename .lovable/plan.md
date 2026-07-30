@@ -11,8 +11,10 @@ Swap the display font used across Aurelo from `Inter Tight` to a different Googl
 ## Process
 
 1. **Choose the replacement font**
-   - Confirm the Google Font name and the exact weights needed (e.g., 500, 600, 700).
-   - Verify Google Fonts supports the desired weights/axes so the URL is valid.
+   - Replacement: **TASA Orbiter** (Google Fonts).
+   - Weights needed: 500, 600, 700 (matches current `Inter Tight` usage).
+   - Note: Google Fonts serves TASA Orbiter as static weight instances. We will request 500, 600, 700 to keep the same request size and avoid loading unused weights.
+
 
 2. **Update the Google Fonts import**
    - File: `src/index.css` (line 1).
