@@ -194,6 +194,7 @@ function LevelSelector({ value, onChange, config, label }: {
 const FIELD_TYPES: { value: FieldType; label: string }[] = [
   { value: 'text', label: 'Text' },
   { value: 'textarea', label: 'Text Area' },
+  { value: 'link', label: 'Link' },
   { value: 'toggle', label: 'Toggle' },
   { value: 'checkbox', label: 'Checkbox' },
   { value: 'select', label: 'Select' },
