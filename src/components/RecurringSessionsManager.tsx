@@ -18,6 +18,7 @@ interface RecurringRule {
   frequency: string;
   skip_weekends: boolean;
   active: boolean;
+  allocation_type: string | null;
   last_run_date: string | null;
   created_at: string;
 }
@@ -38,6 +39,7 @@ export default function RecurringSessionsManager({ clients, projects = [], fixed
   // Form state
   const [clientId, setClientId] = useState(fixedClientId || "");
   const [projectId, setProjectId] = useState("");
+  const [allocationType, setAllocationType] = useState("general");
   const [task, setTask] = useState("");
   const [duration, setDuration] = useState("8");
   const [frequency, setFrequency] = useState("daily");
@@ -67,6 +69,7 @@ export default function RecurringSessionsManager({ clients, projects = [], fixed
   const resetForm = () => {
     setClientId(fixedClientId || "");
     setProjectId("");
+    setAllocationType("general");
     setTask("");
     setDuration("8");
     setFrequency("daily");
@@ -84,7 +87,8 @@ export default function RecurringSessionsManager({ clients, projects = [], fixed
     const { error } = await supabase.from("recurring_sessions").insert({
       workspace_id: workspaceId,
       client_id: cid,
-      project_id: projectId || null,
+      project_id: allocationType === "project" ? (projectId || null) : null,
+      allocation_type: allocationType,
       task: task || null,
       duration: dur,
       billable,
