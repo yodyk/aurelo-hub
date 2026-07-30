@@ -30,6 +30,7 @@ import { parseQuickTask } from '@/lib/parseQuickTask';
 import { toast } from '@/lib/toast';
 import { deferredDelete } from '@/lib/deferredDelete';
 import { EmptyState } from '@/components/primitives/EmptyState';
+import { ClientAvatar, useClientFavicons } from '@/components/ClientAvatar';
 
 type FilterKey = 'all' | 'overdue' | 'today' | 'week' | 'waiting' | 'no_date' | 'in_review' | 'complete';
 type Scope = 'mine' | 'all';
@@ -69,6 +70,7 @@ export default function Tasks() {
   const { workspaceId } = useAuth();
   const { clients } = useData();
   const { open, changeCounter } = useTaskDrawer();
+  const faviconUrls = useClientFavicons(workspaceId);
   
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -280,7 +282,7 @@ export default function Tasks() {
       ) : (
         <motion.div variants={itemVariants} className="space-y-6">
           {buckets.map((b) => (
-            <Section key={b.key} bucket={b} clientMap={clientMap} onOpen={open} onPatch={patchTask} onDelete={deleteTask} />
+            <Section key={b.key} bucket={b} clientMap={clientMap} faviconUrls={faviconUrls} onOpen={open} onPatch={patchTask} onDelete={deleteTask} />
           ))}
         </motion.div>
       )}
@@ -291,10 +293,11 @@ export default function Tasks() {
 // ── Section ───────────────────────────────────────────────────────────
 
 function Section({
-  bucket, clientMap, onOpen, onPatch, onDelete,
+  bucket, clientMap, faviconUrls, onOpen, onPatch, onDelete,
 }: {
   bucket: Bucket;
   clientMap: Map<string, any>;
+  faviconUrls: Record<string, string>;
   onOpen: (id: string) => void;
   onPatch: (id: string, patch: Partial<WorkspaceTask>, dbPatch: any) => void;
   onDelete: (id: string) => void;
@@ -329,6 +332,7 @@ function Section({
                 key={t.id}
                 task={t}
                 client={clientMap.get(t.clientId)}
+                faviconUrl={faviconUrls[t.clientId]}
                 onOpen={() => onOpen(t.id)}
                 onStatus={(s) => onPatch(t.id, { status: s, completed: s === 'complete' }, { status: s })}
                 onDelete={() => onDelete(t.id)}
@@ -342,10 +346,11 @@ function Section({
 }
 
 function TaskRow({
-  task, client, onOpen, onStatus, onDelete,
+  task, client, faviconUrl, onOpen, onStatus, onDelete,
 }: {
   task: WorkspaceTask;
   client?: any;
+  faviconUrl?: string;
   onOpen: () => void;
   onStatus: (s: TaskStatus) => void;
   onDelete: () => void;
@@ -362,6 +367,8 @@ function TaskRow({
       <div onClick={(e) => e.stopPropagation()} className="flex-shrink-0">
         <TaskStatusPopover status={task.status} onChange={onStatus} />
       </div>
+
+      <ClientAvatar name={client?.name} url={faviconUrl} size={36} />
 
       <div className="flex-1 min-w-0">
         <div className={`type-body truncate ${task.status === 'complete' ? 'line-through text-muted-foreground' : 'text-foreground'}`} style={{ fontWeight: 500 }}>
