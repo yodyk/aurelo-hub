@@ -180,6 +180,8 @@ export default function ProjectDetail() {
   const [addingMilestone, setAddingMilestone] = useState(false);
   const [editingMilestoneId, setEditingMilestoneId] = useState<string | null>(null);
   const [editingMilestoneTitle, setEditingMilestoneTitle] = useState("");
+  const [dragMilestoneIndex, setDragMilestoneIndex] = useState<number | null>(null);
+  const [dragOverMilestoneIndex, setDragOverMilestoneIndex] = useState<number | null>(null);
 
 
   // External links
