@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useData } from '../data/DataContext';
 import { formatMoney, formatDuration, fmtH } from '@/lib/format';
 import { BillingModelSelector } from '@/components/BillingModelSelector';
+import RichEditor from '@/components/editor/RichEditor';
 
 // ── Unsaved Changes Confirmation (inline in modal) ─────────────────
 function UnsavedChangesConfirm({ onDiscard, onCancel }: { onDiscard: () => void; onCancel: () => void }) {
@@ -416,12 +417,11 @@ export function AddClientModal({ open, onClose, onSave }: {
         {/* ── Notes ──────────────────────────── */}
         <div>
           <Label hint="optional">Internal notes</Label>
-          <textarea
+          <RichEditor
+            variant="note"
             value={notes}
-            onChange={e => setNotes(e.target.value)}
             placeholder="How you met, referral source, scope ideas, anything useful..."
-            rows={2}
-            className="w-full px-3 py-2 text-[14px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all resize-none"
+            onChange={(html) => setNotes(html ?? '')}
           />
         </div>
 
@@ -1165,12 +1165,11 @@ export function LogSessionModal({ open, onClose, onSave, clients, preSelectedCli
 
         <div>
           <Label hint="optional">Session notes</Label>
-          <textarea
+          <RichEditor
+            variant="session"
             value={notes}
-            onChange={e => setNotes(e.target.value)}
             placeholder="Key decisions, blockers, next steps..."
-            rows={2}
-            className="w-full px-3 py-2 text-[14px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all resize-none"
+            onChange={(html) => setNotes(html ?? '')}
           />
         </div>
 
@@ -1433,12 +1432,11 @@ export function AddProjectModal({ open, onClose, onSave, clients, preSelectedCli
 
         <div>
           <Label hint="optional">Description</Label>
-          <textarea
+          <RichEditor
+            variant="note"
             value={description}
-            onChange={e => setDescription(e.target.value)}
             placeholder="Scope summary, deliverables, key milestones..."
-            rows={2}
-            className="w-full px-3 py-2 text-[14px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all resize-none"
+            onChange={(html) => setDescription(html ?? '')}
           />
         </div>
 
@@ -1786,12 +1784,11 @@ export function EditSessionModal({ open, onClose, session, onSave, onDelete, cli
 
         <div>
           <Label hint="optional">Session notes</Label>
-          <textarea
+          <RichEditor
+            variant="session"
             value={notes}
-            onChange={e => setNotes(e.target.value)}
             placeholder="Key decisions, blockers, next steps..."
-            rows={2}
-            className="w-full px-3 py-2 text-[14px] bg-accent/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all resize-none"
+            onChange={(html) => setNotes(html ?? '')}
           />
         </div>
 
