@@ -6,6 +6,7 @@ import {
   Tag, FolderKanban, Search, ChevronDown, MoreHorizontal, Pencil, Eye, EyeOff,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { createPortal } from 'react-dom';
 import { toast } from '@/lib/toast';
 import DOMPurify from 'dompurify';
 import * as notesApi from '../data/notesApi';
