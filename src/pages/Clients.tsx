@@ -441,12 +441,12 @@ function ClientTable({
                     <img
                       src={faviconUrl}
                       alt={client.name}
-                      className="w-8 h-8 rounded-circle object-cover flex-shrink-0"
+                      className="w-8 h-8 rounded object-cover flex-shrink-0"
                       style={{ boxShadow: "0 0 0 1px var(--hairline)" }}
                     />
                   ) : (
                     <div
-                      className="w-8 h-8 rounded-circle flex items-center justify-center flex-shrink-0"
+                      className="w-8 h-8 rounded flex items-center justify-center flex-shrink-0"
                       style={{ background: "color-mix(in srgb, var(--primary) 8%, transparent)" }}
                     >
                       <span className="text-[12px] text-primary" style={{ fontWeight: 600 }}>
@@ -509,12 +509,12 @@ function ClientTable({
                   <img
                     src={faviconUrl}
                     alt={client.name}
-                    className="w-10 h-10 rounded-circle object-cover flex-shrink-0"
+                    className="w-10 h-10 rounded object-cover flex-shrink-0"
                     style={{ boxShadow: "0 0 0 1px var(--hairline)" }}
                   />
                 ) : (
                   <div
-                    className="w-10 h-10 rounded-circle flex items-center justify-center flex-shrink-0"
+                    className="w-10 h-10 rounded flex items-center justify-center flex-shrink-0"
                     style={{ background: "color-mix(in srgb, var(--primary) 8%, transparent)" }}
                   >
                     <span className="text-[14px] text-primary" style={{ fontWeight: 600 }}>
