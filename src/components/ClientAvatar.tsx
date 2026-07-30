@@ -1,11 +1,13 @@
 /**
  * ClientAvatar — small rounded-rectangle client favicon with initial fallback.
  *
- * Renders with the design system's max 4px radius. Pair with useClientFavicons()
- * to resolve favicon URLs from the workspace `logos` bucket once per list.
+ * Renders with the design system's max 4px radius by default. Pair with
+ * useClientFavicons() to resolve favicon URLs from the workspace `logos` bucket
+ * once per list. Pass `className` to override the radius or add borders.
  */
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { cn } from '@/lib/utils';
 
 /** Loads client favicon URLs for a workspace, keyed by client id. */
 export function useClientFavicons(workspaceId?: string | null) {
@@ -32,11 +34,12 @@ export function useClientFavicons(workspaceId?: string | null) {
 }
 
 export function ClientAvatar({
-  name, url, size = 36,
+  name, url, size = 36, className,
 }: {
   name?: string;
   url?: string;
   size?: number;
+  className?: string;
 }) {
   const box = { width: size, height: size, minWidth: size, minHeight: size, aspectRatio: '1 / 1' } as const;
 
@@ -46,7 +49,7 @@ export function ClientAvatar({
         src={url}
         alt=""
         aria-hidden="true"
-        className="rounded object-cover flex-shrink-0"
+        className={cn("rounded object-cover flex-shrink-0", className)}
         style={{ ...box, boxShadow: '0 0 0 1px var(--hairline)' }}
       />
     );
@@ -55,7 +58,7 @@ export function ClientAvatar({
   return (
     <div
       aria-hidden="true"
-      className="rounded flex items-center justify-center flex-shrink-0"
+      className={cn("rounded flex items-center justify-center flex-shrink-0", className)}
       style={{ ...box, background: 'color-mix(in srgb, var(--primary) 8%, transparent)' }}
     >
       <span

@@ -30,6 +30,7 @@ import { computeInsightsMetrics, type InsightsMetrics } from "../data/insightsMe
 import { profitability as calcProfitability, resolveBillingModel, sumLaborValue, hoursVariance, recognizeRevenue } from "@/lib/revenue";
 import * as invoiceApi from "../data/invoiceApi";
 import { formatMoney, fmtH } from '@/lib/format';
+import { ClientAvatar, useClientFavicons } from '@/components/ClientAvatar';
 
 import { PageHeader, SegmentedControl, type SegmentOption } from "@/components/primitives/composition";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
@@ -159,8 +160,9 @@ function SectionLabel({ children, pro, count }: { children: React.ReactNode; pro
 export default function Insights() {
   const navigate = useNavigate();
   const { canViewInsights } = useRoleAccess();
-  const { sessions, clients, netMultiplier, insightsMetrics: baseMetrics, allProjects, loadAllProjects } = useData();
+  const { workspaceId, sessions, clients, netMultiplier, insightsMetrics: baseMetrics, allProjects, loadAllProjects } = useData();
   const { can } = usePlan();
+  const faviconUrls = useClientFavicons(workspaceId);
 
 
   const [viewMode, setViewMode] = useState<"gross" | "net">("gross");
@@ -604,9 +606,12 @@ export default function Insights() {
                         >
                           <TableCell className="text-[13px] text-foreground sticky left-0 bg-card z-10" style={{ fontWeight: 500 }}>
                             <div className="flex items-center gap-2">
-                              <div className="w-5 h-5 rounded-md bg-primary/8 flex items-center justify-center flex-shrink-0">
-                                <span className="text-[9px] text-primary" style={{ fontWeight: 600 }}>{row.clientName.charAt(0)}</span>
-                              </div>
+                              <ClientAvatar
+                                name={row.clientName}
+                                url={faviconUrls[row.clientId]}
+                                size={20}
+                                className="rounded-md"
+                              />
                               <span className="truncate max-w-[120px]">{row.clientName}</span>
                             </div>
                           </TableCell>
@@ -708,9 +713,12 @@ export default function Insights() {
                       </TableCell>
                       <TableCell className="text-[14px]" style={{ fontWeight: 500 }}>
                         <div className="flex items-center gap-2.5">
-                          <div className="w-6 h-6 rounded-md bg-primary/8 flex items-center justify-center flex-shrink-0">
-                            <span className="text-[10px] text-primary" style={{ fontWeight: 600 }}>{ranking.client.charAt(0)}</span>
-                          </div>
+                          <ClientAvatar
+                            name={ranking.client}
+                            url={faviconUrls[ranking.clientId]}
+                            size={24}
+                            className="rounded-md"
+                          />
                           {ranking.client}
                         </div>
                       </TableCell>
