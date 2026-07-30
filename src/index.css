@@ -1127,3 +1127,242 @@ select {
   text-decoration: line-through;
   opacity: 0.55;
 }
+
+/* ── RichEditor: canonical writing surface ─────────────────── */
+/* Typography is shared by the editor and the read-only renderer so
+   writing and reading never disagree. */
+.rich-editor-shell {
+  position: relative;
+}
+.rich-editor-shell.is-quiet {
+  background: hsl(var(--accent) / 0.3);
+  border: 1px solid hsl(var(--border));
+  border-radius: 4px;
+  padding: 0.5rem 0.625rem;
+  transition: border-color var(--dur-instant, 120ms) ease;
+}
+.rich-editor-shell.is-quiet.is-focused {
+  border-color: hsl(var(--primary) / 0.45);
+}
+
+.rich-editor-surface {
+  font-size: 14px;
+  line-height: 1.65;
+  outline: none;
+}
+.rich-editor-surface p { margin: 0; }
+.rich-editor-surface p + p,
+.rich-editor-surface * + p { margin-top: 0.45em; }
+.rich-editor-surface h2 {
+  font-family: var(--font-display, inherit);
+  font-size: 1.15em;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0.9em 0 0.3em;
+  line-height: 1.3;
+}
+.rich-editor-surface h3 {
+  font-family: var(--font-display, inherit);
+  font-size: 1.02em;
+  font-weight: 600;
+  margin: 0.75em 0 0.25em;
+  line-height: 1.35;
+}
+.rich-editor-surface > :first-child { margin-top: 0; }
+.rich-editor-surface ul,
+.rich-editor-surface ol { padding-left: 1.25em; margin: 0.35em 0; }
+.rich-editor-surface ul { list-style-type: disc; }
+.rich-editor-surface ol { list-style-type: decimal; }
+.rich-editor-surface li { margin: 0.15em 0; }
+.rich-editor-surface li p { margin: 0; }
+.rich-editor-surface strong { font-weight: 600; }
+.rich-editor-surface em { font-style: italic; }
+.rich-editor-surface s { text-decoration: line-through; }
+.rich-editor-surface a {
+  color: hsl(var(--primary));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.rich-editor-surface code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.88em;
+  background: hsl(var(--accent) / 0.6);
+  border-radius: 3px;
+  padding: 0.1em 0.3em;
+}
+.rich-editor-surface pre {
+  background: hsl(var(--accent) / 0.55);
+  border: 1px solid hsl(var(--border));
+  border-radius: 4px;
+  padding: 0.6em 0.7em;
+  margin: 0.5em 0;
+  overflow-x: auto;
+}
+.rich-editor-surface pre code {
+  background: none;
+  padding: 0;
+  font-size: 0.85em;
+}
+.rich-editor-surface blockquote {
+  border-left: 2px solid hsl(var(--border));
+  padding-left: 0.75em;
+  margin: 0.5em 0;
+  color: var(--muted-foreground);
+}
+.rich-editor-surface hr {
+  border: none;
+  border-top: 1px solid hsl(var(--border));
+  margin: 0.9em 0;
+}
+.rich-editor-surface ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0;
+  margin: 0.3em 0;
+}
+.rich-editor-surface ul[data-type="taskList"] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45em;
+  margin: 0.2em 0;
+}
+.rich-editor-surface ul[data-type="taskList"] li label {
+  flex-shrink: 0;
+  margin-top: 0.28em;
+}
+.rich-editor-surface ul[data-type="taskList"] input[type="checkbox"] {
+  accent-color: hsl(var(--primary));
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  border-radius: 3px;
+}
+.rich-editor-surface ul[data-type="taskList"] li[data-checked="true"] > div > p {
+  text-decoration: line-through;
+  opacity: 0.55;
+}
+.rich-editor-surface .is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  pointer-events: none;
+  height: 0;
+  color: var(--muted-foreground);
+  opacity: 0.5;
+}
+
+/* Selection bubble */
+.rich-bubble-wrap { z-index: 60; }
+.rich-bubble {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  padding: 3px;
+  background: hsl(var(--popover));
+  border: 1px solid hsl(var(--border));
+  border-radius: 4px;
+  box-shadow: var(--elev-2, 0 6px 20px rgb(0 0 0 / 0.12));
+}
+.rich-bubble-sep {
+  width: 1px;
+  height: 16px;
+  margin: 0 2px;
+  background: hsl(var(--border));
+}
+.rich-bubble-more {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  padding: 3px;
+  background: hsl(var(--popover));
+  border: 1px solid hsl(var(--border));
+  border-radius: 4px;
+  box-shadow: var(--elev-2, 0 6px 20px rgb(0 0 0 / 0.12));
+}
+.rich-tool-btn {
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+.rich-tool-btn:hover { background: hsl(var(--accent) / 0.6); color: hsl(var(--foreground)); }
+.rich-tool-btn.is-active { background: hsl(var(--primary) / 0.12); color: hsl(var(--primary)); }
+.rich-tool-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.rich-link-input {
+  width: 200px;
+  height: 26px;
+  padding: 0 6px;
+  font-size: 12px;
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  border-radius: 3px;
+  outline: none;
+}
+.rich-link-input:focus { border-color: hsl(var(--primary) / 0.5); }
+
+/* Slash menu */
+.rich-slash-layer { position: fixed; z-index: 70; }
+.rich-slash-menu {
+  width: 260px;
+  max-height: 268px;
+  overflow-y: auto;
+  padding: 4px;
+  background: hsl(var(--popover));
+  border: 1px solid hsl(var(--border));
+  border-radius: 4px;
+  box-shadow: var(--elev-2, 0 10px 28px rgb(0 0 0 / 0.14));
+}
+.rich-slash-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 3px;
+  text-align: left;
+  cursor: pointer;
+}
+.rich-slash-item.is-active { background: hsl(var(--accent) / 0.7); }
+.rich-slash-title { font-size: 13px; color: hsl(var(--foreground)); }
+.rich-slash-hint {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+
+/* Touch format bar */
+.rich-touch-bar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin: -0.25rem 0 0.35rem;
+  padding: 2px 0;
+  overflow-x: auto;
+  background: inherit;
+  border-bottom: 1px solid hsl(var(--border) / 0.6);
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.rich-touch-bar::-webkit-scrollbar { display: none; }
+.rich-touch-btn {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  color: var(--muted-foreground);
+  flex-shrink: 0;
+}
+.rich-touch-btn.is-active { background: hsl(var(--primary) / 0.12); color: hsl(var(--primary)); }
