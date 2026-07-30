@@ -1304,12 +1304,33 @@ export default function ProjectDetail() {
                               <Circle className="w-4 h-4 text-muted-foreground/40 hover:text-muted-foreground transition-colors" />
                             )}
                           </button>
-                          <span
-                            className={`text-[13px] flex-1 ${done ? "text-muted-foreground line-through" : ""}`}
-                            style={{ fontWeight: 500 }}
-                          >
-                            {m.title}
-                          </span>
+                          {editingMilestoneId === m.id ? (
+                            <input
+                              autoFocus
+                              value={editingMilestoneTitle}
+                              onChange={(e) => setEditingMilestoneTitle(e.target.value)}
+                              onBlur={handleSaveMilestoneTitle}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") handleSaveMilestoneTitle();
+                                if (e.key === "Escape") setEditingMilestoneId(null);
+                              }}
+                              className="flex-1 text-[13px] bg-transparent outline-none border-b border-primary/50"
+                              style={{ fontWeight: 500 }}
+                            />
+                          ) : (
+                            <span
+                              onClick={() => {
+                                setEditingMilestoneId(m.id);
+                                setEditingMilestoneTitle(m.title);
+                              }}
+                              title="Click to rename"
+                              className={`text-[13px] flex-1 cursor-text rounded px-1 -mx-1 hover:bg-accent/50 transition-colors ${done ? "text-muted-foreground line-through" : ""}`}
+                              style={{ fontWeight: 500 }}
+                            >
+                              {m.title}
+                            </span>
+                          )}
+
                           {due && (
                             <span className="text-[11px] text-muted-foreground tabular-nums">{due}</span>
                           )}
