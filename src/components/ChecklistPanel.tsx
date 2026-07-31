@@ -360,15 +360,8 @@ function ChecklistCard({
     } catch { setTitleValue(checklist.title); }
   };
 
-  const handleQuickAdd = async (input: NewTaskInput) => {
-    try {
-      const item = await addChecklistItem(checklist.id, input, items.length);
-      setItems(prev => [...prev, item]);
-      setShowQuickAdd(false);
-    } catch (err: any) {
-      toast.error(err.message);
-    }
-  };
+
+
 
   return (
     <div className="bg-card border border-border rounded-xl overflow-hidden" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}>
