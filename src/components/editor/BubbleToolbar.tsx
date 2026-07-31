@@ -72,7 +72,23 @@ export default function BubbleToolbar({ editor, features }: Props) {
       // Render into <body> so no ancestor overflow / stacking context can clip
       // or paint over the bubble (focus rings, cards, drawers).
       appendTo={() => document.body}
-      options={{ placement: 'top', offset: 12, strategy: 'fixed' }}
+      options={{
+        placement: 'top',
+        offset: 12,
+        strategy: 'fixed',
+        // Keep the bubble inside the editor's own box — never hanging off
+        // the left/right edge of the rich text field.
+        flip: { boundary: editor.view.dom as HTMLElement, padding: 4 },
+        shift: { boundary: editor.view.dom as HTMLElement, padding: 4, crossAxis: true },
+        size: {
+          boundary: editor.view.dom as HTMLElement,
+          padding: 4,
+          apply({ elements }) {
+            const w = (editor.view.dom as HTMLElement).getBoundingClientRect().width;
+            Object.assign(elements.floating.style, { maxWidth: `${Math.max(180, w - 8)}px` });
+          },
+        },
+      }}
 
       shouldShow={({ editor: e, from, to }) => {
         if (!e.isEditable) return false;
