@@ -1312,7 +1312,7 @@ function WorkspaceTab() {
               <div className="flex items-center justify-between py-2">
                 <span className="text-[13px] text-muted-foreground" style={{ fontWeight: 500 }}>Portal logo</span>
                 <span className="text-[12px]" style={{ fontWeight: 500, color: appLogo ? undefined : "var(--foreground-subtle)" }}>
-                  {appLogo ? "✓ Using app logo" : "No logo uploaded — upload one above"}
+                  {appLogo ? "✓ Using workspace favicon" : "No favicon uploaded — upload one above"}
                 </span>
               </div>
               <div className="flex items-center justify-between py-2 border-t border-border">
