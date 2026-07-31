@@ -79,9 +79,11 @@ export default function BubbleToolbar({ editor, features }: Props) {
         // always floats fully above the editor box instead of half-covering
         // the first line or its focus ring.
         offset: () => {
-          const shellTop = (editor.view.dom as HTMLElement).getBoundingClientRect().top;
+          const dom = editor.view.dom as HTMLElement;
+          const shell = (dom.closest('.rich-editor-shell') as HTMLElement) ?? dom;
+          const shellTop = shell.getBoundingClientRect().top;
           const selTop = editor.view.coordsAtPos(editor.state.selection.from).top;
-          return Math.max(10, selTop - shellTop + 12);
+          return Math.max(10, selTop - shellTop + 10);
         },
         strategy: 'fixed',
         // Vertical behaviour is viewport-based (default boundary); only the
