@@ -283,9 +283,11 @@ export default function Settings() {
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
 
   const markDirty = useCallback(() => setIsDirty(true), []);
+  const clearDirty = useCallback(() => setIsDirty(false), []);
   const registerSave = useCallback((fn: () => Promise<void>) => { saveFnRef.current = fn; }, []);
 
-  const saveContextValue = useMemo(() => ({ markDirty, registerSave }), [markDirty, registerSave]);
+  const saveContextValue = useMemo(() => ({ markDirty, clearDirty, registerSave }), [markDirty, clearDirty, registerSave]);
+
 
   // Reset dirty state when tab changes. Do NOT null out saveFnRef here —
   // the newly mounted tab's useRegisterSave effect runs BEFORE this parent
@@ -1018,7 +1020,9 @@ function WorkspaceTab() {
   };
 
   const [ws, loading, setWs] = useSettingsSection("workspace", defaultWs);
-  const { markDirty } = useSettingsSave();
+  const { markDirty, clearDirty } = useSettingsSave();
+  const [savingBrand, setSavingBrand] = useState(false);
+
   const [appLogo, setAppLogo] = useState<{ url: string; fileName: string } | null>(null);
   const [emailLogo, setEmailLogo] = useState<{ url: string; fileName: string } | null>(null);
   const [uploadingApp, setUploadingApp] = useState(false);
@@ -1344,7 +1348,38 @@ function WorkspaceTab() {
                 businessName={ws.name || ""}
                 logoUrl={appLogo?.url || null}
               />
+
+              {/* Inline brand color editing — same value as "Brand color" above */}
+              <div className="mt-3 pt-3 border-t border-border">
+                <div className="flex items-center justify-between mb-2">
+                  <FieldLabel>Brand color</FieldLabel>
+                  <button
+                    onClick={async () => {
+                      setSavingBrand(true);
+                      try {
+                        await save();
+                        clearDirty();
+                      } finally {
+                        setSavingBrand(false);
+                      }
+                    }}
+                    disabled={savingBrand}
+                    className="px-3 py-1.5 text-[12px] rounded-lg bg-primary text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                    style={{ fontWeight: 500 }}
+                  >
+                    {savingBrand ? "Saving…" : "Save color"}
+                  </button>
+                </div>
+                <ColorPicker
+                  value={ws.brandColor}
+                  onChange={(color) => update({ brandColor: color })}
+                />
+                <div className="text-[11px] text-muted-foreground mt-1.5">
+                  Edits here update the accent color above and the preview instantly.
+                </div>
+              </div>
             </div>
+
           </div>
         </SectionCard>
       </FeatureGate>
