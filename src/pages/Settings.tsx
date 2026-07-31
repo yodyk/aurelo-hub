@@ -1155,19 +1155,20 @@ function WorkspaceTab() {
       <SectionCard>
         <SectionHeader title="Logos" description="Brand marks used in sidebar, portal, and client emails" />
         <div className="space-y-5">
-          {/* App Logo */}
+          {/* Workspace Favicon */}
           <div>
             <div className="text-[13px] text-muted-foreground mb-1" style={{ fontWeight: 500 }}>
-              App logo
+              Workspace favicon
             </div>
             <div className="text-[12px] text-muted-foreground mb-3">Square brand mark or icon for the sidebar and client portal header. SVG or PNG, ideally under 200×200px.</div>
             {appLogo ? (
               <div className="border border-border rounded-lg p-4 flex items-center gap-4">
-                <img src={appLogo.url} alt="App logo" className="h-12 w-auto max-w-[200px] object-contain rounded" />
+                <img src={appLogo.url} alt="Workspace favicon" className="h-12 w-auto max-w-[200px] object-contain rounded" />
                 <div className="flex-1 min-w-0">
                   <div className="text-[13px] truncate" style={{ fontWeight: 500 }}>
-                    App logo
+                    Workspace favicon
                   </div>
+
                   <div className="text-[11px] text-muted-foreground">
                     {appLogo.fileName?.split(".").pop()?.toUpperCase() || "PNG"} &middot; Uploaded
                   </div>
@@ -1311,7 +1312,7 @@ function WorkspaceTab() {
               <div className="flex items-center justify-between py-2">
                 <span className="text-[13px] text-muted-foreground" style={{ fontWeight: 500 }}>Portal logo</span>
                 <span className="text-[12px]" style={{ fontWeight: 500, color: appLogo ? undefined : "var(--foreground-subtle)" }}>
-                  {appLogo ? "✓ Using app logo" : "No logo uploaded — upload one above"}
+                  {appLogo ? "✓ Using workspace favicon" : "No favicon uploaded — upload one above"}
                 </span>
               </div>
               <div className="flex items-center justify-between py-2 border-t border-border">
