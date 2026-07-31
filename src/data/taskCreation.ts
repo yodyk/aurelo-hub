@@ -211,7 +211,11 @@ export async function createTask(input: CreateTaskInput): Promise<CreateTaskResu
       due_date: input.dueDate || null,
       follow_up_at: input.followUpAt || null,
       estimated_hours: input.estimatedHours ?? null,
-      priority: input.priority ?? null,
+      // The column only accepts low | medium | high; 'normal' is a legacy
+      // label in the UI layer, so it is normalised to medium here.
+      priority: input.priority === 'normal' ? 'medium'
+        : (['low', 'medium', 'high'] as const).includes(input.priority as any) ? input.priority
+        : null,
       repeat: input.repeat ?? null,
       assigned_to_client: input.assignedToClient === true,
       sort_order: sortOrder,
