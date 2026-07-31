@@ -593,7 +593,7 @@ function PortalHeader({ branding, accent }: { branding: PortalBranding; accent: 
               {branding.workspaceName && (
                 <span
                   className="text-[14px] font-semibold tracking-[-0.01em] truncate"
-                  style={{ color: 'var(--portal-text)' }}
+                  style={{ color: 'var(--portal-ink)' }}
                 >
                   {branding.workspaceName}
                 </span>
