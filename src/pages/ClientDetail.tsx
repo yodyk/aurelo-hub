@@ -2783,13 +2783,33 @@ function NotesTab({ clientId, projects }: { clientId?: string; projects: any[] }
 // Tasks Tab
 // ═══════════════════════════════════════════════════════════════════
 function ChecklistsTab({ clientId, workspaceId }: { clientId: string; workspaceId: string }) {
+  const [addOpen, setAddOpen] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
+
   return (
     <SectionCard>
-      <SectionHeader>Tasks</SectionHeader>
-      <ChecklistPanel clientId={clientId} workspaceId={workspaceId} />
+      <div className="flex items-center justify-between gap-3">
+        <SectionHeader>Tasks</SectionHeader>
+        <button
+          onClick={() => setAddOpen(true)}
+          className="inline-flex items-center gap-1.5 h-[30px] px-3 text-[12px] bg-primary text-primary-foreground hover:opacity-90 transition-opacity cursor-pointer shrink-0"
+          style={{ borderRadius: 4, fontWeight: 500 }}
+        >
+          <Plus className="w-3.5 h-3.5" aria-hidden /> Add task
+        </button>
+      </div>
+      <ChecklistPanel key={reloadKey} clientId={clientId} workspaceId={workspaceId} />
+      <TaskModal
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        lockClient
+        defaultClientId={clientId}
+        onCreated={() => setReloadKey(k => k + 1)}
+      />
     </SectionCard>
   );
 }
+
 
 // ═══════════════════════════════════════════════════════════════════
 // Portal Tab
