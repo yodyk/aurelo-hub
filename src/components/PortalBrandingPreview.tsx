@@ -56,10 +56,11 @@ export function PortalBrandingPreview({
   const showWarning = buttonFails || textFails;
   const ratioLabel = onAccent ? onAccent.toFixed(2) : null;
 
-
   return (
+    <div className="space-y-2">
     <div
       className="overflow-hidden border rounded"
+
       style={{
         borderColor: "#e7e8ec",
         backgroundColor: "#f7f7f9",
