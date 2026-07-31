@@ -1329,7 +1329,7 @@ select {
   align-items: center;
   gap: 2px;
   padding: 3px;
-  background-color: hsl(var(--popover));
+  background-color: hsl(var(--muted));
   border: 1px solid hsl(var(--border));
   border-radius: 4px;
   box-shadow: var(--elev-2, 0 6px 20px rgb(0 0 0 / 0.12));
