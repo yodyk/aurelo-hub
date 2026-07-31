@@ -1020,7 +1020,9 @@ function WorkspaceTab() {
   };
 
   const [ws, loading, setWs] = useSettingsSection("workspace", defaultWs);
-  const { markDirty } = useSettingsSave();
+  const { markDirty, clearDirty } = useSettingsSave();
+  const [savingBrand, setSavingBrand] = useState(false);
+
   const [appLogo, setAppLogo] = useState<{ url: string; fileName: string } | null>(null);
   const [emailLogo, setEmailLogo] = useState<{ url: string; fileName: string } | null>(null);
   const [uploadingApp, setUploadingApp] = useState(false);
