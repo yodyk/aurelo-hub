@@ -170,7 +170,7 @@ export default function TaskForm({
       {/* 3 — Description */}
       <div>
         <FieldLabel htmlFor="task-description">Description <span style={{ fontWeight: 400 }}>(optional)</span></FieldLabel>
-        <div id="task-description" className="border border-border px-2.5 py-1.5 min-h-[76px]" style={{ borderRadius: 4 }}>
+        <div id="task-description" className="bg-[var(--input-background)] border border-transparent px-2.5 py-1.5 min-h-[76px]" style={{ borderRadius: 4 }}>
           <RichEditor
             variant="task"
             value={values.description}
