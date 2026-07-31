@@ -1,7 +1,8 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from './popover';
 import { Pipette } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { HexColorPicker } from 'react-colorful';
 
 const PRESET_COLORS = [
   '#3B66F0', '#3b82f6', '#6366f1', '#8b5cf6', '#a855f7',
@@ -102,7 +103,16 @@ export function ColorPicker({ value, onChange, className }: ColorPickerProps) {
         </button>
       </PopoverTrigger>
 
-      <PopoverContent align="start" className="w-[240px] p-3 space-y-3">
+      <PopoverContent align="start" className="w-[260px] p-3 space-y-3">
+        {/* Draggable color picker */}
+        <div className="color-picker-wrapper">
+          <HexColorPicker
+            color={value}
+            onChange={selectColor}
+            style={{ width: '100%', height: '160px' }}
+          />
+        </div>
+
         {/* Current color preview + hex input */}
         <div className="flex items-center gap-2">
           <div
