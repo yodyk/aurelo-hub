@@ -82,6 +82,7 @@ import { FeatureGate } from "../components/FeatureGate";
 import { STARTER_NOTIFICATION_TYPES, PLANS, PLAN_EMAIL_TYPES as PLAN_EMAIL_TYPES_MAP, PLAN_FREQUENCIES as PLAN_FREQUENCIES_MAP, EMAIL_QUOTA as EMAIL_QUOTA_MAP } from "../data/plans";
 import { ColorPicker } from "../components/ui/color-picker";
 import WebhooksSection from "../components/WebhooksSection";
+import { PortalBrandingPreview } from "../components/PortalBrandingPreview";
 import {
   SettingsSaveContext,
   SettingsSaveBar,
@@ -1331,6 +1332,18 @@ function WorkspaceTab() {
                 <span className="text-[13px] text-muted-foreground" style={{ fontWeight: 500 }}>"Powered by Aurelo"</span>
                 <span className="text-[12px]" style={{ fontWeight: 500, color: "var(--success)" }}>Hidden</span>
               </div>
+            </div>
+
+            <div className="pt-2">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[13px]" style={{ fontWeight: 500 }}>Live preview</span>
+                <span className="text-[11px] text-muted-foreground">Reflects unsaved changes</span>
+              </div>
+              <PortalBrandingPreview
+                brandColor={ws.brandColor || "#3B66F0"}
+                businessName={ws.name || ""}
+                logoUrl={appLogo?.url || null}
+              />
             </div>
           </div>
         </SectionCard>
