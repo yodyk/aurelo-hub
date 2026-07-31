@@ -1301,11 +1301,15 @@ select {
   z-index: 2147483000;
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 2px;
   padding: 3px;
-  background-color: hsl(var(--popover));
+  max-width: 100%;
+  /* Flat, fully opaque grey surface — no blur, nothing shows through. */
+  background-color: hsl(var(--muted));
   background-image: none;
   backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   border: 1px solid hsl(var(--border));
   border-radius: 4px;
   box-shadow: var(--elev-2, 0 6px 20px rgb(0 0 0 / 0.12));
