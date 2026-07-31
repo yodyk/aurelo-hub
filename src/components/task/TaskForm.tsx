@@ -117,7 +117,7 @@ export default function TaskForm({
         <div>
           <FieldLabel htmlFor="task-client">Client</FieldLabel>
           {lockClient ? (
-            <div id="task-client" className="flex items-center gap-1.5 h-9 px-2.5 border border-border bg-accent/30 text-[13px] text-foreground" style={{ borderRadius: 4 }}>
+            <div id="task-client" className="flex items-center gap-1.5 h-9 px-2.5 border border-transparent bg-[var(--input-background)] text-[13px] text-foreground" style={{ borderRadius: 4 }}>
               <Lock className="w-3 h-3 text-muted-foreground" aria-hidden />
               <span className="truncate">{selectedClient?.name || 'This client'}</span>
             </div>
