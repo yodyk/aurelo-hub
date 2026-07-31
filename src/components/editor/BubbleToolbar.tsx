@@ -74,11 +74,18 @@ export default function BubbleToolbar({ editor, features }: Props) {
       appendTo={() => document.body}
       options={{
         placement: 'top',
-        offset: 10,
+        // Push the bubble clear of the writing surface: the offset grows with
+        // the distance from the selection to the top of the field, so the bar
+        // always floats fully above the editor box instead of half-covering
+        // the first line or its focus ring.
+        offset: ({ rects }: any) => {
+          const shellTop = (editor.view.dom as HTMLElement).getBoundingClientRect().top;
+          const gap = rects.reference.y - shellTop;
+          return Math.max(10, gap + 12);
+        },
         strategy: 'fixed',
-        // Vertical behaviour is viewport-based (default boundary) so the bubble
-        // always sits above/below the selection and never lands on top of the
-        // text. Only the horizontal axis is clamped to the editor's own box.
+        // Vertical behaviour is viewport-based (default boundary); only the
+        // horizontal axis is clamped to the editor's own box.
         flip: { padding: 8 },
         shift: { boundary: editor.view.dom as HTMLElement, padding: 4, crossAxis: false },
         size: {
