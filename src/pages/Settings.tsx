@@ -1332,6 +1332,18 @@ function WorkspaceTab() {
                 <span className="text-[12px]" style={{ fontWeight: 500, color: "var(--success)" }}>Hidden</span>
               </div>
             </div>
+
+            <div className="pt-2">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[13px]" style={{ fontWeight: 500 }}>Live preview</span>
+                <span className="text-[11px] text-muted-foreground">Reflects unsaved changes</span>
+              </div>
+              <PortalBrandingPreview
+                brandColor={ws.brandColor || "#3B66F0"}
+                businessName={ws.name || ""}
+                logoUrl={appLogo?.url || null}
+              />
+            </div>
           </div>
         </SectionCard>
       </FeatureGate>
