@@ -51,6 +51,8 @@ import * as dataApi from "../data/dataApi";
 import * as portalApi from "../data/portalApi";
 import ClientNotes from "../components/ClientNotes";
 import ChecklistPanel from "../components/ChecklistPanel";
+import TaskModal from "@/components/task/TaskModal";
+
 import EmailActivityLog from "../components/EmailActivityLog";
 import WeeklyUpdateComposer from "../components/WeeklyUpdateComposer";
 import PortalQuestionsPanel from "../components/PortalQuestionsPanel";
