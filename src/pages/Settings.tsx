@@ -283,9 +283,11 @@ export default function Settings() {
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
 
   const markDirty = useCallback(() => setIsDirty(true), []);
+  const clearDirty = useCallback(() => setIsDirty(false), []);
   const registerSave = useCallback((fn: () => Promise<void>) => { saveFnRef.current = fn; }, []);
 
-  const saveContextValue = useMemo(() => ({ markDirty, registerSave }), [markDirty, registerSave]);
+  const saveContextValue = useMemo(() => ({ markDirty, clearDirty, registerSave }), [markDirty, clearDirty, registerSave]);
+
 
   // Reset dirty state when tab changes. Do NOT null out saveFnRef here —
   // the newly mounted tab's useRegisterSave effect runs BEFORE this parent
