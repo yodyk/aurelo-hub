@@ -213,16 +213,9 @@ export default function RichEditor({
         />
       )}
       {editable && !touchEditing && (
-        <>
-          {/* Only one bar at a time: the bubble owns selections, the inline bar owns the caret. */}
-          <InlineToolbar
-            editor={editor}
-            features={config.features}
-            onLink={handleTouchLink}
-            hidden={hasSelection}
-          />
-          <BubbleToolbar editor={editor} features={config.features} />
-        </>
+        /* One bar, one place: the toolbar lives above the field and never
+           floats over the text or past the field's edges. */
+        <InlineToolbar editor={editor} features={config.features} />
       )}
 
       <EditorContent
