@@ -1,93 +1,71 @@
-# Rich Text Editor Overhaul — One Canonical Writing Surface
+# Task creation overhaul — confirmed bug + canonical Add Task
 
-Today Aurelo has two overlapping editor implementations (`NoteEditor` with a permanent 9-button toolbar, and `RichDescriptionEditor` wrapping it in a grey box), plus plain `<textarea>` session notes in the modals. This plan replaces all of that with a single `RichEditor` primitive and a genuinely quiet writing experience.
+## 1. Confirmed root cause (verified, not guessed)
 
-## Research takeaways (Refero: Skiff, Notion-class doc editors, Linear, Craft)
+Quick Add on the Tasks page calls `addLooseTask(...)`, which inserts a task with `checklist_id = null`. The Client Detail Tasks tab renders `ChecklistPanel`, which loads tasks via `loadChecklists(clientId)` — that query fetches the client's lists, then fetches only `checklist_items` whose `checklist_id` is in those lists. A task with no list can never match, so it is invisible on the client page.
 
-- Premium editors show **no persistent toolbar**. Formatting arrives on selection (floating bubble) or on demand (`/` menu).
-- The writing column is the only strong visual element — no border, no filled box, no card around the text.
-- Markdown shortcuts carry most formatting; the toolbar is a fallback for discoverability, not the primary path.
-- Save state is a passive, tiny text label — never a banner.
-- On touch, floating bubbles are unreliable under the keyboard; mobile gets a compact bar docked above the keyboard instead.
+Database confirms the shape exactly:
 
-## Decisions
+- 70 tasks total; 1 has `checklist_id = null` — "Testing Quick Add Task", created 2026-07-31, with a valid `client_id` and `workspace_id`. It exists, it has a client, it simply has no list.
+- 36 tasks that DO belong to a list have `client_id = null` on the row itself (they inherit client through the parent list). So `client_id` on the item is not currently reliable as a filter.
 
-| Question | Decision |
-| --- | --- |
-| Fixed toolbar? | No. Removed entirely on desktop. |
-| Formatting on selection? | Yes — floating bubble (Tiptap `BubbleMenu`), hairline surface, 6 actions + overflow. |
-| Slash menu? | Yes, but lightweight: heading, bullet, numbered, checklist, quote, code, divider. No date/entity refs in this pass. |
-| Mobile | Compact docked format bar above keyboard when focused; no bubble menu. |
-| Chrome | No border, no filled background. A single hairline appears on the left of the writing column only while focused. |
-| Save feedback | Passive `Saving… / Saved / Edited 2m ago` micro-label, right-aligned, fades in and out. |
+So: not an RLS, insert, or invalidation problem. The task is created successfully but in a listless state that the client-side query cannot reach. The global Tasks page shows it (it does a second query for `checklist_id is null`), which is why it looks like the task "sometimes" exists.
 
-## What gets built
+Consequence for the fix: making every task belong to a list is the real repair. The UI overhaul rides on top of it.
 
-### 1. `src/components/editor/RichEditor.tsx` — the only editor
+## 2. Data repair (migration, before any constraint)
 
-```tsx
-<RichEditor variant="note" | "task" | "session" value onChange ... />
-```
+One migration, no deletes:
 
-Variant config lives in `editorVariants.ts` and only controls: placeholder set, enabled nodes, min height, autosave behavior, and whether the slash menu is on. No forked rendering logic.
+1. Backfill `client_id` / `workspace_id` / `project_id` on all list-attached items from their parent list (fixes the 36 rows so the item row alone is self-describing).
+2. For each client owning a listless task, get-or-create a list titled **General** with `shared_with_client = false`, then attach the orphaned tasks to it.
+3. Add a partial unique index on `(workspace_id, client_id, lower(title))` where `title = 'General'` and `project_id is null`, so concurrent requests cannot produce duplicate General lists.
+4. Backfill trigger: on `checklist_items` insert, if `client_id`/`workspace_id` are null and `checklist_id` is set, derive them from the parent list. Keeps the item row consistent regardless of insert path.
 
-Sub-files:
-- `BubbleToolbar.tsx` — selection formatting (bold, italic, strike, code, link, list) + "More" popover for heading/quote/divider.
-- `SlashMenu.tsx` — Tiptap suggestion plugin, keyboard-first, arrow/enter/escape, filters as you type.
-- `MobileFormatBar.tsx` — docked bar, 44px targets, only mounted below `lg`.
-- `SaveIndicator.tsx` — passive status text driven by an `useAutosave` hook (debounced, flush on blur/unmount).
+No `NOT NULL` on `checklist_id` in this pass — it is applied only after the app has shipped with the new service and no new listless rows appear. Stated explicitly as a follow-up rather than done blind.
 
-### 2. Editor behavior
+## 3. Canonical creation service
 
-- Markdown input rules: `#`/`##`/`###`, `-`, `1.`, `[]`, `>`, `` ``` ``, `---`.
-- Extensions added: Link (autolink, paste-over-selection), Underline, Horizontal rule, Code block, Blockquote, Typography (smart quotes/dashes).
-- Keyboard: Mod-B/I/U/K/Shift-X, Tab / Shift-Tab list indent, Shift-Enter hard break, Enter exiting empty list items and blockquotes, Backspace at start of an empty heading reverting to paragraph.
-- Paste: HTML sanitized to the supported schema; plain-text paste keeps markdown parsing; pasting a URL over a selection creates a link.
-- No image upload in this pass (storage/permission surface out of scope) — pasted images are dropped with a quiet toast.
+`src/data/taskCreation.ts`:
 
-### 3. Typography
+- `getOrCreateGeneralTaskList(workspaceId, clientId)` — select existing General list; if absent, insert; on unique-violation, re-select and return the winner. Idempotent and race-safe against the new index.
+- `createTask(input)` — validates client, resolves list (explicit list, or General fallback), verifies the list and any project belong to that client, normalizes rich-text description via `toStorableEditorContent`, computes `sort_order`, inserts through `addChecklistItem`, and returns the created task plus its resolved `clientId`/`checklistId` for cache updates.
 
-New scoped stylesheet replacing the `.note-editor-content` rules in `index.css`:
-- 15px / 1.65 body, generous paragraph rhythm (`0.75em` between paragraphs, not margin-collapse guesswork).
-- Headings on `--font-display`, tight tracking, clear step-down, top margin larger than bottom.
-- Lists with hanging markers so text aligns to the left rail; nested lists indent one rhythm unit.
-- Blockquote: hairline left rule, no background tint.
-- Inline code and code block: subtle surface at `--elev-1`, 4px radius, monospace 13px.
-- Checklists: aligned checkbox, completed items at 55% opacity with strikethrough.
-- Links: cobalt, underline offset 2px, hover intensity change only.
+`addLooseTask` is retired from all UI paths (kept only if another caller still needs it; `FocusSections` quick add is migrated too). Every creation surface routes through `createTask`.
 
-### 4. Contextual placeholders
+## 4. Canonical Add Task modal
 
-Rotating-per-context (not animated), driven by variant:
-- note → "Capture ideas…", "Document client decisions…", "Write meeting notes…"
-- task → "Add details, links, or acceptance criteria…"
-- session → "Summarize today's work…"
-Plus a second-line hint on the empty doc: "Type / for commands" (desktop only, fades on first keypress).
+New `src/components/TaskModal.tsx` — `<TaskModal mode="create" defaultClientId defaultListId lockClient />`.
 
-### 5. Focus, selection, motion
+Field set is a superset of what the client-level inline form offers today (title, description, due date, estimated hours, work tags, status, priority) plus client, list, project, repeat, follow-up, and assigned-to-client — nothing removed.
 
-- Focus: no ring on the editor box; the left hairline rail fades in at `transitions.micro` and the placeholder dims. Immediate, no scale.
-- Selection highlight uses a cobalt tint at low alpha rather than the browser default.
-- Bubble menu enters with 120ms opacity + 2px rise (`ease.emphasized`), exits at 120ms. Nothing bounces.
-- Respects `prefers-reduced-motion`.
+Hierarchy: Title → Client + List → Description (RichEditor) → Status / Priority / Due date → Project + estimated hours + tags → collapsed Advanced (repeat, follow-up, assign to client). Sticky footer with Cancel / Create Task.
 
-### 6. Migration of call sites
+Client → List dependency: list options are scoped to the selected client; changing client clears an invalid list and project while keeping title/description. When the client has no lists, the list selector shows "General (will be created)" and the list is materialized at submit time, not on selection.
 
-- `ClientNotes.tsx` → `<RichEditor variant="note">`
-- `ChecklistPanel.tsx`, `TaskDrawer.tsx` → `<RichEditor variant="task">` (drops the grey `rich-desc-shell` box)
-- `Modals.tsx` session-notes textareas (Add Session / Edit Session) → `<RichEditor variant="session">`. Session notes are currently plain text stored in `sessions.notes`; the editor writes HTML, so read paths that render notes as plain strings (TimeLog table, ClientDetail sessions tab, portal) get a shared `renderNoteText()` helper that strips tags for compact/tabular display. No schema change.
-- Old `NoteEditor.tsx` and `RichDescriptionEditor.tsx` are deleted.
+Accessibility: focus starts on Title, focus trapped, Escape guarded when dirty, visible labels, keyboard-navigable selectors, errors announced, submit disabled while in flight to block double-create.
 
-### 7. Accessibility & performance
+Failure keeps the modal open with all data intact and a specific error message.
 
-- `role="textbox"`, `aria-multiline`, labelled by the surrounding field label; bubble menu is a real toolbar with `aria-label`s and arrow-key roving focus; slash menu is a listbox with `aria-activedescendant`.
-- Bubble/slash menus render in portals so no container clipping (matching the Radix pattern already used in the app).
-- Editor instance memoized; autosave debounce keeps writes off the keystroke path; `immediatelyRender: false` and no per-keystroke React state above the editor, so long notes don't re-render parents.
+## 5. Tasks page: search replaces Quick Add
 
-## Verification
+The Quick Add bar is removed and replaced with a utility row: search field left, primary **Add Task** button right; stacked on mobile with full-width controls.
 
-Build + typecheck, then a Playwright pass on the Notes tab and Task drawer capturing: empty state, selection bubble, slash menu open, long-document typing, and a 390px mobile viewport with the docked bar.
+Search is client-side over already-loaded tasks (dataset is 70 rows — no server-side pagination need), lightly debounced, case-insensitive, matching task title, description text, client name, list name, and project name. It filters inside the active status/view context, has a clear button, clears on Escape, and shows "No active tasks match your search." with a clear-search action.
 
-## Out of scope
+## 6. Client Detail
 
-Image upload, collaborative cursors, comments, `/date` and entity references, and portal-side editing.
+The Tasks tab header gets a primary **Add Task** button on the right, opening the same modal with the current client preselected and locked. Existing per-list Add Task footers stay as shortcuts but now open the same modal with client + originating list preselected — their inline creation logic is deleted.
+
+## 7. After create
+
+Refresh the workspace task list, the client's checklists, and Today/summary counts; new task is visible on the Tasks page, the client's Tasks tab, and its list without a reload. Filters are preserved; the created task is briefly highlighted.
+
+## 8. Verification
+
+Manual pass over the listed scenarios, plus a Playwright run for the critical path: create from Tasks page for a client with no lists → confirm exactly one General list exists → confirm the task appears on the client page → repeat and confirm no duplicate General list.
+
+## Technical notes
+
+- Files touched: `src/data/checklistsApi.ts`, new `src/data/taskCreation.ts`, new `src/components/TaskModal.tsx`, `src/pages/Tasks.tsx`, `src/components/ChecklistPanel.tsx`, `src/pages/ClientDetail.tsx`, `src/components/FocusSections.tsx`, one database migration.
+- `parseQuickTask` is no longer used by the Tasks page; kept in place rather than deleted so its natural-language parsing can back the modal's title field later if wanted.
