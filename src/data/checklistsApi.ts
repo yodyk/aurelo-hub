@@ -201,41 +201,10 @@ export async function addChecklistItem(
   return rowToItem(data);
 }
 
-/** Add a "loose" task — no checklist parent. Requires workspaceId + clientId. */
-export async function addLooseTask(
-  workspaceId: string,
-  clientId: string,
-  input: NewTaskInput | string,
-  opts: { projectId?: string | null; source?: TaskSource; addedBy?: 'owner' | 'client' } = {},
-): Promise<ChecklistItem> {
-  const task: NewTaskInput = typeof input === 'string' ? { text: input } : input;
-  const { data, error } = await supabase
-    .from('checklist_items')
-    .insert({
-      checklist_id: null,
-      workspace_id: workspaceId,
-      client_id: clientId,
-      project_id: opts.projectId ?? null,
-      text: task.text,
-      description: task.description ?? null,
-      status: task.status ?? 'to_do',
-      work_tags: task.workTags ?? [],
-      due_date: task.dueDate ?? null,
-      estimated_hours: task.estimatedHours ?? null,
-      priority: task.priority ?? null,
-      waiting_on: task.waitingOn ?? null,
-      follow_up_at: task.followUpAt ?? null,
-      waiting_note: task.waitingNote ?? null,
-      repeat: task.repeat ?? null,
-      sort_order: 0,
-      added_by: opts.addedBy ?? 'owner',
-      source: opts.source ?? 'manual',
-    })
-    .select()
-    .single();
-  if (error) throw new Error(`Failed to add task: ${error.message}`);
-  return rowToItem(data);
-}
+// `addLooseTask` was removed deliberately. It created tasks with
+// `checklist_id = null`, which made them invisible in every client-scoped
+// task view. All creation now goes through `createTask` in
+// `src/data/taskCreation.ts`, which guarantees a client AND a list.
 
 export interface TaskUpdates {
   text?: string;

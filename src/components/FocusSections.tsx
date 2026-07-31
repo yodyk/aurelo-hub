@@ -23,10 +23,11 @@ import { useData } from '@/data/DataContext';
 import {
   loadAllTasksForWorkspace,
   updateChecklistItem,
-  addLooseTask,
   type WorkspaceTask,
 } from '@/data/checklistsApi';
+import { createTask } from '@/data/taskCreation';
 import { STATUS_BY_VALUE, nextStatus } from '@/data/taskStatus';
+
 import { SectionEyebrow } from './primitives/composition';
 import { toast } from '@/lib/toast';
 
@@ -226,9 +227,12 @@ export function FocusSections() {
     const text = quickText.trim();
     if (!text || !workspaceId || !quickClientId) return;
     try {
-      const created = await addLooseTask(workspaceId, quickClientId, { text });
+      // Canonical service — guarantees a client AND a destination list.
+      const { task, checklistId, checklistTitle } = await createTask({
+        workspaceId, clientId: quickClientId, text,
+      });
       setTasks((prev) => [
-        { ...created, clientId: quickClientId, projectId: null, checklistTitle: 'Tasks' },
+        { ...task, checklistId, clientId: quickClientId, projectId: null, checklistTitle },
         ...prev,
       ]);
       setQuickText('');
@@ -237,6 +241,7 @@ export function FocusSections() {
       toast.error(err.message);
     }
   }, [quickText, quickClientId, workspaceId]);
+
 
   if (!loaded) return null;
 

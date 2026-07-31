@@ -6,31 +6,33 @@
  * Status uses the explicit popover — no click-to-cycle. Quick Add parses
  * natural-language input via parseQuickTask.
  */
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
 import { containerVariants, itemVariants } from '@/lib/motion';
 import {
   CheckSquare, Filter, Loader2, ChevronDown, ChevronRight,
-  Hourglass, Plus, X, Repeat,
+  Hourglass, Plus, X, Repeat, Search,
 } from 'lucide-react';
 import { format, parseISO, isPast, isToday, isThisWeek, differenceInCalendarDays } from 'date-fns';
 
 import { useAuth } from '@/data/AuthContext';
 import { useData } from '@/data/DataContext';
 import {
-  loadAllTasksForWorkspace, addLooseTask, materializeRecurrence,
+  loadAllTasksForWorkspace, materializeRecurrence,
   updateChecklistItem, deleteChecklistItem,
   type WorkspaceTask,
 } from '@/data/checklistsApi';
 import { STATUS_BY_VALUE, type TaskStatus } from '@/data/taskStatus';
 import { useTaskDrawer } from '@/data/TaskDrawerContext';
 import { TaskStatusPopover } from '@/components/TaskStatusPopover';
-import { parseQuickTask } from '@/lib/parseQuickTask';
+import { matchesTaskSearch } from '@/lib/taskSearch';
+import TaskModal from '@/components/task/TaskModal';
 import { toast } from '@/lib/toast';
 import { deferredDelete } from '@/lib/deferredDelete';
 import { EmptyState } from '@/components/primitives/EmptyState';
 import { ClientAvatar, useClientFavicons } from '@/components/ClientAvatar';
+
 
 type FilterKey = 'all' | 'overdue' | 'today' | 'week' | 'waiting' | 'no_date' | 'in_review' | 'complete';
 type Scope = 'mine' | 'all';
@@ -68,7 +70,7 @@ function dueText(d?: string | null): { text: string; tone: 'danger' | 'warning' 
 
 export default function Tasks() {
   const { workspaceId } = useAuth();
-  const { clients } = useData();
+  const { clients, allProjects, loadAllProjects } = useData();
   const { open, changeCounter } = useTaskDrawer();
   const faviconUrls = useClientFavicons(workspaceId);
   
@@ -78,6 +80,31 @@ export default function Tasks() {
   const [loading, setLoading] = useState(true);
   const [scope, setScope] = useState<Scope>(() => (localStorage.getItem('aurelo_tasks_scope') as Scope) || 'mine');
   const [clientFilter, setClientFilter] = useState<string>('all');
+  const [query, setQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [addOpen, setAddOpen] = useState(false);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQuery(query), 160);
+    return () => clearTimeout(t);
+  }, [query]);
+
+  useEffect(() => { loadAllProjects?.().catch(() => {}); }, [loadAllProjects]);
+
+  // "/" focuses search — the discoverable, keyboard-first entry point.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== '/' || e.metaKey || e.ctrlKey || e.altKey) return;
+      const el = document.activeElement as HTMLElement | null;
+      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return;
+      e.preventDefault();
+      searchRef.current?.focus();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
 
   const filter = (searchParams.get('filter') as FilterKey) || 'all';
   const setFilter = (f: FilterKey) => {
@@ -121,9 +148,21 @@ export default function Tasks() {
     };
   }, [scoped]);
 
+  const projectName = useCallback(
+    (projectId?: string | null) => (allProjects || []).find((p: any) => p.id === projectId)?.name,
+    [allProjects],
+  );
+  const clientName = useCallback(
+    (clientId?: string) => clientMap.get(clientId || '')?.name,
+    [clientMap],
+  );
+
   const filtered = useMemo(() => {
     let out = scoped;
     if (clientFilter !== 'all') out = out.filter(t => t.clientId === clientFilter);
+    if (debouncedQuery.trim()) {
+      out = out.filter(t => matchesTaskSearch(t, debouncedQuery, { clientName, projectName }));
+    }
     switch (filter) {
       case 'overdue':   return out.filter(t => t.status !== 'complete' && isOverdue(t.dueDate));
       case 'today':     return out.filter(t => t.status !== 'complete' && isDueToday(t.dueDate));
@@ -134,7 +173,8 @@ export default function Tasks() {
       case 'complete':  return out.filter(t => t.status === 'complete');
       default:          return out;
     }
-  }, [scoped, clientFilter, filter]);
+  }, [scoped, clientFilter, filter, debouncedQuery, clientName, projectName]);
+
 
   const buckets = useMemo<Bucket[]>(() => {
     const overdue: WorkspaceTask[] = [];
@@ -219,26 +259,62 @@ export default function Tasks() {
           <p className="type-meta">Every commitment across your clients, in one place.</p>
         </div>
 
-        {/* Scope segmented control */}
-        <div className="inline-flex border border-border" style={{ borderRadius: 4 }}>
-          {([['mine', 'My Tasks'], ['all', 'All Tasks']] as [Scope, string][]).map(([v, l]) => (
-            <button
-              key={v}
-              onClick={() => setScope(v)}
-              className={`px-3 py-1.5 text-[12px] transition-colors cursor-pointer ${
-                scope === v ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground'
-              }`}
-              style={{ fontWeight: 500 }}
-            >
-              {l}
-            </button>
-          ))}
+        <div className="flex items-center gap-2">
+          {/* Scope segmented control */}
+          <div className="inline-flex border border-border" style={{ borderRadius: 4 }}>
+            {([['mine', 'My Tasks'], ['all', 'All Tasks']] as [Scope, string][]).map(([v, l]) => (
+              <button
+                key={v}
+                onClick={() => setScope(v)}
+                className={`px-3 py-1.5 text-[12px] transition-colors cursor-pointer ${
+                  scope === v ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground'
+                }`}
+                style={{ fontWeight: 500 }}
+              >
+                {l}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={() => setAddOpen(true)}
+            className="inline-flex items-center gap-1.5 h-[30px] px-3 text-[12px] bg-primary text-primary-foreground hover:opacity-90 transition-opacity cursor-pointer"
+            style={{ borderRadius: 4, fontWeight: 500 }}
+          >
+            <Plus className="w-3.5 h-3.5" aria-hidden /> Add task
+          </button>
         </div>
       </motion.div>
 
-      {/* Quick add */}
+      {/* Search */}
       <motion.div variants={itemVariants} className="mb-4">
-        <QuickAdd onCreated={refresh} />
+        <div className="relative">
+          <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" aria-hidden />
+          <input
+            ref={searchRef}
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Escape' && query) { e.preventDefault(); setQuery(''); } }}
+            aria-label="Search tasks"
+            placeholder="Search tasks by title, description, client, list or project…   (press / )"
+            className="w-full h-9 bg-transparent border border-border pl-9 pr-9 text-[13px] focus:outline-none focus:ring-1 focus:ring-primary/40 placeholder:text-muted-foreground/60"
+            style={{ borderRadius: 4 }}
+          />
+          {query && (
+            <button
+              onClick={() => { setQuery(''); searchRef.current?.focus(); }}
+              aria-label="Clear search"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-muted-foreground hover:text-foreground cursor-pointer"
+              style={{ borderRadius: 4 }}
+            >
+              <X className="w-3.5 h-3.5" aria-hidden />
+            </button>
+          )}
+        </div>
+        <p className="sr-only" aria-live="polite">
+          {debouncedQuery ? `${filtered.length} tasks match ${debouncedQuery}` : ''}
+        </p>
       </motion.div>
 
       {/* Filters */}
@@ -274,9 +350,15 @@ export default function Tasks() {
       ) : buckets.length === 0 ? (
         <motion.div variants={itemVariants} className="border border-border" style={{ borderRadius: 4 }}>
           <EmptyState
-            glyph={CheckSquare}
-            title={tasks.length === 0 ? 'No tasks yet' : 'Nothing matches'}
-            body={tasks.length === 0 ? 'Add your first task above, or from any client workspace.' : 'Try a different filter or scope.'}
+            glyph={debouncedQuery ? Search : CheckSquare}
+            title={debouncedQuery ? 'No matching tasks' : tasks.length === 0 ? 'No tasks yet' : 'Nothing matches'}
+            body={
+              debouncedQuery
+                ? `Nothing matches “${debouncedQuery}”. Try fewer words, or clear the search.`
+                : tasks.length === 0
+                  ? 'Create your first task with Add task, or from any client workspace.'
+                  : 'Try a different filter or scope.'
+            }
           />
         </motion.div>
       ) : (
@@ -286,9 +368,17 @@ export default function Tasks() {
           ))}
         </motion.div>
       )}
+
+      <TaskModal
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        defaultClientId={clientFilter !== 'all' ? clientFilter : null}
+        onCreated={refresh}
+      />
     </motion.div>
   );
 }
+
 
 // ── Section ───────────────────────────────────────────────────────────
 
@@ -451,94 +541,5 @@ function FilterChip({
         <span className="tabular-nums" style={{ color: countColor, opacity: countColor ? 1 : 0.7 }}>{count}</span>
       )}
     </button>
-  );
-}
-
-// ── Quick Add ─────────────────────────────────────────────────────────
-
-function QuickAdd({ onCreated }: { onCreated: () => void }) {
-  const { workspaceId } = useAuth();
-  const { clients, allProjects, loadAllProjects } = useData();
-  const [value, setValue] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [fallbackClientId, setFallbackClientId] = useState<string>('');
-
-  useEffect(() => { loadAllProjects?.().catch(() => {}); }, [loadAllProjects]);
-
-  const parsed = useMemo(() => parseQuickTask(value, clients as any, allProjects as any), [value, clients, allProjects]);
-
-  const targetClientId = parsed.clientId || fallbackClientId || (clients[0]?.id ?? '');
-
-  const submit = async () => {
-    const text = parsed.text.trim();
-    if (!text || !workspaceId) return;
-    if (!targetClientId) { toast.error('Add a client first, or include @ClientName.'); return; }
-    setBusy(true);
-    try {
-      await addLooseTask(workspaceId, targetClientId, {
-        text,
-        dueDate: parsed.dueDate,
-        priority: parsed.priority as any,
-        status: parsed.status as any,
-        followUpAt: parsed.followUpAt,
-      }, { projectId: parsed.projectId || null, source: 'manual' });
-      setValue('');
-      onCreated();
-      toast.success('Task added');
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to add task');
-    } finally { setBusy(false); }
-  };
-
-  return (
-    <div className="border border-border" style={{ borderRadius: 4 }}>
-      <div className="flex items-center gap-2 px-3 py-2">
-        <Plus className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
-        <input
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter') submit(); }}
-          placeholder='Quick add — try "Review homepage @Acme tomorrow !high"'
-          className="flex-1 bg-transparent text-[13px] focus:outline-none placeholder:text-muted-foreground/60"
-        />
-        {!parsed.clientId && clients.length > 0 && (
-          <select
-            value={fallbackClientId}
-            onChange={(e) => setFallbackClientId(e.target.value)}
-            className="text-[12px] bg-transparent border border-border px-1.5 py-0.5 cursor-pointer focus:outline-none"
-            style={{ borderRadius: 4 }}
-          >
-            <option value="">Pick client…</option>
-            {clients.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
-        )}
-        <button
-          onClick={submit}
-          disabled={busy || !parsed.text.trim()}
-          className="px-2.5 py-1 text-[12px] bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-          style={{ fontWeight: 500, borderRadius: 4 }}
-        >
-          Add
-        </button>
-      </div>
-      {value && (parsed.clientId || parsed.dueDate || parsed.priority || parsed.status !== 'to_do' || parsed.followUpAt) && (
-        <div className="border-t border-border px-3 py-1.5 flex flex-wrap items-center gap-2 type-meta">
-          {parsed.clientId && (
-            <span className="inline-flex items-center gap-1 text-foreground">
-              @ {clients.find((c: any) => c.id === parsed.clientId)?.name}
-            </span>
-          )}
-          {parsed.projectId && (
-            <span className="inline-flex items-center gap-1 text-foreground">
-              # {allProjects.find((p: any) => p.id === parsed.projectId)?.name}
-            </span>
-          )}
-          {parsed.dueDate && <span className="text-foreground">due {format(parseISO(parsed.dueDate), 'MMM d')}</span>}
-          {parsed.followUpAt && <span className="text-foreground">follow up {format(parseISO(parsed.followUpAt), 'MMM d')}</span>}
-          {parsed.priority && <span className="text-foreground">!{parsed.priority}</span>}
-          {parsed.status !== 'to_do' && <span className="text-foreground">{STATUS_BY_VALUE[parsed.status]?.label}</span>}
-        </div>
-      )}
-    </div>
   );
 }

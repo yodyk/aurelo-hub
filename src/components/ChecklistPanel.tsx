@@ -10,10 +10,13 @@ import { toast } from '@/lib/toast';
 import { format, parseISO, isPast, isToday, differenceInCalendarDays } from 'date-fns';
 import {
   loadChecklists, createChecklist, deleteChecklist, updateChecklist,
-  addChecklistItem, updateChecklistItem, deleteChecklistItem,
-  type Checklist, type ChecklistItem, type TaskStatus, type NewTaskInput,
+  updateChecklistItem, deleteChecklistItem,
+  type Checklist, type ChecklistItem, type TaskStatus,
+
 } from '@/data/checklistsApi';
 import { TASK_STATUSES as STATUSES, STATUS_BY_VALUE, nextStatus as cycleNextStatus } from '@/data/taskStatus';
+import TaskModal from '@/components/task/TaskModal';
+
 import { deferredDelete } from '@/lib/deferredDelete';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -358,15 +361,8 @@ function ChecklistCard({
     } catch { setTitleValue(checklist.title); }
   };
 
-  const handleQuickAdd = async (input: NewTaskInput) => {
-    try {
-      const item = await addChecklistItem(checklist.id, input, items.length);
-      setItems(prev => [...prev, item]);
-      setShowQuickAdd(false);
-    } catch (err: any) {
-      toast.error(err.message);
-    }
-  };
+
+
 
   return (
     <div className="bg-card border border-border rounded-xl overflow-hidden" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}>
@@ -497,22 +493,28 @@ function ChecklistCard({
               )}
             </div>
 
-            {/* Add task */}
-            {showQuickAdd ? (
-              <TaskComposer
-                workCategoryNames={workCategoryNames}
-                onCancel={() => setShowQuickAdd(false)}
-                onSubmit={handleQuickAdd}
-              />
-            ) : (
-              <button
-                onClick={() => setShowQuickAdd(true)}
-                className="mt-3 inline-flex items-center gap-1.5 text-[12px] text-muted-foreground hover:text-primary transition-colors cursor-pointer"
-                style={{ fontWeight: 500 }}
-              >
-                <Plus className="w-3.5 h-3.5" /> Add task
-              </button>
-            )}
+            {/* Add task — always the canonical modal, pre-scoped to this list */}
+            <button
+              onClick={() => setShowQuickAdd(true)}
+              className="mt-3 inline-flex items-center gap-1.5 text-[12px] text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+              style={{ fontWeight: 500 }}
+            >
+              <Plus className="w-3.5 h-3.5" aria-hidden /> Add task
+            </button>
+
+            <TaskModal
+              open={showQuickAdd}
+              onClose={() => setShowQuickAdd(false)}
+              lockClient
+              defaultClientId={checklist.clientId}
+              defaultListId={checklist.id}
+              defaultProjectId={checklist.projectId || null}
+              onCreated={({ task }) => {
+                setItems(prev => [...prev, task]);
+                onRefresh?.();
+              }}
+            />
+
           </>
         )}
       </div>
@@ -1142,104 +1144,6 @@ function TaskLinksSection({
 }
 
 
-
-// ── Composer (for creating new tasks) ──────────────────────────────
-
-function TaskComposer({
-  workCategoryNames, onCancel, onSubmit,
-}: {
-  workCategoryNames: string[];
-  onCancel: () => void;
-  onSubmit: (input: NewTaskInput) => void;
-}) {
-  const [text, setText] = useState('');
-  const [showDetails, setShowDetails] = useState(false);
-  const [dueDate, setDueDate] = useState('');
-  const [hours, setHours] = useState('');
-  const [tags, setTags] = useState<string[]>([]);
-
-  const submit = () => {
-    if (!text.trim()) return;
-    onSubmit({
-      text: text.trim(),
-      dueDate: dueDate || null,
-      estimatedHours: hours === '' ? null : Number(hours),
-      workTags: tags,
-    });
-  };
-
-  return (
-    <div className="mt-3 p-3 border border-border rounded-lg bg-background/60 space-y-2.5">
-      <input
-        autoFocus
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        placeholder="Task title…"
-        className="w-full text-[13px] bg-transparent border border-border rounded-md px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary/30"
-        onKeyDown={(e) => { if (e.key === 'Enter' && !showDetails) submit(); if (e.key === 'Escape') onCancel(); }}
-      />
-
-      {showDetails && (
-        <div className="space-y-2.5">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            <DatePicker value={dueDate} onChange={setDueDate} placeholder="Due date (optional)" />
-            <input
-              type="number"
-              min={0}
-              step={0.25}
-              value={hours}
-              onChange={(e) => setHours(e.target.value)}
-              placeholder="Est. hours (optional)"
-              className="text-[13px] bg-accent/30 border border-border rounded-md px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary/30 tabular-nums"
-            />
-          </div>
-          {workCategoryNames.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {workCategoryNames.map(tag => {
-                const active = tags.includes(tag);
-                return (
-                  <button
-                    key={tag}
-                    onClick={() => setTags(prev => active ? prev.filter(t => t !== tag) : [...prev, tag])}
-                    className={`text-[11px] px-2 py-0.5 rounded border transition-colors cursor-pointer ${
-                      active ? 'bg-primary/10 border-primary/30 text-primary' : 'border-border text-muted-foreground hover:bg-accent/40'
-                    }`}
-                    style={{ fontWeight: 500 }}
-                  >
-                    {tag}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      )}
-
-      <div className="flex items-center justify-between">
-        <button
-          onClick={() => setShowDetails(v => !v)}
-          className="text-[11.5px] text-muted-foreground hover:text-primary transition-colors cursor-pointer"
-          style={{ fontWeight: 500 }}
-        >
-          {showDetails ? '− Hide details' : '+ Add details'}
-        </button>
-        <div className="flex items-center gap-1.5">
-          <button onClick={onCancel} className="text-[12px] px-2.5 py-1 text-muted-foreground hover:text-foreground cursor-pointer">Cancel</button>
-          <button
-            onClick={submit}
-            disabled={!text.trim()}
-            className="text-[12px] px-3 py-1 rounded-md bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-40 cursor-pointer"
-            style={{ fontWeight: 500 }}
-          >
-            Add task
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── Helpers ────────────────────────────────────────────────────────
 
 function dueLabel(dueDate?: string | null): { label: string; className: string } | null {
   if (!dueDate) return null;
