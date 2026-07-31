@@ -57,7 +57,7 @@ function FieldLabel({ htmlFor, children, hint }: { htmlFor: string; children: Re
 }
 
 const controlClass =
-  'w-full h-9 text-[13px] bg-transparent border border-border px-2.5 focus:outline-none focus:ring-1 focus:ring-primary/40';
+  'w-full h-9 text-[13px] bg-[var(--input-background)] border border-transparent px-2.5 transition-colors hover:border-border focus:outline-none focus:ring-1 focus:ring-primary/40 placeholder:text-muted-foreground/55';
 
 export default function TaskForm({
   values, onChange, clients, lists, listsLoading, projects,
