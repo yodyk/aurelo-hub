@@ -101,6 +101,9 @@ export default function TaskModal({
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
+      // Let popovers (date pickers, menus) handle their own Escape/Tab first.
+      const target = e.target as HTMLElement | null;
+      if (target?.closest?.('[data-radix-popper-content-wrapper]')) return;
       if (e.key === 'Escape') { e.stopPropagation(); attemptClose(); return; }
       if (e.key !== 'Tab' || !panelRef.current) return;
       const nodes = panelRef.current.querySelectorAll<HTMLElement>(
