@@ -95,7 +95,7 @@ Deno.serve(async (req) => {
     const workspace = workspaceRes.data;
     const wsSettings = brandingRes.data?.data as Record<string, any> | null;
     const planId = workspace?.plan_id || 'starter';
-    const isWhiteLabel = planId === 'studio';
+    const isWhiteLabel = planId === 'studio' || planId === 'legacy';
 
     // 3. Resolve logo URLs from storage
     let logoUrl: string | null = null;
