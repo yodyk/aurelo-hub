@@ -14,6 +14,8 @@ import {
   type Checklist, type ChecklistItem, type TaskStatus, type NewTaskInput,
 } from '@/data/checklistsApi';
 import { TASK_STATUSES as STATUSES, STATUS_BY_VALUE, nextStatus as cycleNextStatus } from '@/data/taskStatus';
+import TaskModal from '@/components/task/TaskModal';
+
 import { deferredDelete } from '@/lib/deferredDelete';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -497,22 +499,28 @@ function ChecklistCard({
               )}
             </div>
 
-            {/* Add task */}
-            {showQuickAdd ? (
-              <TaskComposer
-                workCategoryNames={workCategoryNames}
-                onCancel={() => setShowQuickAdd(false)}
-                onSubmit={handleQuickAdd}
-              />
-            ) : (
-              <button
-                onClick={() => setShowQuickAdd(true)}
-                className="mt-3 inline-flex items-center gap-1.5 text-[12px] text-muted-foreground hover:text-primary transition-colors cursor-pointer"
-                style={{ fontWeight: 500 }}
-              >
-                <Plus className="w-3.5 h-3.5" /> Add task
-              </button>
-            )}
+            {/* Add task — always the canonical modal, pre-scoped to this list */}
+            <button
+              onClick={() => setShowQuickAdd(true)}
+              className="mt-3 inline-flex items-center gap-1.5 text-[12px] text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+              style={{ fontWeight: 500 }}
+            >
+              <Plus className="w-3.5 h-3.5" aria-hidden /> Add task
+            </button>
+
+            <TaskModal
+              open={showQuickAdd}
+              onClose={() => setShowQuickAdd(false)}
+              lockClient
+              defaultClientId={checklist.clientId}
+              defaultListId={checklist.id}
+              defaultProjectId={checklist.projectId || null}
+              onCreated={({ task }) => {
+                setItems(prev => [...prev, task]);
+                onRefresh?.();
+              }}
+            />
+
           </>
         )}
       </div>

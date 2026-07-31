@@ -190,6 +190,7 @@ export type Database = {
           client_id: string
           created_at: string
           id: string
+          is_default: boolean
           project_id: string | null
           shared_with_client: boolean
           title: string
@@ -200,6 +201,7 @@ export type Database = {
           client_id: string
           created_at?: string
           id?: string
+          is_default?: boolean
           project_id?: string | null
           shared_with_client?: boolean
           title?: string
@@ -210,6 +212,7 @@ export type Database = {
           client_id?: string
           created_at?: string
           id?: string
+          is_default?: boolean
           project_id?: string | null
           shared_with_client?: boolean
           title?: string
@@ -2178,6 +2181,17 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      task_integrity_report: {
+        Row: {
+          client_mismatches: number | null
+          duplicate_default_lists: number | null
+          listless_tasks: number | null
+          tasks_missing_client: number | null
+          tasks_with_invalid_list: number | null
+          workspace_mismatches: number | null
+        }
+        Relationships: []
       }
       workspaces_billing: {
         Row: {
