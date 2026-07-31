@@ -1392,6 +1392,9 @@ function WorkspaceCustomFieldsSection() {
   const isStudio = isAtLeast('studio');
   const [fields, loading, setFields] = useSettingsSection<WsFieldSchema[]>('custom_fields_schema', []);
   const [expandedOptions, setExpandedOptions] = useState<string | null>(null);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
 
   const save = useCallback(async () => {
     await api.saveSetting('custom_fields_schema', fields);
