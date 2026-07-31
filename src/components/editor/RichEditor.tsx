@@ -163,19 +163,6 @@ export default function RichEditor({
     }
   }, [editor, value]);
 
-  // The selection bubble replaces the inline bar so the two can never collide.
-  const [hasSelection, setHasSelection] = useState(false);
-  useEffect(() => {
-    if (!editor) return;
-    const sync = () => setHasSelection(!editor.state.selection.empty);
-    editor.on('selectionUpdate', sync);
-    editor.on('blur', sync);
-    sync();
-    return () => {
-      editor.off('selectionUpdate', sync);
-      editor.off('blur', sync);
-    };
-  }, [editor]);
 
   const [linkSeed, setLinkSeed] = useState(0);
   const handleTouchLink = () => {
