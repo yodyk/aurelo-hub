@@ -1006,7 +1006,7 @@ export default function ClientDetail() {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] as const }}
-              className="fixed top-0 right-0 bottom-0 w-full sm:w-[520px] bg-background border-l border-[var(--hairline)] z-50 flex flex-col"
+              className="fixed top-0 right-0 bottom-0 w-full sm:w-[640px] bg-background border-l border-[var(--hairline)] z-50 flex flex-col"
               role="dialog"
               aria-label="Client settings"
             >
