@@ -1419,6 +1419,15 @@ function WorkspaceCustomFieldsSection() {
     markDirty();
   };
 
+  const moveField = (from: number, to: number) => {
+    if (from === to || from < 0 || to < 0 || from >= fields.length || to >= fields.length) return;
+    const next = [...fields];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    setFields(next);
+    markDirty();
+  };
+
   return (
     <SectionCard>
       <SectionHeader
@@ -1427,9 +1436,35 @@ function WorkspaceCustomFieldsSection() {
       />
       <div className="space-y-3">
         {fields.map((field, idx) => (
-          <div key={field.id} className="border border-border rounded-lg p-3 bg-accent/20 space-y-2.5">
+          <div
+            key={field.id}
+            className={cn(
+              "border border-border rounded-lg p-3 bg-accent/20 space-y-2.5 transition-colors",
+              dragIndex === idx && "opacity-50",
+              dragOverIndex === idx && dragIndex !== idx && "border-primary/40 bg-accent/40"
+            )}
+            onDragOver={(e) => { if (dragIndex !== null) { e.preventDefault(); setDragOverIndex(idx); } }}
+            onDrop={(e) => {
+              e.preventDefault();
+              if (dragIndex !== null) moveField(dragIndex, idx);
+              setDragIndex(null);
+              setDragOverIndex(null);
+            }}
+          >
             <div className="flex items-start gap-2">
-              <GripVertical className="w-3.5 h-3.5 text-muted-foreground/40 mt-2 flex-shrink-0" />
+              <div
+                draggable={fields.length > 1}
+                onDragStart={(e) => { e.dataTransfer.effectAllowed = 'move'; setDragIndex(idx); }}
+                onDragEnd={() => { setDragIndex(null); setDragOverIndex(null); }}
+                className={cn(
+                  "mt-1.5 p-0.5 flex-shrink-0 text-muted-foreground/40 hover:text-muted-foreground transition-colors",
+                  fields.length > 1 ? "cursor-grab active:cursor-grabbing" : "cursor-not-allowed opacity-40"
+                )}
+                title={fields.length > 1 ? "Drag to reorder" : "Cannot reorder"}
+              >
+                <GripVertical className="w-3.5 h-3.5" />
+              </div>
+
               <div className="flex-1 grid grid-cols-1 sm:grid-cols-[1fr_140px] gap-2">
                 <TextInput
                   value={field.label}
