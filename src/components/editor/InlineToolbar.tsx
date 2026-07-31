@@ -134,7 +134,7 @@ export default function InlineToolbar({ editor, features, onLink, hidden }: Prop
         <Code className="w-3.5 h-3.5" />
       </Btn>
       {features.link && (
-        <Btn onClick={onLink} active={editor.isActive('link')} label="Link">
+        <Btn onClick={openLink} active={editor.isActive('link')} label="Link">
           <Link2 className="w-3.5 h-3.5" />
         </Btn>
       )}
