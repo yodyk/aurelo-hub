@@ -1,4 +1,6 @@
 import { transitions } from '@/lib/motion';
+import { cn } from '@/lib/utils';
+
 import { formatPercent, fmtH } from '@/lib/format';
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router";
