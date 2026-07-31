@@ -580,9 +580,26 @@ function PortalHeader({ branding, accent }: { branding: PortalBranding; accent: 
       }}
     >
       <div className="max-w-5xl mx-auto flex items-center justify-between">
-        <div className="flex items-center gap-3 min-w-0">
-          {branding.isWhiteLabel && branding.logoUrl ? (
-            <img src={branding.logoUrl} alt={branding.workspaceName || ""} className="h-6 w-auto max-w-[160px] object-contain" />
+        <div className="flex items-center gap-2.5 min-w-0">
+          {branding.isWhiteLabel ? (
+            <>
+              {branding.logoUrl && (
+                <img
+                  src={branding.logoUrl}
+                  alt={branding.workspaceName || ""}
+                  className="h-6 w-6 rounded object-cover flex-shrink-0"
+                />
+              )}
+              {branding.workspaceName && (
+                <span
+                  className="text-[14px] font-semibold tracking-[-0.01em] truncate"
+                  style={{ color: 'var(--portal-text)' }}
+                >
+                  {branding.workspaceName}
+                </span>
+              )}
+              {!branding.logoUrl && !branding.workspaceName && <AureloLogo className="h-4" />}
+            </>
           ) : (
             <AureloLogo className="h-4" />
           )}
