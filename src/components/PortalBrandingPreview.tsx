@@ -140,7 +140,28 @@ export function PortalBrandingPreview({
         )}
       </div>
     </div>
+
+    {showWarning && (
+      <div
+        role="status"
+        className="flex items-start gap-2 rounded border px-3 py-2 text-[11.5px] leading-snug"
+        style={{
+          borderColor: "hsl(var(--warning) / 0.35)",
+          backgroundColor: "hsl(var(--warning) / 0.08)",
+          color: "hsl(var(--warning))",
+        }}
+      >
+        <AlertTriangle className="w-3.5 h-3.5 mt-[1px] flex-shrink-0" aria-hidden="true" />
+        <span>
+          <strong style={{ fontWeight: 600 }}>Low contrast.</strong> This accent scores{" "}
+          {ratioLabel}:1 against white — below the 4.5:1 readability minimum. Button labels
+          and accent text may be hard to read in the portal. Try a darker shade.
+        </span>
+      </div>
+    )}
+    </div>
   );
+
 }
 
 export default PortalBrandingPreview;
