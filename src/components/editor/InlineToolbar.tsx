@@ -1,18 +1,19 @@
-// ── Always-visible formatting bar (shown while the editor has focus) ──
-// The selection bubble stays for in-flow formatting; this bar exists for
-// discoverability so writers never have to guess the editor is rich.
+// ── Always-visible formatting bar (sits above the writing surface) ──
+// Aurelo has exactly one formatting surface per editor. It never floats
+// over the text and never extends past the field.
+import { useEffect, useRef, useState } from 'react';
 import type { Editor } from '@tiptap/react';
 import {
-  Bold, Italic, Strikethrough, Code, Link2,
-  Heading2, List, ListOrdered, CheckSquare, Quote,
+  Bold, Italic, Strikethrough, Code, Link2, Link2Off,
+  Heading2, List, ListOrdered, CheckSquare, Quote, Check, X,
 } from 'lucide-react';
 import type { EditorFeatureSet } from './variants';
+import { normalizeUrl } from './linkUtils';
 
 interface Props {
   editor: Editor;
   features: EditorFeatureSet;
-  onLink: () => void;
-  /** Kept mounted (no layout jump) but faded out while a selection bubble is up. */
+  onLink?: () => void;
   hidden?: boolean;
 }
 
@@ -34,6 +35,58 @@ function Btn({
 }
 
 export default function InlineToolbar({ editor, features, onLink, hidden }: Props) {
+  const [linkMode, setLinkMode] = useState(false);
+  const [linkValue, setLinkValue] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (linkMode) setTimeout(() => inputRef.current?.focus(), 20);
+  }, [linkMode]);
+
+  const openLink = () => {
+    if (onLink) { onLink(); return; }
+    setLinkValue(editor.getAttributes('link').href || '');
+    setLinkMode(true);
+  };
+
+  const applyLink = () => {
+    const href = normalizeUrl(linkValue);
+    if (!href) editor.chain().focus().extendMarkRange('link').unsetLink().run();
+    else editor.chain().focus().extendMarkRange('link').setLink({ href }).run();
+    setLinkMode(false);
+  };
+
+  if (linkMode) {
+    return (
+      <div role="toolbar" aria-label="Link address" className="rich-inline-bar">
+        <input
+          ref={inputRef}
+          value={linkValue}
+          onChange={(e) => setLinkValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') { e.preventDefault(); applyLink(); }
+            if (e.key === 'Escape') { e.preventDefault(); setLinkMode(false); editor.commands.focus(); }
+          }}
+          placeholder="Paste or type a link"
+          aria-label="Link address"
+          className="rich-link-input"
+        />
+        <Btn onClick={applyLink} label="Apply link"><Check className="w-3.5 h-3.5" /></Btn>
+        {editor.isActive('link') && (
+          <Btn
+            onClick={() => { editor.chain().focus().extendMarkRange('link').unsetLink().run(); setLinkMode(false); }}
+            label="Remove link"
+          >
+            <Link2Off className="w-3.5 h-3.5" />
+          </Btn>
+        )}
+        <Btn onClick={() => { setLinkMode(false); editor.commands.focus(); }} label="Cancel">
+          <X className="w-3.5 h-3.5" />
+        </Btn>
+      </div>
+    );
+  }
+
   return (
     <div
       role="toolbar"
