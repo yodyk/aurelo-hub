@@ -1321,7 +1321,7 @@ select {
   -webkit-backdrop-filter: none;
   border: 1px solid hsl(var(--border));
   border-radius: 4px;
-  box-shadow: var(--elev-2, 0 6px 20px rgb(0 0 0 / 0.12));
+  box-shadow: 0 8px 24px -6px rgb(0 0 0 / 0.22), 0 0 0 1px hsl(var(--background));
 }
 .rich-bubble-sep {
   width: 1px;

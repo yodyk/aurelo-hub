@@ -8,7 +8,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
-import BubbleToolbar from './BubbleToolbar';
+
 import InlineToolbar from './InlineToolbar';
 import MobileFormatBar from './MobileFormatBar';
 import { SlashMenu, type SlashMenuHandle } from './SlashMenu';
@@ -163,19 +163,6 @@ export default function RichEditor({
     }
   }, [editor, value]);
 
-  // The selection bubble replaces the inline bar so the two can never collide.
-  const [hasSelection, setHasSelection] = useState(false);
-  useEffect(() => {
-    if (!editor) return;
-    const sync = () => setHasSelection(!editor.state.selection.empty);
-    editor.on('selectionUpdate', sync);
-    editor.on('blur', sync);
-    sync();
-    return () => {
-      editor.off('selectionUpdate', sync);
-      editor.off('blur', sync);
-    };
-  }, [editor]);
 
   const [linkSeed, setLinkSeed] = useState(0);
   const handleTouchLink = () => {
@@ -213,16 +200,9 @@ export default function RichEditor({
         />
       )}
       {editable && !touchEditing && (
-        <>
-          {/* Only one bar at a time: the bubble owns selections, the inline bar owns the caret. */}
-          <InlineToolbar
-            editor={editor}
-            features={config.features}
-            onLink={handleTouchLink}
-            hidden={hasSelection}
-          />
-          <BubbleToolbar editor={editor} features={config.features} />
-        </>
+        /* One bar, one place: the toolbar lives above the field and never
+           floats over the text or past the field's edges. */
+        <InlineToolbar editor={editor} features={config.features} />
       )}
 
       <EditorContent
