@@ -6,13 +6,16 @@ import { Loader2, AlertTriangle } from 'lucide-react';
 // ── Context for dirty tracking ──────────────────────────────────────
 interface SettingsSaveContextValue {
   markDirty: () => void;
+  clearDirty: () => void;
   registerSave: (fn: () => Promise<void>) => void;
 }
 
 export const SettingsSaveContext = createContext<SettingsSaveContextValue>({
   markDirty: () => {},
+  clearDirty: () => {},
   registerSave: () => {},
 });
+
 
 export function useSettingsSave() {
   return useContext(SettingsSaveContext);
