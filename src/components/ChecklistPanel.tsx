@@ -10,8 +10,9 @@ import { toast } from '@/lib/toast';
 import { format, parseISO, isPast, isToday, differenceInCalendarDays } from 'date-fns';
 import {
   loadChecklists, createChecklist, deleteChecklist, updateChecklist,
-  addChecklistItem, updateChecklistItem, deleteChecklistItem,
-  type Checklist, type ChecklistItem, type TaskStatus, type NewTaskInput,
+  updateChecklistItem, deleteChecklistItem,
+  type Checklist, type ChecklistItem, type TaskStatus,
+
 } from '@/data/checklistsApi';
 import { TASK_STATUSES as STATUSES, STATUS_BY_VALUE, nextStatus as cycleNextStatus } from '@/data/taskStatus';
 import TaskModal from '@/components/task/TaskModal';
