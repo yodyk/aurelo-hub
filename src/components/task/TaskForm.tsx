@@ -144,9 +144,9 @@ export default function TaskForm({
               className={`${controlClass} cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed`}
               style={{ borderRadius: 4 }}
             >
-              {lists.length === 0
-                ? <option value="">{DEFAULT_LIST_TITLE} (will be created)</option>
-                : <option value="">{DEFAULT_LIST_TITLE} (default)</option>}
+              {lists.length === 0 && (
+                <option value="">{DEFAULT_LIST_TITLE} (will be created)</option>
+              )}
               {lists.map(l => (
                 <option key={l.id} value={l.id}>{l.title}{l.projectId ? ' · project list' : ''}</option>
               ))}
