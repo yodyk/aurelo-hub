@@ -227,6 +227,7 @@ export default function RichEditor({
 
       <EditorContent
         editor={editor}
+        className="rich-editor-content"
         onFocus={() => setFocused(true)}
         onBlur={() => {
           setFocused(false);

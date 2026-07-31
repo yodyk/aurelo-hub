@@ -1158,6 +1158,15 @@ select {
   border-color: hsl(var(--primary) / 0.45);
 }
 
+/* The content wrapper owns the min-height; the ProseMirror surface stretches
+   to fill it so an empty editor still reads as a multi-line writing area. */
+.rich-editor-content {
+  display: flex;
+  flex-direction: column;
+}
+.rich-editor-content > .rich-editor-surface {
+  flex: 1 1 auto;
+}
 .rich-editor-surface {
   font-size: 14px;
   line-height: 1.65;
