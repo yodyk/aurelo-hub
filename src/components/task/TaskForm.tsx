@@ -57,7 +57,7 @@ function FieldLabel({ htmlFor, children, hint }: { htmlFor: string; children: Re
 }
 
 const controlClass =
-  'w-full h-9 text-[13px] bg-transparent border border-border px-2.5 focus:outline-none focus:ring-1 focus:ring-primary/40';
+  'w-full h-9 text-[13px] bg-[var(--input-background)] border border-transparent px-2.5 transition-colors hover:border-border focus:outline-none focus:ring-1 focus:ring-primary/40 placeholder:text-muted-foreground/55';
 
 export default function TaskForm({
   values, onChange, clients, lists, listsLoading, projects,
@@ -78,6 +78,10 @@ export default function TaskForm({
   useEffect(() => {
     if (values.checklistId && !lists.some(l => l.id === values.checklistId)) {
       onChange({ checklistId: '' });
+    } else if (!values.checklistId && lists.length > 0) {
+      // Preselect the client's General list so the dropdown never shows a duplicate.
+      const general = lists.find(l => !l.projectId && l.title === DEFAULT_LIST_TITLE) || lists[0];
+      onChange({ checklistId: general.id });
     }
     if (values.projectId && !clientProjects.some(p => p.id === values.projectId)) {
       onChange({ projectId: '' });
@@ -113,7 +117,7 @@ export default function TaskForm({
         <div>
           <FieldLabel htmlFor="task-client">Client</FieldLabel>
           {lockClient ? (
-            <div id="task-client" className="flex items-center gap-1.5 h-9 px-2.5 border border-border bg-accent/30 text-[13px] text-foreground" style={{ borderRadius: 4 }}>
+            <div id="task-client" className="flex items-center gap-1.5 h-9 px-2.5 border border-transparent bg-[var(--input-background)] text-[13px] text-foreground" style={{ borderRadius: 4 }}>
               <Lock className="w-3 h-3 text-muted-foreground" aria-hidden />
               <span className="truncate">{selectedClient?.name || 'This client'}</span>
             </div>
@@ -144,9 +148,9 @@ export default function TaskForm({
               className={`${controlClass} cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed`}
               style={{ borderRadius: 4 }}
             >
-              {lists.length === 0
-                ? <option value="">{DEFAULT_LIST_TITLE} (will be created)</option>
-                : <option value="">{DEFAULT_LIST_TITLE} (default)</option>}
+              {lists.length === 0 && (
+                <option value="">{DEFAULT_LIST_TITLE} (will be created)</option>
+              )}
               {lists.map(l => (
                 <option key={l.id} value={l.id}>{l.title}{l.projectId ? ' · project list' : ''}</option>
               ))}
@@ -166,7 +170,7 @@ export default function TaskForm({
       {/* 3 — Description */}
       <div>
         <FieldLabel htmlFor="task-description">Description <span style={{ fontWeight: 400 }}>(optional)</span></FieldLabel>
-        <div id="task-description" className="border border-border px-2.5 py-1.5 min-h-[76px]" style={{ borderRadius: 4 }}>
+        <div id="task-description" className="bg-[var(--input-background)] border border-transparent px-2.5 py-1.5 min-h-[76px]" style={{ borderRadius: 4 }}>
           <RichEditor
             variant="task"
             value={values.description}
