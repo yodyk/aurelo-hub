@@ -1006,7 +1006,7 @@ export default function ClientDetail() {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] as const }}
-              className="fixed top-0 right-0 bottom-0 w-full sm:w-[520px] bg-background border-l border-[var(--hairline)] z-50 flex flex-col"
+              className="fixed top-0 right-0 bottom-0 w-full sm:w-[640px] bg-background border-l border-[var(--hairline)] z-50 flex flex-col"
               role="dialog"
               aria-label="Client settings"
             >
@@ -1517,12 +1517,12 @@ function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (
 
     if (isEditing) {
       return (
-        <div className="flex items-center gap-2 w-full">
+        <div className="flex items-center gap-2 w-full min-w-0">
           {type === 'textarea' ? (
             <textarea
               value={editValue}
               onChange={(e) => setEditValue(e.target.value)}
-              className="flex-1 px-2.5 py-1.5 text-[14px] bg-input-background border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+              className="flex-1 min-w-0 px-2.5 py-1.5 text-[14px] bg-input-background border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-primary resize-none"
               rows={2}
               autoFocus
             />
@@ -1530,7 +1530,7 @@ function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (
             <select
               value={editValue}
               onChange={(e) => setEditValue(e.target.value)}
-              className="flex-1 px-2.5 py-1.5 text-[14px] bg-input-background border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+              className="flex-1 min-w-0 px-2.5 py-1.5 text-[14px] bg-input-background border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
               autoFocus
             >
               <option value="">Select...</option>
@@ -1547,15 +1547,15 @@ function DetailsTab({ client, onUpdateClient }: { client: any; onUpdateClient: (
               type="text"
               value={editValue}
               onChange={(e) => setEditValue(e.target.value)}
-              className="flex-1 px-2.5 py-1.5 text-[14px] bg-input-background border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+              className="flex-1 min-w-0 px-2.5 py-1.5 text-[14px] bg-input-background border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
               autoFocus
               onKeyDown={(e) => { if (e.key === 'Enter') onSave(editValue); if (e.key === 'Escape') cancelEdit(); }}
             />
           )}
-          <button onClick={() => onSave(editValue)} disabled={saving} className="w-7 h-7 flex items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
+          <button onClick={() => onSave(editValue)} disabled={saving} className="w-7 h-7 flex-shrink-0 flex items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
             {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
           </button>
-          <button onClick={cancelEdit} className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-accent/60 text-muted-foreground transition-colors">
+          <button onClick={cancelEdit} className="w-7 h-7 flex-shrink-0 flex items-center justify-center rounded-md hover:bg-accent/60 text-muted-foreground transition-colors">
             <X className="w-3 h-3" />
           </button>
         </div>
