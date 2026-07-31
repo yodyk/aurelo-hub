@@ -78,6 +78,10 @@ export default function TaskForm({
   useEffect(() => {
     if (values.checklistId && !lists.some(l => l.id === values.checklistId)) {
       onChange({ checklistId: '' });
+    } else if (!values.checklistId && lists.length > 0) {
+      // Preselect the client's General list so the dropdown never shows a duplicate.
+      const general = lists.find(l => !l.projectId && l.title === DEFAULT_LIST_TITLE) || lists[0];
+      onChange({ checklistId: general.id });
     }
     if (values.projectId && !clientProjects.some(p => p.id === values.projectId)) {
       onChange({ projectId: '' });
