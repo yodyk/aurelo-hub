@@ -74,12 +74,13 @@ export default function BubbleToolbar({ editor, features }: Props) {
       appendTo={() => document.body}
       options={{
         placement: 'top',
-        offset: 12,
+        offset: 10,
         strategy: 'fixed',
-        // Keep the bubble inside the editor's own box — never hanging off
-        // the left/right edge of the rich text field.
-        flip: { boundary: editor.view.dom as HTMLElement, padding: 4 },
-        shift: { boundary: editor.view.dom as HTMLElement, padding: 4, crossAxis: true },
+        // Vertical behaviour is viewport-based (default boundary) so the bubble
+        // always sits above/below the selection and never lands on top of the
+        // text. Only the horizontal axis is clamped to the editor's own box.
+        flip: { padding: 8 },
+        shift: { boundary: editor.view.dom as HTMLElement, padding: 4, crossAxis: false },
         size: {
           boundary: editor.view.dom as HTMLElement,
           padding: 4,
