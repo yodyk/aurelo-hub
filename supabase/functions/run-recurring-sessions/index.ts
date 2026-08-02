@@ -70,16 +70,15 @@ Deno.serve(async (req) => {
           shouldRun = true;
         } else {
           const [ly, lm, ld] = lastRun.split("-").map(Number);
-          const lastDate = new Date(Date.UTC(ly, lm - 1, ld));
-          const todayDate = new Date(Date.UTC(
-            ...today.split("-").map(Number) as [number, number, number]
-          ));
-          todayDate.setUTCMonth(todayDate.getUTCMonth()); // fix month
+          const [ty, tm, td] = today.split("-").map(Number);
+          const lastDate = Date.UTC(ly, lm - 1, ld);
+          const todayDate = Date.UTC(ty, tm - 1, td);
           const diffDays = Math.floor(
-            (todayDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24)
+            (todayDate - lastDate) / (1000 * 60 * 60 * 24)
           );
           shouldRun = diffDays >= 7;
         }
+
       } else if (rule.frequency === "monthly") {
         if (!lastRun) {
           shouldRun = true;
