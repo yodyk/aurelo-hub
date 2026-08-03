@@ -2066,6 +2066,13 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
   const [addUnit, setAddUnit] = useState<'hours' | 'percent'>('hours');
   const [adding, setAdding] = useState(false);
 
+  // "Edit hours granted for this cycle" state
+  const [editingGrant, setEditingGrant] = useState(false);
+  const [grantTotal, setGrantTotal] = useState(String(client.retainerTotal ?? 0));
+  const [grantRollover, setGrantRollover] = useState(String(client.retainerCarryoverHours ?? 0));
+  const [savingGrant, setSavingGrant] = useState(false);
+
+
   const hoursUsed = (client.retainerTotal || 0) - (client.retainerRemaining || 0);
   const usagePct = client.retainerTotal ? Math.round((hoursUsed / client.retainerTotal) * 100) : 0;
   const retainerStatus = client.retainerStatus || 'active';
