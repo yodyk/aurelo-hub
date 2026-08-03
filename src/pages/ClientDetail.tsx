@@ -2442,7 +2442,63 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
             )}
           </div>
 
+          {/* Edit hours granted for the active cycle */}
+          <div className="mt-4 pt-4 border-t border-border">
+            <div className="flex items-center justify-between mb-2 gap-3">
+              <div>
+                <span className="text-[12px] text-muted-foreground block" style={{ fontWeight: 600 }}>Hours granted this cycle</span>
+                <span className="text-[11px] text-muted-foreground">Correct the allotment for the active cycle. Logged hours stay as-is.</span>
+              </div>
+              {!editingGrant ? (
+                <button onClick={openGrantEditor} className="text-[11px] text-primary hover:text-primary/80 transition-colors" style={{ fontWeight: 500 }}>
+                  Edit
+                </button>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <button onClick={() => setEditingGrant(false)} className="text-[11px] text-muted-foreground hover:text-foreground transition-colors" style={{ fontWeight: 500 }}>Cancel</button>
+                  <button
+                    onClick={handleSaveGrant}
+                    disabled={savingGrant}
+                    className="text-[11px] text-primary hover:text-primary/80 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    style={{ fontWeight: 500 }}
+                  >
+                    {savingGrant ? 'Saving…' : 'Save'}
+                  </button>
+                </div>
+              )}
+            </div>
+            {editingGrant ? (
+              <div className="space-y-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[11px] text-muted-foreground mb-1 block" style={{ fontWeight: 500 }}>Total hours this cycle</label>
+                    <input type="number" value={grantTotal} onChange={(e) => setGrantTotal(e.target.value)} min={0} step="0.25" className="w-full px-3 py-2 text-[13px] bg-input-background border border-border rounded-lg tabular-nums" />
+                  </div>
+                  <div>
+                    <label className="text-[11px] text-muted-foreground mb-1 block" style={{ fontWeight: 500 }}>Of which rollover</label>
+                    <input type="number" value={grantRollover} onChange={(e) => setGrantRollover(e.target.value)} min={0} step="0.25" className="w-full px-3 py-2 text-[13px] bg-input-background border border-border rounded-lg tabular-nums" />
+                  </div>
+                </div>
+                <span className="text-[11px] text-muted-foreground block">
+                  {fmtH(Math.max(0, Math.round(hoursUsed * 100) / 100))}h already logged → remaining becomes <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>{fmtH(grantRemainingPreview)}h</span>.
+                </span>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[13px]">
+                <div className="flex items-center justify-between bg-accent/30 rounded-lg px-3 py-2">
+                  <span className="text-muted-foreground">Total granted</span>
+                  <span className="tabular-nums" style={{ fontWeight: 500 }}>{fmtH(Number(client.retainerTotal || 0))}h</span>
+                </div>
+                <div className="flex items-center justify-between bg-accent/30 rounded-lg px-3 py-2">
+                  <span className="text-muted-foreground">Rollover included</span>
+                  <span className="tabular-nums" style={{ fontWeight: 500 }}>{fmtH(Number(client.retainerCarryoverHours || 0))}h</span>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Add hours to current cycle */}
+
           <div className="mt-4 pt-4 border-t border-border">
             <div className="flex items-center justify-between mb-2">
               <div>
