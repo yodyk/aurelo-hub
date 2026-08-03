@@ -2113,6 +2113,40 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
     }
   };
 
+  // Editing the hours granted for the ACTIVE cycle. Hours already logged stay
+  // untouched — remaining is recomputed as (new total − used).
+  const grantTotalNum = Math.max(0, Math.round((Number(grantTotal) || 0) * 100) / 100);
+  const grantRolloverNum = Math.min(
+    grantTotalNum,
+    Math.max(0, Math.round((Number(grantRollover) || 0) * 100) / 100),
+  );
+  const grantRemainingPreview = Math.max(0, Math.round((grantTotalNum - Math.max(0, hoursUsed)) * 100) / 100);
+
+  const openGrantEditor = () => {
+    setGrantTotal(String(Number(client.retainerTotal ?? 0)));
+    setGrantRollover(String(Number(client.retainerCarryoverHours ?? 0)));
+    setEditingGrant(true);
+  };
+
+  const handleSaveGrant = async () => {
+    setSavingGrant(true);
+    try {
+      await onUpdateClient({
+        retainerTotal: grantTotalNum,
+        retainerRemaining: grantRemainingPreview,
+        retainerCarryoverHours: grantRolloverNum,
+      });
+      setEditingGrant(false);
+      toast.success('Cycle hours updated');
+    } catch {
+      toast.error('Failed to update cycle hours');
+    } finally {
+      setSavingGrant(false);
+    }
+  };
+
+
+
 
   // Load retainer history
   useEffect(() => {
