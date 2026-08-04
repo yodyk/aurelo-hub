@@ -47,7 +47,7 @@ import {
   HairlineBar,
 } from "../components/primitives/composition";
 import { ClientAvatar, useClientFavicons } from "@/components/ClientAvatar";
-import { recognizeWorkspaceRevenue, effectiveRate as calcEffectiveRate, sumLaborValue } from "@/lib/revenue";
+import { recognizeWorkspaceRevenue, effectiveRate as calcEffectiveRate, sumLaborValue, resolveBillingModel } from "@/lib/revenue";
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
