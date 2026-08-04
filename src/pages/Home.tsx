@@ -120,7 +120,7 @@ function RingProgress({
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const color =
-    (value || 0) >= 1 ? "hsl(var(--destructive))" : (value || 0) >= 0.85 ? "hsl(var(--warning))" : "hsl(var(--primary))";
+    (value || 0) >= 1 ? "var(--destructive)" : (value || 0) >= 0.85 ? "var(--warning)" : "var(--primary)";
   // Keep a sliver visible so tracked-but-tiny progress still reads as progress.
   const dash = pct > 0 ? Math.max(c * pct, stroke * 1.5) : 0;
   return (
@@ -137,21 +137,25 @@ function RingProgress({
         cx={size / 2}
         cy={size / 2}
         r={r}
-        fill="none"
-        stroke="hsl(var(--muted-foreground) / 0.28)"
-        strokeWidth={stroke}
-        strokeDasharray={hasEstimate ? undefined : "2 3"}
+        style={{
+          fill: "none",
+          stroke: "color-mix(in srgb, var(--muted-foreground) 30%, transparent)",
+          strokeWidth: stroke,
+          strokeDasharray: hasEstimate ? undefined : "2 3",
+        }}
       />
       {hasEstimate && dash > 0 && (
         <circle
           cx={size / 2}
           cy={size / 2}
           r={r}
-          fill="none"
-          stroke={color}
-          strokeWidth={stroke}
-          strokeLinecap="round"
-          strokeDasharray={`${dash} ${c}`}
+          style={{
+            fill: "none",
+            stroke: color,
+            strokeWidth: stroke,
+            strokeLinecap: "round",
+            strokeDasharray: `${dash} ${c}`,
+          }}
           transform={`rotate(-90 ${size / 2} ${size / 2})`}
         />
       )}
