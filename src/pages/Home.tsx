@@ -46,6 +46,7 @@ import {
   SegmentedControl,
   HairlineBar,
 } from "../components/primitives/composition";
+import { ClientAvatar, useClientFavicons } from "@/components/ClientAvatar";
 import { recognizeWorkspaceRevenue, effectiveRate as calcEffectiveRate, sumLaborValue } from "@/lib/revenue";
 
 // ── Helpers ──────────────────────────────────────────────────────────
@@ -113,6 +114,7 @@ const item = {
 export default function Today() {
   const navigate = useNavigate();
   const {
+    workspaceId,
     sessions,
     clients,
     financialDefaults,
@@ -120,6 +122,7 @@ export default function Today() {
     allProjects,
     loadAllProjects,
   } = useData();
+  const faviconUrls = useClientFavicons(workspaceId);
   const { user } = useAuth();
   const { can } = usePlan();
   const hasFullInsights = can("fullInsights");
