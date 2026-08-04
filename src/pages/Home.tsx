@@ -47,7 +47,7 @@ import {
   HairlineBar,
 } from "../components/primitives/composition";
 import { ClientAvatar, useClientFavicons } from "@/components/ClientAvatar";
-import { recognizeWorkspaceRevenue, effectiveRate as calcEffectiveRate, sumLaborValue } from "@/lib/revenue";
+import { recognizeWorkspaceRevenue, effectiveRate as calcEffectiveRate, sumLaborValue, resolveBillingModel } from "@/lib/revenue";
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
@@ -253,7 +253,20 @@ export default function Today() {
   const now = new Date();
   const dayOfMonth = now.getDate();
   const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-  const projected = Math.round(gross * (daysInMonth / Math.max(dayOfMonth, 1)));
+  // Only the variable (hourly / session-driven) portion should be extrapolated.
+  // Retainers and completed fixed-fee work are already whole-month amounts —
+  // run-rating them made early-month projections wildly overstated.
+  const variableGross = useMemo(() => {
+    const hourlyClients = (clients as any[]).filter(
+      (c) => resolveBillingModel(null, c as any) === 'Hourly',
+    );
+    if (hourlyClients.length === 0) return 0;
+    return recognizeWorkspaceRevenue(hourlyClients as any, allProjects as any, sessions as any, { start: monthStart, end: monthEnd });
+  }, [clients, allProjects, sessions, monthStart, monthEnd]);
+  const fixedGross = Math.max(0, gross - variableGross);
+  const projected = Math.round(
+    fixedGross + variableGross * (daysInMonth / Math.max(dayOfMonth, 1)),
+  );
   const projectedDisplay = viewMode === "gross" ? projected : Math.round(projected * netMult);
 
   // Week days
