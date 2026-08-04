@@ -155,6 +155,7 @@ export function TodayTasksModule() {
               <div className="flex-1 min-w-0">
                 <div className="type-body truncate" style={{ fontWeight: 500 }}>{t.text}</div>
                 <div className="type-meta truncate flex items-center gap-2">
+                  <span>{t.clientName}</span>
                   {followingUp && (
                     <span className="inline-flex items-center gap-1" style={{ color: 'var(--warning)' }}>
                       <Hourglass className="w-3 h-3" /> Follow up

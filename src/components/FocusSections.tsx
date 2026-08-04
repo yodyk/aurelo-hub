@@ -231,8 +231,9 @@ export function FocusSections() {
       const { task, checklistId, checklistTitle } = await createTask({
         workspaceId, clientId: quickClientId, text,
       });
+      const clientName = clientMap.get(quickClientId)?.name || 'Unknown';
       setTasks((prev) => [
-        { ...task, checklistId, clientId: quickClientId, projectId: null, checklistTitle },
+        { ...task, checklistId, clientId: quickClientId, clientName, projectId: null, checklistTitle },
         ...prev,
       ]);
       setQuickText('');
@@ -240,7 +241,7 @@ export function FocusSections() {
     } catch (err: any) {
       toast.error(err.message);
     }
-  }, [quickText, quickClientId, workspaceId]);
+  }, [quickText, quickClientId, workspaceId, clientMap]);
 
 
   if (!loaded) return null;
