@@ -252,6 +252,7 @@ export async function deleteChecklistItem(itemId: string): Promise<void> {
 
 export interface WorkspaceTask extends ChecklistItem {
   clientId: string;
+  clientName: string;
   projectId?: string | null;
   checklistTitle: string;
 }
@@ -266,6 +267,16 @@ export async function loadAllTasksForWorkspace(workspaceId: string): Promise<Wor
   const checklists = cls || [];
   const byChecklistId = new Map<string, any>(checklists.map((c: any) => [c.id, c]));
   const checklistIds = checklists.map((c: any) => c.id);
+
+  // Load clients for name lookup
+  const { data: clientRows, error: clientErr } = await supabase
+    .from('clients')
+    .select('id, name')
+    .eq('workspace_id', workspaceId);
+  if (clientErr) console.error('[checklistsApi] loadAllTasks clients:', clientErr);
+  const clientNameById = new Map<string, string>(
+    (clientRows || []).map((c: any) => [c.id, c.name])
+  );
 
   // Fetch BOTH: items in those checklists AND loose items (workspace_id set, checklist_id null)
   const queries: any[] = [];
@@ -296,9 +307,11 @@ export async function loadAllTasksForWorkspace(workspaceId: string): Promise<Wor
 
   return allRows.map((row: any) => {
     const parent = row.checklist_id ? byChecklistId.get(row.checklist_id) : null;
+    const clientId = parent?.client_id ?? row.client_id ?? '';
     return {
       ...rowToItem(row),
-      clientId: parent?.client_id ?? row.client_id,
+      clientId,
+      clientName: clientNameById.get(clientId) || 'Unknown',
       projectId: parent?.project_id ?? row.project_id ?? null,
       checklistTitle: parent?.title || 'Tasks',
     };
