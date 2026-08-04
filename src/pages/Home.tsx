@@ -139,7 +139,7 @@ function RingProgress({
         r={r}
         style={{
           fill: "none",
-          stroke: "hsl(var(--muted-foreground) / 0.3)",
+          stroke: "color-mix(in srgb, var(--muted-foreground) 30%, transparent)",
           strokeWidth: stroke,
           strokeDasharray: hasEstimate ? undefined : "2 3",
         }}
