@@ -137,21 +137,25 @@ function RingProgress({
         cx={size / 2}
         cy={size / 2}
         r={r}
-        fill="none"
-        stroke="hsl(var(--muted-foreground) / 0.28)"
-        strokeWidth={stroke}
-        strokeDasharray={hasEstimate ? undefined : "2 3"}
+        style={{
+          fill: "none",
+          stroke: "hsl(var(--muted-foreground) / 0.3)",
+          strokeWidth: stroke,
+          strokeDasharray: hasEstimate ? undefined : "2 3",
+        }}
       />
       {hasEstimate && dash > 0 && (
         <circle
           cx={size / 2}
           cy={size / 2}
           r={r}
-          fill="none"
-          stroke={color}
-          strokeWidth={stroke}
-          strokeLinecap="round"
-          strokeDasharray={`${dash} ${c}`}
+          style={{
+            fill: "none",
+            stroke: color,
+            strokeWidth: stroke,
+            strokeLinecap: "round",
+            strokeDasharray: `${dash} ${c}`,
+          }}
           transform={`rotate(-90 ${size / 2} ${size / 2})`}
         />
       )}
