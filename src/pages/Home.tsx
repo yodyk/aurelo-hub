@@ -120,7 +120,7 @@ function RingProgress({
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const color =
-    (value || 0) >= 1 ? "hsl(var(--destructive))" : (value || 0) >= 0.85 ? "hsl(var(--warning))" : "hsl(var(--primary))";
+    (value || 0) >= 1 ? "var(--destructive)" : (value || 0) >= 0.85 ? "var(--warning)" : "var(--primary)";
   // Keep a sliver visible so tracked-but-tiny progress still reads as progress.
   const dash = pct > 0 ? Math.max(c * pct, stroke * 1.5) : 0;
   return (
