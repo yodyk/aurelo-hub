@@ -684,7 +684,7 @@ export default function Today() {
                       <span className="type-meta tabular-nums flex-shrink-0">
                         {fmtH(p.hours || 0)}h{p.estimatedHours ? ` / ${fmtH(p.estimatedHours)}h` : ""}
                       </span>
-                      {p.estimatedHours > 0 && <RingProgress value={p.completion} />}
+                      <RingProgress value={p.completion} hasEstimate={p.estimatedHours > 0} />
                     </div>
                   </li>
 
