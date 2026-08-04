@@ -109,7 +109,40 @@ const item = {
   show: { opacity: 1, y: 0, transition: { duration: 0.32, ease: [0.32, 0.72, 0, 1] as const } },
 };
 
+/** Outlined circular progress indicator. Turns amber past 85%, red past 100%. */
+function RingProgress({ value, size = 26, stroke = 2 }: { value: number; size?: number; stroke?: number }) {
+  const pct = Math.max(0, Math.min(1, value || 0));
+  const r = (size - stroke) / 2;
+  const c = 2 * Math.PI * r;
+  const color =
+    (value || 0) >= 1 ? "hsl(var(--destructive))" : (value || 0) >= 0.85 ? "hsl(var(--warning))" : "hsl(var(--primary))";
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      className="flex-shrink-0"
+      role="img"
+      aria-label={`${Math.round(pct * 100)}% of estimated hours used`}
+    >
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--hairline)" strokeWidth={stroke} />
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={r}
+        fill="none"
+        stroke={color}
+        strokeWidth={stroke}
+        strokeLinecap="round"
+        strokeDasharray={`${c * pct} ${c}`}
+        transform={`rotate(-90 ${size / 2} ${size / 2})`}
+      />
+    </svg>
+  );
+}
+
 // ── Component ────────────────────────────────────────────────────────
+
 
 export default function Today() {
   const navigate = useNavigate();
@@ -624,17 +657,19 @@ export default function Today() {
                     onClick={() => navigate(`/clients/${p.clientId}`)}
                     className="py-3 cursor-pointer group hover:bg-[color:var(--surface-sunken)] -mx-2 px-2 transition-colors"
                   >
-                    <div className="flex items-baseline justify-between gap-3 mb-2">
-                      <div className="min-w-0">
+                    <div className="flex items-center gap-3">
+                      <ClientAvatar name={p.clientName} url={faviconUrls[p.clientId]} size={28} />
+                      <div className="min-w-0 flex-1">
                         <div className="type-body truncate" style={{ fontWeight: 500 }}>{p.name}</div>
                         <div className="type-meta truncate">{p.clientName}</div>
                       </div>
                       <span className="type-meta tabular-nums flex-shrink-0">
                         {fmtH(p.hours || 0)}h{p.estimatedHours ? ` / ${fmtH(p.estimatedHours)}h` : ""}
                       </span>
+                      {p.estimatedHours > 0 && <RingProgress value={p.completion} />}
                     </div>
-                    {p.estimatedHours > 0 && <HairlineBar value={p.completion} threshold height={1} />}
                   </li>
+
                 ))}
               </ul>
             ) : (
