@@ -50,3 +50,19 @@ The five highest-risk defects; the screen most likely to be showing misleading i
 ## Constraints
 
 Read-only for the entire pass: `supabase--read_query` and psql SELECTs only. No logic rewrites, no backfills, no trigger or schema changes, no aggregate updates, no invoice or payment edits, no rounding changes, no deployments. The only file written is the report.
+
+## Execution directive (approved additions)
+
+This pass executes the audit itself — no further proposals. Approving this plan starts the read-only investigation and produces `docs/financial-integrity-report.md` as its only written output.
+
+Additional requirements folded in:
+
+- Every finding uses the fixed format: ID and Title; Severity (Critical/High/Medium/Low); Status (Confirmed defect / Confirmed inconsistency / Confirmed intentional difference / Unsupported scenario / Potential risk not reproducible / Unable to verify — with the exact access limitation named); financial concept; affected UI; affected files and exact symbols; database objects; current calculation; expected calculation; live-data evidence; affected record count; financial delta; root cause; user impact; recommended correction; required regression test; migration or backfill required (Yes/No/Unknown).
+- Speculative phrasing ("could become stale", "may disagree") is replaced with a classification plus evidence wherever accessible code or data can settle the question.
+- Reconciliation tables are mandatory for: Recognized Revenue, Session Revenue, Client Aggregates, Invoiced Revenue, Collected Revenue, Outstanding Receivables, Effective Hourly Rate, and Profitability — each with app result, independently recomputed result, delta, and affected/stale record counts. No invented numbers; where a computation cannot complete, the exact missing table, column, permission, auth context, or external dependency is named.
+- Explicit inspection of `recalculate_client_aggregates`, every trigger invoking it, every stored client aggregate column, `sessions.revenue` create/update paths, invoice subtotal/tax/discount/total/balance/payment/refund/status logic, and Stripe webhook handling plus its idempotency behaviour.
+- Historical integrity checks run as read-only SQL: rows predating current logic, null or inconsistent legacy session revenue, aggregate-vs-source disagreement, deleted/archived rows still counted, retroactive vs prospective rate changes, post-report invoice edits, duplicate Stripe events or payment records, orphaned financial rows, workspace-scoping failures, duplicate invoice numbers per workspace, and line-item-to-total reconciliation.
+- Final determinations answer directly: production reliability; which metrics are correct, which are semantically misleading, which are incorrect; which screens disagree; the most reliable source for earned / recognized / invoiced / collected / outstanding; whether `sessions.revenue` can be trusted; whether client aggregate columns can be trusted; whether invoice status alone can drive paid and outstanding; whether a backfill or recomputation is required; whether any indicator should be temporarily hidden; and the correct remediation sequence.
+- Closing chat summary includes the overall confidence score, counts of Critical/High/Medium/Low findings, the five highest-risk confirmed defects, the largest measured discrepancy, the most misleading screen, the most and least reliable sources, aggregate trustworthiness, whether historical recalculation is needed, any metrics to hide, the recommended first remediation phase, and confirmation the report file was created.
+
+No fixes, migrations, backfills, tests, or diagnostics page are implemented in this pass.
