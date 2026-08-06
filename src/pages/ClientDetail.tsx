@@ -152,7 +152,7 @@ function updateRetainerPlanning(customFields: any, updates: { pendingCarryoverHo
 }
 
 // ── Tab definitions (5-tab altitude model) ──────────────────────────
-type TabId = "overview" | "work" | "tasks" | "docs" | "billing" | "portal";
+type TabId = "overview" | "work" | "tasks" | "notes" | "docs" | "billing" | "portal";
 
 type TabDef = { id: TabId; label: string };
 
@@ -161,7 +161,8 @@ function getTabsForClient(_client: any, canViewFinancials: boolean): TabDef[] {
     { id: "overview", label: "Overview" },
     { id: "work", label: "Work" },
     { id: "tasks", label: "Tasks" },
-    { id: "docs", label: "Docs" },
+    { id: "notes", label: "Notes" },
+    { id: "docs", label: "Documents" },
   ];
   if (canViewFinancials) tabs.push({ id: "billing", label: "Billing" });
   tabs.push({ id: "portal", label: "Portal" });
@@ -173,10 +174,12 @@ const TAB_PRIMARY: Record<TabId, string> = {
   overview: "Add note",
   work: "New project",
   tasks: "New task",
-  docs: "Upload file",
+  notes: "Add note",
+  docs: "Add document",
   billing: "New invoice",
   portal: "Copy link",
 };
+
 
 // ── SectionCard (reused in tabs) ────────────────────────────────────
 function SectionCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
