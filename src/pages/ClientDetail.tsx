@@ -868,26 +868,20 @@ export default function ClientDetail() {
 
 
 
-            {activeTab === "docs" && (
-              <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-                <div className="lg:col-span-3 min-w-0">
-                  <div className="type-eyebrow mb-4">Notes</div>
-                  <NotesTab clientId={clientId} projects={projects} />
-                </div>
-                <div className="lg:col-span-2 min-w-0">
-                  <div className="type-eyebrow mb-4">Files</div>
-                  <FilesTab
-                    files={files}
-                    uploading={uploading}
-                    fileInputRef={fileInputRef}
-                    onUpload={handleFileUpload}
-                    onDelete={handleFileDelete}
-                    onDrop={handleDrop}
-                    formatFileSize={formatFileSize}
-                  />
-                </div>
+            {activeTab === "notes" && (
+              <div className="min-w-0">
+                <div className="type-eyebrow mb-4">Notes</div>
+                <NotesTab clientId={clientId} projects={projects} />
               </div>
             )}
+
+            {activeTab === "docs" && workspaceId && clientId && (
+              <div className="min-w-0">
+                <div className="type-eyebrow mb-4">Documents</div>
+                <DocumentsPanel workspaceId={workspaceId} clientId={clientId} />
+              </div>
+            )}
+
 
             {activeTab === "billing" && canViewFinancials && (
               <>
