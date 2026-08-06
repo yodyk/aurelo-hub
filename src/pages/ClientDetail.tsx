@@ -717,15 +717,15 @@ export default function ClientDetail() {
               <Plus className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Start timer</span>
             </button>
-            {activeTab !== "tasks" && (
+            {activeTab !== "tasks" && activeTab !== "docs" && (
             <button
               onClick={() => {
                 if (activeTab === "work") setShowProjectModal(true);
-                else if (activeTab === "docs") fileInputRef.current?.click();
                 else if (activeTab === "billing") navigate(`/invoicing?client=${clientId}`);
                 else if (activeTab === "portal") handleCopyPortalLink();
-                else handleTabChange("docs"); // overview → notes live in Docs
+                else handleTabChange("notes"); // overview → notes
               }}
+
               className="h-9 px-3.5 inline-flex items-center gap-1.5 rounded-md bg-primary text-primary-foreground hover:opacity-90 transition-all cursor-pointer text-[13px]"
               style={{ fontWeight: 600 }}
             >
