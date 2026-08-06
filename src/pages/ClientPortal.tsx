@@ -1279,12 +1279,6 @@ const RESOURCE_STATUS_LABEL: Record<string, string> = {
   final: 'Final',
 };
 
-function providerInitial(provider: string | null): string {
-  if (!provider) return 'L';
-  if (provider === 'google_drive') return 'G';
-  if (provider === 'onedrive') return 'O';
-  return provider.charAt(0).toUpperCase();
-}
 
 function providerName(p: string | null): string {
   switch (p) {
