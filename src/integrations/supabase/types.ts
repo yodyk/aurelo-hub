@@ -317,6 +317,102 @@ export type Database = {
           },
         ]
       }
+      client_documents: {
+        Row: {
+          added_by: string | null
+          approval_state: string
+          category: string | null
+          client_id: string
+          created_at: string
+          description: string | null
+          document_date: string | null
+          file_name: string | null
+          file_path: string | null
+          file_size: number | null
+          id: string
+          is_pinned: boolean
+          kind: string
+          lifecycle_state: string
+          metadata: Json
+          mime_type: string | null
+          needs_approval: boolean
+          notes: string | null
+          project_id: string | null
+          provider: string | null
+          sort_order: number
+          source: string
+          status: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+          url: string | null
+          visibility: string
+          workspace_id: string
+        }
+        Insert: {
+          added_by?: string | null
+          approval_state?: string
+          category?: string | null
+          client_id: string
+          created_at?: string
+          description?: string | null
+          document_date?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          id?: string
+          is_pinned?: boolean
+          kind?: string
+          lifecycle_state?: string
+          metadata?: Json
+          mime_type?: string | null
+          needs_approval?: boolean
+          notes?: string | null
+          project_id?: string | null
+          provider?: string | null
+          sort_order?: number
+          source?: string
+          status?: string
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+          url?: string | null
+          visibility?: string
+          workspace_id: string
+        }
+        Update: {
+          added_by?: string | null
+          approval_state?: string
+          category?: string | null
+          client_id?: string
+          created_at?: string
+          description?: string | null
+          document_date?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          id?: string
+          is_pinned?: boolean
+          kind?: string
+          lifecycle_state?: string
+          metadata?: Json
+          mime_type?: string | null
+          needs_approval?: boolean
+          notes?: string | null
+          project_id?: string | null
+          provider?: string | null
+          sort_order?: number
+          source?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+          url?: string | null
+          visibility?: string
+          workspace_id?: string
+        }
+        Relationships: []
+      }
       clients: {
         Row: {
           address: string | null
@@ -452,6 +548,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      document_approvals: {
+        Row: {
+          client_id: string
+          comment: string | null
+          created_at: string
+          decided_at: string
+          decision: string
+          document_id: string
+          id: string
+          workspace_id: string
+        }
+        Insert: {
+          client_id: string
+          comment?: string | null
+          created_at?: string
+          decided_at?: string
+          decision: string
+          document_id: string
+          id?: string
+          workspace_id: string
+        }
+        Update: {
+          client_id?: string
+          comment?: string | null
+          created_at?: string
+          decided_at?: string
+          decision?: string
+          document_id?: string
+          id?: string
+          workspace_id?: string
+        }
+        Relationships: []
       }
       email_events: {
         Row: {
@@ -1472,39 +1601,6 @@ export type Database = {
           },
         ]
       }
-      resource_approvals: {
-        Row: {
-          client_id: string
-          comment: string | null
-          created_at: string
-          decided_at: string
-          decision: string
-          id: string
-          resource_id: string
-          workspace_id: string
-        }
-        Insert: {
-          client_id: string
-          comment?: string | null
-          created_at?: string
-          decided_at?: string
-          decision: string
-          id?: string
-          resource_id: string
-          workspace_id: string
-        }
-        Update: {
-          client_id?: string
-          comment?: string | null
-          created_at?: string
-          decided_at?: string
-          decision?: string
-          id?: string
-          resource_id?: string
-          workspace_id?: string
-        }
-        Relationships: []
-      }
       retainer_history: {
         Row: {
           client_id: string
@@ -1671,63 +1767,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      shared_resources: {
-        Row: {
-          added_by: string | null
-          client_id: string
-          created_at: string
-          description: string | null
-          file_path: string | null
-          id: string
-          kind: string
-          needs_approval: boolean
-          project_id: string | null
-          provider: string | null
-          sort_order: number
-          status: string
-          title: string
-          updated_at: string
-          url: string | null
-          workspace_id: string
-        }
-        Insert: {
-          added_by?: string | null
-          client_id: string
-          created_at?: string
-          description?: string | null
-          file_path?: string | null
-          id?: string
-          kind?: string
-          needs_approval?: boolean
-          project_id?: string | null
-          provider?: string | null
-          sort_order?: number
-          status?: string
-          title: string
-          updated_at?: string
-          url?: string | null
-          workspace_id: string
-        }
-        Update: {
-          added_by?: string | null
-          client_id?: string
-          created_at?: string
-          description?: string | null
-          file_path?: string | null
-          id?: string
-          kind?: string
-          needs_approval?: boolean
-          project_id?: string | null
-          provider?: string | null
-          sort_order?: number
-          status?: string
-          title?: string
-          updated_at?: string
-          url?: string | null
-          workspace_id?: string
-        }
-        Relationships: []
       }
       task_recurrences: {
         Row: {

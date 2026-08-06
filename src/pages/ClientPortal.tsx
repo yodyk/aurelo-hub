@@ -134,6 +134,9 @@ interface PortalResource {
   kind: 'link' | 'file';
   provider: string | null;
   url: string | null;
+  file_url?: string | null;
+  file_name?: string | null;
+  category?: string | null;
   title: string;
   description: string | null;
   status: 'shared' | 'for_review' | 'approved' | 'final';
@@ -369,7 +372,7 @@ export default function ClientPortal() {
   const pendingResources = resources.filter(r => r.needs_approval).length;
   const tabs: { id: PortalTabId; label: string; count?: number }[] = [
     { id: 'home', label: 'Home', count: waitingOnYou.length || undefined },
-    { id: 'resources', label: 'Resources', count: pendingResources || resources.length || undefined },
+    { id: 'resources', label: 'Documents', count: pendingResources || resources.length || undefined },
     { id: 'tasks', label: 'Tasks', count: checklists.reduce((a, c) => a + c.items.filter(i => i.status !== 'complete').length, 0) || undefined },
     ...(isRetainer ? [{ id: 'retainer' as PortalTabId, label: 'Retainer' }] : []),
     { id: 'billing', label: 'Billing', count: invoices.filter(i => ['sent','issued','overdue'].includes(i.status.toLowerCase())).length || undefined },
@@ -1311,9 +1314,9 @@ function ResourcesTab({ resources, accent, token }: { resources: PortalResource[
         style={{ borderColor: 'var(--portal-hairline)', backgroundColor: 'var(--portal-surface)' }}
       >
         <Link2 className="w-7 h-7 mx-auto mb-3" style={{ color: 'var(--portal-subtle)' }} />
-        <p className="text-[14px] font-display font-semibold" style={{ color: 'var(--portal-ink)' }}>No resources shared yet</p>
+        <p className="text-[14px] font-display font-semibold" style={{ color: 'var(--portal-ink)' }}>No documents shared yet</p>
         <p className="text-[12.5px] mt-1.5 max-w-md mx-auto" style={{ color: 'var(--portal-muted)' }}>
-          Drive folders, Figma files, Loom walkthroughs, Notion docs — everything your project lives in will appear here.
+          Contracts, proposals, brand assets, Figma files, Loom walkthroughs — everything shared with you appears here.
         </p>
       </div>
     );
@@ -1390,9 +1393,9 @@ function ResourceRow({
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            {resource.url ? (
+            {(resource.url || resource.file_url) ? (
               <a
-                href={resource.url}
+                href={(resource.url || resource.file_url) as string}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-[13.5px] font-display font-semibold hover:underline truncate"
@@ -1424,7 +1427,7 @@ function ResourceRow({
             </span>
           </div>
           <div className="mt-0.5 text-[11.5px]" style={{ color: 'var(--portal-muted)' }}>
-            {providerName(resource.provider)} · Added {fmtDate(resource.created_at)}
+            {resource.category ? `${resource.category} · ` : ''}{resource.kind === 'file' ? (resource.file_name || 'File') : providerName(resource.provider)} · Added {fmtDate(resource.created_at)}
           </div>
           {resource.description && (
             <p className="mt-1.5 text-[12.5px] leading-relaxed" style={{ color: 'var(--portal-muted)' }}>
