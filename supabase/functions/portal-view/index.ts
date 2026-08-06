@@ -76,10 +76,10 @@ Deno.serve(async (req) => {
       sb.from('portal_updates').select('*').eq('client_id', client_id).eq('workspace_id', workspace_id).order('posted_at', { ascending: false }).limit(1).maybeSingle(),
       // P3: all milestones for this client's projects (filtered by project_id below)
       sb.from('project_milestones').select('*').eq('workspace_id', workspace_id).order('sort_order', { ascending: true }),
-      // P4: shared resources (link-first deliverables)
-      sb.from('shared_resources').select('*').eq('client_id', client_id).eq('workspace_id', workspace_id).order('sort_order', { ascending: true }).order('created_at', { ascending: false }),
-      // P4: latest approval decisions
-      sb.from('resource_approvals').select('*').eq('client_id', client_id).eq('workspace_id', workspace_id).order('decided_at', { ascending: false }),
+      // Documents shared with the client (files + links)
+      sb.from('client_documents').select('*').eq('client_id', client_id).eq('workspace_id', workspace_id).eq('visibility', 'shared').eq('lifecycle_state', 'active').order('is_pinned', { ascending: false }).order('created_at', { ascending: false }),
+      // Latest approval decisions
+      sb.from('document_approvals').select('*').eq('client_id', client_id).eq('workspace_id', workspace_id).order('decided_at', { ascending: false }),
       // P5: portal Q&A
       sb.from('portal_questions').select('*').eq('client_id', client_id).eq('workspace_id', workspace_id).order('asked_at', { ascending: false }).limit(50),
     ]);
@@ -292,40 +292,53 @@ Deno.serve(async (req) => {
     // P4: latest approval per resource
     const latestApprovalByResource: Record<string, any> = {};
     for (const a of (approvalsRes.data || [])) {
-      if (!latestApprovalByResource[a.resource_id]) {
-        latestApprovalByResource[a.resource_id] = a;
+      if (!latestApprovalByResource[a.document_id]) {
+        latestApprovalByResource[a.document_id] = a;
       }
     }
 
     // P4: resources payload + activity events
-    const resources = (resourcesRes.data || []).map((r: any) => {
+    const resources = await Promise.all((resourcesRes.data || []).map(async (r: any) => {
       const last = latestApprovalByResource[r.id];
+      let fileUrl: string | null = null;
+      if (r.file_path) {
+        const { data: signed } = await sb.storage.from('client-files').createSignedUrl(r.file_path, 3600);
+        fileUrl = signed?.signedUrl ?? null;
+      }
       return {
         id: r.id,
         kind: r.kind,
         provider: r.provider ?? null,
         url: r.url ?? null,
+        file_url: fileUrl,
+        file_name: r.file_name ?? null,
+        file_size: r.file_size ?? null,
+        mime_type: r.mime_type ?? null,
+        category: r.category ?? null,
         title: r.title,
         description: r.description ?? null,
         status: r.status,
-        needs_approval: r.needs_approval === true,
+        approval_state: r.approval_state ?? 'not_required',
+        needs_approval: (r.approval_state ?? (r.needs_approval ? 'pending' : 'not_required')) === 'pending',
+        is_pinned: r.is_pinned === true,
+        document_date: r.document_date ?? null,
         project_id: r.project_id ?? null,
         created_at: r.created_at,
         last_decision: last
           ? { decision: last.decision, comment: last.comment ?? null, at: last.decided_at }
           : null,
       };
-    });
+    }));
     for (const r of (resourcesRes.data || [])) {
       activity.push({
         id: `res-added-${r.id}`,
         type: 'resource.added',
-        title: `Resource shared: ${r.title}`,
+        title: `Document shared: ${r.title}`,
         at: r.created_at,
       });
     }
     for (const a of (approvalsRes.data || [])) {
-      const r = (resourcesRes.data || []).find((x: any) => x.id === a.resource_id);
+      const r = (resourcesRes.data || []).find((x: any) => x.id === a.document_id);
       const label = r ? r.title : 'resource';
       const t =
         a.decision === 'approved' ? `Approved: ${label}` :
@@ -394,7 +407,7 @@ Deno.serve(async (req) => {
     }
     // P4: resources awaiting approval
     for (const r of (resourcesRes.data || [])) {
-      if (r.needs_approval === true) {
+      if ((r.approval_state ?? (r.needs_approval ? 'pending' : 'not_required')) === 'pending') {
         waitingOnYou.push({
           id: `approve-${r.id}`,
           kind: 'resource.approve',
@@ -445,6 +458,7 @@ Deno.serve(async (req) => {
       invoices,
       checklists,
       resources,
+      documents: resources,
       questions: questions.map((q: any) => ({
         id: q.id,
         askedBy: q.asked_by,

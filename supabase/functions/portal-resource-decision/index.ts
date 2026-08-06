@@ -44,23 +44,24 @@ Deno.serve(async (req) => {
 
     // Validate resource belongs to this token's client and is awaiting approval
     const { data: resource } = await sb
-      .from('shared_resources')
-      .select('id, workspace_id, client_id, needs_approval, status')
+      .from('client_documents')
+      .select('id, workspace_id, client_id, needs_approval, approval_state, status')
       .eq('id', resource_id)
       .maybeSingle();
     if (!resource) return json({ error: 'Resource not found' }, 404);
     if (resource.workspace_id !== portalToken.workspace_id || resource.client_id !== portalToken.client_id) {
       return json({ error: 'Not allowed' }, 403);
     }
-    if (!resource.needs_approval) {
+    const pending = (resource.approval_state ?? (resource.needs_approval ? 'pending' : 'not_required')) === 'pending';
+    if (!pending) {
       return json({ error: 'Resource is not awaiting approval' }, 400);
     }
 
     // Insert approval (service role bypasses RLS)
-    const { error: insertErr } = await sb.from('resource_approvals').insert({
+    const { error: insertErr } = await sb.from('document_approvals').insert({
       workspace_id: portalToken.workspace_id,
       client_id: portalToken.client_id,
-      resource_id: resource.id,
+      document_id: resource.id,
       decision,
       comment: cleanComment,
     });
@@ -75,9 +76,12 @@ Deno.serve(async (req) => {
     const nextNeedsApproval = decision === 'changes_requested';
 
     await sb
-      .from('shared_resources')
+      .from('client_documents')
       .update({
         status: nextStatus,
+        approval_state:
+          decision === 'approved' ? 'approved' :
+          decision === 'rejected' ? 'rejected' : 'pending',
         needs_approval: nextNeedsApproval,
         updated_at: new Date().toISOString(),
       })
