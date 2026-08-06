@@ -1,5 +1,6 @@
 // ── DocumentsPanel — canonical client document manager ──────────────
 import { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Plus, Search, Star, MoreHorizontal, ExternalLink, Download, Pencil,
   Archive, Trash2, Eye, EyeOff, Loader2, CheckCircle2, Clock, XCircle,
@@ -50,6 +51,7 @@ export default function DocumentsPanel({ workspaceId, clientId }: Props) {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<ClientDocument | null>(null);
   const [menuId, setMenuId] = useState<string | null>(null);
+  const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<ClientDocument | null>(null);
 
   useEffect(() => {
@@ -289,16 +291,29 @@ export default function DocumentsPanel({ workspaceId, clientId }: Props) {
                   <div className="relative flex-shrink-0">
                     <button
                       type="button"
-                      onClick={(e) => { e.stopPropagation(); setMenuId(menuId === d.id ? null : d.id); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (menuId === d.id) { setMenuId(null); return; }
+                        const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                        const MENU_H = 250, MENU_W = 190;
+                        const openUp = r.bottom + MENU_H + 8 > window.innerHeight;
+                        setMenuPos({
+                          top: openUp ? Math.max(8, r.top - MENU_H - 4) : r.bottom + 4,
+                          left: Math.max(8, Math.min(r.right - MENU_W, window.innerWidth - MENU_W - 8)),
+                        });
+                        setMenuId(d.id);
+                      }}
                       className="p-1.5 rounded hover:bg-accent cursor-pointer"
                     >
                       <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
                     </button>
-                    {menuId === d.id && (
+                    {menuId === d.id && menuPos && createPortal(
+                      <>
+                      <div className="fixed inset-0 z-[95]" onClick={() => setMenuId(null)} />
                       <div
                         onClick={(e) => e.stopPropagation()}
-                        className="absolute right-0 top-full mt-1 z-30 w-[190px] bg-card border border-[var(--hairline)] rounded-md py-1"
-                        style={{ boxShadow: 'var(--elev-2)' }}
+                        className="fixed z-[100] w-[190px] max-h-[70vh] overflow-auto bg-card border border-[var(--hairline)] rounded-md py-1"
+                        style={{ boxShadow: 'var(--elev-2)', top: menuPos.top, left: menuPos.left }}
                       >
                         <MenuItem icon={d.kind === 'link' ? ExternalLink : Download} label={d.kind === 'link' ? 'Open link' : 'Download'} onClick={() => { setMenuId(null); openDoc(d); }} />
                         <MenuItem icon={Pencil} label="Edit details" onClick={() => { setMenuId(null); setEditing(d); setModalOpen(true); }} />
@@ -314,6 +329,8 @@ export default function DocumentsPanel({ workspaceId, clientId }: Props) {
                         <MenuItem icon={Archive} label={d.lifecycleState === 'archived' ? 'Restore' : 'Archive'} onClick={() => { setMenuId(null); toggleArchive(d); }} />
                         <MenuItem icon={Trash2} label="Delete" destructive onClick={() => { setMenuId(null); setConfirmDelete(d); }} />
                       </div>
+                      </>,
+                      document.body
                     )}
                   </div>
                 </div>
