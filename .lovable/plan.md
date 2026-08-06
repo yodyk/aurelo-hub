@@ -11,7 +11,8 @@ Client Detail
     Documents        <- new canonical list (files + links, internal + shared)
       [+ Add Document]  -> modal: Upload File | Add Link -> metadata form
   Portal tab
-    (Resources panel removed; a read-only note points to Docs)
+    (Resources section removed entirely)
+
 
 Client Portal
   "Documents" tab (was "Resources")
