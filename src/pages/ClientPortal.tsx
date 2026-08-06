@@ -27,6 +27,8 @@ import { format } from "date-fns";
 import { formatMoney, formatDuration, formatDate as formatDateFn, fmtH } from '@/lib/format';
 import { FinancialSummary } from "@/components/FinancialSummary";
 import { recognizeRevenue, profitability as computeProfitability, sumLaborValue, resolveBillingModel } from "@/lib/revenue";
+import DocumentIcon from "@/components/documents/DocumentIcon";
+
 
 // ── Types ───────────────────────────────────────────────────────────
 
@@ -1277,12 +1279,6 @@ const RESOURCE_STATUS_LABEL: Record<string, string> = {
   final: 'Final',
 };
 
-function providerInitial(provider: string | null): string {
-  if (!provider) return 'L';
-  if (provider === 'google_drive') return 'G';
-  if (provider === 'onedrive') return 'O';
-  return provider.charAt(0).toUpperCase();
-}
 
 function providerName(p: string | null): string {
   switch (p) {
@@ -1384,13 +1380,16 @@ function ResourceRow({
   return (
     <div className="p-4">
       <div className="flex items-start gap-3">
-        <div
-          className="w-9 h-9 rounded flex items-center justify-center flex-shrink-0 font-display font-semibold text-[12px]"
-          style={{ backgroundColor: `color-mix(in srgb, ${accent} 12%, transparent)`, color: accent }}
-          aria-hidden
-        >
-          {providerInitial(resource.provider)}
-        </div>
+        <DocumentIcon
+          size={36}
+          doc={{
+            kind: (resource.kind === 'link' ? 'link' : 'file') as any,
+            mimeType: (resource as any).mime_type ?? null,
+            fileName: resource.file_name ?? null,
+            provider: (resource.provider ?? null) as any,
+          }}
+        />
+
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             {(resource.url || resource.file_url) ? (
