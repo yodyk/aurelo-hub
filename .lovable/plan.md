@@ -31,15 +31,17 @@ Plan: promote `shared_resources` into the canonical document table rather than c
 - Rename `shared_resources` -> `client_documents`, and `resource_approvals.resource_id` -> `document_id` (table renamed to `document_approvals`). Postgres renames preserve data, FKs, and policies.
 - New columns on `client_documents`:
   - `visibility text not null default 'internal'` (`internal` | `shared`)
-  - `doc_type text` (free text, workspace-configurable list)
-  - `tags text[] not null default '{}'`
-  - `document_date date` (editable "date added" / effective date, defaults to today)
+  - `category text` (workspace-configurable, seeded defaults — replaces the earlier tags idea)
+  - `lifecycle_state text not null default 'active'` (`active` | `archived`) — independent of approval
+  - `approval_state text not null default 'not_required'` (`not_required` | `pending` | `approved` | `rejected`), replacing the overloaded `status` + `needs_approval` pair
+  - `document_date date` (editable, defaults to today), `notes text`
   - `file_name text`, `file_size bigint`, `mime_type text` (populated for uploads)
-  - `updated_by uuid`
-  - `archived_at timestamptz` (soft delete, keeps approval history intact)
-- Keep `status`, `needs_approval`, `sort_order`, `project_id` — the approval workflow is reused as-is, only gated on `visibility = 'shared'`.
-- Document types live in `workspace_settings` under a new `documents` section (`{ types: string[] }`) seeded with Proposal, Contract, Retainer, Invoice, Scope of Work, Creative Brief, Brand Assets, Design Files, Legal, Tax, Other. Users add their own from the modal.
-- Future-proofing hooks included now: `project_id` link, `metadata jsonb` for generated/e-signature payloads, and `archived_at` so nothing is lost when workflows evolve.
+  - `is_pinned boolean not null default false`
+  - `updated_by uuid`, `metadata jsonb not null default '{}'`
+- Lifecycle and approval never derive from each other: archiving a document does not change its approval state, and an approval decision does not archive anything.
+- Categories live in `workspace_settings` under a new `documents` section (`{ categories: string[] }`), seeded with: Proposal, Contract, Retainer, Invoice, Financial, Legal, Brand Assets, Marketing Assets, Sales Assets, Design Files, Creative Assets, Website Assets, Content, Social Media, Photography, Video, Training, Onboarding, Project Deliverables, Reports, Research, Meeting Notes, Client Information, Reference Material, Miscellaneous. Workspaces can add, rename, or hide entries.
+- Future-proofing hooks included now: `project_id` link, `metadata jsonb` for generated PDFs / AI output / e-signature envelopes, `source` marker (`manual` | `generated` | `integration`), and soft archive so nothing is destroyed as workflows grow.
+
 
 ## Migration strategy
 
