@@ -56,7 +56,7 @@ import TaskModal from "@/components/task/TaskModal";
 import EmailActivityLog from "../components/EmailActivityLog";
 import WeeklyUpdateComposer from "../components/WeeklyUpdateComposer";
 import PortalQuestionsPanel from "../components/PortalQuestionsPanel";
-import SharedResourcesPanel from "../components/SharedResourcesPanel";
+import DocumentsPanel from "../components/documents/DocumentsPanel";
 import BulkSessionActions from "../components/BulkSessionActions";
 import { supabase } from "@/integrations/supabase/client";
 import { formatMoney, formatBytes, formatDuration, fmtH } from '@/lib/format';
@@ -2816,54 +2816,6 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
   );
 }
 // ═══════════════════════════════════════════════════════════════════
-// Files Tab
-// ═══════════════════════════════════════════════════════════════════
-function FilesTab({ files, uploading, fileInputRef, onUpload, onDelete, onDrop, formatFileSize }: any) {
-  return (
-    <SectionCard>
-      <SectionHeader>Files <span className="text-muted-foreground/60 ml-1">({files.length})</span></SectionHeader>
-      {files.length > 0 && (
-        <div className="space-y-1 mb-4">
-          {files.map((f: any) => (
-            <div key={f.name} className="flex items-center gap-3 py-3 px-3.5 rounded-xl hover:bg-accent/30 transition-colors group border border-transparent hover:border-border/40">
-              <div className="w-9 h-9 rounded-xl bg-accent/50 flex items-center justify-center flex-shrink-0">
-                <FileText className="w-4 h-4 text-muted-foreground/60" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-[13px] truncate" style={{ fontWeight: 600 }}>{f.name.replace(/^\d+-/, "")}</div>
-                <div className="text-[11px] text-muted-foreground/60">{formatFileSize(f.size)}</div>
-              </div>
-              {f.url && (
-                <a href={f.url} target="_blank" rel="noopener noreferrer" className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-accent/60 text-muted-foreground transition-all">
-                  <Download className="w-3.5 h-3.5" />
-                </a>
-              )}
-              <button onClick={() => onDelete(f.name)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-accent/60 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all">
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-      <div
-        onDragOver={(e) => e.preventDefault()}
-        onDrop={onDrop}
-        onClick={() => fileInputRef.current?.click()}
-        className="border-2 border-dashed border-border/60 rounded-2xl p-10 flex flex-col items-center gap-2.5 hover:bg-accent/20 hover:border-primary/20 transition-all cursor-pointer"
-      >
-        {uploading ? <Loader2 className="w-5 h-5 text-muted-foreground animate-spin" /> : (
-          <div className="w-10 h-10 rounded-2xl bg-accent/50 flex items-center justify-center">
-            <Upload className="w-4 h-4 text-muted-foreground/60" />
-          </div>
-        )}
-        <span className="text-[12px] text-muted-foreground" style={{ fontWeight: 500 }}>{uploading ? "Uploading..." : "Drop files here or click to upload"}</span>
-      </div>
-      <input ref={fileInputRef} type="file" multiple className="hidden" onChange={(e) => { if (e.target.files?.length) { onUpload(e.target.files); e.target.value = ""; } }} />
-    </SectionCard>
-  );
-}
-
-// ═══════════════════════════════════════════════════════════════════
 // Notes Tab
 // ═══════════════════════════════════════════════════════════════════
 function NotesTab({ clientId, projects }: { clientId?: string; projects: any[] }) {
@@ -2938,10 +2890,6 @@ function PortalTab({ client, clientId, workspaceId, portalConfig, portalLoading,
       <div className="space-y-5">
         {workspaceId && clientId && (
           <WeeklyUpdateComposer workspaceId={workspaceId} clientId={clientId} />
-        )}
-
-        {workspaceId && clientId && (
-          <SharedResourcesPanel workspaceId={workspaceId} clientId={clientId} />
         )}
 
         {workspaceId && clientId && (
