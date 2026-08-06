@@ -52,25 +52,25 @@ Plan: promote `shared_resources` into the canonical document table rather than c
 
 ## UX
 
-**Add Document modal** — step 1 picks Upload File or Add Link; step 2 is the same metadata form for both: Title (auto-filled from filename or link title), Type (combobox with create-new), Description, Document date, Tags, Visibility toggle, and — when shared — "Request client approval".
+**Add Document modal** — framed as "create a document record", not an upload dialog. One form regardless of source: Document Name, Description, Category (select from workspace list), Source (Upload File / External Link — a segmented control that swaps the file drop zone for a URL field, everything else identical), Date, Visibility (Internal / Shared), Request Client Approval (only enabled when Shared), Notes (optional), and Pin this document. Name auto-fills from the filename or link, and category is remembered from the last document added for that client as a soft default.
 
-**Documents list** — a scannable table replacing the current card stack:
+**Documents list** — a modern manager, not a spreadsheet. Each row leads with a type-aware icon or thumbnail derived from mime type and link provider: PDF, Word, Spreadsheet, Image (thumbnail preview when available), Video, Figma, Google Drive, Dropbox, Loom, Notion, generic link.
 
 ```text
-[icon] Name / description        Type       Visibility   Status      Added by   Date      ...
+[icon]  Name                       Category    Visibility   Approval    Added by   Updated   [...]
+        description snippet
 ```
 
-with a filter bar (search, type, visibility, status), grouping toggle (by type or by date), row actions (open, edit metadata, change visibility, request approval, download, archive), and empty/loading states. Selecting rows enables bulk visibility change and bulk archive.
-
-Small additions worth having: a "Pending client approval" summary chip at the top, inline provider badge for links (Figma/Drive/Loom detection already exists), and last-updated relative timestamps.
+Pinned documents render in a pinned group that always sits above the list regardless of sort or grouping. Above that sits a filter bar (search, category, visibility, approval state) plus an Active/Archived toggle, and a "Pending client approval" count chip. Row actions: open, edit, change visibility, request approval, download, pin/unpin, archive. Multi-select enables bulk visibility change, bulk category change, and bulk archive.
 
 ## Edge cases
 
-- Making a document internal while an approval is pending clears `needs_approval` and records the change; existing approval history is retained.
-- Deleting a file document removes the storage object and archives the row so approval history survives.
-- Storage objects uploaded outside the app appear as unmanaged rows until edited; the list surfaces them rather than hiding them.
-- Portal shows only `visibility = 'shared'` and never leaks internal titles; the signed-URL path for shared file documents is issued by the portal function using the portal token.
-- Deleting a workspace document type leaves existing documents' type strings intact (free text, not an enum).
+- Switching a document from Shared to Internal while approval is pending resets `approval_state` to `not_required` and keeps the decision history rows.
+- Archiving is reversible and never touches approval state; hard delete is a separate, confirmed action that also removes the storage object.
+- Storage objects uploaded outside the app appear in the list as unmanaged rows until edited, rather than being hidden.
+- Portal shows only `visibility = 'shared'` and `lifecycle_state = 'active'`, never leaking internal titles; signed URLs for shared files are issued by the portal function against the portal token.
+- Removing a workspace category leaves existing documents' category strings intact; they surface as an "Uncategorized (legacy)" filter entry.
+
 
 ## Technical notes
 
