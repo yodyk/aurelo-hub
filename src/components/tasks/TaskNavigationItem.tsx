@@ -62,9 +62,8 @@ export function TaskNavigationItem({
       {count !== undefined && (
         <span
           className={`ml-2 text-[11px] tabular-nums text-muted-foreground flex-shrink-0 transition-opacity ${
-            trailing ? 'group-hover:opacity-0 group-focus-within:opacity-0' : ''
-          }`}
-          style={{ opacity: count > 0 ? 0.8 : 0.35 }}
+            count > 0 ? 'opacity-80' : 'opacity-30'
+          } ${trailing ? 'group-hover:opacity-0 group-focus-within:opacity-0' : ''}`}
         >
           {count}
         </span>
