@@ -202,11 +202,14 @@ function NavigationBody({
           <div className="type-eyebrow px-2.5 pt-3 pb-1 text-muted-foreground">Clients</div>
         )}
 
-        {clients.map(c => {
+        {clients.map((c, idx) => {
           const clientActive = activeKey === `client:${c.id}`;
           const open = mode === 'client' ? true : isExpanded(c.id);
           return (
-            <div key={c.id}>
+            <div
+              key={c.id}
+              className={idx > 0 && mode === 'global' ? 'mt-2 pt-2 border-t border-border/45' : ''}
+            >
               {mode === 'global' && (
                 <TaskNavigationItem
                   label={c.name}
