@@ -19,10 +19,10 @@ export function TaskNavigationItem({
 }) {
   return (
     <div
-      className={`group relative flex items-center h-8 pr-2 transition-colors ${
+      className={`group relative flex items-center h-8 pr-2.5 transition-colors ${
         active ? 'bg-[color:var(--surface-sunken)]' : 'hover:bg-[color:var(--surface-sunken)]/60'
       }`}
-      style={{ paddingLeft: level === 0 ? 6 : 22 }}
+      style={{ paddingLeft: level === 0 ? 12 : 34 }}
     >
       {active && (
         <span
@@ -61,14 +61,21 @@ export function TaskNavigationItem({
 
       {count !== undefined && (
         <span
-          className="ml-2 text-[11px] tabular-nums text-muted-foreground flex-shrink-0"
+          className={`ml-2 text-[11px] tabular-nums text-muted-foreground flex-shrink-0 transition-opacity ${
+            trailing ? 'group-hover:opacity-0 group-focus-within:opacity-0' : ''
+          }`}
           style={{ opacity: count > 0 ? 0.8 : 0.35 }}
         >
           {count}
         </span>
       )}
 
-      {trailing && <span className="ml-1 flex-shrink-0">{trailing}</span>}
+      {/* The menu overlays the count on hover instead of reserving space. */}
+      {trailing && (
+        <span className="absolute right-1.5 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
+          {trailing}
+        </span>
+      )}
     </div>
   );
 }
