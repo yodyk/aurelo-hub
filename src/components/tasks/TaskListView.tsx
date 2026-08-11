@@ -170,11 +170,13 @@ export function TaskListView({
               : filter !== 'all' ? 'Nothing here with this filter'
                 : heading.emptyTitle
           }
-          description={
+          body={
             debounced ? 'Try a different word, or clear the search.'
               : filter !== 'all' ? 'Switch back to All open to see everything in this view.'
                 : heading.emptyBody
           }
+          glyph={CheckSquare}
+          primaryAction={debounced || filter !== 'all' ? undefined : { label: 'Add task', onClick: onAddTask, icon: Plus }}
         />
       ) : (
         <div className="space-y-5">
@@ -188,10 +190,11 @@ export function TaskListView({
               siblingLists={siblingLists}
               currentListId={context.kind === 'list' ? context.listId : undefined}
               onOpen={onOpenTask}
-              onStatus={(id, s) => patch(id, { status: s, completed: s === 'complete' })}
+              onStatus={(task, s) => patch(task, { status: s, completed: s === 'complete' })}
               onDelete={remove}
               onMove={move}
             />
+
           ))}
         </div>
       )}
