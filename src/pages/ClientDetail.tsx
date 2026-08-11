@@ -2883,33 +2883,85 @@ function NotesTab({ clientId, projects }: { clientId?: string; projects: any[] }
 // ═══════════════════════════════════════════════════════════════════
 // Tasks Tab
 // ═══════════════════════════════════════════════════════════════════
+// Same navigation model as the global Tasks page, scoped to this client:
+// a list rail on the left, one list's tasks on the right. Never a stack
+// of every list.
 function ChecklistsTab({ clientId, workspaceId }: { clientId: string; workspaceId: string }) {
   const [addOpen, setAddOpen] = useState(false);
-  const [reloadKey, setReloadKey] = useState(0);
+  const { clients, allProjects, loadAllProjects } = useData();
+  const { open, changeCounter } = useTaskDrawer();
+  const { tasks, lists, loading, refresh } = useTasksData(workspaceId);
+  const { context, select, replace } = useTaskNavigation('client', clientId);
+
+  useEffect(() => { loadAllProjects?.().catch(() => {}); }, [loadAllProjects]);
+  useEffect(() => { if (changeCounter) refresh(); }, [changeCounter, refresh]);
+
+  const tree = useTaskNavigationTree({ clients: clients as any[], lists, tasks, clientId });
+
+  const clientMap = useMemo(() => {
+    const m = new Map<string, any>();
+    (clients as any[]).forEach((c: any) => m.set(c.id, c));
+    return m;
+  }, [clients]);
+
+  const projectName = useCallback(
+    (projectId?: string | null) => (allProjects || []).find((p: any) => p.id === projectId)?.name,
+    [allProjects],
+  );
+
+  // Deterministic Add Task: list preselected when the context implies one.
+  const clientLists = tree.clients.find(c => c.id === clientId)?.lists || [];
+  const defaultListId =
+    context.kind === 'list' ? context.listId
+      : clientLists.length === 1 ? clientLists[0].id
+        : null;
 
   return (
     <SectionCard>
-      <div className="flex items-center justify-between gap-3">
-        <SectionHeader>Tasks</SectionHeader>
-        <button
-          onClick={() => setAddOpen(true)}
-          className="inline-flex items-center gap-1.5 h-[30px] px-3 text-[12px] bg-primary text-primary-foreground hover:opacity-90 transition-opacity cursor-pointer shrink-0"
-          style={{ borderRadius: 4, fontWeight: 500 }}
-        >
-          <Plus className="w-3.5 h-3.5" aria-hidden /> Add task
-        </button>
+      <div className="lg:flex lg:gap-5 min-h-[420px]">
+        <TaskNavigation
+          tree={tree}
+          context={context}
+          onSelect={select}
+          mode="client"
+          workspaceId={workspaceId}
+          onTreeChanged={refresh}
+          allTasksLabel="All tasks"
+          onListDeleted={(listId) => {
+            if (context.kind === 'list' && context.listId === listId) {
+              replace({ kind: 'client', clientId });
+            }
+          }}
+        />
+        <div className="flex-1 min-w-0 lg:pl-1">
+          <TaskListView
+            tasks={tasks}
+            tree={tree}
+            context={context}
+            loading={loading}
+            onRefresh={refresh}
+            onOpenTask={open}
+            onAddTask={() => setAddOpen(true)}
+            clientMap={clientMap}
+            faviconUrls={{}}
+            projectName={projectName}
+            showClient={false}
+          />
+        </div>
       </div>
-      <ChecklistPanel key={reloadKey} clientId={clientId} workspaceId={workspaceId} />
+
       <TaskModal
         open={addOpen}
         onClose={() => setAddOpen(false)}
         lockClient
         defaultClientId={clientId}
-        onCreated={() => setReloadKey(k => k + 1)}
+        defaultListId={defaultListId}
+        onCreated={refresh}
       />
     </SectionCard>
   );
 }
+
 
 
 // ═══════════════════════════════════════════════════════════════════
