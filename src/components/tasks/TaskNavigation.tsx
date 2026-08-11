@@ -135,7 +135,7 @@ function NavigationBody({
 
   const newListRow = (clientId: string) =>
     creatingFor === clientId ? (
-      <div className="pl-[22px] pr-1.5 py-1">
+      <div className="pl-[34px] pr-3 py-1">
         <input
           autoFocus
           value={newTitle}
@@ -152,11 +152,11 @@ function NavigationBody({
         />
       </div>
     ) : (
-      <div className="px-1.5 mt-1 mb-1">
+      <div className="pl-[34px] pr-3 mt-1.5 mb-1">
         <button
           type="button"
           onClick={() => { setCreatingFor(clientId); setNewTitle(''); }}
-          className="w-full h-7 flex items-center gap-1.5 pl-[18px] pr-2 text-[11.5px] text-muted-foreground hover:text-foreground cursor-pointer border border-dashed border-border/50 hover:border-border/80 hover:bg-[color:var(--surface-sunken)]/50"
+          className="w-full h-7 flex items-center gap-1.5 px-2 text-[11.5px] text-muted-foreground hover:text-foreground cursor-pointer border border-dashed border-border/50 hover:border-border/80 hover:bg-[color:var(--surface-sunken)]/50"
           style={{ borderRadius: 4 }}
         >
           <Plus className="w-3 h-3" aria-hidden /> New list
