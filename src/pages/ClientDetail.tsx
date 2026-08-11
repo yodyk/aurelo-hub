@@ -2157,16 +2157,25 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
     setPlannedCarryoverHours(String(carryoverCap));
   }, [scheduledBaseHours, carryoverCap, client.id]);
 
+  const addChargeNum = Math.max(0, Math.round((Number(addCharge) || 0) * 100) / 100);
+  const addNewTotalHours = Math.round(((Number(client.retainerTotal) || 0) + addHoursDelta) * 100) / 100;
+  const addNewFee = Math.round((contractFee + addChargeNum) * 100) / 100;
+
   const handleAddHours = async () => {
     if (addHoursDelta <= 0) return;
     setAdding(true);
     try {
       await onUpdateClient({
-        retainerTotal: Math.round(((Number(client.retainerTotal) || 0) + addHoursDelta) * 100) / 100,
+        retainerTotal: addNewTotalHours,
         retainerRemaining: Math.round(((Number(client.retainerRemaining) || 0) + addHoursDelta) * 100) / 100,
+        // Extending the retainer keeps the flat fee authoritative: an optional
+        // extra charge is added to it, and the blended rate is re-derived.
+        monthlyContractValue: addNewFee,
+        rate: deriveRate(addNewFee, addNewTotalHours),
       });
       toast.success(`Added ${fmtH(addHoursDelta)}h to this cycle`);
       setAddAmount('');
+      setAddCharge('');
       setOpenAdjustment(null);
     } catch {
       toast.error('Failed to add hours');
@@ -2184,9 +2193,6 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
   );
   const grantRemainingPreview = Math.max(0, Math.round((grantTotalNum - Math.max(0, hoursUsed)) * 100) / 100);
 
-
-
-
   const handleSaveGrant = async () => {
     setSavingGrant(true);
     try {
@@ -2194,6 +2200,9 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
         retainerTotal: grantTotalNum,
         retainerRemaining: grantRemainingPreview,
         retainerCarryoverHours: grantRolloverNum,
+        // Flat fee is unchanged — re-derive the blended hourly rate.
+        monthlyContractValue: contractFee,
+        rate: deriveRate(contractFee, grantTotalNum),
       });
       setOpenAdjustment(null);
       toast.success('Cycle hours updated');
@@ -2204,11 +2213,16 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
     }
   };
 
+  const monthlyInputNum = Math.max(0, Math.round((Number(monthlyInput) || 0) * 100) / 100);
+  const previewRate = deriveRate(monthlyInputNum, Number(client.retainerTotal || 0));
+
   const handleSaveRate = async () => {
-    const rateNum = Math.max(0, Number(rateInput) || 0);
     setSavingRate(true);
     try {
-      await onUpdateClient({ rate: rateNum });
+      await onUpdateClient({
+        monthlyContractValue: monthlyInputNum,
+        rate: previewRate,
+      });
       setOpenAdjustment(null);
       toast.success('Pricing updated');
     } catch {
@@ -2217,6 +2231,7 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
       setSavingRate(false);
     }
   };
+
 
 
 
