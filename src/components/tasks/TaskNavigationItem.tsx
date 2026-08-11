@@ -4,7 +4,7 @@ import { ChevronDown, ChevronRight } from 'lucide-react';
 
 export function TaskNavigationItem({
   label, count, level = 0, active, onSelect,
-  expandable, expanded, onToggle, trailing,
+  expandable, expanded, onToggle, trailing, mode = 'global',
 }: {
   label: string;
   count?: number;
@@ -16,13 +16,17 @@ export function TaskNavigationItem({
   expanded?: boolean;
   onToggle?: () => void;
   trailing?: ReactNode;
+  /** 'global' = full gutter (Tasks page); 'client' = tight (Client Detail card). */
+  mode?: 'global' | 'client';
 }) {
+  const leftBase = mode === 'global' ? 12 : 12;
+  const listIndent = mode === 'global' ? 40 : 28;
   return (
     <div
       className={`group relative flex items-center h-8 pr-2.5 transition-colors ${
         active ? 'bg-[color:var(--surface-sunken)]' : 'hover:bg-[color:var(--surface-sunken)]/60'
       }`}
-      style={{ paddingLeft: level === 0 ? 12 : 40 }}
+      style={{ paddingLeft: level === 0 ? leftBase : listIndent }}
     >
       {active && (
         <span

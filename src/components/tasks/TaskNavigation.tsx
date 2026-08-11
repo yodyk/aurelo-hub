@@ -88,6 +88,11 @@ function NavigationBody({
   const [creatingFor, setCreatingFor] = useState<string | null>(null);
   const [newTitle, setNewTitle] = useState('');
   const activeKey = navKey(context);
+  // Global Tasks page is a bare <aside> — the 32px gutter aligns with the
+  // page header. Client Detail is already inside a padded SectionCard, so
+  // use a tight 12px gutter there to avoid doubled indentation.
+  const pad = mode === 'global' ? 'pl-8' : 'pl-3';
+  const listIndent = mode === 'global' ? 'pl-[40px]' : 'pl-[28px]';
 
   // Always keep the active client's branch open.
   useEffect(() => {
@@ -135,7 +140,7 @@ function NavigationBody({
 
   const newListRow = (clientId: string) =>
     creatingFor === clientId ? (
-      <div className="pl-[40px] pr-3 py-1">
+      <div className={`${listIndent} pr-3 py-1`}>
         <input
           autoFocus
           value={newTitle}
@@ -152,7 +157,7 @@ function NavigationBody({
         />
       </div>
     ) : (
-      <div className="pl-[40px] pr-3 mt-1.5 mb-1">
+      <div className={`${listIndent} pr-3 mt-1.5 mb-1`}>
         <button
           type="button"
           onClick={() => { setCreatingFor(clientId); setNewTitle(''); }}
@@ -166,7 +171,7 @@ function NavigationBody({
 
   return (
     <div className="flex flex-col min-h-0 h-full">
-      <div className="pl-8 pr-3 py-3 border-b border-border flex-shrink-0">
+      <div className={`${pad} pr-3 py-3 border-b border-border flex-shrink-0`}>
         <div className="relative">
           <Search className="w-3.5 h-3.5 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden />
           <input
@@ -196,6 +201,7 @@ function NavigationBody({
           count={tree.totalOpen}
           active={activeKey === 'all'}
           onSelect={() => onSelect({ kind: 'all' })}
+          mode={mode}
         />
 
         {mode === 'global' && (
@@ -219,13 +225,14 @@ function NavigationBody({
                   expanded={open}
                   onToggle={() => toggle(c.id)}
                   onSelect={() => onSelect({ kind: 'client', clientId: c.id })}
+                  mode={mode}
                 />
               )}
 
               {open && (
                 <div>
                   {mode === 'client' && (
-                    <div className="type-eyebrow pl-8 pr-3 pt-4 pb-2 text-muted-foreground">Lists</div>
+                    <div className={`type-eyebrow ${pad} pr-3 pt-4 pb-2 text-muted-foreground`}>Lists</div>
                   )}
                   {c.lists.map(l => (
                     <TaskNavigationItem
@@ -235,6 +242,7 @@ function NavigationBody({
                       level={1}
                       active={activeKey === `list:${l.id}`}
                       onSelect={() => onSelect({ kind: 'list', clientId: c.id, listId: l.id })}
+                      mode={mode}
                       trailing={
                         <TaskListMenu
                           list={l}
