@@ -140,7 +140,7 @@ function NavigationBody({
 
   const newListRow = (clientId: string) =>
     creatingFor === clientId ? (
-      <div className="pl-[40px] pr-3 py-1">
+      <div className={`${listIndent} pr-3 py-1`}>
         <input
           autoFocus
           value={newTitle}
