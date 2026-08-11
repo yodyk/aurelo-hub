@@ -2192,6 +2192,22 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
     }
   };
 
+  const handleSaveRate = async () => {
+    const rateNum = Math.max(0, Number(rateInput) || 0);
+    setSavingRate(true);
+    try {
+      await onUpdateClient({ rate: rateNum });
+      setOpenAdjustment(null);
+      toast.success('Pricing updated');
+    } catch {
+      toast.error('Failed to update pricing');
+    } finally {
+      setSavingRate(false);
+    }
+  };
+
+
+
 
 
 
