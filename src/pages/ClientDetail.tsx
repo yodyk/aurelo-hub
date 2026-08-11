@@ -2086,27 +2086,34 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
   const [historyLoading, setHistoryLoading] = useState(true);
   const [confirmReset, setConfirmReset] = useState(false);
   const [resetting, setResetting] = useState(false);
-  const [editingCycle, setEditingCycle] = useState(false);
   const [cycleStart, setCycleStart] = useState(client.retainerCycleStart || '');
   const [cycleDays, setCycleDays] = useState(client.retainerCycleDays || 30);
   const retainerPlanning = getRetainerPlanning(client.customFields);
   const carryoverCap = Math.max(0, Number(retainerPlanning.pendingCarryoverHours || 0));
   const scheduledBaseHours = Math.max(0, Number(retainerPlanning.nextCycleBaseHours ?? client.retainerTotal ?? 0));
-  const [editingResetPlan, setEditingResetPlan] = useState(false);
   const [plannedBaseHours, setPlannedBaseHours] = useState(String(scheduledBaseHours));
   const [plannedCarryoverHours, setPlannedCarryoverHours] = useState(String(carryoverCap));
 
   // "Add hours to current cycle" state
-  const [addOpen, setAddOpen] = useState(false);
   const [addAmount, setAddAmount] = useState('');
   const [addUnit, setAddUnit] = useState<'hours' | 'percent'>('hours');
   const [adding, setAdding] = useState(false);
 
   // "Edit hours granted for this cycle" state
-  const [editingGrant, setEditingGrant] = useState(false);
   const [grantTotal, setGrantTotal] = useState(String(client.retainerTotal ?? 0));
   const [grantRollover, setGrantRollover] = useState(String(client.retainerCarryoverHours ?? 0));
   const [savingGrant, setSavingGrant] = useState(false);
+
+  // Accordion: only one adjustment panel open at a time
+  const [openAdjustment, setOpenAdjustment] = useState<string | null>(null);
+  const toggleAdjustment = useCallback((id: string) => {
+    if (openAdjustment === id) { setOpenAdjustment(null); return; }
+    if (id === 'cycle') { setCycleStart(client.retainerCycleStart || ''); setCycleDays(client.retainerCycleDays || 30); }
+    if (id === 'grant') { setGrantTotal(String(Number(client.retainerTotal ?? 0))); setGrantRollover(String(Number(client.retainerCarryoverHours ?? 0))); }
+    if (id === 'add') { setAddAmount(''); setAddUnit('hours'); }
+    if (id === 'reset') { setPlannedBaseHours(String(scheduledBaseHours)); setPlannedCarryoverHours(String(carryoverCap)); }
+    setOpenAdjustment(id);
+  }, [openAdjustment, client.retainerCycleStart, client.retainerCycleDays, client.retainerTotal, client.retainerCarryoverHours, scheduledBaseHours, carryoverCap]);
 
 
   const hoursUsed = (client.retainerTotal || 0) - (client.retainerRemaining || 0);
