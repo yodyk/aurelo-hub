@@ -2165,11 +2165,8 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
   );
   const grantRemainingPreview = Math.max(0, Math.round((grantTotalNum - Math.max(0, hoursUsed)) * 100) / 100);
 
-  const openGrantEditor = () => {
-    setGrantTotal(String(Number(client.retainerTotal ?? 0)));
-    setGrantRollover(String(Number(client.retainerCarryoverHours ?? 0)));
-    setEditingGrant(true);
-  };
+
+
 
   const handleSaveGrant = async () => {
     setSavingGrant(true);
