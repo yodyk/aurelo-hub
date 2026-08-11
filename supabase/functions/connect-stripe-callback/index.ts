@@ -33,6 +33,47 @@ Deno.serve(async (req) => {
       throw new Error("STRIPE_SECRET_KEY is not configured");
     }
 
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+
+    // Validate the state token: must exist, be unused, and be unexpired.
+    // The workspace comes from the stored token — never from the query string.
+    const { data: stateRow } = await supabase
+      .from("stripe_oauth_states")
+      .select("id, workspace_id, used_at, expires_at")
+      .eq("state", state)
+      .maybeSingle();
+
+    if (
+      !stateRow ||
+      stateRow.used_at ||
+      new Date(stateRow.expires_at).getTime() < Date.now()
+    ) {
+      console.error("Stripe Connect callback: invalid or expired state token");
+      return Response.redirect(
+        `${appOrigin}/settings?tab=integrations&stripe_connect=error&message=${encodeURIComponent("Invalid or expired connection request")}`,
+        302,
+      );
+    }
+
+    // Consume the token atomically so it can only be used once
+    const { data: consumed } = await supabase
+      .from("stripe_oauth_states")
+      .update({ used_at: new Date().toISOString() })
+      .eq("id", stateRow.id)
+      .is("used_at", null)
+      .select("id")
+      .maybeSingle();
+
+    if (!consumed) {
+      return Response.redirect(
+        `${appOrigin}/settings?tab=integrations&stripe_connect=error&message=${encodeURIComponent("Invalid or expired connection request")}`,
+        302,
+      );
+    }
+
     const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: "2025-03-31.basil" });
 
     // Exchange the authorization code for a connected account ID
@@ -46,35 +87,15 @@ Deno.serve(async (req) => {
       throw new Error("No stripe_user_id returned from token exchange");
     }
 
-    console.log("Stripe Connect account linked:", connectedAccountId, "for user:", state);
-
-    // Save the connected account ID to the workspace
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-    );
-
-    // Find the user's workspace
-    const { data: member } = await supabase
-      .from("workspace_members")
-      .select("workspace_id")
-      .eq("user_id", state)
-      .eq("status", "active")
-      .limit(1)
-      .maybeSingle();
-
-    if (!member) {
-      throw new Error("No workspace found for user");
-    }
-
     const { error: updateErr } = await supabase
       .from("workspaces")
       .update({ stripe_connect_account_id: connectedAccountId })
-      .eq("id", member.workspace_id);
+      .eq("id", stateRow.workspace_id);
 
     if (updateErr) {
       throw new Error(`Failed to save account: ${updateErr.message}`);
     }
+
 
     return Response.redirect(
       `${appOrigin}/settings?tab=integrations&stripe_connect=success`,
