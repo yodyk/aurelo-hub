@@ -242,6 +242,7 @@ function NavigationBody({
                       level={1}
                       active={activeKey === `list:${l.id}`}
                       onSelect={() => onSelect({ kind: 'list', clientId: c.id, listId: l.id })}
+                      mode={mode}
                       trailing={
                         <TaskListMenu
                           list={l}
