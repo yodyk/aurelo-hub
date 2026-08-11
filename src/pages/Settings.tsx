@@ -3956,9 +3956,13 @@ function IntegrationsTabContent() {
     setRegenerating(true);
     try {
       const newKey = await api.regenerateApiKey();
-      setApiKeyData({ key: newKey, createdAt: new Date().toISOString() });
+      setFreshKey(newKey);
+      setApiKeyMasked({
+        key_masked: `${newKey.slice(0, 6)}${"•".repeat(18)}`,
+        created_at: new Date().toISOString(),
+      });
       setApiKeyVisible(true);
-      toast.success("API key regenerated");
+      toast.success("API key regenerated — copy it now, it won't be shown again");
     } catch (err: any) {
       toast.error(err.message || "Failed to regenerate key");
     } finally {
@@ -3966,13 +3970,12 @@ function IntegrationsTabContent() {
     }
   };
 
-  const displayKey = apiKeyData?.key || "No key generated — click regenerate";
-
   const copyApiKey = () => {
-    if (!apiKeyData?.key) return;
+    if (!freshKey) return;
     try {
       const textarea = document.createElement("textarea");
-      textarea.value = apiKeyData.key;
+      textarea.value = freshKey;
+
       textarea.style.position = "fixed";
       textarea.style.opacity = "0";
       document.body.appendChild(textarea);
