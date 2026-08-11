@@ -225,6 +225,7 @@ function NavigationBody({
                   expanded={open}
                   onToggle={() => toggle(c.id)}
                   onSelect={() => onSelect({ kind: 'client', clientId: c.id })}
+                  mode={mode}
                 />
               )}
 
