@@ -157,7 +157,7 @@ function NavigationBody({
         />
       </div>
     ) : (
-      <div className="pl-[40px] pr-3 mt-1.5 mb-1">
+      <div className={`${listIndent} pr-3 mt-1.5 mb-1`}>
         <button
           type="button"
           onClick={() => { setCreatingFor(clientId); setNewTitle(''); }}
