@@ -225,7 +225,7 @@ function NavigationBody({
               {open && (
                 <div>
                   {mode === 'client' && (
-                    <div className="type-eyebrow px-2.5 pt-3 pb-1 text-muted-foreground">Lists</div>
+                    <div className="type-eyebrow px-3 pt-4 pb-2 text-muted-foreground">Lists</div>
                   )}
                   {c.lists.map(l => (
                     <TaskNavigationItem
@@ -253,7 +253,7 @@ function NavigationBody({
         })}
 
         {clients.length === 0 && (
-          <p className="px-2.5 py-3 text-[12px] text-muted-foreground">
+          <p className="px-3 py-3 text-[12px] text-muted-foreground">
             {query ? 'Nothing matches that.' : 'No clients yet.'}
           </p>
         )}
