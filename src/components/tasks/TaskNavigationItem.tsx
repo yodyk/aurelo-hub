@@ -22,7 +22,7 @@ export function TaskNavigationItem({
       className={`group relative flex items-center h-8 pr-2.5 transition-colors ${
         active ? 'bg-[color:var(--surface-sunken)]' : 'hover:bg-[color:var(--surface-sunken)]/60'
       }`}
-      style={{ paddingLeft: level === 0 ? 12 : 34 }}
+      style={{ paddingLeft: level === 0 ? 12 : 40 }}
     >
       {active && (
         <span

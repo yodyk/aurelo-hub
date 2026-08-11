@@ -135,7 +135,7 @@ function NavigationBody({
 
   const newListRow = (clientId: string) =>
     creatingFor === clientId ? (
-      <div className="pl-[34px] pr-3 py-1">
+      <div className="pl-[40px] pr-3 py-1">
         <input
           autoFocus
           value={newTitle}
@@ -152,7 +152,7 @@ function NavigationBody({
         />
       </div>
     ) : (
-      <div className="pl-[34px] pr-3 mt-1.5 mb-1">
+      <div className="pl-[40px] pr-3 mt-1.5 mb-1">
         <button
           type="button"
           onClick={() => { setCreatingFor(clientId); setNewTitle(''); }}
@@ -199,7 +199,7 @@ function NavigationBody({
         />
 
         {mode === 'global' && (
-          <div className="type-eyebrow px-3 pt-5 pb-2 text-muted-foreground">Clients</div>
+          <div className="type-eyebrow pl-8 pr-3 pt-5 pb-2 text-muted-foreground">Clients</div>
         )}
 
         {clients.map((c, idx) => {
@@ -225,7 +225,7 @@ function NavigationBody({
               {open && (
                 <div>
                   {mode === 'client' && (
-                    <div className="type-eyebrow px-3 pt-4 pb-2 text-muted-foreground">Lists</div>
+                    <div className="type-eyebrow pl-8 pr-3 pt-4 pb-2 text-muted-foreground">Lists</div>
                   )}
                   {c.lists.map(l => (
                     <TaskNavigationItem
