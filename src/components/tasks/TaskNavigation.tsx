@@ -88,6 +88,11 @@ function NavigationBody({
   const [creatingFor, setCreatingFor] = useState<string | null>(null);
   const [newTitle, setNewTitle] = useState('');
   const activeKey = navKey(context);
+  // Global Tasks page is a bare <aside> — the 32px gutter aligns with the
+  // page header. Client Detail is already inside a padded SectionCard, so
+  // use a tight 12px gutter there to avoid doubled indentation.
+  const pad = mode === 'global' ? 'pl-8' : 'pl-3';
+  const listIndent = mode === 'global' ? 'pl-[40px]' : 'pl-[28px]';
 
   // Always keep the active client's branch open.
   useEffect(() => {
