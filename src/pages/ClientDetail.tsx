@@ -2118,9 +2118,14 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
     if (id === 'cycle') { setCycleStart(client.retainerCycleStart || ''); setCycleDays(client.retainerCycleDays || 30); }
     if (id === 'grant') { setGrantTotal(String(Number(client.retainerTotal ?? 0))); setGrantRollover(String(Number(client.retainerCarryoverHours ?? 0))); }
     if (id === 'add') { setAddAmount(''); setAddUnit('hours'); }
+    if (id === 'pricing') {
+      const r = Number(client.rate ?? 0);
+      setRateInput(String(r));
+      setMonthlyInput(String(Math.round(Number(client.retainerTotal || 0) * r * 100) / 100));
+    }
     if (id === 'reset') { setPlannedBaseHours(String(scheduledBaseHours)); setPlannedCarryoverHours(String(carryoverCap)); }
     setOpenAdjustment(id);
-  }, [openAdjustment, client.retainerCycleStart, client.retainerCycleDays, client.retainerTotal, client.retainerCarryoverHours, scheduledBaseHours, carryoverCap]);
+  }, [openAdjustment, client.retainerCycleStart, client.retainerCycleDays, client.retainerTotal, client.retainerCarryoverHours, client.rate, scheduledBaseHours, carryoverCap]);
 
 
   const hoursUsed = (client.retainerTotal || 0) - (client.retainerRemaining || 0);
