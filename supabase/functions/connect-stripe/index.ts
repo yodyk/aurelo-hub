@@ -40,11 +40,43 @@ Deno.serve(async (req) => {
       throw new Error("STRIPE_CLIENT_ID is not configured");
     }
 
+    const userId = claims.claims.sub as string;
+
+    // Resolve the caller's workspace and require admin/owner
+    const { data: member } = await supabase
+      .from("workspace_members")
+      .select("workspace_id, role")
+      .eq("user_id", userId)
+      .eq("status", "active")
+      .in("role", ["Owner", "Admin"])
+      .limit(1)
+      .maybeSingle();
+
+    if (!member) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Generate a random, single-use state token bound to this user + workspace
+    const state = crypto.randomUUID() + crypto.randomUUID().replace(/-/g, "");
+
+    const admin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+    const { error: stateErr } = await admin.from("stripe_oauth_states").insert({
+      state,
+      user_id: userId,
+      workspace_id: member.workspace_id,
+    });
+    if (stateErr) {
+      throw new Error("Failed to initiate Stripe connection");
+    }
+
     // Build the Stripe Connect OAuth URL
     const redirectUri = `${Deno.env.get("SUPABASE_URL")}/functions/v1/connect-stripe-callback`;
-
-    // Pass user ID as state so callback can identify the user
-    const state = claims.claims.sub;
 
     const params = new URLSearchParams({
       response_type: "code",
@@ -55,6 +87,7 @@ Deno.serve(async (req) => {
     });
 
     const url = `https://connect.stripe.com/oauth/authorize?${params.toString()}`;
+
 
     return new Response(JSON.stringify({ url }), {
       status: 200,

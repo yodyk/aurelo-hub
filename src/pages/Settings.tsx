@@ -3821,8 +3821,14 @@ function IntegrationsTab() {
 
 function IntegrationsTabContent() {
   const [connections, loading, setConnections] = useSettingsSection("integrations", defaultIntegrations);
-  const [apiKeyData, apiKeyLoading, setApiKeyData] = useSettingsSection("apikey", { key: "", createdAt: "" });
+  // API key is NEVER persisted into workspace_settings (readable by all members).
+  // We only show a masked value from the api_keys_safe view, and reveal the raw
+  // key in memory once, right after the admin generates it.
+  const [apiKeyMasked, setApiKeyMasked] = useState<{ key_masked: string; created_at: string } | null>(null);
+  const [apiKeyLoading, setApiKeyLoading] = useState(true);
+  const [freshKey, setFreshKey] = useState<string | null>(null);
   const [apiKeyVisible, setApiKeyVisible] = useState(false);
+
   const [apiCopied, setApiCopied] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
   const [savingConnections, setSavingConnections] = useState(false);
@@ -3832,6 +3838,29 @@ function IntegrationsTabContent() {
   const [searchParams] = useSearchParams();
   const [stripeConnectAccountId, setStripeConnectAccountId] = useState<string | null>(null);
   const [stripeLoading, setStripeLoading] = useState(true);
+
+  // Load masked API key metadata (never the raw key)
+  useEffect(() => {
+    if (!workspaceId) return;
+    let mounted = true;
+    supabase
+      .from("api_keys_safe")
+      .select("key_masked, created_at")
+      .eq("workspace_id", workspaceId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!mounted) return;
+        setApiKeyMasked(
+          data?.key_masked ? { key_masked: data.key_masked, created_at: data.created_at || "" } : null,
+        );
+        setApiKeyLoading(false);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [workspaceId]);
 
   // Load Stripe Connect status
   useEffect(() => {
@@ -3927,9 +3956,13 @@ function IntegrationsTabContent() {
     setRegenerating(true);
     try {
       const newKey = await api.regenerateApiKey();
-      setApiKeyData({ key: newKey, createdAt: new Date().toISOString() });
+      setFreshKey(newKey);
+      setApiKeyMasked({
+        key_masked: `${newKey.slice(0, 6)}${"•".repeat(18)}`,
+        created_at: new Date().toISOString(),
+      });
       setApiKeyVisible(true);
-      toast.success("API key regenerated");
+      toast.success("API key regenerated — copy it now, it won't be shown again");
     } catch (err: any) {
       toast.error(err.message || "Failed to regenerate key");
     } finally {
@@ -3937,13 +3970,12 @@ function IntegrationsTabContent() {
     }
   };
 
-  const displayKey = apiKeyData?.key || "No key generated — click regenerate";
-
   const copyApiKey = () => {
-    if (!apiKeyData?.key) return;
+    if (!freshKey) return;
     try {
       const textarea = document.createElement("textarea");
-      textarea.value = apiKeyData.key;
+      textarea.value = freshKey;
+
       textarea.style.position = "fixed";
       textarea.style.opacity = "0";
       document.body.appendChild(textarea);
@@ -4062,9 +4094,13 @@ function IntegrationsTabContent() {
               className="flex-1 px-3 py-2 bg-accent/30 border border-border rounded-lg text-[13px] tabular-nums truncate"
               style={{ fontFamily: "ui-monospace, monospace" }}
             >
-              {apiKeyData?.key ? (apiKeyVisible ? apiKeyData.key : "\u2022".repeat(24)) : "No key generated"}
+              {freshKey
+                ? apiKeyVisible
+                  ? freshKey
+                  : "\u2022".repeat(24)
+                : apiKeyMasked?.key_masked || "No key generated"}
             </div>
-            {apiKeyData?.key && (
+            {freshKey && (
               <>
                 <button
                   onClick={() => setApiKeyVisible((v) => !v)}
@@ -4083,9 +4119,12 @@ function IntegrationsTabContent() {
           </div>
           <div className="flex items-center justify-between">
             <div className="text-[12px] text-muted-foreground">
-              {apiKeyData?.createdAt
-                ? `Generated ${new Date(apiKeyData.createdAt).toLocaleDateString()}`
-                : "Keep this key secret. Regenerate if compromised."}
+              {freshKey
+                ? "Copy this key now — it will not be shown again."
+                : apiKeyMasked?.created_at
+                  ? `Generated ${new Date(apiKeyMasked.created_at).toLocaleDateString()}`
+                  : "Keep this key secret. Regenerate if compromised."}
+
             </div>
             <button
               onClick={handleRegenerateKey}
