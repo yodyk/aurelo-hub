@@ -166,7 +166,7 @@ function NavigationBody({
 
   return (
     <div className="flex flex-col min-h-0 h-full">
-      <div className="p-2 border-b border-border flex-shrink-0">
+      <div className="px-3 py-3 border-b border-border flex-shrink-0">
         <div className="relative">
           <Search className="w-3.5 h-3.5 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden />
           <input
@@ -190,7 +190,7 @@ function NavigationBody({
         </div>
       </div>
 
-      <nav className="flex-1 overflow-y-auto py-1.5 min-h-0">
+      <nav className="flex-1 overflow-y-auto py-2 min-h-0">
         <TaskNavigationItem
           label={allTasksLabel || 'All tasks'}
           count={tree.totalOpen}
@@ -199,7 +199,7 @@ function NavigationBody({
         />
 
         {mode === 'global' && (
-          <div className="type-eyebrow px-2.5 pt-3 pb-1 text-muted-foreground">Clients</div>
+          <div className="type-eyebrow px-3 pt-5 pb-2 text-muted-foreground">Clients</div>
         )}
 
         {clients.map((c, idx) => {
