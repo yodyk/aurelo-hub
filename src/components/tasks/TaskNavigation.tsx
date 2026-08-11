@@ -166,7 +166,7 @@ function NavigationBody({
 
   return (
     <div className="flex flex-col min-h-0 h-full">
-      <div className="px-3 py-3 border-b border-border flex-shrink-0">
+      <div className="pl-8 pr-3 py-3 border-b border-border flex-shrink-0">
         <div className="relative">
           <Search className="w-3.5 h-3.5 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden />
           <input
@@ -190,7 +190,7 @@ function NavigationBody({
         </div>
       </div>
 
-      <nav className="flex-1 overflow-y-auto py-2 min-h-0">
+      <nav className="flex-1 overflow-y-auto py-2 min-h-0 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         <TaskNavigationItem
           label={allTasksLabel || 'All tasks'}
           count={tree.totalOpen}
