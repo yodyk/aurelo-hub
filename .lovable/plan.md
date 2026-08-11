@@ -10,10 +10,13 @@ Turn Tasks into a small two-pane workspace. A quiet navigation rail answers "whe
 - **Counts** are quiet, muted, tabular open-task counts next to each client and list. No badges. Zero shows as a faint `0`.
 - **Add Task** is deterministic: from a list it preselects client + that exact list; from a client it preselects client and preselects the list only when exactly one exists (otherwise you pick, with the private General fallback when none exist); from All Tasks you pick client then list. Always the canonical `TaskModal` → `createTask()`.
 - **URL state**: `/tasks`, `/tasks?client=<id>`, `/tasks?client=<id>&list=<id>`. Refresh, back/forward and deep links all work. Client Detail keeps its existing tab param and adds `?list=<id>`.
-- **Task Drawer** never resets the rail. If an edit moves a task out of the current list it disappears from the view with a calm toast: "Moved to DealerCX › General".
+- **Task Drawer** is the only editing surface. Every row on every surface (All Tasks, client, list, Client Detail) opens the canonical drawer — no inline expanded editing carried over from the old panel. The rail never resets behind it. If an edit moves a task out of the current list it disappears from the view with a calm toast: "Moved to DealerCX › General", counts update immediately, and you are not navigated to the destination.
+- **Status stays restrained**: subtle dot plus plain text in the five approved statuses (To Do, On Hold, In Progress, In Review, Complete). Clicking the indicator always opens the deliberate status menu — never click-to-cycle, so an accidental click can't move In Review to Complete.
+- **Deleting a list can never orphan a task.** An empty list deletes after a simple confirm. A list with tasks opens a short dialog: move its tasks to another list of the same client, move them to General, or cancel. The source list is deleted only after every task has been reassigned.
 - **Empty states** are one-liners scoped to context ("No open tasks in Website Redesign.", "No In Review tasks in Website Redesign.", "No tasks match your search.").
-- **Mobile**: no squeezed rail. The content pane gets a context selector button at the top (`Website Redesign ▾`) that opens the existing bottom sheet containing the same hierarchy. Desktop layout unchanged by this.
+- **Mobile**: no squeezed rail. The content pane gets a context selector button at the top (`Website Redesign ▾`) that opens the existing bottom sheet containing the same hierarchy. Desktop layout and hierarchy are untouched by this; both share the same navigation state and tree data.
 - **Language**: "Lists" everywhere in the UI; "Checklist" wording retired from these surfaces. General appears as a normal list with no "system"/"default" label.
+
 
 ## Technical approach
 
