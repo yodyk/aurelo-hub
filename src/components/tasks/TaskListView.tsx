@@ -49,6 +49,8 @@ export function TaskListView({
   const [filter, setFilter] = useState<TaskFilterKey>('all');
   const [query, setQuery] = useState('');
   const [debounced, setDebounced] = useState('');
+  // Rows hidden optimistically during the Undo window.
+  const [hidden, setHidden] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const t = setTimeout(() => setDebounced(query), 160);
@@ -60,9 +62,12 @@ export function TaskListView({
     [clientMap],
   );
 
-  const { scoped, counts, buckets, visible } = useTaskPipeline({
-    tasks, context, filter, query: debounced, clientName, projectName,
+  const liveTasks = useMemo(() => tasks.filter(t => !hidden.has(t.id)), [tasks, hidden]);
+
+  const { counts, buckets, visible } = useTaskPipeline({
+    tasks: liveTasks, context, filter, query: debounced, clientName, projectName,
   });
+
 
   // A filter only survives a context change when it still means something
   // there; otherwise the new context opens on All open.
