@@ -6,6 +6,7 @@ import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@radix
 import { useParams, Link, useNavigate, useSearchParams } from "react-router";
 import {
   ChevronLeft,
+  ChevronDown,
   FileText,
   Lightbulb,
   StickyNote,
