@@ -230,7 +230,7 @@ function NavigationBody({
               {open && (
                 <div>
                   {mode === 'client' && (
-                    <div className="type-eyebrow pl-8 pr-3 pt-4 pb-2 text-muted-foreground">Lists</div>
+                    <div className={`type-eyebrow ${pad} pr-3 pt-4 pb-2 text-muted-foreground`}>Lists</div>
                   )}
                   {c.lists.map(l => (
                     <TaskNavigationItem
