@@ -2104,12 +2104,22 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
   const [grantRollover, setGrantRollover] = useState(String(client.retainerCarryoverHours ?? 0));
   const [savingGrant, setSavingGrant] = useState(false);
 
-  // "Pricing" state — rate is the source of truth; monthly price is derived
-  const [rateInput, setRateInput] = useState(String(client.rate ?? 0));
-  const [monthlyInput, setMonthlyInput] = useState(
-    String(Math.round((Number(client.retainerTotal || 0) * Number(client.rate || 0)) * 100) / 100),
-  );
+  // "Pricing" state — the flat monthly fee is the source of truth for a
+  // retainer. The hourly rate is DERIVED from fee ÷ hours granted, so extending
+  // a cycle (or charging extra for extended hours) reprices the blended rate
+  // automatically instead of the fee moving when hours change.
+  const contractFee = Number(client.monthlyContractValue ?? 0) > 0
+    ? Number(client.monthlyContractValue)
+    : Math.round(Number(client.retainerTotal || 0) * Number(client.rate || 0) * 100) / 100;
+  const deriveRate = useCallback((fee: number, hours: number) => (
+    hours > 0 ? Math.round((fee / hours) * 100) / 100 : 0
+  ), []);
+  const effectiveRate = deriveRate(contractFee, Number(client.retainerTotal || 0));
+  const [monthlyInput, setMonthlyInput] = useState(String(contractFee));
   const [savingRate, setSavingRate] = useState(false);
+
+  // Optional extra charge attached to a mid-cycle top-up (extended hours)
+  const [addCharge, setAddCharge] = useState('');
 
   // Accordion: only one adjustment panel open at a time
   const [openAdjustment, setOpenAdjustment] = useState<string | null>(null);
@@ -2117,15 +2127,12 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
     if (openAdjustment === id) { setOpenAdjustment(null); return; }
     if (id === 'cycle') { setCycleStart(client.retainerCycleStart || ''); setCycleDays(client.retainerCycleDays || 30); }
     if (id === 'grant') { setGrantTotal(String(Number(client.retainerTotal ?? 0))); setGrantRollover(String(Number(client.retainerCarryoverHours ?? 0))); }
-    if (id === 'add') { setAddAmount(''); setAddUnit('hours'); }
-    if (id === 'pricing') {
-      const r = Number(client.rate ?? 0);
-      setRateInput(String(r));
-      setMonthlyInput(String(Math.round(Number(client.retainerTotal || 0) * r * 100) / 100));
-    }
+    if (id === 'add') { setAddAmount(''); setAddUnit('hours'); setAddCharge(''); }
+    if (id === 'pricing') { setMonthlyInput(String(contractFee)); }
     if (id === 'reset') { setPlannedBaseHours(String(scheduledBaseHours)); setPlannedCarryoverHours(String(carryoverCap)); }
     setOpenAdjustment(id);
-  }, [openAdjustment, client.retainerCycleStart, client.retainerCycleDays, client.retainerTotal, client.retainerCarryoverHours, client.rate, scheduledBaseHours, carryoverCap]);
+  }, [openAdjustment, client.retainerCycleStart, client.retainerCycleDays, client.retainerTotal, client.retainerCarryoverHours, contractFee, scheduledBaseHours, carryoverCap]);
+
 
 
   const hoursUsed = (client.retainerTotal || 0) - (client.retainerRemaining || 0);
@@ -2150,16 +2157,25 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
     setPlannedCarryoverHours(String(carryoverCap));
   }, [scheduledBaseHours, carryoverCap, client.id]);
 
+  const addChargeNum = Math.max(0, Math.round((Number(addCharge) || 0) * 100) / 100);
+  const addNewTotalHours = Math.round(((Number(client.retainerTotal) || 0) + addHoursDelta) * 100) / 100;
+  const addNewFee = Math.round((contractFee + addChargeNum) * 100) / 100;
+
   const handleAddHours = async () => {
     if (addHoursDelta <= 0) return;
     setAdding(true);
     try {
       await onUpdateClient({
-        retainerTotal: Math.round(((Number(client.retainerTotal) || 0) + addHoursDelta) * 100) / 100,
+        retainerTotal: addNewTotalHours,
         retainerRemaining: Math.round(((Number(client.retainerRemaining) || 0) + addHoursDelta) * 100) / 100,
+        // Extending the retainer keeps the flat fee authoritative: an optional
+        // extra charge is added to it, and the blended rate is re-derived.
+        monthlyContractValue: addNewFee,
+        rate: deriveRate(addNewFee, addNewTotalHours),
       });
       toast.success(`Added ${fmtH(addHoursDelta)}h to this cycle`);
       setAddAmount('');
+      setAddCharge('');
       setOpenAdjustment(null);
     } catch {
       toast.error('Failed to add hours');
@@ -2177,9 +2193,6 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
   );
   const grantRemainingPreview = Math.max(0, Math.round((grantTotalNum - Math.max(0, hoursUsed)) * 100) / 100);
 
-
-
-
   const handleSaveGrant = async () => {
     setSavingGrant(true);
     try {
@@ -2187,6 +2200,9 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
         retainerTotal: grantTotalNum,
         retainerRemaining: grantRemainingPreview,
         retainerCarryoverHours: grantRolloverNum,
+        // Flat fee is unchanged — re-derive the blended hourly rate.
+        monthlyContractValue: contractFee,
+        rate: deriveRate(contractFee, grantTotalNum),
       });
       setOpenAdjustment(null);
       toast.success('Cycle hours updated');
@@ -2197,11 +2213,16 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
     }
   };
 
+  const monthlyInputNum = Math.max(0, Math.round((Number(monthlyInput) || 0) * 100) / 100);
+  const previewRate = deriveRate(monthlyInputNum, Number(client.retainerTotal || 0));
+
   const handleSaveRate = async () => {
-    const rateNum = Math.max(0, Number(rateInput) || 0);
     setSavingRate(true);
     try {
-      await onUpdateClient({ rate: rateNum });
+      await onUpdateClient({
+        monthlyContractValue: monthlyInputNum,
+        rate: previewRate,
+      });
       setOpenAdjustment(null);
       toast.success('Pricing updated');
     } catch {
@@ -2210,6 +2231,7 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
       setSavingRate(false);
     }
   };
+
 
 
 
@@ -2437,8 +2459,9 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
           <div className="md:col-span-5">
             <div className="text-[11px] text-muted-foreground mb-2 uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>Current state</div>
             <dl className="divide-y divide-[var(--hairline)] border-y border-[var(--hairline)]">
-              <SummaryRow label="Monthly price" value={formatMoney((client.retainerTotal || 0) * (client.rate || 0))} />
-              <SummaryRow label="Rate" value={`${formatMoney(client.rate || 0)}/hr`} />
+              <SummaryRow label="Monthly fee (flat)" value={formatMoney(contractFee)} />
+              <SummaryRow label="Effective rate" value={`${formatMoney(effectiveRate)}/hr`} />
+
               <SummaryRow label="Cycle length" value={`${client.retainerCycleDays || 30} days`} />
               <SummaryRow label="Cycle start" value={client.retainerCycleStart ? format(new Date(client.retainerCycleStart + 'T00:00:00'), 'MMM d, yyyy') : 'Not set'} />
               <SummaryRow label="Hours granted" value={`${fmtH(Number(client.retainerTotal || 0))}h`} />
@@ -2482,41 +2505,32 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
                 isOpen={openAdjustment === 'pricing'}
                 onToggle={toggleAdjustment}
                 title="Pricing"
-                summary={`${formatMoney((client.retainerTotal || 0) * (client.rate || 0))}/cycle · ${formatMoney(client.rate || 0)}/hr`}
+                summary={`${formatMoney(contractFee)}/cycle flat · ${formatMoney(effectiveRate)}/hr effective`}
               >
                 <div>
-                  <label className="text-[11px] text-muted-foreground mb-1 block" style={{ fontWeight: 500 }}>Monthly price</label>
+                  <label className="text-[11px] text-muted-foreground mb-1 block" style={{ fontWeight: 500 }}>Monthly retainer fee (flat)</label>
                   <input
                     type="number"
                     value={monthlyInput}
                     min={0}
                     step="1"
-                    onChange={(e) => {
-                      setMonthlyInput(e.target.value);
-                      const hrs = Number(client.retainerTotal || 0);
-                      if (hrs > 0) setRateInput(String(Math.round(((Number(e.target.value) || 0) / hrs) * 100) / 100));
-                    }}
+                    onChange={(e) => setMonthlyInput(e.target.value)}
                     className="w-full px-3 py-2 text-[13px] bg-input-background border border-border rounded-lg tabular-nums"
                   />
+                  <span className="text-[11px] text-muted-foreground block mt-1.5">
+                    What the client is contracted to pay each cycle, regardless of hours.
+                  </span>
                 </div>
                 <div>
-                  <label className="text-[11px] text-muted-foreground mb-1 block" style={{ fontWeight: 500 }}>Hourly rate</label>
-                  <input
-                    type="number"
-                    value={rateInput}
-                    min={0}
-                    step="0.01"
-                    onChange={(e) => {
-                      setRateInput(e.target.value);
-                      const hrs = Number(client.retainerTotal || 0);
-                      setMonthlyInput(String(Math.round((Number(e.target.value) || 0) * hrs * 100) / 100));
-                    }}
-                    className="w-full px-3 py-2 text-[13px] bg-input-background border border-border rounded-lg tabular-nums"
-                  />
+                  <label className="text-[11px] text-muted-foreground mb-1 block" style={{ fontWeight: 500 }}>Effective hourly rate</label>
+                  <div className="w-full px-3 py-2 text-[13px] bg-accent/30 border border-border rounded-lg tabular-nums text-muted-foreground">
+                    {Number(client.retainerTotal || 0) > 0 ? `${formatMoney(previewRate)}/hr` : 'Set hours granted to derive a rate'}
+                  </div>
                 </div>
                 <span className="text-[11px] text-muted-foreground block">
-                  Monthly price is {fmtH(Number(client.retainerTotal || 0))}h × rate. Editing either field updates the other; only the rate is stored.
+                  Derived: {formatMoney(monthlyInputNum)} ÷ {fmtH(Number(client.retainerTotal || 0))}h. The flat fee is what's stored — the rate re-derives whenever hours granted change, so extended cycles blend automatically.
                 </span>
+
                 <div className="flex items-center gap-2 pt-1">
                   <button onClick={() => setOpenAdjustment(null)} className="px-3 py-1.5 text-[12px] rounded-lg border border-border text-muted-foreground hover:bg-accent transition-colors" style={{ fontWeight: 500 }}>Cancel</button>
                   <button onClick={handleSaveRate} disabled={savingRate} className="px-3 py-1.5 text-[12px] rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed" style={{ fontWeight: 500 }}>{savingRate ? 'Saving…' : 'Save'}</button>
@@ -2574,11 +2588,29 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
                     </div>
                   </div>
                   <span className="text-[11px] text-muted-foreground block mt-2">
-                    {addHoursDelta > 0 ? <>Adds <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>{fmtH(addHoursDelta)}h</span> → new total {fmtH(Math.round(((Number(client.retainerTotal) || 0) + addHoursDelta) * 100) / 100)}h</> : 'Enter an amount'}
+                    {addHoursDelta > 0 ? <>Adds <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>{fmtH(addHoursDelta)}h</span> → new total {fmtH(addNewTotalHours)}h</> : 'Enter an amount'}
+                  </span>
+                </div>
+                <div>
+                  <label className="text-[11px] text-muted-foreground mb-1 block" style={{ fontWeight: 500 }}>Additional charge for these hours (optional)</label>
+                  <input
+                    type="number"
+                    value={addCharge}
+                    onChange={(e) => setAddCharge(e.target.value)}
+                    min={0}
+                    step="1"
+                    placeholder="0"
+                    className="w-full sm:w-40 px-3 py-2 text-[13px] bg-input-background border border-border rounded-lg tabular-nums"
+                  />
+                  <span className="text-[11px] text-muted-foreground block mt-2">
+                    {addHoursDelta > 0
+                      ? <>Fee {formatMoney(contractFee)} → <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>{formatMoney(addNewFee)}</span> · effective rate {formatMoney(effectiveRate)} → <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>{formatMoney(deriveRate(addNewFee, addNewTotalHours))}</span>/hr</>
+                      : 'Leave blank if the extended hours are included in the existing fee.'}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 pt-1">
-                  <button onClick={() => { setOpenAdjustment(null); setAddAmount(''); }} className="px-3 py-1.5 text-[12px] rounded-lg border border-border text-muted-foreground hover:bg-accent transition-colors" style={{ fontWeight: 500 }}>Cancel</button>
+                  <button onClick={() => { setOpenAdjustment(null); setAddAmount(''); setAddCharge(''); }} className="px-3 py-1.5 text-[12px] rounded-lg border border-border text-muted-foreground hover:bg-accent transition-colors" style={{ fontWeight: 500 }}>Cancel</button>
+
                   <button onClick={handleAddHours} disabled={adding || addHoursDelta <= 0} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed" style={{ fontWeight: 500 }}>
                     {adding ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
                     {adding ? 'Adding…' : 'Add to cycle'}
