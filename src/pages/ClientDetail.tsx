@@ -211,6 +211,44 @@ function MetricCard({ label, value, sub, accent }: { label: string; value: strin
   );
 }
 
+function SummaryRow({ label, value, strong }: { label: string; value: React.ReactNode; strong?: boolean }) {
+  return (
+    <div className="flex justify-between py-2.5 text-[13px] gap-3">
+      <dt className="text-muted-foreground shrink-0">{label}</dt>
+      <dd className="tabular-nums text-right" style={{ fontWeight: strong ? 600 : 500 }}>{value}</dd>
+    </div>
+  );
+}
+
+function AdjustmentSection({ id, title, summary, isOpen, onToggle, children }: {
+  id: string; title: string; summary?: React.ReactNode; isOpen: boolean; onToggle: (id: string) => void; children: React.ReactNode;
+}) {
+  return (
+    <div className="border-b border-[var(--hairline)] last:border-0">
+      <button type="button" onClick={() => onToggle(id)} className="w-full flex items-center justify-between gap-3 py-3.5 text-left cursor-pointer">
+        <div className="min-w-0">
+          <div className="text-[13px] text-foreground" style={{ fontWeight: 500 }}>{title}</div>
+          {summary && <div className="text-[11px] text-muted-foreground mt-0.5 truncate">{summary}</div>}
+        </div>
+        <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="pb-4 pt-1 space-y-3">{children}</div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 // ═══════════════════════════════════════════════════════════════════
 // Main Component
 // ═══════════════════════════════════════════════════════════════════
