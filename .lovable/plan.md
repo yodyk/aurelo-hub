@@ -1,81 +1,43 @@
-# Unified Client Documents
+# Tasks navigation: All Tasks → Client → List
 
-One document system for every client asset — uploaded files and external links, internal or client-facing — replacing the split between the Docs tab's Files panel and the Portal tab's Shared Resources.
+Turn Tasks into a small two-pane workspace. A quiet navigation rail answers "where am I working?", the existing task table stays the content surface, and filters/search refine whatever the rail selected. The same primitives power the Client Detail Tasks tab.
 
-## Information architecture
+## What changes for you
 
-```text
-Client Detail
-  Docs tab
-    Notes            (unchanged)
-    Documents        <- new canonical list (files + links, internal + shared)
-      [+ Add Document]  -> modal: Upload File | Add Link -> metadata form
-  Portal tab
-    (Resources section removed entirely)
+- **Global Tasks page** becomes sidebar + content. Sidebar: `All Tasks`, then a `Clients` section where each client expands to its lists. Clicking a client name selects the client view; clicking a list selects that list.
+- **Client Detail → Tasks** uses the same rail, minus the client level: `All Tasks` (this client) plus a `Lists` section. The current "scroll through every list stacked down the page" rendering goes away — one context at a time.
+- **Filters and search follow navigation.** Dataset = navigation context, then filter chips, then search. Filter selection is remembered per context for the current session only (in-memory map keyed by context), so bouncing between lists never hides tasks unexpectedly; a context you have not visited this session defaults to All open.
+- **Counts** are quiet, muted, tabular open-task counts next to each client and list. No badges. Zero shows as a faint `0`.
+- **Add Task** is deterministic: from a list it preselects client + that exact list; from a client it preselects client and preselects the list only when exactly one exists (otherwise you pick, with the private General fallback when none exist); from All Tasks you pick client then list. Always the canonical `TaskModal` → `createTask()`.
+- **URL state**: `/tasks`, `/tasks?client=<id>`, `/tasks?client=<id>&list=<id>`. Refresh, back/forward and deep links all work. Client Detail keeps its existing tab param and adds `?list=<id>`.
+- **Task Drawer** never resets the rail. If an edit moves a task out of the current list it disappears from the view with a calm toast: "Moved to DealerCX › General".
+- **Empty states** are one-liners scoped to context ("No open tasks in Website Redesign.", "No In Review tasks in Website Redesign.", "No tasks match your search.").
+- **Mobile**: no squeezed rail. The content pane gets a context selector button at the top (`Website Redesign ▾`) that opens the existing bottom sheet containing the same hierarchy. Desktop layout unchanged by this.
+- **Language**: "Lists" everywhere in the UI; "Checklist" wording retired from these surfaces. General appears as a normal list with no "system"/"default" label.
 
+## Technical approach
 
-Client Portal
-  "Documents" tab (was "Resources")
-    shows only documents with visibility = shared, grouped by status
-    approval actions unchanged
-```
+New shared primitives under `src/components/tasks/`:
 
-A document is one record. Where the bytes live (storage file vs. external URL) is just a `kind` field, not a separate feature.
+- `taskNavContext.ts` — canonical context type `{ kind: 'all' } | { kind: 'client', clientId } | { kind: 'list', clientId, listId }`, URL encode/decode helpers, and `useTaskNavigation(mode)` for `mode: 'global' | 'client'` (reads/writes `useSearchParams`).
+- `useTaskNavigationTree.ts` — builds the tree from data already loaded: clients from `useData()`, lists from a new `loadChecklistsForWorkspace(workspaceId)` in `checklistsApi.ts` (single `checklists` select, mapped to include `isDefault`), tasks from `loadAllTasksForWorkspace`. Open counts are derived client-side from the task array (`status !== 'complete'`), so no extra queries. In client mode the same hook is fed a single client id.
+- `TaskNavigation.tsx` / `TaskNavigationTree.tsx` / `TaskNavigationItem.tsx` — presentation only. Hairline right border, ~28px rows, indentation + type weight for hierarchy, active row = subtle sunken background plus a 2px cobalt left indicator. Includes an optional "Find client or list…" filter input at the top (rendered in global mode) and a `+ New list` action at the bottom of a client's lists in client mode.
+- `TaskFilterBar.tsx` — the existing chip set extracted from `Tasks.tsx`, driven by counts computed over the navigation-scoped dataset.
+- `TaskListView.tsx` — header (view title, `Client · N open`), filter bar, and the existing `Section`/`TaskRow` table lifted out of `Tasks.tsx` unchanged in visual language.
+- `useTaskPipeline.ts` — one canonical pipeline: `workspace tasks → navigation scope → filter → search (matchesTaskSearch)`, plus bucketing. Both pages use it; no duplicate filtering code.
 
-## Data model
+Refactors:
 
-Today's `shared_resources` table already holds link records, approvals (`resource_approvals`), portal payloads, and RLS. Uploaded files have **no** database row at all — they only exist as objects in the `client-files` storage bucket, which is why they carry no metadata.
+- `src/pages/Tasks.tsx` becomes layout + wiring: header (title, search, Add Task), `TaskNavigation`, `TaskListView`. Existing scope toggle, search-`/` shortcut and `TaskModal` wiring are preserved.
+- `src/components/ChecklistPanel.tsx` is reduced to the client-mode composition of the same primitives; its per-list card rendering (stacked lists) is removed. Its existing list-management actions (rename, share/unshare with client, delete) move into a `•••` overflow menu on the sidebar list row and keep calling `updateChecklist` / `deleteChecklist`. Task row behaviours (status pill, inline edit, links) are reused as-is inside `TaskListView` where they already exist.
+- `TaskModal` already accepts `defaultClientId` / `defaultListId` / `lockClient`; the callers pass values derived from the active navigation context.
+- Filter state lives in a `useRef<Map<contextKey, FilterKey>>` on each page — session-only, nothing persisted server-side.
 
-Plan: promote `shared_resources` into the canonical document table rather than creating a third system.
+Notes and scope guards:
 
-- Rename `shared_resources` -> `client_documents`, and `resource_approvals.resource_id` -> `document_id` (table renamed to `document_approvals`). Postgres renames preserve data, FKs, and policies.
-- New columns on `client_documents`:
-  - `visibility text not null default 'internal'` (`internal` | `shared`)
-  - `category text` (workspace-configurable, seeded defaults — replaces the earlier tags idea)
-  - `lifecycle_state text not null default 'active'` (`active` | `archived`) — independent of approval
-  - `approval_state text not null default 'not_required'` (`not_required` | `pending` | `approved` | `rejected`), replacing the overloaded `status` + `needs_approval` pair
-  - `document_date date` (editable, defaults to today), `notes text`
-  - `file_name text`, `file_size bigint`, `mime_type text` (populated for uploads)
-  - `is_pinned boolean not null default false`
-  - `updated_by uuid`, `metadata jsonb not null default '{}'`
-- Lifecycle and approval never derive from each other: archiving a document does not change its approval state, and an approval decision does not archive anything.
-- Categories live in `workspace_settings` under a new `documents` section (`{ categories: string[] }`), seeded with: Proposal, Contract, Retainer, Invoice, Financial, Legal, Brand Assets, Marketing Assets, Sales Assets, Design Files, Creative Assets, Website Assets, Content, Social Media, Photography, Video, Training, Onboarding, Project Deliverables, Reports, Research, Meeting Notes, Client Information, Reference Material, Miscellaneous. Workspaces can add, rename, or hide entries.
-- Future-proofing hooks included now: `project_id` link, `metadata jsonb` for generated PDFs / AI output / e-signature envelopes, `source` marker (`manual` | `generated` | `integration`), and soft archive so nothing is destroyed as workflows grow.
+- Archiving lists is **not** included: `checklists` has no archived column and adding one is out of scope for a navigation change. The overflow menu ships Rename / Share with client / Delete only.
+- No schema changes. No new hierarchy levels, no kanban, no custom views.
 
+## Verification
 
-## Migration strategy
-
-1. Rename tables/columns and add the new columns; `visibility` backfills to `shared` for every existing resource (they were all client-facing).
-2. Backfill file rows: for each object under `client-files/{workspace}/client-{clientId}/`, insert a `client_documents` row with `kind='file'`, `visibility='internal'`, title from the filename (timestamp prefix stripped), `file_path` set to the storage path. Run as a one-time authenticated backfill from an edge function so storage can be listed with the service role; the Docs list also self-heals by showing any orphan storage object that has no row yet.
-3. `checklist_item_links` already references `file_path`, which is preserved — no change needed there.
-4. Portal edge functions (`portal-view`, `portal-resource-decision`) switch to the new names; the portal response keeps a `documents` key and the client portal tab is relabelled.
-
-## UX
-
-**Add Document modal** — framed as "create a document record", not an upload dialog. One form regardless of source: Document Name, Description, Category (select from workspace list), Source (Upload File / External Link — a segmented control that swaps the file drop zone for a URL field, everything else identical), Date, Visibility (Internal / Shared), Request Client Approval (only enabled when Shared), Notes (optional), and Pin this document. Name auto-fills from the filename or link, and category is remembered from the last document added for that client as a soft default.
-
-**Documents list** — a modern manager, not a spreadsheet. Each row leads with a type-aware icon or thumbnail derived from mime type and link provider: PDF, Word, Spreadsheet, Image (thumbnail preview when available), Video, Figma, Google Drive, Dropbox, Loom, Notion, generic link.
-
-```text
-[icon]  Name                       Category    Visibility   Approval    Added by   Updated   [...]
-        description snippet
-```
-
-Pinned documents render in a pinned group that always sits above the list regardless of sort or grouping. Above that sits a filter bar (search, category, visibility, approval state) plus an Active/Archived toggle, and a "Pending client approval" count chip. Row actions: open, edit, change visibility, request approval, download, pin/unpin, archive. Multi-select enables bulk visibility change, bulk category change, and bulk archive.
-
-## Edge cases
-
-- Switching a document from Shared to Internal while approval is pending resets `approval_state` to `not_required` and keeps the decision history rows.
-- Archiving is reversible and never touches approval state; hard delete is a separate, confirmed action that also removes the storage object.
-- Storage objects uploaded outside the app appear in the list as unmanaged rows until edited, rather than being hidden.
-- Portal shows only `visibility = 'shared'` and `lifecycle_state = 'active'`, never leaking internal titles; signed URLs for shared files are issued by the portal function against the portal token.
-- Removing a workspace category leaves existing documents' category strings intact; they surface as an "Uncategorized (legacy)" filter entry.
-
-
-## Technical notes
-
-- Migration tool for renames/columns/grants/policies; policies follow existing workspace-scoped patterns.
-- New `src/data/documentsApi.ts` replaces `sharedResourcesApi.ts` (kept as a thin re-export during the change, then removed).
-- New components: `src/components/documents/DocumentsPanel.tsx`, `AddDocumentModal.tsx`, `DocumentRow.tsx`, `DocumentFilters.tsx`.
-- `ClientDetail.tsx` Docs tab renders Notes + DocumentsPanel; the `SharedResourcesPanel` import and Portal-tab resources block are removed.
-- `ClientPortal.tsx` `ResourcesTab` becomes `DocumentsTab` with the same approval calls against the renamed endpoint.
+Playwright pass over: All Tasks vs client vs list datasets, counts matching open tasks, filter isolation per context, search after filters, refresh and back/forward restoring context, all three Add Task entry points landing in the right list, drawer close preserving context, move-to-another-list toast, contextual empty states, 30+ clients and 10+ lists remaining navigable, and mobile bottom-sheet navigation with the desktop layout unchanged.
