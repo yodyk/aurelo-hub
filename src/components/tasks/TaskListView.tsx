@@ -40,11 +40,13 @@ interface Props {
   loading?: boolean;
   /** Hide the client avatar/name column when the context is already a client. */
   showClient?: boolean;
+  /** Inside a client workspace the client name is already in the page header. */
+  hideClientHeading?: boolean;
 }
 
 export function TaskListView({
   tasks, tree, context, onRefresh, onOpenTask, onAddTask,
-  clientMap, faviconUrls = {}, projectName, loading, showClient,
+  clientMap, faviconUrls = {}, projectName, loading, showClient, hideClientHeading,
 }: Props) {
   const [filter, setFilter] = useState<TaskFilterKey>('all');
   const [query, setQuery] = useState('');
@@ -77,7 +79,10 @@ export function TaskListView({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ctxKey]);
 
-  const heading = useMemo(() => contextHeading(context, tree), [context, tree]);
+  const heading = useMemo(
+    () => contextHeading(context, tree, hideClientHeading),
+    [context, tree, hideClientHeading],
+  );
   const siblingLists = useMemo(() => {
     if (context.kind === 'all') return [];
     return tree.clients.find(c => c.id === context.clientId)?.lists || [];
@@ -210,7 +215,7 @@ function scopeOnly(tasks: WorkspaceTask[], ctx: TaskNavContext) {
   return tasks.filter(t => t.checklistId === ctx.listId);
 }
 
-function contextHeading(ctx: TaskNavContext, tree: TaskNavTree) {
+function contextHeading(ctx: TaskNavContext, tree: TaskNavTree, hideClientHeading?: boolean) {
   if (ctx.kind === 'all') {
     return {
       title: 'All tasks',
@@ -223,7 +228,7 @@ function contextHeading(ctx: TaskNavContext, tree: TaskNavTree) {
   const client = tree.clients.find(c => c.id === ctx.clientId);
   if (ctx.kind === 'client') {
     return {
-      title: client?.name || 'Client',
+      title: hideClientHeading ? 'All tasks' : (client?.name || 'Client'),
       sub: `${client?.lists.length || 0} list${(client?.lists.length || 0) === 1 ? '' : 's'}`,
       searchNoun: `${client?.name || 'client'} tasks`,
       emptyTitle: `Nothing open for ${client?.name || 'this client'}`,

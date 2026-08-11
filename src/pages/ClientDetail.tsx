@@ -2951,6 +2951,7 @@ function ChecklistsTab({ clientId, workspaceId }: { clientId: string; workspaceI
             faviconUrls={{}}
             projectName={projectName}
             showClient={false}
+            hideClientHeading
           />
         </div>
       </div>
