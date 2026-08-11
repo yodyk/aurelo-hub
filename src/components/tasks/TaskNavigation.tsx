@@ -152,13 +152,16 @@ function NavigationBody({
         />
       </div>
     ) : (
-      <button
-        type="button"
-        onClick={() => { setCreatingFor(clientId); setNewTitle(''); }}
-        className="w-full h-6 flex items-center gap-1 pl-[22px] pr-1.5 text-[11.5px] text-muted-foreground hover:text-foreground cursor-pointer"
-      >
-        <Plus className="w-3 h-3" aria-hidden /> New list
-      </button>
+      <div className="px-1.5 mt-1 mb-1">
+        <button
+          type="button"
+          onClick={() => { setCreatingFor(clientId); setNewTitle(''); }}
+          className="w-full h-7 flex items-center gap-1.5 pl-[18px] pr-2 text-[11.5px] text-muted-foreground hover:text-foreground cursor-pointer border border-dashed border-border/50 hover:border-border/80 hover:bg-[color:var(--surface-sunken)]/50"
+          style={{ borderRadius: 4 }}
+        >
+          <Plus className="w-3 h-3" aria-hidden /> New list
+        </button>
+      </div>
     );
 
   return (
@@ -199,11 +202,14 @@ function NavigationBody({
           <div className="type-eyebrow px-2.5 pt-3 pb-1 text-muted-foreground">Clients</div>
         )}
 
-        {clients.map(c => {
+        {clients.map((c, idx) => {
           const clientActive = activeKey === `client:${c.id}`;
           const open = mode === 'client' ? true : isExpanded(c.id);
           return (
-            <div key={c.id}>
+            <div
+              key={c.id}
+              className={idx > 0 && mode === 'global' ? 'mt-2 pt-2 border-t border-border/45' : ''}
+            >
               {mode === 'global' && (
                 <TaskNavigationItem
                   label={c.name}
