@@ -556,10 +556,18 @@ export default function ClientEdit() {
         updates.retainerTotal = retainerTotalNum;
         updates.retainerRemaining = retainerRemainingNum;
         updates.monthlyContractValue = monthlyContractValueNum;
+        // The flat monthly fee is authoritative for retainers — derive the
+        // effective hourly rate from it so hours changes don't move the fee.
+        if (monthlyContractValueNum > 0 && retainerTotalNum > 0) {
+          const derived = Math.round((monthlyContractValueNum / retainerTotalNum) * 100) / 100;
+          updates.rate = derived;
+          updates.trueHourlyRate = derived;
+        }
         // Auto-set cycle start if not already set
         if (!client.retainerCycleStart && retainerTotalNum > 0) {
           updates.retainerCycleStart = new Date().toISOString().split('T')[0];
         }
+
       } else {
         updates.retainerTotal = 0;
         updates.retainerRemaining = 0;
