@@ -208,7 +208,7 @@ function NavigationBody({
           return (
             <div
               key={c.id}
-              className={idx > 0 && mode === 'global' ? 'mt-2 pt-2 border-t border-border/45' : ''}
+              className={idx > 0 && mode === 'global' ? 'mt-3 pt-3 border-t border-border/45' : ''}
             >
               {mode === 'global' && (
                 <TaskNavigationItem
