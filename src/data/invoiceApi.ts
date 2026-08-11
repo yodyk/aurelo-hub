@@ -290,10 +290,8 @@ export async function createPaymentLink(invoiceId: string): Promise<{ url: strin
 export async function getStripeConnectStatus(): Promise<string | null> {
   const wsId = await getWorkspaceId();
   if (!wsId) return null;
-  const { data } = await supabase
-    .from('workspaces')
-    .select('stripe_connect_account_id')
-    .eq('id', wsId)
-    .maybeSingle();
-  return data?.stripe_connect_account_id ?? null;
+  const { data } = await supabase.rpc('get_workspace_stripe_connect_account', {
+    _workspace_id: wsId,
+  });
+  return (data as string | null) ?? null;
 }

@@ -3837,12 +3837,9 @@ function IntegrationsTabContent() {
   useEffect(() => {
     if (!workspaceId) return;
     supabase
-      .from("workspaces")
-      .select("stripe_connect_account_id")
-      .eq("id", workspaceId)
-      .single()
+      .rpc("get_workspace_stripe_connect_account", { _workspace_id: workspaceId })
       .then(({ data }) => {
-        setStripeConnectAccountId((data as any)?.stripe_connect_account_id || null);
+        setStripeConnectAccountId((data as string | null) || null);
         setStripeLoading(false);
       });
   }, [workspaceId]);
@@ -3855,12 +3852,9 @@ function IntegrationsTabContent() {
       // Re-fetch the connect account id
       if (workspaceId) {
         supabase
-          .from("workspaces")
-          .select("stripe_connect_account_id")
-          .eq("id", workspaceId)
-          .single()
+          .rpc("get_workspace_stripe_connect_account", { _workspace_id: workspaceId })
           .then(({ data }) => {
-            setStripeConnectAccountId((data as any)?.stripe_connect_account_id || null);
+            setStripeConnectAccountId((data as string | null) || null);
           });
       }
     } else if (result === "error") {
