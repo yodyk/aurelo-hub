@@ -3821,8 +3821,14 @@ function IntegrationsTab() {
 
 function IntegrationsTabContent() {
   const [connections, loading, setConnections] = useSettingsSection("integrations", defaultIntegrations);
-  const [apiKeyData, apiKeyLoading, setApiKeyData] = useSettingsSection("apikey", { key: "", createdAt: "" });
+  // API key is NEVER persisted into workspace_settings (readable by all members).
+  // We only show a masked value from the api_keys_safe view, and reveal the raw
+  // key in memory once, right after the admin generates it.
+  const [apiKeyMasked, setApiKeyMasked] = useState<{ key_masked: string; created_at: string } | null>(null);
+  const [apiKeyLoading, setApiKeyLoading] = useState(true);
+  const [freshKey, setFreshKey] = useState<string | null>(null);
   const [apiKeyVisible, setApiKeyVisible] = useState(false);
+
   const [apiCopied, setApiCopied] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
   const [savingConnections, setSavingConnections] = useState(false);
