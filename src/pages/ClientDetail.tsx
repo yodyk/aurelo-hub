@@ -2275,7 +2275,7 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
       const updates: any = { retainerCycleDays: cycleDays };
       if (cycleStart) updates.retainerCycleStart = cycleStart;
       await onUpdateClient(updates);
-      setEditingCycle(false);
+      setOpenAdjustment(null);
       toast.success('Cycle settings updated');
     } catch {
       toast.error('Failed to update cycle settings');
