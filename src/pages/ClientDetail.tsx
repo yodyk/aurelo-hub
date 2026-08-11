@@ -2148,7 +2148,7 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
       });
       toast.success(`Added ${fmtH(addHoursDelta)}h to this cycle`);
       setAddAmount('');
-      setAddOpen(false);
+      setOpenAdjustment(null);
     } catch {
       toast.error('Failed to add hours');
     } finally {
