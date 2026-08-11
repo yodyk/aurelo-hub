@@ -18,8 +18,11 @@ export interface Checklist {
   updatedAt: string;
   /** When true, this checklist appears in the client's portal Tasks tab. */
   sharedWithClient?: boolean;
+  /** System fallback list ("General"). Identity lives here, not in the title. */
+  isDefault?: boolean;
   items: ChecklistItem[];
 }
+
 
 export interface ChecklistItem {
   id: string;
@@ -62,9 +65,11 @@ function rowToChecklist(row: any, items: ChecklistItem[] = []): Checklist {
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     sharedWithClient: row.shared_with_client === true,
+    isDefault: row.is_default === true,
     items,
   };
 }
+
 
 function rowToItem(row: any): ChecklistItem {
   const status = normalizeStatus(row.status);
@@ -95,6 +100,21 @@ function rowToItem(row: any): ChecklistItem {
     assignedToClient: row.assigned_to_client === true,
   };
 }
+
+/**
+ * All lists in a workspace (metadata only, no items).
+ * Feeds the Tasks navigation tree; counts are derived from the task array.
+ */
+export async function loadChecklistsForWorkspace(workspaceId: string): Promise<Checklist[]> {
+  const { data, error } = await supabase
+    .from('checklists')
+    .select('*')
+    .eq('workspace_id', workspaceId)
+    .order('created_at', { ascending: true });
+  if (error) { console.error('[checklistsApi] loadChecklistsForWorkspace:', error); return []; }
+  return (data || []).map((row: any) => rowToChecklist(row, []));
+}
+
 
 
 export async function loadChecklists(clientId: string, projectId?: string): Promise<Checklist[]> {

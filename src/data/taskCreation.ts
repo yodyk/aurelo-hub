@@ -271,3 +271,128 @@ export async function createTask(input: CreateTaskInput): Promise<CreateTaskResu
     createdList,
   };
 }
+
+// ── List lifecycle services ─────────────────────────────────────────
+//
+// The product invariant (every task belongs to a client AND a list) is
+// enforced here, not in the UI. No caller may null a `checklist_id`.
+
+/** Number of tasks currently living in a list. */
+export async function countTasksInList(listId: string): Promise<number> {
+  const { count, error } = await supabase
+    .from('checklist_items')
+    .select('id', { count: 'exact', head: true })
+    .eq('checklist_id', listId);
+  if (error) throw new Error(`Couldn't read the list's tasks: ${error.message}`);
+  return count ?? 0;
+}
+
+async function getList(listId: string) {
+  const { data, error } = await supabase
+    .from('checklists')
+    .select('id, title, client_id, workspace_id, is_default')
+    .eq('id', listId)
+    .maybeSingle();
+  if (error) throw new Error(`Couldn't look up the list: ${error.message}`);
+  return data;
+}
+
+/**
+ * Move a single task to another list. The destination must belong to the
+ * same client and workspace as the task, so a move can never cross clients.
+ */
+export async function moveTaskToList(
+  taskId: string,
+  destinationListId: string,
+): Promise<{ clientName: string; listTitle: string }> {
+  const { data: task, error: taskErr } = await supabase
+    .from('checklist_items')
+    .select('id, checklist_id, client_id, workspace_id')
+    .eq('id', taskId)
+    .maybeSingle();
+  if (taskErr) throw new Error(`Couldn't load the task: ${taskErr.message}`);
+  if (!task) throw new Error('That task no longer exists.');
+
+  const dest = await getList(destinationListId);
+  if (!dest) throw new Error('That list no longer exists.');
+  if (task.client_id && dest.client_id !== task.client_id) {
+    throw new Error('That list belongs to a different client.');
+  }
+  if (task.workspace_id && dest.workspace_id !== task.workspace_id) {
+    throw new Error('That list belongs to a different workspace.');
+  }
+
+  const { error } = await supabase
+    .from('checklist_items')
+    .update({ checklist_id: destinationListId })
+    .eq('id', taskId);
+  if (error) throw new Error(`Couldn't move the task: ${error.message}`);
+
+  const { data: client } = await supabase
+    .from('clients').select('name').eq('id', dest.client_id).maybeSingle();
+
+  return { clientName: (client as any)?.name || 'Client', listTitle: dest.title };
+}
+
+/**
+ * Delete a list without ever orphaning a task.
+ *
+ * Empty list  → deleted directly.
+ * Non-empty   → every task is reassigned to `moveToListId` (validated to the
+ *               same client/workspace) or to the client's General list, the
+ *               reassignment is verified to have emptied the source, and only
+ *               then is the list removed. `checklist_id` is never nulled.
+ */
+export async function deleteListSafely(
+  listId: string,
+  opts: { moveToListId?: string | null } = {},
+): Promise<{ movedCount: number; destinationTitle: string | null }> {
+  const source = await getList(listId);
+  if (!source) return { movedCount: 0, destinationTitle: null };
+
+  const remaining = await countTasksInList(listId);
+
+  if (remaining === 0) {
+    const { error } = await supabase.from('checklists').delete().eq('id', listId);
+    if (error) throw new Error(`Couldn't delete the list: ${error.message}`);
+    return { movedCount: 0, destinationTitle: null };
+  }
+
+  // Resolve a valid destination BEFORE touching anything.
+  let destinationId = opts.moveToListId || null;
+  let destinationTitle: string;
+
+  if (destinationId) {
+    if (destinationId === listId) throw new Error('Pick a different destination list.');
+    const dest = await getList(destinationId);
+    if (!dest) throw new Error('That destination list no longer exists.');
+    if (dest.client_id !== source.client_id) throw new Error('The destination list belongs to a different client.');
+    if (dest.workspace_id !== source.workspace_id) throw new Error('The destination list belongs to a different workspace.');
+    destinationTitle = dest.title;
+  } else {
+    const { list } = await getOrCreateGeneralTaskList(source.workspace_id, source.client_id);
+    if (list.id === listId) {
+      throw new Error('This is the client\'s General list. Move its tasks to another list first.');
+    }
+    destinationId = list.id;
+    destinationTitle = list.title;
+  }
+
+  const { error: moveErr } = await supabase
+    .from('checklist_items')
+    .update({ checklist_id: destinationId })
+    .eq('checklist_id', listId);
+  if (moveErr) throw new Error(`Couldn't move the list's tasks: ${moveErr.message}`);
+
+  // Verify the source is empty — refuse to delete otherwise.
+  const stillThere = await countTasksInList(listId);
+  if (stillThere > 0) {
+    diag('list_delete_blocked', { listId, stillThere });
+    throw new Error('Some tasks could not be moved, so the list was kept. Nothing was deleted.');
+  }
+
+  const { error: delErr } = await supabase.from('checklists').delete().eq('id', listId);
+  if (delErr) throw new Error(`Tasks were moved, but the list couldn't be deleted: ${delErr.message}`);
+
+  return { movedCount: remaining, destinationTitle };
+}
