@@ -2104,6 +2104,13 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
   const [grantRollover, setGrantRollover] = useState(String(client.retainerCarryoverHours ?? 0));
   const [savingGrant, setSavingGrant] = useState(false);
 
+  // "Pricing" state — rate is the source of truth; monthly price is derived
+  const [rateInput, setRateInput] = useState(String(client.rate ?? 0));
+  const [monthlyInput, setMonthlyInput] = useState(
+    String(Math.round((Number(client.retainerTotal || 0) * Number(client.rate || 0)) * 100) / 100),
+  );
+  const [savingRate, setSavingRate] = useState(false);
+
   // Accordion: only one adjustment panel open at a time
   const [openAdjustment, setOpenAdjustment] = useState<string | null>(null);
   const toggleAdjustment = useCallback((id: string) => {
