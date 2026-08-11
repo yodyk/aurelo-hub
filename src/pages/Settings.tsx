@@ -3839,6 +3839,29 @@ function IntegrationsTabContent() {
   const [stripeConnectAccountId, setStripeConnectAccountId] = useState<string | null>(null);
   const [stripeLoading, setStripeLoading] = useState(true);
 
+  // Load masked API key metadata (never the raw key)
+  useEffect(() => {
+    if (!workspaceId) return;
+    let mounted = true;
+    supabase
+      .from("api_keys_safe")
+      .select("key_masked, created_at")
+      .eq("workspace_id", workspaceId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!mounted) return;
+        setApiKeyMasked(
+          data?.key_masked ? { key_masked: data.key_masked, created_at: data.created_at || "" } : null,
+        );
+        setApiKeyLoading(false);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [workspaceId]);
+
   // Load Stripe Connect status
   useEffect(() => {
     if (!workspaceId) return;
