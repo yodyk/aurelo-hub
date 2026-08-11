@@ -78,11 +78,12 @@ export function TaskListView({
     return tree.clients.find(c => c.id === context.clientId)?.lists || [];
   }, [context, tree]);
 
-  const patch = async (id: string, updates: any) => {
+  const patch = async (task: WorkspaceTask, updates: any) => {
     try {
-      await updateChecklistItem(id, updates);
+      await updateChecklistItem(task.id, updates);
       if (updates.status === 'complete') {
-        try { await materializeRecurrence(id); } catch { /* non-fatal */ }
+        // Repeating tasks spawn their next occurrence on completion.
+        try { await materializeRecurrence({ ...task, ...updates }); } catch { /* non-fatal */ }
       }
       onRefresh();
     } catch (err: any) {
@@ -90,14 +91,15 @@ export function TaskListView({
     }
   };
 
-  const remove = (id: string) => {
+  const remove = (task: WorkspaceTask) => {
     deferredDelete({
-      message: 'Task deleted',
-      onCommit: async () => { await deleteChecklistItem(id); onRefresh(); },
-      onUndo: () => onRefresh(),
+      label: 'Task deleted',
+      onOptimisticRemove: () => setHidden(h => new Set(h).add(task.id)),
+      onCommit: async () => { await deleteChecklistItem(task.id); onRefresh(); },
+      onUndo: () => setHidden(h => { const n = new Set(h); n.delete(task.id); return n; }),
     });
-    onRefresh();
   };
+
 
   const move = async (task: WorkspaceTask, listId: string) => {
     try {
