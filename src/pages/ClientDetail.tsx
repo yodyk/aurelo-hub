@@ -2459,8 +2459,9 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
           <div className="md:col-span-5">
             <div className="text-[11px] text-muted-foreground mb-2 uppercase tracking-wider" style={{ fontWeight: 600, letterSpacing: '0.06em' }}>Current state</div>
             <dl className="divide-y divide-[var(--hairline)] border-y border-[var(--hairline)]">
-              <SummaryRow label="Monthly price" value={formatMoney((client.retainerTotal || 0) * (client.rate || 0))} />
-              <SummaryRow label="Rate" value={`${formatMoney(client.rate || 0)}/hr`} />
+              <SummaryRow label="Monthly fee (flat)" value={formatMoney(contractFee)} />
+              <SummaryRow label="Effective rate" value={`${formatMoney(effectiveRate)}/hr`} />
+
               <SummaryRow label="Cycle length" value={`${client.retainerCycleDays || 30} days`} />
               <SummaryRow label="Cycle start" value={client.retainerCycleStart ? format(new Date(client.retainerCycleStart + 'T00:00:00'), 'MMM d, yyyy') : 'Not set'} />
               <SummaryRow label="Hours granted" value={`${fmtH(Number(client.retainerTotal || 0))}h`} />
