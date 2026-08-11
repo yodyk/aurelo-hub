@@ -2176,7 +2176,7 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
         retainerRemaining: grantRemainingPreview,
         retainerCarryoverHours: grantRolloverNum,
       });
-      setEditingGrant(false);
+      setOpenAdjustment(null);
       toast.success('Cycle hours updated');
     } catch {
       toast.error('Failed to update cycle hours');
