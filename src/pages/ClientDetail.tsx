@@ -2104,12 +2104,22 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
   const [grantRollover, setGrantRollover] = useState(String(client.retainerCarryoverHours ?? 0));
   const [savingGrant, setSavingGrant] = useState(false);
 
-  // "Pricing" state — rate is the source of truth; monthly price is derived
-  const [rateInput, setRateInput] = useState(String(client.rate ?? 0));
-  const [monthlyInput, setMonthlyInput] = useState(
-    String(Math.round((Number(client.retainerTotal || 0) * Number(client.rate || 0)) * 100) / 100),
-  );
+  // "Pricing" state — the flat monthly fee is the source of truth for a
+  // retainer. The hourly rate is DERIVED from fee ÷ hours granted, so extending
+  // a cycle (or charging extra for extended hours) reprices the blended rate
+  // automatically instead of the fee moving when hours change.
+  const contractFee = Number(client.monthlyContractValue ?? 0) > 0
+    ? Number(client.monthlyContractValue)
+    : Math.round(Number(client.retainerTotal || 0) * Number(client.rate || 0) * 100) / 100;
+  const deriveRate = useCallback((fee: number, hours: number) => (
+    hours > 0 ? Math.round((fee / hours) * 100) / 100 : 0
+  ), []);
+  const effectiveRate = deriveRate(contractFee, Number(client.retainerTotal || 0));
+  const [monthlyInput, setMonthlyInput] = useState(String(contractFee));
   const [savingRate, setSavingRate] = useState(false);
+
+  // Optional extra charge attached to a mid-cycle top-up (extended hours)
+  const [addCharge, setAddCharge] = useState('');
 
   // Accordion: only one adjustment panel open at a time
   const [openAdjustment, setOpenAdjustment] = useState<string | null>(null);
@@ -2117,15 +2127,12 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
     if (openAdjustment === id) { setOpenAdjustment(null); return; }
     if (id === 'cycle') { setCycleStart(client.retainerCycleStart || ''); setCycleDays(client.retainerCycleDays || 30); }
     if (id === 'grant') { setGrantTotal(String(Number(client.retainerTotal ?? 0))); setGrantRollover(String(Number(client.retainerCarryoverHours ?? 0))); }
-    if (id === 'add') { setAddAmount(''); setAddUnit('hours'); }
-    if (id === 'pricing') {
-      const r = Number(client.rate ?? 0);
-      setRateInput(String(r));
-      setMonthlyInput(String(Math.round(Number(client.retainerTotal || 0) * r * 100) / 100));
-    }
+    if (id === 'add') { setAddAmount(''); setAddUnit('hours'); setAddCharge(''); }
+    if (id === 'pricing') { setMonthlyInput(String(contractFee)); }
     if (id === 'reset') { setPlannedBaseHours(String(scheduledBaseHours)); setPlannedCarryoverHours(String(carryoverCap)); }
     setOpenAdjustment(id);
-  }, [openAdjustment, client.retainerCycleStart, client.retainerCycleDays, client.retainerTotal, client.retainerCarryoverHours, client.rate, scheduledBaseHours, carryoverCap]);
+  }, [openAdjustment, client.retainerCycleStart, client.retainerCycleDays, client.retainerTotal, client.retainerCarryoverHours, contractFee, scheduledBaseHours, carryoverCap]);
+
 
 
   const hoursUsed = (client.retainerTotal || 0) - (client.retainerRemaining || 0);
