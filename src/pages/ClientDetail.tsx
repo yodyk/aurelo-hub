@@ -2476,6 +2476,53 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
                 </div>
               </AdjustmentSection>
 
+              {/* Pricing */}
+              <AdjustmentSection
+                id="pricing"
+                isOpen={openAdjustment === 'pricing'}
+                onToggle={toggleAdjustment}
+                title="Pricing"
+                summary={`${formatMoney((client.retainerTotal || 0) * (client.rate || 0))}/cycle · ${formatMoney(client.rate || 0)}/hr`}
+              >
+                <div>
+                  <label className="text-[11px] text-muted-foreground mb-1 block" style={{ fontWeight: 500 }}>Monthly price</label>
+                  <input
+                    type="number"
+                    value={monthlyInput}
+                    min={0}
+                    step="1"
+                    onChange={(e) => {
+                      setMonthlyInput(e.target.value);
+                      const hrs = Number(client.retainerTotal || 0);
+                      if (hrs > 0) setRateInput(String(Math.round(((Number(e.target.value) || 0) / hrs) * 100) / 100));
+                    }}
+                    className="w-full px-3 py-2 text-[13px] bg-input-background border border-border rounded-lg tabular-nums"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-muted-foreground mb-1 block" style={{ fontWeight: 500 }}>Hourly rate</label>
+                  <input
+                    type="number"
+                    value={rateInput}
+                    min={0}
+                    step="0.01"
+                    onChange={(e) => {
+                      setRateInput(e.target.value);
+                      const hrs = Number(client.retainerTotal || 0);
+                      setMonthlyInput(String(Math.round((Number(e.target.value) || 0) * hrs * 100) / 100));
+                    }}
+                    className="w-full px-3 py-2 text-[13px] bg-input-background border border-border rounded-lg tabular-nums"
+                  />
+                </div>
+                <span className="text-[11px] text-muted-foreground block">
+                  Monthly price is {fmtH(Number(client.retainerTotal || 0))}h × rate. Editing either field updates the other; only the rate is stored.
+                </span>
+                <div className="flex items-center gap-2 pt-1">
+                  <button onClick={() => setOpenAdjustment(null)} className="px-3 py-1.5 text-[12px] rounded-lg border border-border text-muted-foreground hover:bg-accent transition-colors" style={{ fontWeight: 500 }}>Cancel</button>
+                  <button onClick={handleSaveRate} disabled={savingRate} className="px-3 py-1.5 text-[12px] rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed" style={{ fontWeight: 500 }}>{savingRate ? 'Saving…' : 'Save'}</button>
+                </div>
+              </AdjustmentSection>
+
               {/* Hours granted this cycle */}
               <AdjustmentSection
                 id="grant"
