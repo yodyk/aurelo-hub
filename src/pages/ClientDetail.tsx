@@ -2588,11 +2588,29 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
                     </div>
                   </div>
                   <span className="text-[11px] text-muted-foreground block mt-2">
-                    {addHoursDelta > 0 ? <>Adds <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>{fmtH(addHoursDelta)}h</span> → new total {fmtH(Math.round(((Number(client.retainerTotal) || 0) + addHoursDelta) * 100) / 100)}h</> : 'Enter an amount'}
+                    {addHoursDelta > 0 ? <>Adds <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>{fmtH(addHoursDelta)}h</span> → new total {fmtH(addNewTotalHours)}h</> : 'Enter an amount'}
+                  </span>
+                </div>
+                <div>
+                  <label className="text-[11px] text-muted-foreground mb-1 block" style={{ fontWeight: 500 }}>Additional charge for these hours (optional)</label>
+                  <input
+                    type="number"
+                    value={addCharge}
+                    onChange={(e) => setAddCharge(e.target.value)}
+                    min={0}
+                    step="1"
+                    placeholder="0"
+                    className="w-full sm:w-40 px-3 py-2 text-[13px] bg-input-background border border-border rounded-lg tabular-nums"
+                  />
+                  <span className="text-[11px] text-muted-foreground block mt-2">
+                    {addHoursDelta > 0
+                      ? <>Fee {formatMoney(contractFee)} → <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>{formatMoney(addNewFee)}</span> · effective rate {formatMoney(effectiveRate)} → <span className="text-foreground tabular-nums" style={{ fontWeight: 600 }}>{formatMoney(deriveRate(addNewFee, addNewTotalHours))}</span>/hr</>
+                      : 'Leave blank if the extended hours are included in the existing fee.'}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 pt-1">
-                  <button onClick={() => { setOpenAdjustment(null); setAddAmount(''); }} className="px-3 py-1.5 text-[12px] rounded-lg border border-border text-muted-foreground hover:bg-accent transition-colors" style={{ fontWeight: 500 }}>Cancel</button>
+                  <button onClick={() => { setOpenAdjustment(null); setAddAmount(''); setAddCharge(''); }} className="px-3 py-1.5 text-[12px] rounded-lg border border-border text-muted-foreground hover:bg-accent transition-colors" style={{ fontWeight: 500 }}>Cancel</button>
+
                   <button onClick={handleAddHours} disabled={adding || addHoursDelta <= 0} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed" style={{ fontWeight: 500 }}>
                     {adding ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
                     {adding ? 'Adding…' : 'Add to cycle'}
