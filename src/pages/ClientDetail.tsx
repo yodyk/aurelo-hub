@@ -2104,6 +2104,13 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
   const [grantRollover, setGrantRollover] = useState(String(client.retainerCarryoverHours ?? 0));
   const [savingGrant, setSavingGrant] = useState(false);
 
+  // "Pricing" state — rate is the source of truth; monthly price is derived
+  const [rateInput, setRateInput] = useState(String(client.rate ?? 0));
+  const [monthlyInput, setMonthlyInput] = useState(
+    String(Math.round((Number(client.retainerTotal || 0) * Number(client.rate || 0)) * 100) / 100),
+  );
+  const [savingRate, setSavingRate] = useState(false);
+
   // Accordion: only one adjustment panel open at a time
   const [openAdjustment, setOpenAdjustment] = useState<string | null>(null);
   const toggleAdjustment = useCallback((id: string) => {
@@ -2111,9 +2118,14 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
     if (id === 'cycle') { setCycleStart(client.retainerCycleStart || ''); setCycleDays(client.retainerCycleDays || 30); }
     if (id === 'grant') { setGrantTotal(String(Number(client.retainerTotal ?? 0))); setGrantRollover(String(Number(client.retainerCarryoverHours ?? 0))); }
     if (id === 'add') { setAddAmount(''); setAddUnit('hours'); }
+    if (id === 'pricing') {
+      const r = Number(client.rate ?? 0);
+      setRateInput(String(r));
+      setMonthlyInput(String(Math.round(Number(client.retainerTotal || 0) * r * 100) / 100));
+    }
     if (id === 'reset') { setPlannedBaseHours(String(scheduledBaseHours)); setPlannedCarryoverHours(String(carryoverCap)); }
     setOpenAdjustment(id);
-  }, [openAdjustment, client.retainerCycleStart, client.retainerCycleDays, client.retainerTotal, client.retainerCarryoverHours, scheduledBaseHours, carryoverCap]);
+  }, [openAdjustment, client.retainerCycleStart, client.retainerCycleDays, client.retainerTotal, client.retainerCarryoverHours, client.rate, scheduledBaseHours, carryoverCap]);
 
 
   const hoursUsed = (client.retainerTotal || 0) - (client.retainerRemaining || 0);
@@ -2184,6 +2196,22 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
       setSavingGrant(false);
     }
   };
+
+  const handleSaveRate = async () => {
+    const rateNum = Math.max(0, Number(rateInput) || 0);
+    setSavingRate(true);
+    try {
+      await onUpdateClient({ rate: rateNum });
+      setOpenAdjustment(null);
+      toast.success('Pricing updated');
+    } catch {
+      toast.error('Failed to update pricing');
+    } finally {
+      setSavingRate(false);
+    }
+  };
+
+
 
 
 
@@ -2445,6 +2473,53 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
                 <div className="flex items-center gap-2 pt-1">
                   <button onClick={() => setOpenAdjustment(null)} className="px-3 py-1.5 text-[12px] rounded-lg border border-border text-muted-foreground hover:bg-accent transition-colors" style={{ fontWeight: 500 }}>Cancel</button>
                   <button onClick={handleSaveCycle} className="px-3 py-1.5 text-[12px] rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors" style={{ fontWeight: 500 }}>Save</button>
+                </div>
+              </AdjustmentSection>
+
+              {/* Pricing */}
+              <AdjustmentSection
+                id="pricing"
+                isOpen={openAdjustment === 'pricing'}
+                onToggle={toggleAdjustment}
+                title="Pricing"
+                summary={`${formatMoney((client.retainerTotal || 0) * (client.rate || 0))}/cycle · ${formatMoney(client.rate || 0)}/hr`}
+              >
+                <div>
+                  <label className="text-[11px] text-muted-foreground mb-1 block" style={{ fontWeight: 500 }}>Monthly price</label>
+                  <input
+                    type="number"
+                    value={monthlyInput}
+                    min={0}
+                    step="1"
+                    onChange={(e) => {
+                      setMonthlyInput(e.target.value);
+                      const hrs = Number(client.retainerTotal || 0);
+                      if (hrs > 0) setRateInput(String(Math.round(((Number(e.target.value) || 0) / hrs) * 100) / 100));
+                    }}
+                    className="w-full px-3 py-2 text-[13px] bg-input-background border border-border rounded-lg tabular-nums"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-muted-foreground mb-1 block" style={{ fontWeight: 500 }}>Hourly rate</label>
+                  <input
+                    type="number"
+                    value={rateInput}
+                    min={0}
+                    step="0.01"
+                    onChange={(e) => {
+                      setRateInput(e.target.value);
+                      const hrs = Number(client.retainerTotal || 0);
+                      setMonthlyInput(String(Math.round((Number(e.target.value) || 0) * hrs * 100) / 100));
+                    }}
+                    className="w-full px-3 py-2 text-[13px] bg-input-background border border-border rounded-lg tabular-nums"
+                  />
+                </div>
+                <span className="text-[11px] text-muted-foreground block">
+                  Monthly price is {fmtH(Number(client.retainerTotal || 0))}h × rate. Editing either field updates the other; only the rate is stored.
+                </span>
+                <div className="flex items-center gap-2 pt-1">
+                  <button onClick={() => setOpenAdjustment(null)} className="px-3 py-1.5 text-[12px] rounded-lg border border-border text-muted-foreground hover:bg-accent transition-colors" style={{ fontWeight: 500 }}>Cancel</button>
+                  <button onClick={handleSaveRate} disabled={savingRate} className="px-3 py-1.5 text-[12px] rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed" style={{ fontWeight: 500 }}>{savingRate ? 'Saving…' : 'Save'}</button>
                 </div>
               </AdjustmentSection>
 
