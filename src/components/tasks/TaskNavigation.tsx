@@ -171,7 +171,7 @@ function NavigationBody({
 
   return (
     <div className="flex flex-col min-h-0 h-full">
-      <div className="pl-8 pr-3 py-3 border-b border-border flex-shrink-0">
+      <div className={`${pad} pr-3 py-3 border-b border-border flex-shrink-0`}>
         <div className="relative">
           <Search className="w-3.5 h-3.5 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden />
           <input
