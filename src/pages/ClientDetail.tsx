@@ -2250,7 +2250,7 @@ function RetainerTab({ client, clientId, workspaceId, clientSessions, onUpdateCl
       // Reload history
       const { data } = await supabase.from('retainer_history').select('*').eq('client_id', clientId).eq('workspace_id', workspaceId).order('cycle_end', { ascending: false });
       setHistory(data || []);
-      setEditingResetPlan(false);
+      setOpenAdjustment(null);
       toast.success(effectiveCarryover > 0 ? `Retainer reset with ${fmtH(effectiveCarryover)}h carried over` : 'Retainer reset successfully');
     } catch (err) {
       toast.error('Failed to reset retainer');
