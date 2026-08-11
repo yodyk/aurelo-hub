@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Search, X, Plus, ChevronDown, ChevronRight, Hourglass, Repeat,
-  Loader2, MoreHorizontal, CornerUpRight, Trash2,
+  Loader2, MoreHorizontal, CornerUpRight, Trash2, CheckSquare,
 } from 'lucide-react';
 
 import { updateChecklistItem, deleteChecklistItem, materializeRecurrence, type WorkspaceTask } from '@/data/checklistsApi';
@@ -251,8 +251,8 @@ function BucketSection({
   siblingLists: TaskNavListNode[];
   currentListId?: string;
   onOpen: (id: string) => void;
-  onStatus: (id: string, s: TaskStatus) => void;
-  onDelete: (id: string) => void;
+  onStatus: (task: WorkspaceTask, s: TaskStatus) => void;
+  onDelete: (task: WorkspaceTask) => void;
   onMove: (task: WorkspaceTask, listId: string) => void;
 }) {
   const [open, setOpen] = useState(bucket.key !== 'done');
@@ -291,8 +291,8 @@ function BucketSection({
                 siblingLists={siblingLists}
                 currentListId={currentListId}
                 onOpen={() => onOpen(t.id)}
-                onStatus={(s) => onStatus(t.id, s)}
-                onDelete={() => onDelete(t.id)}
+                onStatus={(s) => onStatus(t, s)}
+                onDelete={() => onDelete(t)}
                 onMove={(listId) => onMove(t, listId)}
               />
             ))}
