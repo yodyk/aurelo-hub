@@ -4094,9 +4094,13 @@ function IntegrationsTabContent() {
               className="flex-1 px-3 py-2 bg-accent/30 border border-border rounded-lg text-[13px] tabular-nums truncate"
               style={{ fontFamily: "ui-monospace, monospace" }}
             >
-              {apiKeyData?.key ? (apiKeyVisible ? apiKeyData.key : "\u2022".repeat(24)) : "No key generated"}
+              {freshKey
+                ? apiKeyVisible
+                  ? freshKey
+                  : "\u2022".repeat(24)
+                : apiKeyMasked?.key_masked || "No key generated"}
             </div>
-            {apiKeyData?.key && (
+            {freshKey && (
               <>
                 <button
                   onClick={() => setApiKeyVisible((v) => !v)}
@@ -4115,9 +4119,12 @@ function IntegrationsTabContent() {
           </div>
           <div className="flex items-center justify-between">
             <div className="text-[12px] text-muted-foreground">
-              {apiKeyData?.createdAt
-                ? `Generated ${new Date(apiKeyData.createdAt).toLocaleDateString()}`
-                : "Keep this key secret. Regenerate if compromised."}
+              {freshKey
+                ? "Copy this key now — it will not be shown again."
+                : apiKeyMasked?.created_at
+                  ? `Generated ${new Date(apiKeyMasked.created_at).toLocaleDateString()}`
+                  : "Keep this key secret. Regenerate if compromised."}
+
             </div>
             <button
               onClick={handleRegenerateKey}
