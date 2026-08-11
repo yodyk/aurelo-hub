@@ -135,7 +135,7 @@ function NavigationBody({
 
   const newListRow = (clientId: string) =>
     creatingFor === clientId ? (
-      <div className="pl-[34px] pr-3 py-1">
+      <div className="pl-[40px] pr-3 py-1">
         <input
           autoFocus
           value={newTitle}
@@ -152,7 +152,7 @@ function NavigationBody({
         />
       </div>
     ) : (
-      <div className="pl-[34px] pr-3 mt-1.5 mb-1">
+      <div className="pl-[40px] pr-3 mt-1.5 mb-1">
         <button
           type="button"
           onClick={() => { setCreatingFor(clientId); setNewTitle(''); }}
@@ -166,7 +166,7 @@ function NavigationBody({
 
   return (
     <div className="flex flex-col min-h-0 h-full">
-      <div className="px-3 py-3 border-b border-border flex-shrink-0">
+      <div className="pl-8 pr-3 py-3 border-b border-border flex-shrink-0">
         <div className="relative">
           <Search className="w-3.5 h-3.5 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden />
           <input
@@ -190,7 +190,7 @@ function NavigationBody({
         </div>
       </div>
 
-      <nav className="flex-1 overflow-y-auto py-2 min-h-0">
+      <nav className="flex-1 overflow-y-auto py-2 min-h-0 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         <TaskNavigationItem
           label={allTasksLabel || 'All tasks'}
           count={tree.totalOpen}
@@ -199,7 +199,7 @@ function NavigationBody({
         />
 
         {mode === 'global' && (
-          <div className="type-eyebrow px-3 pt-5 pb-2 text-muted-foreground">Clients</div>
+          <div className="type-eyebrow pl-8 pr-3 pt-5 pb-2 text-muted-foreground">Clients</div>
         )}
 
         {clients.map((c, idx) => {
@@ -225,7 +225,7 @@ function NavigationBody({
               {open && (
                 <div>
                   {mode === 'client' && (
-                    <div className="type-eyebrow px-3 pt-4 pb-2 text-muted-foreground">Lists</div>
+                    <div className="type-eyebrow pl-8 pr-3 pt-4 pb-2 text-muted-foreground">Lists</div>
                   )}
                   {c.lists.map(l => (
                     <TaskNavigationItem
