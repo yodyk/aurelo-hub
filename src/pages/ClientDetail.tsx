@@ -51,8 +51,13 @@ import { LogSessionModal, AddProjectModal, EditSessionModal } from "../component
 import * as dataApi from "../data/dataApi";
 import * as portalApi from "../data/portalApi";
 import ClientNotes from "../components/ClientNotes";
-import ChecklistPanel from "../components/ChecklistPanel";
 import TaskModal from "@/components/task/TaskModal";
+import { TaskNavigation } from "@/components/tasks/TaskNavigation";
+import { TaskListView } from "@/components/tasks/TaskListView";
+import { useTaskNavigation } from "@/components/tasks/taskNavContext";
+import { useTaskNavigationTree, useTasksData } from "@/components/tasks/useTaskNavigationTree";
+import { useTaskDrawer } from "@/data/TaskDrawerContext";
+
 
 import EmailActivityLog from "../components/EmailActivityLog";
 import WeeklyUpdateComposer from "../components/WeeklyUpdateComposer";
