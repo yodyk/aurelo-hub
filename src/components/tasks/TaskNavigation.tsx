@@ -201,6 +201,7 @@ function NavigationBody({
           count={tree.totalOpen}
           active={activeKey === 'all'}
           onSelect={() => onSelect({ kind: 'all' })}
+          mode={mode}
         />
 
         {mode === 'global' && (
