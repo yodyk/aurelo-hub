@@ -36,12 +36,13 @@ export default function Tasks() {
   const { tasks, lists, loading, refresh } = useTasksData(workspaceId);
   const { context, select, replace } = useTaskNavigation('global');
   const [addOpen, setAddOpen] = useState(false);
+  const [showArchived, setShowArchived] = useState(false);
 
   useEffect(() => { loadAllProjects?.().catch(() => {}); }, [loadAllProjects]);
   // The drawer is the only editing surface; every save bumps this counter.
   useEffect(() => { if (changeCounter) refresh(); }, [changeCounter, refresh]);
 
-  const tree = useTaskNavigationTree({ clients: clients as any[], lists, tasks });
+  const tree = useTaskNavigationTree({ clients: clients as any[], lists, tasks, showArchived });
 
   const clientMap = useMemo(() => {
     const m = new Map<string, any>();
@@ -60,10 +61,12 @@ export default function Tasks() {
     if (loading) return;
     if (context.kind === 'list' && !lists.some(l => l.id === context.listId)) {
       replace({ kind: 'client', clientId: context.clientId });
+    } else if (context.kind !== 'all' && tree.hiddenClientIds.has(context.clientId)) {
+      replace({ kind: 'all' });
     } else if (context.kind !== 'all' && !clientMap.has(context.clientId)) {
       replace({ kind: 'all' });
     }
-  }, [context, lists, clientMap, loading, replace]);
+  }, [context, lists, clientMap, loading, replace, tree.hiddenClientIds]);
 
   // Add Task is deterministic: the current context pre-fills the modal.
   const addDefaults = useMemo(() => {
@@ -104,6 +107,8 @@ export default function Tasks() {
           mode="global"
           workspaceId={workspaceId}
           onTreeChanged={refresh}
+          showArchived={showArchived}
+          onToggleArchived={setShowArchived}
           onListDeleted={(listId) => {
             if (context.kind === 'list' && context.listId === listId) {
               replace({ kind: 'client', clientId: context.clientId });
