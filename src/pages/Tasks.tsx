@@ -132,7 +132,7 @@ export default function Tasks() {
             projectName={projectName}
           />
         </div>
-      </div>
+      </motion.div>
 
       <TaskModal
         open={addOpen}
