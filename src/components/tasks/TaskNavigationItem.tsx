@@ -21,8 +21,8 @@ export function TaskNavigationItem({
   /** Quieter treatment — used for archived clients. */
   muted?: boolean;
 }) {
-  const leftBase = mode === 'global' ? 12 : 12;
-  const listIndent = mode === 'global' ? 40 : 28;
+  const leftBase = mode === 'global' ? 4 : 12;
+  const listIndent = mode === 'global' ? 32 : 28;
   return (
     <div
       className={`group relative flex items-center h-8 pr-2.5 transition-colors ${

@@ -58,7 +58,7 @@ export function TaskNavigation(props: Props) {
       </aside>
 
       {/* Mobile context selector */}
-      <div className="lg:hidden mb-3">
+      <div className="lg:hidden px-4 mb-3">
         <button
           type="button"
           onClick={() => setSheetOpen(true)}
@@ -265,20 +265,20 @@ function NavigationBody({
         />
 
         {mode === 'global' && (
-          <div className="type-eyebrow pl-8 pr-3 pt-5 pb-2 text-muted-foreground">Clients</div>
+          <div className={`type-eyebrow ${pad} pr-3 pt-5 pb-2 text-muted-foreground`}>Clients</div>
         )}
 
         {activeClients.map((c, idx) => renderClient(c, idx))}
 
         {mode === 'global' && showArchived && archivedClients.length > 0 && (
           <>
-            <div className="type-eyebrow pl-8 pr-3 pt-5 pb-2 text-muted-foreground">Archived</div>
+            <div className={`type-eyebrow ${pad} pr-3 pt-5 pb-2 text-muted-foreground`}>Archived</div>
             {archivedClients.map((c, idx) => renderClient(c, idx))}
           </>
         )}
 
         {mode === 'global' && tree.archivedCount > 0 && onToggleArchived && (
-          <div className="pl-8 pr-3 pt-4 pb-1">
+          <div className={`${pad} pr-3 pt-4 pb-1`}>
             <button
               type="button"
               onClick={() => onToggleArchived(!showArchived)}
