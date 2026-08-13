@@ -158,12 +158,18 @@ export interface UseTaskPipelineArgs {
   query: string;
   clientName?: (clientId?: string) => string | undefined;
   projectName?: (projectId?: string | null) => string | undefined;
+  /** Clients excluded from the "All tasks" dataset (archived, by default). */
+  hiddenClientIds?: Set<string>;
 }
 
 export function useTaskPipeline({
-  tasks, context, filter, query, clientName, projectName,
+  tasks, context, filter, query, clientName, projectName, hiddenClientIds,
 }: UseTaskPipelineArgs) {
-  const scoped = useMemo(() => scopeTasks(tasks, context), [tasks, context]);
+  const scoped = useMemo(
+    () => scopeTasks(tasks, context, hiddenClientIds),
+    [tasks, context, hiddenClientIds],
+  );
+
   const counts = useMemo(() => filterCounts(scoped), [scoped]);
   const filtered = useMemo(() => applyFilter(scoped, filter), [scoped, filter]);
   const searched = useMemo(() => {
