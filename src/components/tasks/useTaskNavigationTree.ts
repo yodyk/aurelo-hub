@@ -73,14 +73,23 @@ export interface UseTaskNavigationTreeArgs {
   clientId?: string;
   /** Restrict the tree to a single project's lists (Project Detail mode). */
   projectId?: string;
+  /** Surface archived clients (and their tasks) instead of hiding them. */
+  showArchived?: boolean;
 }
 
 export function useTaskNavigationTree({
-  clients, lists, tasks, clientId, projectId,
+  clients, lists, tasks, clientId, projectId, showArchived,
 }: UseTaskNavigationTreeArgs): TaskNavTree {
   return useMemo(() => {
+    const archivedIds = new Set(
+      clients.filter(c => (c.status || '').toLowerCase() === 'archived').map(c => c.id),
+    );
+    // In single-client mode the context is explicit, so nothing is hidden.
+    const hiddenClientIds = clientId || showArchived ? new Set<string>() : archivedIds;
+
     const scopedLists = lists.filter(l => {
       if (clientId && l.clientId !== clientId) return false;
+      if (hiddenClientIds.has(l.clientId)) return false;
       if (projectId) return l.projectId === projectId;
       return true;
     });
@@ -88,6 +97,7 @@ export function useTaskNavigationTree({
 
     const scopedTasks = tasks.filter(t => {
       if (clientId && t.clientId !== clientId) return false;
+      if (t.clientId && hiddenClientIds.has(t.clientId)) return false;
       if (projectId) return !!t.checklistId && listIds.has(t.checklistId);
       return true;
     });
@@ -117,11 +127,12 @@ export function useTaskNavigationTree({
     }
 
     const clientNodes: TaskNavClientNode[] = clients
-      .filter(c => (clientId ? c.id === clientId : (c.status || '').toLowerCase() !== 'archived'))
+      .filter(c => (clientId ? c.id === clientId : !hiddenClientIds.has(c.id)))
       .map(c => ({
         id: c.id,
         name: c.name,
         openCount: openByClient.get(c.id) || 0,
+        archived: archivedIds.has(c.id),
         lists: (listsByClient.get(c.id) || []).sort((a, b) => {
           if (a.isDefault !== b.isDefault) return a.isDefault ? -1 : 1;
           return a.title.localeCompare(b.title);
@@ -132,6 +143,9 @@ export function useTaskNavigationTree({
     return {
       totalOpen: scopedTasks.filter(isOpen).length,
       clients: clientNodes,
+      hiddenClientIds,
+      archivedCount: clientId ? 0 : archivedIds.size,
     };
-  }, [clients, lists, tasks, clientId, projectId]);
+  }, [clients, lists, tasks, clientId, projectId, showArchived]);
+
 }
