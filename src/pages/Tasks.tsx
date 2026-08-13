@@ -14,13 +14,13 @@
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
-import { CheckSquare } from 'lucide-react';
 import { containerVariants, itemVariants } from '@/lib/motion';
 
 import { useAuth } from '@/data/AuthContext';
 import { useData } from '@/data/DataContext';
 import { useTaskDrawer } from '@/data/TaskDrawerContext';
 import { useClientFavicons } from '@/components/ClientAvatar';
+import { PageHeader } from '@/components/primitives/composition';
 import TaskModal from '@/components/task/TaskModal';
 import { TaskNavigation } from '@/components/tasks/TaskNavigation';
 import { TaskListView } from '@/components/tasks/TaskListView';
