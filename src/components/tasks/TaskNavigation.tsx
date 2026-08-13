@@ -234,57 +234,8 @@ function NavigationBody({
           </div>
         )}
 
-        {false && clients.map((c, idx) => {
-          const clientActive = activeKey === `client:${c.id}`;
-          const open = mode === 'client' ? true : isExpanded(c.id);
-          return (
-            <div
-              key={c.id}
-              className={idx > 0 && mode === 'global' ? 'mt-3 pt-3 border-t border-border/45' : ''}
-            >
-              {mode === 'global' && (
-                <TaskNavigationItem
-                  label={c.name}
-                  count={c.openCount}
-                  active={clientActive}
-                  expandable
-                  expanded={open}
-                  onToggle={() => toggle(c.id)}
-                  onSelect={() => onSelect({ kind: 'client', clientId: c.id })}
-                  mode={mode}
-                />
-              )}
 
-              {open && (
-                <div>
-                  {mode === 'client' && (
-                    <div className={`type-eyebrow ${pad} pr-3 pt-4 pb-2 text-muted-foreground`}>Lists</div>
-                  )}
-                  {c.lists.map(l => (
-                    <TaskNavigationItem
-                      key={l.id}
-                      label={l.title}
-                      count={l.openCount}
-                      level={1}
-                      active={activeKey === `list:${l.id}`}
-                      onSelect={() => onSelect({ kind: 'list', clientId: c.id, listId: l.id })}
-                      mode={mode}
-                      trailing={
-                        <TaskListMenu
-                          list={l}
-                          siblings={c.lists}
-                          onChanged={onTreeChanged}
-                          onDeleted={(id) => onListDeleted?.(id)}
-                        />
-                      }
-                    />
-                  ))}
-                  {newListRow(c.id)}
-                </div>
-              )}
-            </div>
-          );
-        })}
+
 
         {clients.length === 0 && (
           <p className="px-3 py-3 text-[12px] text-muted-foreground">
