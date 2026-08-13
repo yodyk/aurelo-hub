@@ -8,7 +8,7 @@
 //
 // Navigation establishes context; the content pane never re-derives it.
 import { useEffect, useMemo, useState } from 'react';
-import { Search, Plus, X, ListTree } from 'lucide-react';
+import { Search, Plus, X, ListTree, Eye, EyeOff } from 'lucide-react';
 import { BottomSheet } from '@/components/primitives/BottomSheet';
 import { createChecklist } from '@/data/checklistsApi';
 import { toast } from '@/lib/toast';
@@ -29,6 +29,9 @@ interface Props {
   /** Called when the active list is deleted so the page can fall back. */
   onListDeleted?: (listId: string) => void;
   allTasksLabel?: string;
+  /** Archived-client visibility (global mode only). */
+  showArchived?: boolean;
+  onToggleArchived?: (next: boolean) => void;
 }
 
 export function TaskNavigation(props: Props) {
@@ -82,6 +85,7 @@ export function TaskNavigation(props: Props) {
 
 function NavigationBody({
   tree, context, onSelect, mode, workspaceId, onTreeChanged, onListDeleted, allTasksLabel,
+  showArchived, onToggleArchived,
 }: Props) {
   const [query, setQuery] = useState('');
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -208,7 +212,29 @@ function NavigationBody({
           <div className="type-eyebrow pl-8 pr-3 pt-5 pb-2 text-muted-foreground">Clients</div>
         )}
 
-        {clients.map((c, idx) => {
+        {activeClients.map((c, idx) => renderClient(c, idx))}
+
+        {mode === 'global' && showArchived && archivedClients.length > 0 && (
+          <>
+            <div className="type-eyebrow pl-8 pr-3 pt-5 pb-2 text-muted-foreground">Archived</div>
+            {archivedClients.map((c, idx) => renderClient(c, idx))}
+          </>
+        )}
+
+        {mode === 'global' && tree.archivedCount > 0 && onToggleArchived && (
+          <div className="pl-8 pr-3 pt-4 pb-1">
+            <button
+              type="button"
+              onClick={() => onToggleArchived(!showArchived)}
+              className="text-[11.5px] text-muted-foreground hover:text-foreground cursor-pointer inline-flex items-center gap-1.5"
+            >
+              {showArchived ? <EyeOff className="w-3 h-3" aria-hidden /> : <Eye className="w-3 h-3" aria-hidden />}
+              {showArchived ? 'Hide archived clients' : `Show archived clients (${tree.archivedCount})`}
+            </button>
+          </div>
+        )}
+
+        {false && clients.map((c, idx) => {
           const clientActive = activeKey === `client:${c.id}`;
           const open = mode === 'client' ? true : isExpanded(c.id);
           return (
