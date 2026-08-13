@@ -8,7 +8,7 @@
 //
 // Navigation establishes context; the content pane never re-derives it.
 import { useEffect, useMemo, useState } from 'react';
-import { Search, Plus, X, ListTree } from 'lucide-react';
+import { Search, Plus, X, ListTree, Eye, EyeOff } from 'lucide-react';
 import { BottomSheet } from '@/components/primitives/BottomSheet';
 import { createChecklist } from '@/data/checklistsApi';
 import { toast } from '@/lib/toast';
@@ -29,6 +29,9 @@ interface Props {
   /** Called when the active list is deleted so the page can fall back. */
   onListDeleted?: (listId: string) => void;
   allTasksLabel?: string;
+  /** Archived-client visibility (global mode only). */
+  showArchived?: boolean;
+  onToggleArchived?: (next: boolean) => void;
 }
 
 export function TaskNavigation(props: Props) {
@@ -82,6 +85,7 @@ export function TaskNavigation(props: Props) {
 
 function NavigationBody({
   tree, context, onSelect, mode, workspaceId, onTreeChanged, onListDeleted, allTasksLabel,
+  showArchived, onToggleArchived,
 }: Props) {
   const [query, setQuery] = useState('');
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -169,6 +173,62 @@ function NavigationBody({
       </div>
     );
 
+  const activeClients = clients.filter(c => !c.archived);
+  const archivedClients = clients.filter(c => c.archived);
+
+  const renderClient = (c: TaskNavTree['clients'][number], idx: number) => {
+    const clientActive = activeKey === `client:${c.id}`;
+    const open = mode === 'client' ? true : isExpanded(c.id);
+    return (
+      <div
+        key={c.id}
+        className={idx > 0 && mode === 'global' ? 'mt-3 pt-3 border-t border-border/45' : ''}
+      >
+        {mode === 'global' && (
+          <TaskNavigationItem
+            label={c.name}
+            count={c.openCount}
+            active={clientActive}
+            expandable
+            expanded={open}
+            muted={c.archived}
+            onToggle={() => toggle(c.id)}
+            onSelect={() => onSelect({ kind: 'client', clientId: c.id })}
+            mode={mode}
+          />
+        )}
+
+        {open && (
+          <div>
+            {mode === 'client' && (
+              <div className={`type-eyebrow ${pad} pr-3 pt-4 pb-2 text-muted-foreground`}>Lists</div>
+            )}
+            {c.lists.map(l => (
+              <TaskNavigationItem
+                key={l.id}
+                label={l.title}
+                count={l.openCount}
+                level={1}
+                active={activeKey === `list:${l.id}`}
+                onSelect={() => onSelect({ kind: 'list', clientId: c.id, listId: l.id })}
+                mode={mode}
+                trailing={
+                  <TaskListMenu
+                    list={l}
+                    siblings={c.lists}
+                    onChanged={onTreeChanged}
+                    onDeleted={(id) => onListDeleted?.(id)}
+                  />
+                }
+              />
+            ))}
+            {newListRow(c.id)}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="flex flex-col min-h-0 h-full">
       <div className={`${pad} pr-3 py-3 border-b border-border flex-shrink-0`}>
@@ -208,57 +268,30 @@ function NavigationBody({
           <div className="type-eyebrow pl-8 pr-3 pt-5 pb-2 text-muted-foreground">Clients</div>
         )}
 
-        {clients.map((c, idx) => {
-          const clientActive = activeKey === `client:${c.id}`;
-          const open = mode === 'client' ? true : isExpanded(c.id);
-          return (
-            <div
-              key={c.id}
-              className={idx > 0 && mode === 'global' ? 'mt-3 pt-3 border-t border-border/45' : ''}
-            >
-              {mode === 'global' && (
-                <TaskNavigationItem
-                  label={c.name}
-                  count={c.openCount}
-                  active={clientActive}
-                  expandable
-                  expanded={open}
-                  onToggle={() => toggle(c.id)}
-                  onSelect={() => onSelect({ kind: 'client', clientId: c.id })}
-                  mode={mode}
-                />
-              )}
+        {activeClients.map((c, idx) => renderClient(c, idx))}
 
-              {open && (
-                <div>
-                  {mode === 'client' && (
-                    <div className={`type-eyebrow ${pad} pr-3 pt-4 pb-2 text-muted-foreground`}>Lists</div>
-                  )}
-                  {c.lists.map(l => (
-                    <TaskNavigationItem
-                      key={l.id}
-                      label={l.title}
-                      count={l.openCount}
-                      level={1}
-                      active={activeKey === `list:${l.id}`}
-                      onSelect={() => onSelect({ kind: 'list', clientId: c.id, listId: l.id })}
-                      mode={mode}
-                      trailing={
-                        <TaskListMenu
-                          list={l}
-                          siblings={c.lists}
-                          onChanged={onTreeChanged}
-                          onDeleted={(id) => onListDeleted?.(id)}
-                        />
-                      }
-                    />
-                  ))}
-                  {newListRow(c.id)}
-                </div>
-              )}
-            </div>
-          );
-        })}
+        {mode === 'global' && showArchived && archivedClients.length > 0 && (
+          <>
+            <div className="type-eyebrow pl-8 pr-3 pt-5 pb-2 text-muted-foreground">Archived</div>
+            {archivedClients.map((c, idx) => renderClient(c, idx))}
+          </>
+        )}
+
+        {mode === 'global' && tree.archivedCount > 0 && onToggleArchived && (
+          <div className="pl-8 pr-3 pt-4 pb-1">
+            <button
+              type="button"
+              onClick={() => onToggleArchived(!showArchived)}
+              className="text-[11.5px] text-muted-foreground hover:text-foreground cursor-pointer inline-flex items-center gap-1.5"
+            >
+              {showArchived ? <EyeOff className="w-3 h-3" aria-hidden /> : <Eye className="w-3 h-3" aria-hidden />}
+              {showArchived ? 'Hide archived clients' : `Show archived clients (${tree.archivedCount})`}
+            </button>
+          </div>
+        )}
+
+
+
 
         {clients.length === 0 && (
           <p className="px-3 py-3 text-[12px] text-muted-foreground">

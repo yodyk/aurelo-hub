@@ -4,7 +4,7 @@ import { ChevronDown, ChevronRight } from 'lucide-react';
 
 export function TaskNavigationItem({
   label, count, level = 0, active, onSelect,
-  expandable, expanded, onToggle, trailing, mode = 'global',
+  expandable, expanded, onToggle, trailing, mode = 'global', muted,
 }: {
   label: string;
   count?: number;
@@ -18,6 +18,8 @@ export function TaskNavigationItem({
   trailing?: ReactNode;
   /** 'global' = full gutter (Tasks page); 'client' = tight (Client Detail card). */
   mode?: 'global' | 'client';
+  /** Quieter treatment — used for archived clients. */
+  muted?: boolean;
 }) {
   const leftBase = mode === 'global' ? 12 : 12;
   const listIndent = mode === 'global' ? 40 : 28;
@@ -57,7 +59,7 @@ export function TaskNavigationItem({
         onClick={onSelect}
         className={`flex-1 min-w-0 text-left truncate cursor-pointer ${
           level === 0 ? 'text-[13px]' : 'text-[12.5px]'
-        } ${active ? 'text-foreground' : level === 0 ? 'text-foreground/90' : 'text-muted-foreground hover:text-foreground'}`}
+        } ${muted ? 'text-muted-foreground hover:text-foreground' : active ? 'text-foreground' : level === 0 ? 'text-foreground/90' : 'text-muted-foreground hover:text-foreground'}`}
         style={{ fontWeight: active ? 600 : level === 0 ? 500 : 400 }}
       >
         {label}

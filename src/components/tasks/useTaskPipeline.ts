@@ -58,13 +58,21 @@ export interface TaskBucket {
 }
 
 /** Step 1 — navigation establishes the dataset. */
-export function scopeTasks(tasks: WorkspaceTask[], ctx: TaskNavContext): WorkspaceTask[] {
+export function scopeTasks(
+  tasks: WorkspaceTask[],
+  ctx: TaskNavContext,
+  hiddenClientIds?: Set<string>,
+): WorkspaceTask[] {
   switch (ctx.kind) {
-    case 'all':    return tasks;
+    case 'all':
+      return hiddenClientIds?.size
+        ? tasks.filter(t => !t.clientId || !hiddenClientIds.has(t.clientId))
+        : tasks;
     case 'client': return tasks.filter(t => t.clientId === ctx.clientId);
     case 'list':   return tasks.filter(t => t.checklistId === ctx.listId);
   }
 }
+
 
 /** Step 2 — filters refine the dataset. */
 export function applyFilter(tasks: WorkspaceTask[], filter: TaskFilterKey): WorkspaceTask[] {
@@ -150,12 +158,18 @@ export interface UseTaskPipelineArgs {
   query: string;
   clientName?: (clientId?: string) => string | undefined;
   projectName?: (projectId?: string | null) => string | undefined;
+  /** Clients excluded from the "All tasks" dataset (archived, by default). */
+  hiddenClientIds?: Set<string>;
 }
 
 export function useTaskPipeline({
-  tasks, context, filter, query, clientName, projectName,
+  tasks, context, filter, query, clientName, projectName, hiddenClientIds,
 }: UseTaskPipelineArgs) {
-  const scoped = useMemo(() => scopeTasks(tasks, context), [tasks, context]);
+  const scoped = useMemo(
+    () => scopeTasks(tasks, context, hiddenClientIds),
+    [tasks, context, hiddenClientIds],
+  );
+
   const counts = useMemo(() => filterCounts(scoped), [scoped]);
   const filtered = useMemo(() => applyFilter(scoped, filter), [scoped, filter]);
   const searched = useMemo(() => {
