@@ -23,13 +23,19 @@ export interface TaskNavClientNode {
   id: string;
   name: string;
   openCount: number;
+  archived?: boolean;
   lists: TaskNavListNode[];
 }
 
 export interface TaskNavTree {
   totalOpen: number;
   clients: TaskNavClientNode[];
+  /** Clients whose tasks are hidden from "All tasks" right now. */
+  hiddenClientIds: Set<string>;
+  /** How many archived clients exist in scope (regardless of visibility). */
+  archivedCount: number;
 }
+
 
 const isOpen = (t: { status: string }) => t.status !== 'complete';
 
