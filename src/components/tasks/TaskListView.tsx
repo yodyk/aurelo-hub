@@ -48,6 +48,7 @@ export function TaskListView({
   tasks, tree, context, onRefresh, onOpenTask, onAddTask,
   clientMap, faviconUrls = {}, projectName, loading, showClient, hideClientHeading,
 }: Props) {
+  const hiddenClientIds = tree.hiddenClientIds;
   const [filter, setFilter] = useState<TaskFilterKey>('all');
   const [query, setQuery] = useState('');
   const [debounced, setDebounced] = useState('');
@@ -68,6 +69,7 @@ export function TaskListView({
 
   const { counts, buckets, visible } = useTaskPipeline({
     tasks: liveTasks, context, filter, query: debounced, clientName, projectName,
+    hiddenClientIds,
   });
 
 
@@ -75,7 +77,7 @@ export function TaskListView({
   // there; otherwise the new context opens on All open.
   const ctxKey = navKey(context);
   useEffect(() => {
-    setFilter(prev => reconcileFilter(prev, scopeOnly(tasks, context)));
+    setFilter(prev => reconcileFilter(prev, scopeOnly(tasks, context, hiddenClientIds)));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ctxKey]);
 
@@ -209,8 +211,10 @@ export function TaskListView({
 
 // Local copy of the scope step so the reconcile effect can run without
 // re-deriving the whole pipeline.
-function scopeOnly(tasks: WorkspaceTask[], ctx: TaskNavContext) {
-  if (ctx.kind === 'all') return tasks;
+function scopeOnly(tasks: WorkspaceTask[], ctx: TaskNavContext, hidden?: Set<string>) {
+  if (ctx.kind === 'all') {
+    return hidden?.size ? tasks.filter(t => !t.clientId || !hidden.has(t.clientId)) : tasks;
+  }
   if (ctx.kind === 'client') return tasks.filter(t => t.clientId === ctx.clientId);
   return tasks.filter(t => t.checklistId === ctx.listId);
 }
@@ -348,6 +352,11 @@ function TaskRow({
         </div>
         <div className="type-meta truncate flex items-center gap-2">
           {showClient && client && <span className="truncate">{client.name}</span>}
+          {(client?.status || '').toLowerCase() === 'archived' && (
+            <span className="text-[10.5px] uppercase tracking-wide text-muted-foreground/70 flex-shrink-0">
+              Archived
+            </span>
+          )}
           {!showClient && task.checklistTitle && <span className="truncate">{task.checklistTitle}</span>}
           {task.repeat && (
             <span className="inline-flex items-center gap-1" title={`Repeats ${task.repeat}`}>
