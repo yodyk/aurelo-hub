@@ -58,7 +58,7 @@ export function TaskNavigation(props: Props) {
       </aside>
 
       {/* Mobile context selector */}
-      <div className="lg:hidden mb-3">
+      <div className="lg:hidden px-4 mb-3">
         <button
           type="button"
           onClick={() => setSheetOpen(true)}
@@ -92,11 +92,11 @@ function NavigationBody({
   const [creatingFor, setCreatingFor] = useState<string | null>(null);
   const [newTitle, setNewTitle] = useState('');
   const activeKey = navKey(context);
-  // Global Tasks page is a bare <aside> — the 32px gutter aligns with the
-  // page header. Client Detail is already inside a padded SectionCard, so
-  // use a tight 12px gutter there to avoid doubled indentation.
-  const pad = mode === 'global' ? 'pl-8' : 'pl-3';
-  const listIndent = mode === 'global' ? 'pl-[40px]' : 'pl-[28px]';
+  // Global Tasks page shares the PageHeader gutter (24px desktop). Client
+  // Detail is already inside a padded SectionCard, so use a tight 12px
+  // gutter there to avoid doubled indentation.
+  const pad = mode === 'global' ? 'pl-6' : 'pl-3';
+  const listIndent = mode === 'global' ? 'pl-[32px]' : 'pl-[28px]';
 
   // Always keep the active client's branch open.
   useEffect(() => {
@@ -265,20 +265,20 @@ function NavigationBody({
         />
 
         {mode === 'global' && (
-          <div className="type-eyebrow pl-8 pr-3 pt-5 pb-2 text-muted-foreground">Clients</div>
+          <div className={`type-eyebrow ${pad} pr-3 pt-5 pb-2 text-muted-foreground`}>Clients</div>
         )}
 
         {activeClients.map((c, idx) => renderClient(c, idx))}
 
         {mode === 'global' && showArchived && archivedClients.length > 0 && (
           <>
-            <div className="type-eyebrow pl-8 pr-3 pt-5 pb-2 text-muted-foreground">Archived</div>
+            <div className={`type-eyebrow ${pad} pr-3 pt-5 pb-2 text-muted-foreground`}>Archived</div>
             {archivedClients.map((c, idx) => renderClient(c, idx))}
           </>
         )}
 
         {mode === 'global' && tree.archivedCount > 0 && onToggleArchived && (
-          <div className="pl-8 pr-3 pt-4 pb-1">
+          <div className={`${pad} pr-3 pt-4 pb-1`}>
             <button
               type="button"
               onClick={() => onToggleArchived(!showArchived)}

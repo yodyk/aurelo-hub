@@ -14,13 +14,13 @@
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
-import { CheckSquare } from 'lucide-react';
 import { containerVariants, itemVariants } from '@/lib/motion';
 
 import { useAuth } from '@/data/AuthContext';
 import { useData } from '@/data/DataContext';
 import { useTaskDrawer } from '@/data/TaskDrawerContext';
 import { useClientFavicons } from '@/components/ClientAvatar';
+import { PageHeader } from '@/components/primitives/composition';
 import TaskModal from '@/components/task/TaskModal';
 import { TaskNavigation } from '@/components/tasks/TaskNavigation';
 import { TaskListView } from '@/components/tasks/TaskListView';
@@ -86,20 +86,22 @@ export default function Tasks() {
   return (
     <motion.div
       initial="hidden" animate="show" variants={containerVariants}
-      className="px-4 lg:px-0 py-6 lg:py-0 max-w-[1400px] mx-auto lg:h-[calc(100vh-var(--app-header-h,56px))] lg:flex lg:flex-col min-h-0"
+      className="w-full min-w-0 lg:h-[calc(100vh-var(--app-header-h,56px))] lg:flex lg:flex-col min-h-0"
     >
-      <motion.div variants={itemVariants} className="lg:px-8 lg:pt-8 mb-4 lg:mb-5">
-        <div className="flex items-center gap-2.5 mb-1">
-          <div className="w-7 h-7 bg-primary/10 flex items-center justify-center" style={{ borderRadius: 4 }}>
-            <CheckSquare className="w-3.5 h-3.5 text-primary" aria-hidden />
-          </div>
-          <h1 className="text-[22px] text-foreground" style={{ fontWeight: 600, letterSpacing: '-0.01em' }}>Tasks</h1>
-          <span className="type-meta tabular-nums">{tree.totalOpen} open</span>
-        </div>
-        <p className="type-meta">Every commitment across your clients, in one place.</p>
+      <motion.div variants={itemVariants}>
+        <PageHeader
+          title="Tasks"
+          subtitle={
+            <>
+              <span className="tabular-nums">{tree.totalOpen} open</span>
+              <span className="opacity-40 mx-1.5">·</span>
+              Every commitment across your clients, in one place.
+            </>
+          }
+        />
       </motion.div>
 
-      <div className="flex-1 min-h-0 lg:flex lg:border-t lg:border-border">
+      <motion.div variants={itemVariants} className="flex-1 min-h-0 lg:flex">
         <TaskNavigation
           tree={tree}
           context={context}
@@ -116,7 +118,7 @@ export default function Tasks() {
           }}
         />
 
-        <div className="flex-1 min-w-0 lg:overflow-y-auto lg:px-8 lg:py-6">
+        <div className="flex-1 min-w-0 lg:overflow-y-auto px-4 lg:px-6 py-6">
           <TaskListView
             tasks={tasks}
             tree={tree}
@@ -130,7 +132,7 @@ export default function Tasks() {
             projectName={projectName}
           />
         </div>
-      </div>
+      </motion.div>
 
       <TaskModal
         open={addOpen}
