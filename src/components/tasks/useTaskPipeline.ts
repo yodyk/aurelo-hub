@@ -58,13 +58,21 @@ export interface TaskBucket {
 }
 
 /** Step 1 — navigation establishes the dataset. */
-export function scopeTasks(tasks: WorkspaceTask[], ctx: TaskNavContext): WorkspaceTask[] {
+export function scopeTasks(
+  tasks: WorkspaceTask[],
+  ctx: TaskNavContext,
+  hiddenClientIds?: Set<string>,
+): WorkspaceTask[] {
   switch (ctx.kind) {
-    case 'all':    return tasks;
+    case 'all':
+      return hiddenClientIds?.size
+        ? tasks.filter(t => !t.clientId || !hiddenClientIds.has(t.clientId))
+        : tasks;
     case 'client': return tasks.filter(t => t.clientId === ctx.clientId);
     case 'list':   return tasks.filter(t => t.checklistId === ctx.listId);
   }
 }
+
 
 /** Step 2 — filters refine the dataset. */
 export function applyFilter(tasks: WorkspaceTask[], filter: TaskFilterKey): WorkspaceTask[] {
