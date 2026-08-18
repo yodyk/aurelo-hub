@@ -90,7 +90,7 @@ interface PortalTask {
   id: string;
   text: string;
   description?: string | null;
-  status: 'to_do' | 'in_progress' | 'in_review' | 'on_hold' | 'complete';
+  status: 'to_do' | 'in_progress' | 'in_review' | 'needs_edits' | 'on_hold' | 'complete';
   completed: boolean;
   work_tags?: string[];
   due_date?: string | null;
@@ -1705,6 +1705,7 @@ const PORTAL_STATUSES: { value: PortalTask['status']; label: string; dot: string
   { value: 'to_do',       label: 'To Do',       dot: '#9ca3af', text: '#6b7280', bg: '#f3f4f6' },
   { value: 'in_progress', label: 'In Progress', dot: '#0ea5e9', text: '#0369a1', bg: '#e0f2fe' },
   { value: 'in_review',   label: 'In Review',   dot: '#f59e0b', text: '#b45309', bg: '#fef3c7' },
+  { value: 'needs_edits', label: 'Needs Edits', dot: '#ef4444', text: '#b91c1c', bg: '#fee2e2' },
   { value: 'on_hold',     label: 'On Hold',     dot: '#94a3b8', text: '#475569', bg: '#f1f5f9' },
   { value: 'complete',    label: 'Complete',    dot: '#22c55e', text: '#15803d', bg: '#dcfce7' },
 ];
@@ -1732,7 +1733,7 @@ function PortalChecklistCard({ checklist, accent, token, hideCompleted = false }
   const visibleItems = hideCompleted ? items.filter(i => i.status !== 'complete') : items;
 
   const cycleStatus = async (item: PortalTask) => {
-    const order: PortalTask['status'][] = ['to_do', 'in_progress', 'in_review', 'on_hold', 'complete'];
+    const order: PortalTask['status'][] = ['to_do', 'in_progress', 'in_review', 'needs_edits', 'on_hold', 'complete'];
     const next = order[(order.indexOf(item.status) + 1) % order.length];
     setItems(prev => prev.map(i => i.id === item.id ? { ...i, status: next, completed: next === 'complete' } : i));
     try {

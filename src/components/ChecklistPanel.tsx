@@ -167,6 +167,7 @@ export default function ChecklistPanel({ clientId, projectId, workspaceId }: Che
     to_do: allItems.filter(i => i.status === 'to_do').length,
     in_progress: allItems.filter(i => i.status === 'in_progress').length,
     in_review: allItems.filter(i => i.status === 'in_review').length,
+    needs_edits: allItems.filter(i => i.status === 'needs_edits').length,
     on_hold: allItems.filter(i => i.status === 'on_hold').length,
     complete: allItems.filter(i => i.status === 'complete').length,
   }), [allItems]);
@@ -188,6 +189,7 @@ export default function ChecklistPanel({ clientId, projectId, workspaceId }: Che
           <FilterChip active={statusFilter === 'to_do'}       onClick={() => setStatusFilter('to_do')}       label="To Do" count={counts.to_do} />
           <FilterChip active={statusFilter === 'in_progress'} onClick={() => setStatusFilter('in_progress')} label="In Progress" count={counts.in_progress} />
           <FilterChip active={statusFilter === 'in_review'}   onClick={() => setStatusFilter('in_review')}   label="In Review" count={counts.in_review} />
+          <FilterChip active={statusFilter === 'needs_edits'} onClick={() => setStatusFilter('needs_edits')} label="Needs Edits" count={counts.needs_edits} />
           <FilterChip active={statusFilter === 'on_hold'}     onClick={() => setStatusFilter('on_hold')}     label="On Hold" count={counts.on_hold} />
           <FilterChip active={statusFilter === 'complete'}    onClick={() => setStatusFilter('complete')}    label="Complete" count={counts.complete} />
           <FilterChip active={statusFilter === 'all'}         onClick={() => setStatusFilter('all')}         label="All"  count={counts.all} />
