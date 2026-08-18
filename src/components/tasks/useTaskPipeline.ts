@@ -12,7 +12,7 @@ import type { TaskNavContext } from './taskNavContext';
 
 export type TaskFilterKey =
   | 'all' | 'overdue' | 'today' | 'week' | 'waiting'
-  | 'no_date' | 'in_progress' | 'in_review' | 'on_hold' | 'complete';
+  | 'no_date' | 'in_progress' | 'in_review' | 'needs_edits' | 'on_hold' | 'complete';
 
 export const TASK_FILTERS: { key: TaskFilterKey; label: string; tone?: 'danger' | 'warning' }[] = [
   { key: 'all',        label: 'All open' },
@@ -22,6 +22,7 @@ export const TASK_FILTERS: { key: TaskFilterKey; label: string; tone?: 'danger' 
   { key: 'waiting',    label: 'Waiting' },
   { key: 'in_progress',label: 'In progress' },
   { key: 'in_review',  label: 'In review' },
+  { key: 'needs_edits',label: 'Needs edits', tone: 'danger' },
   { key: 'on_hold',    label: 'On hold' },
   { key: 'no_date',    label: 'No date' },
   { key: 'complete',   label: 'Complete' },
@@ -87,6 +88,7 @@ export function applyFilter(tasks: WorkspaceTask[], filter: TaskFilterKey): Work
     case 'no_date':     return tasks.filter(t => open(t) && !t.dueDate);
     case 'in_progress': return tasks.filter(t => t.status === 'in_progress');
     case 'in_review':   return tasks.filter(t => t.status === 'in_review');
+    case 'needs_edits': return tasks.filter(t => t.status === 'needs_edits');
     case 'on_hold':     return tasks.filter(t => t.status === 'on_hold');
     case 'complete':    return tasks.filter(t => t.status === 'complete');
     default:            return tasks.filter(open);
