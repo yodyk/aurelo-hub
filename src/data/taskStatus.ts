@@ -63,6 +63,7 @@ export function normalizeStatus(s: string | null | undefined): TaskStatus {
     case 'done':        return 'complete';
     case 'to_do':
     case 'in_review':
+    case 'needs_edits':
     case 'complete':    return s;
     default:            return 'to_do';
   }
