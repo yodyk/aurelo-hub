@@ -2,12 +2,13 @@
 // Five statuses, fixed. No user-defined statuses. Tone defined in plan PART A.
 
 import type { LucideIcon } from 'lucide-react';
-import { CircleDashed, CircleDot, Eye, PauseCircle, CheckCircle2 } from 'lucide-react';
+import { CircleDashed, CircleDot, Eye, PauseCircle, CheckCircle2, AlertCircle } from 'lucide-react';
 
 export type TaskStatus =
   | 'to_do'
   | 'in_progress'
   | 'in_review'
+  | 'needs_edits'
   | 'on_hold'
   | 'complete';
 
