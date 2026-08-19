@@ -39,7 +39,14 @@ export interface TaskNavTree {
 
 const isOpen = (t: { status: string }) => t.status !== 'complete';
 
-/** Loads the workspace task universe once per mount (and on demand). */
+/**
+ * Loads the workspace task universe once per mount (and on demand).
+ *
+ * Reloads are strictly ordered: every load carries a generation number and
+ * only the newest one may write to state. Without this, two edits in quick
+ * succession start two overlapping loads and the slower (older) response can
+ * land last, resurrecting values the user just changed.
+ */
 export function useTasksData(workspaceId?: string | null) {
   const [tasks, setTasks] = useState<WorkspaceTask[]>([]);
   const [lists, setLists] = useState<Checklist[]>([]);
@@ -47,27 +54,57 @@ export function useTasksData(workspaceId?: string | null) {
   // Only the first load blanks the pane; later refreshes happen underneath
   // the rendered list so editing a task never collapses it to a spinner.
   const loadedOnce = useRef(false);
+  const generation = useRef(0);
+  const inFlight = useRef(false);
+  const pending = useRef(false);
+  const mounted = useRef(true);
 
-  const refresh = useCallback(async () => {
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; };
+  }, []);
+
+  const run = useCallback(async () => {
     if (!workspaceId) return;
+    const gen = ++generation.current;
+    inFlight.current = true;
     if (!loadedOnce.current) setLoading(true);
     try {
       const [t, l] = await Promise.all([
         loadAllTasksForWorkspace(workspaceId),
         loadChecklistsForWorkspace(workspaceId),
       ]);
+      // A newer load started while this one was in flight — discard.
+      if (gen !== generation.current || !mounted.current) return;
       setTasks(t);
       setLists(l);
     } finally {
-      loadedOnce.current = true;
-      setLoading(false);
+      if (gen === generation.current) {
+        inFlight.current = false;
+        loadedOnce.current = true;
+        if (mounted.current) setLoading(false);
+      }
+      // Coalesced refreshes collapse into a single trailing reload.
+      if (gen === generation.current && pending.current && mounted.current) {
+        pending.current = false;
+        void run();
+      }
     }
   }, [workspaceId]);
 
-  useEffect(() => { loadedOnce.current = false; refresh(); }, [refresh]);
+  const refresh = useCallback(async () => {
+    if (inFlight.current) { pending.current = true; return; }
+    await run();
+  }, [run]);
 
+  useEffect(() => {
+    loadedOnce.current = false;
+    pending.current = false;
+    void run();
+  }, [run]);
 
   return { tasks, lists, loading, refresh, setTasks };
+
 }
 
 export interface UseTaskNavigationTreeArgs {

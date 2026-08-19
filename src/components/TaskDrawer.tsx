@@ -7,7 +7,7 @@
  * sections render collapsed by default (Adjustment 5) and can be expanded
  * in follow-up passes for full editing.
  */
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useNavigate } from 'react-router';
 import {
@@ -73,23 +73,34 @@ export function TaskDrawer() {
     return () => window.removeEventListener('keydown', onKey);
   }, [taskId, close]);
 
+  // Every save publishes the exact fields it wrote, so lists can echo the
+  // edit immediately. Rollback restores the snapshot taken at call time
+  // (using the functional form so concurrent edits can't clobber each other).
   const patch = useCallback(async (updates: Partial<ChecklistItem>, dbPatch: any) => {
-    if (!task) return;
-    const optimistic = { ...task, ...updates };
-    setTask(optimistic);
+    let snapshot: ChecklistItem | null = null;
+    let optimistic: ChecklistItem | null = null;
+    setTask(prev => {
+      if (!prev) return prev;
+      snapshot = prev;
+      optimistic = { ...prev, ...updates };
+      return optimistic;
+    });
+    const current = snapshot as ChecklistItem | null;
+    if (!current) return;
     try {
-      await updateChecklistItem(task.id, dbPatch);
+      await updateChecklistItem(current.id, dbPatch);
       // Trigger recurrence clone on transition to complete
-      if (updates.status === 'complete' && task.status !== 'complete' && optimistic.repeat) {
-        const newId = await materializeRecurrence(optimistic);
+      if (updates.status === 'complete' && current.status !== 'complete' && (optimistic as any)?.repeat) {
+        const newId = await materializeRecurrence(optimistic as ChecklistItem);
         if (newId) toast.success('Next occurrence scheduled');
       }
-      notifyChanged();
+      notifyChanged(current.id, updates as Record<string, any>);
     } catch (err: any) {
       toast.error(err.message);
-      setTask(task);
+      setTask(prev => (prev && prev.id === current.id ? current : prev));
     }
-  }, [task, notifyChanged]);
+  }, [notifyChanged]);
+
 
   const client = task ? clients.find((c: any) => c.id === task.clientId) : null;
   const project = task?.projectId ? projects.find((p: any) => p.id === task.projectId) : null;
@@ -121,9 +132,13 @@ export function TaskDrawer() {
     close();
     deferredDelete({
       label: `Task deleted — "${snapshot.text.slice(0, 40)}${snapshot.text.length > 40 ? '…' : ''}"`,
-      onOptimisticRemove: () => { notifyChanged(); },
-      onUndo: () => { notifyChanged(); },
-      onCommit: async () => { await deleteChecklistItem(snapshot.id); notifyChanged(); },
+      onOptimisticRemove: () => { notifyChanged(snapshot.id, {}, { deleted: true }); },
+      onUndo: () => { notifyChanged(snapshot.id, {}); },
+      onCommit: async () => {
+        await deleteChecklistItem(snapshot.id);
+        notifyChanged(snapshot.id, {}, { deleted: true });
+      },
+
     });
   };
 
@@ -393,9 +408,35 @@ function TitleField({ task, onSave }: { task: ChecklistItem; onSave: (text: stri
 function TagsField({
   task, options, onToggle,
 }: { task: ChecklistItem; options: string[]; onToggle: (tags: string[]) => void }) {
-  const current = task.workTags || [];
   const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState('');
+  // Rapid toggles are coalesced into one save: the chips respond instantly
+  // from local state and a single write flushes shortly after the last click,
+  // so the lists never see a burst of competing reloads.
+  const [local, setLocal] = useState<string[] | null>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const serverTags = task.workTags || [];
+  const current = local ?? serverTags;
+
+  // Clear the local buffer once the saved value matches it.
+  useEffect(() => {
+    if (!local) return;
+    if (local.length === serverTags.length && local.every((t, i) => t === serverTags[i])) {
+      setLocal(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [serverTags.join('\u0000')]);
+
+  // Never leave an unsaved toggle behind when the drawer switches task.
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
+  useEffect(() => { setLocal(null); }, [task.id]);
+
+  const queue = (next: string[]) => {
+    setLocal(next);
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => { timer.current = null; onToggle(next); }, 400);
+  };
+
   // Custom tags live on the task itself, so anything already applied stays
   // visible even when it isn't one of the workspace categories.
   const all = Array.from(new Set([...options, ...current]));
@@ -406,8 +447,9 @@ function TagsField({
     setAdding(false);
     if (!t) return;
     if (current.some(x => x.toLowerCase() === t.toLowerCase())) return;
-    onToggle([...current, t]);
+    queue([...current, t]);
   };
+
 
   return (
     <div className="flex flex-col gap-1.5">
