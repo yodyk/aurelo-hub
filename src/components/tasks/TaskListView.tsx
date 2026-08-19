@@ -110,10 +110,17 @@ export function TaskListView({
   useEffect(() => {
     if (!lastChange || !lastChange.taskId) return;
     if (lastChange.deleted) {
-      setOverrides(o => { const n = { ...o }; delete n[lastChange.taskId]; return n; });
+      // Hide the row for the Undo window; the refetch still returns it.
+      setHidden(h => new Set(h).add(lastChange.taskId));
+      setOverrides(o => stripId(o, lastChange.taskId));
       return;
     }
+    setHidden(h => {
+      if (!h.has(lastChange.taskId)) return h;
+      const n = new Set(h); n.delete(lastChange.taskId); return n;
+    });
     if (!Object.keys(lastChange.patch).length) return;
+
     setOverrides(o => ({
       [lastChange.taskId]: {
         patch: { ...o[lastChange.taskId]?.patch, ...lastChange.patch },
