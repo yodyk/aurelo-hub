@@ -132,9 +132,13 @@ export function TaskDrawer() {
     close();
     deferredDelete({
       label: `Task deleted — "${snapshot.text.slice(0, 40)}${snapshot.text.length > 40 ? '…' : ''}"`,
-      onOptimisticRemove: () => { notifyChanged(); },
-      onUndo: () => { notifyChanged(); },
-      onCommit: async () => { await deleteChecklistItem(snapshot.id); notifyChanged(); },
+      onOptimisticRemove: () => { notifyChanged(snapshot.id, {}, { deleted: true }); },
+      onUndo: () => { notifyChanged(snapshot.id, {}); },
+      onCommit: async () => {
+        await deleteChecklistItem(snapshot.id);
+        notifyChanged(snapshot.id, {}, { deleted: true });
+      },
+
     });
   };
 
