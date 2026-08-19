@@ -390,7 +390,40 @@ function TitleField({ task, onSave }: { task: ChecklistItem; onSave: (text: stri
   );
 }
 
+function TagsField({
+  task, options, onToggle,
+}: { task: ChecklistItem; options: string[]; onToggle: (tags: string[]) => void }) {
+  const current = task.workTags || [];
+  if (options.length === 0 && current.length === 0) return null;
+  const all = Array.from(new Set([...options, ...current]));
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className="type-eyebrow">Tags</div>
+      <div className="flex flex-wrap gap-1.5">
+        {all.map(tag => {
+          const active = current.includes(tag);
+          return (
+            <button
+              key={tag}
+              type="button"
+              aria-pressed={active}
+              onClick={() => onToggle(active ? current.filter(t => t !== tag) : [...current, tag])}
+              className={`text-[11.5px] px-2 py-1 border transition-colors cursor-pointer ${
+                active ? 'bg-primary/10 border-primary/30 text-primary' : 'border-border text-muted-foreground hover:bg-accent/40'
+              }`}
+              style={{ borderRadius: 4, fontWeight: 500 }}
+            >
+              {tag}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function DescriptionField({ task, onSave }: { task: ChecklistItem; onSave: (text: string | null) => void }) {
+
   return (
     <div className="flex flex-col gap-1">
       <div className="type-eyebrow">Description</div>
