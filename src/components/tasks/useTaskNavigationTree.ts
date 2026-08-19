@@ -3,7 +3,7 @@
 // Presentation components never touch the raw task array. Tree shape,
 // counts and scoping all resolve here, so a later move to server-side
 // counts/pagination swaps these internals without touching the UI.
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   loadAllTasksForWorkspace, loadChecklistsForWorkspace,
   type Checklist, type WorkspaceTask,
