@@ -120,6 +120,7 @@ export function TaskListView({
   }, [context, tree]);
 
   const patch = async (task: WorkspaceTask, updates: any) => {
+    setOverrides(o => ({ ...o, [task.id]: { ...o[task.id], ...updates } }));
     try {
       await updateChecklistItem(task.id, updates);
       if (updates.status === 'complete') {
@@ -128,8 +129,10 @@ export function TaskListView({
       }
       onRefresh();
     } catch (err: any) {
+      setOverrides(o => { const n = { ...o }; delete n[task.id]; return n; });
       toast.error(err.message || "Couldn't update that task");
     }
+
   };
 
   const remove = (task: WorkspaceTask) => {
