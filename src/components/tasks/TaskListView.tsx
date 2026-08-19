@@ -49,6 +49,7 @@ export function TaskListView({
   clientMap, faviconUrls = {}, projectName, loading, showClient, hideClientHeading,
 }: Props) {
   const hiddenClientIds = tree.hiddenClientIds;
+  const { lastChange } = useTaskDrawer();
   const [filter, setFilter] = useState<TaskFilterKey>('all');
   const [query, setQuery] = useState('');
   const [debounced, setDebounced] = useState('');
@@ -56,7 +57,7 @@ export function TaskListView({
   const [hidden, setHidden] = useState<Set<string>>(new Set());
   // Local echo of in-flight edits so a row updates instantly instead of
   // waiting for the refetch (which used to make the list jump).
-  const [overrides, setOverrides] = useState<Record<string, Partial<WorkspaceTask>>>({});
+  const [overrides, setOverrides] = useState<Record<string, TaskOverride>>({});
 
 
   useEffect(() => {
@@ -72,28 +73,63 @@ export function TaskListView({
   const liveTasks = useMemo(
     () => tasks
       .filter(t => !hidden.has(t.id))
-      .map(t => (overrides[t.id] ? { ...t, ...overrides[t.id] } : t)),
+      .map(t => (overrides[t.id] ? { ...t, ...overrides[t.id].patch } : t)),
     [tasks, hidden, overrides],
   );
 
+  // Drawer saves publish the fields they wrote, so a row reflects the edit
+  // the moment it lands — independent of when the refetch resolves.
+  useEffect(() => {
+    if (!lastChange || !lastChange.taskId) return;
+    if (lastChange.deleted) {
+      setOverrides(o => { const n = { ...o }; delete n[lastChange.taskId]; return n; });
+      return;
+    }
+    if (!Object.keys(lastChange.patch).length) return;
+    setOverrides(o => ({
+      [lastChange.taskId]: {
+        patch: { ...o[lastChange.taskId]?.patch, ...lastChange.patch },
+        at: Date.now(),
+      },
+      ...stripId(o, lastChange.taskId),
+    }));
+  }, [lastChange]);
+
   // Once the refetch lands with the same values, drop the local echo.
+  // Values are compared structurally (tags are arrays — `===` never matched,
+  // which used to pin an override on a row forever), and any override older
+  // than the stale window is dropped regardless so it can never outlive the
+  // data it was standing in for.
   useEffect(() => {
     setOverrides(prev => {
       const keys = Object.keys(prev);
       if (!keys.length) return prev;
       const byId = new Map(tasks.map(t => [t.id, t]));
-      const next: Record<string, Partial<WorkspaceTask>> = {};
+      const next: Record<string, TaskOverride> = {};
       let changed = false;
+      const now = Date.now();
       for (const id of keys) {
         const server = byId.get(id) as any;
-        const patchObj = prev[id] as any;
-        const settled = server && Object.keys(patchObj).every(k => server[k] === patchObj[k]);
+        const entry = prev[id];
+        const patchObj = entry.patch as any;
+        const settled =
+          !server ||
+          now - entry.at > OVERRIDE_TTL_MS ||
+          Object.keys(patchObj).every(k => sameValue(server[k], patchObj[k]));
         if (settled) changed = true;
-        else next[id] = prev[id];
+        else next[id] = entry;
       }
       return changed ? next : prev;
     });
   }, [tasks]);
+
+  // A new navigation context renders a different dataset — carry no echoes
+  // of the previous one across.
+  useEffect(() => {
+    setOverrides(o => (Object.keys(o).length ? {} : o));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navKey(context)]);
+
 
 
   const { counts, buckets, visible } = useTaskPipeline({
