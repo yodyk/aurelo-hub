@@ -228,7 +228,14 @@ export function TaskDrawer() {
                     </FieldRow>
                   </div>
 
+                  <TagsField
+                    task={task}
+                    options={workCategoryNames || []}
+                    onToggle={(tags) => patch({ workTags: tags }, { workTags: tags })}
+                  />
+
                   <DescriptionField task={task} onSave={(d) => patch({ description: d }, { description: d })} />
+
 
                   {/* Collapsible: Waiting / Follow-up */}
                   <Collapsible label="Waiting / Follow-up" icon={Hourglass} defaultOpen={!!(task.waitingOn || task.followUpAt)}>
