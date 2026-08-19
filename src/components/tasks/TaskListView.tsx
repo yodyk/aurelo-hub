@@ -408,7 +408,22 @@ function TaskRow({
           {!followingUp && !task.waitingOn && task.status === 'in_review' && (
             <span style={{ color: 'var(--warning)' }}>{cfg.label}</span>
           )}
+          {(task.workTags || []).slice(0, 3).map(tag => (
+            <span
+              key={tag}
+              className="flex-shrink-0 text-[10.5px] px-1.5 py-[1px] border border-border text-muted-foreground"
+              style={{ borderRadius: 3 }}
+            >
+              {tag}
+            </span>
+          ))}
+          {(task.workTags || []).length > 3 && (
+            <span className="flex-shrink-0 text-[10.5px] text-muted-foreground">
+              +{(task.workTags || []).length - 3}
+            </span>
+          )}
         </div>
+
       </div>
 
       {due && (

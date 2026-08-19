@@ -394,8 +394,21 @@ function TagsField({
   task, options, onToggle,
 }: { task: ChecklistItem; options: string[]; onToggle: (tags: string[]) => void }) {
   const current = task.workTags || [];
-  if (options.length === 0 && current.length === 0) return null;
+  const [adding, setAdding] = useState(false);
+  const [draft, setDraft] = useState('');
+  // Custom tags live on the task itself, so anything already applied stays
+  // visible even when it isn't one of the workspace categories.
   const all = Array.from(new Set([...options, ...current]));
+
+  const commit = () => {
+    const t = draft.trim();
+    setDraft('');
+    setAdding(false);
+    if (!t) return;
+    if (current.some(x => x.toLowerCase() === t.toLowerCase())) return;
+    onToggle([...current, t]);
+  };
+
   return (
     <div className="flex flex-col gap-1.5">
       <div className="type-eyebrow">Tags</div>
@@ -417,10 +430,36 @@ function TagsField({
             </button>
           );
         })}
+        {adding ? (
+          <input
+            autoFocus
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onBlur={commit}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') { e.preventDefault(); commit(); }
+              if (e.key === 'Escape') { setDraft(''); setAdding(false); }
+            }}
+            placeholder="New tag"
+            maxLength={30}
+            className="text-[11.5px] px-2 py-1 border border-primary/40 bg-[color:var(--surface-sunken)] w-28 focus:outline-none"
+            style={{ borderRadius: 4 }}
+          />
+        ) : (
+          <button
+            type="button"
+            onClick={() => setAdding(true)}
+            className="text-[11.5px] px-2 py-1 border border-dashed border-border text-muted-foreground hover:text-foreground cursor-pointer"
+            style={{ borderRadius: 4, fontWeight: 500 }}
+          >
+            + Tag
+          </button>
+        )}
       </div>
     </div>
   );
 }
+
 
 function DescriptionField({ task, onSave }: { task: ChecklistItem; onSave: (text: string | null) => void }) {
 
