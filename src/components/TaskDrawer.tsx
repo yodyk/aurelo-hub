@@ -408,9 +408,35 @@ function TitleField({ task, onSave }: { task: ChecklistItem; onSave: (text: stri
 function TagsField({
   task, options, onToggle,
 }: { task: ChecklistItem; options: string[]; onToggle: (tags: string[]) => void }) {
-  const current = task.workTags || [];
   const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState('');
+  // Rapid toggles are coalesced into one save: the chips respond instantly
+  // from local state and a single write flushes shortly after the last click,
+  // so the lists never see a burst of competing reloads.
+  const [local, setLocal] = useState<string[] | null>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const serverTags = task.workTags || [];
+  const current = local ?? serverTags;
+
+  // Clear the local buffer once the saved value matches it.
+  useEffect(() => {
+    if (!local) return;
+    if (local.length === serverTags.length && local.every((t, i) => t === serverTags[i])) {
+      setLocal(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [serverTags.join('\u0000')]);
+
+  // Never leave an unsaved toggle behind when the drawer switches task.
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
+  useEffect(() => { setLocal(null); }, [task.id]);
+
+  const queue = (next: string[]) => {
+    setLocal(next);
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => { timer.current = null; onToggle(next); }, 400);
+  };
+
   // Custom tags live on the task itself, so anything already applied stays
   // visible even when it isn't one of the workspace categories.
   const all = Array.from(new Set([...options, ...current]));
@@ -421,8 +447,9 @@ function TagsField({
     setAdding(false);
     if (!t) return;
     if (current.some(x => x.toLowerCase() === t.toLowerCase())) return;
-    onToggle([...current, t]);
+    queue([...current, t]);
   };
+
 
   return (
     <div className="flex flex-col gap-1.5">
