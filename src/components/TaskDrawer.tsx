@@ -44,7 +44,7 @@ const REPEAT_OPTIONS: { value: ChecklistItem['repeat']; label: string }[] = [
 export function TaskDrawer() {
   const { taskId, close, notifyChanged } = useTaskDrawer();
   const navigate = useNavigate();
-  const { clients, getProjects, loadProjectsForClient } = useData();
+  const { clients, getProjects, loadProjectsForClient, workCategoryNames } = useData();
   const { workspaceId } = useAuth();
   const [task, setTask] = useState<ChecklistItem | null>(null);
   const [loading, setLoading] = useState(false);
