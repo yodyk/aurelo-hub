@@ -7,7 +7,7 @@
  * sections render collapsed by default (Adjustment 5) and can be expanded
  * in follow-up passes for full editing.
  */
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useNavigate } from 'react-router';
 import {
