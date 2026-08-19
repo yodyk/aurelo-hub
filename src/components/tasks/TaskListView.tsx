@@ -26,6 +26,34 @@ import {
   type TaskBucket, type TaskFilterKey,
 } from './useTaskPipeline';
 import type { TaskNavTree, TaskNavListNode } from './useTaskNavigationTree';
+import { useTaskDrawer } from '@/data/TaskDrawerContext';
+
+/** A local echo of an edit that hasn't been confirmed by a refetch yet. */
+interface TaskOverride {
+  patch: Partial<WorkspaceTask>;
+  at: number;
+}
+
+/** Safety net: an echo never survives longer than this. */
+const OVERRIDE_TTL_MS = 8000;
+
+/** Structural equality good enough for task field values (incl. tag arrays). */
+function sameValue(a: any, b: any): boolean {
+  if (a === b) return true;
+  if (a == null && b == null) return true;
+  if (Array.isArray(a) && Array.isArray(b)) {
+    return a.length === b.length && a.every((v, i) => sameValue(v, b[i]));
+  }
+  return false;
+}
+
+function stripId<T>(map: Record<string, T>, id: string): Record<string, T> {
+  const n = { ...map };
+  delete n[id];
+  return n;
+}
+
+
 
 interface Props {
   tasks: WorkspaceTask[];
