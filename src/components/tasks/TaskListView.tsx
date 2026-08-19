@@ -54,6 +54,10 @@ export function TaskListView({
   const [debounced, setDebounced] = useState('');
   // Rows hidden optimistically during the Undo window.
   const [hidden, setHidden] = useState<Set<string>>(new Set());
+  // Local echo of in-flight edits so a row updates instantly instead of
+  // waiting for the refetch (which used to make the list jump).
+  const [overrides, setOverrides] = useState<Record<string, Partial<WorkspaceTask>>>({});
+
 
   useEffect(() => {
     const t = setTimeout(() => setDebounced(query), 160);
