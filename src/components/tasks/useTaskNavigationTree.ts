@@ -3,7 +3,7 @@
 // Presentation components never touch the raw task array. Tree shape,
 // counts and scoping all resolve here, so a later move to server-side
 // counts/pagination swaps these internals without touching the UI.
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   loadAllTasksForWorkspace, loadChecklistsForWorkspace,
   type Checklist, type WorkspaceTask,
@@ -44,10 +44,13 @@ export function useTasksData(workspaceId?: string | null) {
   const [tasks, setTasks] = useState<WorkspaceTask[]>([]);
   const [lists, setLists] = useState<Checklist[]>([]);
   const [loading, setLoading] = useState(true);
+  // Only the first load blanks the pane; later refreshes happen underneath
+  // the rendered list so editing a task never collapses it to a spinner.
+  const loadedOnce = useRef(false);
 
   const refresh = useCallback(async () => {
     if (!workspaceId) return;
-    setLoading(true);
+    if (!loadedOnce.current) setLoading(true);
     try {
       const [t, l] = await Promise.all([
         loadAllTasksForWorkspace(workspaceId),
@@ -56,11 +59,13 @@ export function useTasksData(workspaceId?: string | null) {
       setTasks(t);
       setLists(l);
     } finally {
+      loadedOnce.current = true;
       setLoading(false);
     }
   }, [workspaceId]);
 
-  useEffect(() => { refresh(); }, [refresh]);
+  useEffect(() => { loadedOnce.current = false; refresh(); }, [refresh]);
+
 
   return { tasks, lists, loading, refresh, setTasks };
 }

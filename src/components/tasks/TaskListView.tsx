@@ -54,6 +54,10 @@ export function TaskListView({
   const [debounced, setDebounced] = useState('');
   // Rows hidden optimistically during the Undo window.
   const [hidden, setHidden] = useState<Set<string>>(new Set());
+  // Local echo of in-flight edits so a row updates instantly instead of
+  // waiting for the refetch (which used to make the list jump).
+  const [overrides, setOverrides] = useState<Record<string, Partial<WorkspaceTask>>>({});
+
 
   useEffect(() => {
     const t = setTimeout(() => setDebounced(query), 160);
@@ -65,7 +69,32 @@ export function TaskListView({
     [clientMap],
   );
 
-  const liveTasks = useMemo(() => tasks.filter(t => !hidden.has(t.id)), [tasks, hidden]);
+  const liveTasks = useMemo(
+    () => tasks
+      .filter(t => !hidden.has(t.id))
+      .map(t => (overrides[t.id] ? { ...t, ...overrides[t.id] } : t)),
+    [tasks, hidden, overrides],
+  );
+
+  // Once the refetch lands with the same values, drop the local echo.
+  useEffect(() => {
+    setOverrides(prev => {
+      const keys = Object.keys(prev);
+      if (!keys.length) return prev;
+      const byId = new Map(tasks.map(t => [t.id, t]));
+      const next: Record<string, Partial<WorkspaceTask>> = {};
+      let changed = false;
+      for (const id of keys) {
+        const server = byId.get(id) as any;
+        const patchObj = prev[id] as any;
+        const settled = server && Object.keys(patchObj).every(k => server[k] === patchObj[k]);
+        if (settled) changed = true;
+        else next[id] = prev[id];
+      }
+      return changed ? next : prev;
+    });
+  }, [tasks]);
+
 
   const { counts, buckets, visible } = useTaskPipeline({
     tasks: liveTasks, context, filter, query: debounced, clientName, projectName,
@@ -91,6 +120,7 @@ export function TaskListView({
   }, [context, tree]);
 
   const patch = async (task: WorkspaceTask, updates: any) => {
+    setOverrides(o => ({ ...o, [task.id]: { ...o[task.id], ...updates } }));
     try {
       await updateChecklistItem(task.id, updates);
       if (updates.status === 'complete') {
@@ -99,8 +129,10 @@ export function TaskListView({
       }
       onRefresh();
     } catch (err: any) {
+      setOverrides(o => { const n = { ...o }; delete n[task.id]; return n; });
       toast.error(err.message || "Couldn't update that task");
     }
+
   };
 
   const remove = (task: WorkspaceTask) => {
