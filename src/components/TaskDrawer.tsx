@@ -73,23 +73,34 @@ export function TaskDrawer() {
     return () => window.removeEventListener('keydown', onKey);
   }, [taskId, close]);
 
+  // Every save publishes the exact fields it wrote, so lists can echo the
+  // edit immediately. Rollback restores the snapshot taken at call time
+  // (using the functional form so concurrent edits can't clobber each other).
   const patch = useCallback(async (updates: Partial<ChecklistItem>, dbPatch: any) => {
-    if (!task) return;
-    const optimistic = { ...task, ...updates };
-    setTask(optimistic);
+    let snapshot: ChecklistItem | null = null;
+    let optimistic: ChecklistItem | null = null;
+    setTask(prev => {
+      if (!prev) return prev;
+      snapshot = prev;
+      optimistic = { ...prev, ...updates };
+      return optimistic;
+    });
+    const current = snapshot as ChecklistItem | null;
+    if (!current) return;
     try {
-      await updateChecklistItem(task.id, dbPatch);
+      await updateChecklistItem(current.id, dbPatch);
       // Trigger recurrence clone on transition to complete
-      if (updates.status === 'complete' && task.status !== 'complete' && optimistic.repeat) {
-        const newId = await materializeRecurrence(optimistic);
+      if (updates.status === 'complete' && current.status !== 'complete' && (optimistic as any)?.repeat) {
+        const newId = await materializeRecurrence(optimistic as ChecklistItem);
         if (newId) toast.success('Next occurrence scheduled');
       }
-      notifyChanged();
+      notifyChanged(current.id, updates as Record<string, any>);
     } catch (err: any) {
       toast.error(err.message);
-      setTask(task);
+      setTask(prev => (prev && prev.id === current.id ? current : prev));
     }
-  }, [task, notifyChanged]);
+  }, [notifyChanged]);
+
 
   const client = task ? clients.find((c: any) => c.id === task.clientId) : null;
   const project = task?.projectId ? projects.find((p: any) => p.id === task.projectId) : null;
