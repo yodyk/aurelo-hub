@@ -1,0 +1,1 @@
+update public.checklist_items set work_tags = ARRAY['Marketing'] where text = 'Email | Headers and Footers';
