@@ -287,6 +287,16 @@ function RootLayout() {
   const wsLogoUrl = initLogos?.app?.url || null;
   const wsInitial = wsName ? wsName.charAt(0).toUpperCase() : 'W';
 
+  // Dynamic document title: "Aurelo – [Workspace] Workspace"
+  useEffect(() => {
+    if (wsName) {
+      document.title = `Aurelo – ${wsName} Workspace`;
+    }
+    return () => {
+      document.title = 'Aurelo — Freelance Grows Here';
+    };
+  }, [wsName]);
+
   useEffect(() => {
     if (timerRunning) {
       // Compute elapsed from stored start timestamp each tick
