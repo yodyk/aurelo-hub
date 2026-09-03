@@ -188,11 +188,14 @@ export async function generateExpenseInstances(workspaceId: string, expenses: Ex
   // Backfill past scheduled occurrences created before this rule existed.
   const expenseIds = expenses.filter((e) => e.amountBehavior !== 'variable').map((e) => e.id);
   if (expenseIds.length) {
-    const { error } = await db.from('expense_instances').update({ status: 'confirmed', paid_date: null }).eq('workspace_id', workspaceId).in('expense_id', expenseIds).eq('generated', true).eq('status', 'scheduled').lte('incurred_date', todayIso).not('base_amount', 'is', null);
-    if (error) throw error;
-    const { error: paidError } = await db.rpc ? { error: null } : { error: null };
-    if (paidError) throw paidError;
+    const { data: stale, error: staleError } = await db.from('expense_instances').select('id, incurred_date').eq('workspace_id', workspaceId).in('expense_id', expenseIds).eq('generated', true).eq('status', 'scheduled').lte('incurred_date', todayIso).not('base_amount', 'is', null);
+    if (staleError) throw staleError;
+    for (const row of stale || []) {
+      const { error } = await db.from('expense_instances').update({ status: 'confirmed', paid_date: row.incurred_date }).eq('id', row.id).eq('workspace_id', workspaceId);
+      if (error) throw error;
+    }
   }
+
 }
 
 export async function updateExpenseInstance(workspaceId: string, id: string, patch: any): Promise<void> {
