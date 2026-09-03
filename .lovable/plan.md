@@ -1,82 +1,67 @@
-# W-2 Income & Withholding Context
+# Income & Expenses: Overview-first Restructure
 
-Add employment (W-2) income and tax-payment tracking to Income & Expenses, kept strictly separate from business revenue and from Aurelo's business analytics.
+The page currently stacks everything on one scroll: toolbar, 5 KPIs, comparison bar, disclaimer, W-2 panel, tab bar, and a 9–12 column table. This plan replaces that with an Overview landing surface plus focused sub-views, and makes the tables readable.
 
-## Answer to the question you raised
-
-Yes, it is worth adding — but only under the model you described. Regular paycheck withholding is a prepayment against the salary's own tax, not surplus that can quietly shrink a freelance reserve. So Aurelo will display it for reference and only offset the reserve with amounts the user explicitly designates: extra per-paycheck withholding intended for non-wage income, recorded estimated tax payments, and a deliberate advanced override.
-
-## What gets built
-
-### 1. Employment income sources
-Add one or more jobs, each with: employer name, gross amount (annual salary or per-paycheck), pay frequency (weekly, biweekly, semimonthly, monthly, annual/manual), start date, optional end date, next paycheck date, notes, active/inactive.
-
-Withholding context per job:
-- YTD gross wages and "YTD through" date
-- YTD federal income tax withheld
-- Optional YTD state/local income tax withheld
-- Additional federal withholding per paycheck, with a checkbox: "designated to cover freelance or other non-wage income"
-- Optional additional state withholding per paycheck (same designation flag)
-- Optional projected remaining withholding
-
-FICA, insurance, retirement and other payroll deductions are deliberately out of scope and never enter the offset math.
-
-### 2. Paycheck generation
-Future paychecks generate from the schedule as **Projected**; entered or user-confirmed historical paychecks are **Actual**. Generation is idempotent via a stable occurrence key per job and pay date. Schedule generation starts strictly after the "YTD through" date, so YTD totals and generated paychecks can never overlap.
-
-### 3. Tax payments & withholding section
-Record estimated tax payments: payment date, amount, tax year, jurisdiction (Federal / State / Local / Other), period label, notes. Period labels are presented as user labels, not official IRS periods.
-
-### 4. Layout inside Income & Expenses
-Three separated areas, each with its own subtotal:
-- Business Income
-- Employment Income
-- Tax Payments & Withholding
-
-Employment rows carry an "Employment / W-2" source type and never roll into Business Income.
-
-Overview band relabelled to:
+## New structure
 
 ```text
-Business Income
-Business-Use Expenses
-Estimated Business Profit
-Business Tax Reserve Before Offsets
-Additional Withholding & Estimated Payments
-Remaining Suggested Reserve
+Income & Expenses
+├─ Overview        (default)
+├─ Income
+├─ Expenses
+└─ W-2 Context     (owner only)
 ```
 
-Plus a secondary, clearly labelled "Combined Gross Income Context" (Business Income + W-2 gross) — context only, never described as taxable income, AGI, or liability.
+A single segmented control under the page header switches views. Period, mode (Actual / Actual + Planned) and currency live in one compact toolbar that persists across views, so the numbers always agree. URL keeps `?view=&period=&mode=&q=`.
 
-### 5. Reserve math
+### Overview
+- Three headline numbers only: **Income**, **Business-use expenses**, **Estimated profit**.
+- One "Tax detail" disclosure below them, collapsed by default, revealing Estimated tax reserve, Available after reserve, tax rate/basis, and the "Set tax rate" action.
+- The shared-scale income vs expenses comparison bar stays, directly under the three numbers.
+- A quiet **Needs attention** strip: counts for Needs Review, Needs Amount, and Currency Mismatch, each a link that opens the relevant sub-view pre-filtered.
+- Two small preview lists: latest 5 income rows and top 5 expenses by period total, each with "View all".
+- Tax disclaimer stays dismissible, but only on Overview (not repeated on every view).
 
-```text
-Business Tax Reserve Before Offsets = max(0, Estimated Business Profit x User Tax Rate)
+### Income / Expenses views
+- Full-width table with its own toolbar row: search, status/inclusion filter, column chooser, Add, Export. No duplicate filter controls above and below the table.
+- The current in-table footer total line stays as the sticky summary.
 
-Remaining Suggested Reserve = max(0,
-    Business Tax Reserve Before Offsets
-  - Additional Withholding Designated for Other Income
-  - Estimated Tax Payments (matching tax year)
-  - Other Withholding Available (advanced manual override)
-)
-```
+### W-2 Context
+- The existing `EmploymentContextPanel` moves into its own view instead of sitting mid-page. Owner-only gating unchanged.
 
-Regular federal/state withholding is displayed for reference only and never subtracted. Result is floored at zero.
+## Table readability
 
-### 6. Copy, tooltips, disclaimer
-- Tooltip on the offsets figure: "Regular paycheck withholding generally covers your employment income. Aurelo only applies additional withholding you identify for freelance or other income to this reserve estimate."
-- Advanced override helper: "Use this only if you have determined that part of your regular withholding exceeds what is needed for your employment income, such as after using a tax professional or withholding estimator."
-- Section disclaimer: "Aurelo does not calculate your total household tax liability. Salary, filing status, deductions, credits, and other income can change what you owe. This view is for planning only."
-- IRS Tax Withholding Estimator link shown when jurisdiction is United States.
+- **Column chooser**: a "Columns" popover per table with checkbox toggles, persisted per workspace in `localStorage` (`aurelo_finance_cols_income` / `_expenses`). Defaults show a lean set; everything else is opt-in.
+  - Income default on: Date, Source, Client/Payer, Status, Amount. Off by default: Type, Tax reserve, Notes.
+  - Expenses default on: Expense, Vendor, Category, Frequency, Instances, Business-use total. Off by default: Behavior, Business use %, Gross total, Reserve reduction, Notes.
+- **No label wrapping**: every column gets a `min-width` derived from its header label (explicit per-column min widths + `whitespace-nowrap` on headers), so headers never break to two lines.
+- **Visual rhythm** (breaking the uniform grey wall):
+  - Money columns get a slightly sunken column tint and stay tabular/right-aligned; text columns stay flat.
+  - Row identity column (Source / Expense name) gets a 2px left tone rail coloured by state: cobalt = planned, success = paid/confirmed, amber = needs review/needs amount, muted = everything else. Replaces reading the status word to know what a row is.
+  - Status becomes a tone dot + label rather than plain text; planned rows lose the full-row tint (the rail carries it).
+  - Category / type render as a quiet plain-text chip (hairline outline, no fill) so they read as metadata, not values.
+  - Group separator: a subtle heavier hairline every time the month changes in Income, and between expense parents in Expenses.
+  - Expanded expense instance rows sit on a sunken background so parent vs child is obvious.
 
 ## Technical notes
 
-- **Schema:** three new workspace-scoped tables — `employment_sources`, `employment_paychecks` (unique on workspace + source + occurrence key), `tax_payments`. Each gets GRANTs to `authenticated`/`service_role`, RLS enabled, and workspace-membership policies matching the existing finance tables. Amounts use `numeric(14,2)`; all arithmetic goes through the existing integer-cents helpers in `src/lib/finance/money.ts`.
-- **Isolation:** employment data stays out of `income_entries`, so `syncIncomeSources`, client aggregates, dashboard revenue, client dependency, project profitability, utilization and effective rate are untouched by construction. No changes to those code paths.
-- **Recognition:** paychecks recognize on pay date; cash/accrual toggling does not apply to wages. Employment rows respect the selected period and Actual / Actual + Planned mode the same way business rows do.
-- **Code:** extend `src/lib/finance/types.ts`, add `src/lib/finance/employment.ts` (paycheck schedule generation, offset math), extend `src/data/financeApi.ts` with employment and tax-payment CRUD, and add `EmploymentSection` / `TaxPaymentsSection` components plus modals under `src/components/finance/`.
-- **Tests:** fixtures covering pay-frequency schedule generation, YTD-cutover with no overlap, idempotent regeneration, offset math with designated vs ordinary withholding, and the zero floor.
+- All work is presentational; no changes to `src/lib/finance/*`, `financeApi`, `employmentApi`, recognition, or totals math.
+- `src/pages/IncomeExpenses.tsx` is currently ~236 very long lines. Split into:
+  - `src/components/finance/FinanceToolbar.tsx` — period, mode, currency, tax settings entry.
+  - `src/components/finance/FinanceOverview.tsx` — three numbers, tax disclosure, comparison bar, attention strip, preview lists.
+  - `src/components/finance/IncomeTable.tsx` and `ExpenseTable.tsx` — moved out of the page file, with column-chooser support.
+  - `src/components/finance/ColumnChooser.tsx` + a `useColumnPrefs` hook.
+  - `src/components/finance/FinanceTable.tsx` gains column-definition support (min widths, numeric tint, rail slot).
+  - Page keeps state/loading and renders the active view.
+- Colours use existing tokens only (`--primary`, `--success`, `--warning`, `--surface-sunken`, `--hairline`); 4px radius cap respected.
 
 ## Out of scope
 
-Household tax liability, filing status, deductions, credits, FICA modelling, and any claim of official tax calculation.
+- No changes to sync, recurrence, employment logic, or the add/edit modals' fields.
+- No new dependencies.
+
+## Verification
+
+- `bunx tsgo --noEmit -p tsconfig.app.json` and production build pass.
+- Finance + employment fixtures still pass.
+- Preview check: Overview renders three numbers with tax detail collapsed; each sub-view loads; column toggles persist across reload; no header label wraps at 1280px.
