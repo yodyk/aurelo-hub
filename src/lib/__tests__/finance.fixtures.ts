@@ -1,7 +1,7 @@
 import { calculateTotals } from '../finance/formulas';
 import { pctOfCents, sumCents, toCents } from '../finance/money';
-import { classifyIncome } from '../finance/recognition';
-import { occurrenceDates } from '../finance/recurrence';
+import { classifyIncome, classifyInstance } from '../finance/recognition';
+import { generatedInstanceStatus, occurrenceDates } from '../finance/recurrence';
 import type { Expense, ExpenseInstance, IncomeEntry, Period } from '../finance/types';
 
 export interface FinanceFixtureResult { name: string; pass: boolean; expected: unknown; actual: unknown; }
