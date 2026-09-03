@@ -888,6 +888,7 @@ export type Database = {
           base_amount: number | null
           business_use_pct: number
           category_id: string | null
+          client_request_id: string | null
           created_at: string
           currency: string
           end_date: string | null
@@ -908,6 +909,7 @@ export type Database = {
           base_amount?: number | null
           business_use_pct?: number
           category_id?: string | null
+          client_request_id?: string | null
           created_at?: string
           currency?: string
           end_date?: string | null
@@ -928,6 +930,7 @@ export type Database = {
           base_amount?: number | null
           business_use_pct?: number
           category_id?: string | null
+          client_request_id?: string | null
           created_at?: string
           currency?: string
           end_date?: string | null
