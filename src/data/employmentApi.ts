@@ -225,7 +225,7 @@ export async function generatePaychecks(workspaceId: string, sources: Employment
         employment_source_id: source.id,
         occurrence_key: key,
         pay_date: date,
-        status: date <= today && !row ? 'projected' : 'projected',
+        status: date <= today ? 'confirmed' : 'projected',
         kind: 'regular',
         gross_amount: gross || null,
         designated_additional_federal: designatedFederal,
