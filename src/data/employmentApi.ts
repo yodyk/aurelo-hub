@@ -91,8 +91,8 @@ function mapPayment(row: any): TaxPayment {
   };
 }
 
-const sourcePayload = (input: Partial<EmploymentSource>) => Object.fromEntries(
-  Object.entries({
+const sourcePayload = (input: Partial<EmploymentSource>, partial = false) => {
+  const values: Record<string, unknown> = {
     employer_name: input.employerName,
     compensation_method: input.compensationMethod,
     annual_salary: input.annualSalary ?? null,
@@ -119,8 +119,18 @@ const sourcePayload = (input: Partial<EmploymentSource>) => Object.fromEntries(
     tax_year: input.taxYear,
     notes: input.notes || null,
     active: input.active ?? true,
-  }).filter(([, value]) => value !== undefined),
-);
+  };
+  if (!partial) return Object.fromEntries(Object.entries(values).filter(([, value]) => value !== undefined));
+  const fields: Record<string, keyof EmploymentSource> = {
+    employer_name: 'employerName', compensation_method: 'compensationMethod', annual_salary: 'annualSalary', gross_per_paycheck: 'grossPerPaycheck',
+    pay_frequency: 'payFrequency', anchor_payday: 'anchorPayday', semimonthly_day_1: 'semimonthlyDay1', semimonthly_day_2: 'semimonthlyDay2', monthly_day: 'monthlyDay',
+    start_date: 'startDate', end_date: 'endDate', currency: 'currency', ytd_through_date: 'ytdThroughDate', ytd_gross: 'ytdGross', ytd_federal_withheld: 'ytdFederalWithheld',
+    ytd_state_withheld: 'ytdStateWithheld', ytd_designated_federal: 'ytdDesignatedFederal', ytd_designated_state: 'ytdDesignatedState', additional_federal_per_paycheck: 'additionalFederalPerPaycheck',
+    additional_state_per_paycheck: 'additionalStatePerPaycheck', additional_designated_for_other_income: 'additionalDesignatedForOtherIncome', projection_mode: 'projectionMode',
+    manual_remaining_designated: 'manualRemainingDesignated', tax_year: 'taxYear', notes: 'notes', active: 'active',
+  };
+  return Object.fromEntries(Object.entries(values).filter(([key, value]) => input[fields[key]] !== undefined && value !== undefined));
+};
 
 export interface EmploymentData {
   sources: EmploymentSource[];
@@ -163,9 +173,9 @@ export async function addEmploymentSource(workspaceId: string, input: Partial<Em
 }
 
 export async function updateEmploymentSource(workspaceId: string, id: string, input: Partial<EmploymentSource>) {
-  const { error } = await supabase
+  const { error } = await db
     .from('employment_sources')
-    .update(sourcePayload(input) as any)
+    .update(sourcePayload(input, true) as any)
     .eq('workspace_id', workspaceId)
     .eq('id', id);
   if (error) throw error;
@@ -195,7 +205,7 @@ export async function deleteEmploymentSource(workspaceId: string, id: string) {
  * - Regenerates only future projected rows when compensation/schedule changes.
  */
 export async function generatePaychecks(workspaceId: string, sources: EmploymentSource[], rangeStart: string, rangeEnd: string) {
-  const existing = await supabase
+  const existing = await db
     .from('employment_paychecks')
     .select('id, employment_source_id, occurrence_key, status, generated, pay_date, gross_amount')
     .eq('workspace_id', workspaceId);
@@ -248,7 +258,7 @@ export async function generatePaychecks(workspaceId: string, sources: Employment
     if (error) throw error;
   }
   if (inserts.length) {
-    const { error } = await supabase
+    const { error } = await db
       .from('employment_paychecks')
       .upsert(inserts, { onConflict: 'workspace_id,employment_source_id,occurrence_key', ignoreDuplicates: true });
     if (error) throw error;
