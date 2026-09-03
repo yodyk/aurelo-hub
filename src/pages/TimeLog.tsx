@@ -242,11 +242,12 @@ export default function TimeLog() {
         status: 'draft', due_date: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
         issued_date: new Date().toISOString().split('T')[0], created_from_sessions: Array.from(selectedIds),
       });
-      if (insertErr) throw new Error(insertErr.message);
-      if (seqData) await supabase.from('invoice_sequences').update({ next_number: nextNum + 1 }).eq('workspace_id', wsId);
-      else await supabase.from('invoice_sequences').insert({ workspace_id: wsId, next_number: nextNum + 1 });
-      setSelectedIds(new Set());
-      toast.success(`Draft invoice ${number} created`);
+       if (insertErr) throw new Error(insertErr.message);
+       if (seqData) await supabase.from('invoice_sequences').update({ next_number: nextNum + 1 }).eq('workspace_id', wsId);
+       else await supabase.from('invoice_sequences').insert({ workspace_id: wsId, next_number: nextNum + 1 });
+       scheduleIncomeSync(wsId);
+       setSelectedIds(new Set());
+       toast.success(`Draft invoice ${number} created`);
       navigate("/invoicing");
     } catch (err: any) { toast.error(err.message || "Failed to create invoice"); }
   };
