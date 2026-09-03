@@ -214,6 +214,32 @@ export async function updateExpenseInstance(workspaceId: string, id: string, pat
   for (const [key, value] of Object.entries(patch)) row[fields[key] || key] = value;
   const { error } = await db.from('expense_instances').update(row).eq('id', id).eq('workspace_id', workspaceId); if (error) throw error;
 }
+/**
+ * Price-change flow for recurring expenses (e.g. a plan went from $43 to $75).
+ * Sets the new amount on the expense so regenerated occurrences use it, and
+ * backfills past unconfirmed occurrences from `fromDate` with the amount.
+ * Confirmed history is never touched.
+ */
+export async function applyAmountFromDate(workspaceId: string, expenseId: string, fromDate: string, amount: number): Promise<void> {
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const { data: stale, error: readError } = await db.from('expense_instances')
+    .select('id, incurred_date')
+    .eq('workspace_id', workspaceId)
+    .eq('expense_id', expenseId)
+    .eq('generated', true)
+    .neq('status', 'confirmed')
+    .gte('incurred_date', fromDate)
+    .lte('incurred_date', todayIso);
+  if (readError) throw readError;
+  for (const row of stale || []) {
+    const { error } = await db.from('expense_instances').update({ base_amount: amount, status: 'confirmed', paid_date: row.incurred_date }).eq('id', row.id).eq('workspace_id', workspaceId);
+    if (error) throw error;
+  }
+  // Updating baseAmount clears future generated unconfirmed occurrences; the
+  // next generation pass recreates them with the new amount and status.
+  await updateExpense(workspaceId, expenseId, { baseAmount: amount });
+}
+
 export async function addExpenseInstance(workspaceId: string, input: any): Promise<ExpenseInstance> { const { data, error } = await db.from('expense_instances').insert({ workspace_id: workspaceId, expense_id: input.expenseId, occurrence_key: `${input.expenseId}:manual:${crypto.randomUUID()}`, incurred_date: input.incurredDate, paid_date: input.paidDate || null, status: input.status || 'confirmed', base_amount: input.baseAmount == null ? null : Number(input.baseAmount), business_use_pct: input.businessUsePct == null ? null : Number(input.businessUsePct), currency: input.currency || 'USD', notes: input.notes || null, generated: false }).select().single(); if (error) throw error; return mapInstance(data); }
 export async function addExpenseAddition(workspaceId: string, instanceId: string, label: string, amount: number): Promise<void> { const { error } = await db.from('expense_instance_additions').insert({ workspace_id: workspaceId, instance_id: instanceId, label, amount }); if (error) throw error; }
 export async function updateExpenseAddition(workspaceId: string, id: string, patch: any): Promise<void> { const row = { ...(patch.label !== undefined ? { label: patch.label } : {}), ...(patch.amount !== undefined ? { amount: Number(patch.amount) } : {}) }; const { error } = await db.from('expense_instance_additions').update(row).eq('id', id).eq('workspace_id', workspaceId); if (error) throw error; }
