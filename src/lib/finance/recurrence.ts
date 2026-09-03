@@ -1,4 +1,4 @@
-import type { Expense, ExpenseInstance, Recurrence } from './types';
+import type { Expense, ExpenseInstance, InstanceStatus, Recurrence } from './types';
 
 /** Add one deterministic recurrence step without using timezone-sensitive timestamps. */
 export function nextOccurrence(date: string, recurrence: Recurrence, intervalDays?: number | null): string {
