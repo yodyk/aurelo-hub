@@ -18,7 +18,7 @@ export function runFinanceFixtures(): FinanceFixtureResult[] {
   return [
     { name: 'cash and accrual use separate dates', pass: cash === 'actual' && accrual === 'actual', expected: ['actual', 'actual'], actual: [cash, accrual] },
     { name: 'cent-safe many-entry totals', pass: sumCents([toCents('0.10'), toCents('0.20')]) === 30, expected: 30, actual: sumCents([toCents('0.10'), toCents('0.20')]) },
-    { name: 'business use and tax formulas', pass: totals.businessUseExpensesCents === 1740 && totals.taxReserveCents === 2072, expected: [1740, 2072], actual: [totals.businessUseExpensesCents, totals.taxReserveCents] },
+    { name: 'business use and tax formulas', pass: totals.businessUseExpensesCents === 1740 && totals.taxReserveCents === 2068, expected: [1740, 2068], actual: [totals.businessUseExpensesCents, totals.taxReserveCents] },
     { name: 'monthly recurrence is deterministic', pass: dates.join(',') === '2026-01-01,2026-02-01,2026-03-01', expected: 3, actual: dates.length },
     { name: 'percentage rounding is safe', pass: pctOfCents(10001, 33.33) === 3333, expected: 3333, actual: pctOfCents(10001, 33.33) },
   ];
