@@ -1,20 +1,14 @@
 # Roadmap
 
 ## Income & Expenses workspace
-- [x] Migration: income_entries, expenses, expense_instances, expense_instance_additions, expense_categories (RLS + GRANTs + indexes)
-- [x] financeApi + initial and debounced source synchronization (projects, retainers, invoices)
-- [x] Pure utils: money (decimal-safe), recognition (cash/accrual), recurrence, dedupe
-- [x] Automatic source-mutation synchronization and exact retainer-cycle date generation
-- [x] Fixture coverage for utils
-- [x] Route `/income-expenses` + sidebar entry
-- [x] Page shell, period controls, Actual/Planned toggle, overview band
-- [x] Income table + overrides + exclusion
-- [x] Expense series/instances/additions
-- [x] Filters, URL state, sticky totals, drag-pan, CSV export
-- [x] Empty/loading/error/responsive/a11y states
-- [x] Build + typecheck + tests
-
-Notes from user corrections: cash/accrual uses dual dates (earned + paid); tax settings live in `workspace_settings` section `finance`; no "Partially Paid" state; currency mismatch entries excluded from totals with a visible review count.
-- [x] Reduce oversized ChevronRight icon in the income/expenses table to match surrounding content
-- [x] Make expense creation idempotent across retries and double-submits
+...
 - [x] Add full edit modals and row edit actions for manual/synced income and expenses
+
+## W-2 Income & Withholding Context
+- [x] Apply owner-only database tables and RLS for employment sources, paychecks, tax payments, and withholding settings
+- [ ] Add employment schedule, YTD-overlap, idempotent paycheck, offset, and reserve utilities
+- [ ] Add employment API and preserve confirmed history during future projection regeneration
+- [ ] Add owner-only W-2, paycheck, withholding, and estimated-tax-payment UI to Income & Expenses
+- [ ] Add context-only employment subtotals, offset breakdown, disclaimers, rate helper, and permission-safe CSV export
+- [ ] Add regression fixtures for permissions, YTD overlap, offsets, semimonthly/biweekly schedules, history, and reserve floor
+- [ ] Run typecheck, build, fixtures, security linter, and validate remaining scope
