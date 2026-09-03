@@ -181,10 +181,6 @@ export async function generateExpenseInstances(workspaceId: string, expenses: Ex
       rows.push({ workspace_id: workspaceId, expense_id: expense.id, occurrence_key: occurrenceKey(expense.id, date), incurred_date: date, paid_date: paidDate, status, base_amount: expense.baseAmount, currency: expense.currency, generated: true });
     }
   }
-
-
-    }
-  }
   if (rows.length) { const { error } = await db.from('expense_instances').upsert(rows, { onConflict: 'expense_id,occurrence_key', ignoreDuplicates: true }); if (error) throw error; }
   // Backfill past scheduled occurrences created before this rule existed.
   const expenseIds = expenses.filter((e) => e.amountBehavior !== 'variable').map((e) => e.id);
@@ -196,7 +192,6 @@ export async function generateExpenseInstances(workspaceId: string, expenses: Ex
       if (error) throw error;
     }
   }
-
 }
 
 export async function updateExpenseInstance(workspaceId: string, id: string, patch: any): Promise<void> {
