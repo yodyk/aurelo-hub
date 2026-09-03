@@ -1,6 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { loadSetting, saveSetting } from './settingsApi';
-import { occurrenceDates, occurrenceKey } from '@/lib/finance/recurrence';
+import { occurrenceDates, occurrenceKey, generatedInstanceStatus } from '@/lib/finance/recurrence';
 import type { Expense, ExpenseAddition, ExpenseCategory, ExpenseInstance, FinanceSettings, IncomeEntry, RecognitionMethod } from '@/lib/finance';
 
 const db = supabase as any;
@@ -177,15 +177,8 @@ export async function generateExpenseInstances(workspaceId: string, expenses: Ex
   const rows: any[] = [];
   for (const expense of expenses) {
     for (const date of occurrenceDates(expense, rangeStart, rangeEnd)) {
-      const knownAmount = expense.amountBehavior !== 'variable' && expense.baseAmount != null;
-      // An occurrence already in the past with a known amount is a real, incurred cost —
-      // recognize it as actual instead of leaving it in the planned bucket forever.
-      const past = date <= todayIso;
-      // Past occurrences with no usable amount surface as "Needs Amount" rather than
-      // silently sitting in the planned bucket with a zero contribution.
-      const status = expense.amountBehavior === 'variable' ? 'needs_amount' : past ? (knownAmount ? 'confirmed' : 'needs_amount') : 'scheduled';
-      rows.push({ workspace_id: workspaceId, expense_id: expense.id, occurrence_key: occurrenceKey(expense.id, date), incurred_date: date, paid_date: past && knownAmount ? date : null, status, base_amount: expense.baseAmount, currency: expense.currency, generated: true });
-
+      const { status, paidDate } = generatedInstanceStatus(expense, date, todayIso);
+      rows.push({ workspace_id: workspaceId, expense_id: expense.id, occurrence_key: occurrenceKey(expense.id, date), incurred_date: date, paid_date: paidDate, status, base_amount: expense.baseAmount, currency: expense.currency, generated: true });
     }
   }
   if (rows.length) { const { error } = await db.from('expense_instances').upsert(rows, { onConflict: 'expense_id,occurrence_key', ignoreDuplicates: true }); if (error) throw error; }
@@ -199,7 +192,6 @@ export async function generateExpenseInstances(workspaceId: string, expenses: Ex
       if (error) throw error;
     }
   }
-
 }
 
 export async function updateExpenseInstance(workspaceId: string, id: string, patch: any): Promise<void> {

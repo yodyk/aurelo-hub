@@ -1,4 +1,4 @@
-import type { Expense, ExpenseInstance, Recurrence } from './types';
+import type { Expense, ExpenseInstance, InstanceStatus, Recurrence } from './types';
 
 /** Add one deterministic recurrence step without using timezone-sensitive timestamps. */
 export function nextOccurrence(date: string, recurrence: Recurrence, intervalDays?: number | null): string {
@@ -37,6 +37,25 @@ export function occurrenceDates(expense: Expense, rangeStart: string, rangeEnd: 
 export function occurrenceKey(expenseId: string, date: string): string {
   return `${expenseId}:${date}`;
 }
+
+/**
+ * Status a freshly generated occurrence should carry.
+ * Past occurrences with a known amount are real incurred costs (actual);
+ * past occurrences without one surface as needs_amount instead of silently
+ * sitting in the planned bucket; future occurrences stay scheduled (planned).
+ */
+export function generatedInstanceStatus(
+  expense: Pick<Expense, 'amountBehavior' | 'baseAmount'>,
+  date: string,
+  today: string,
+): { status: InstanceStatus; paidDate: string | null } {
+  if (expense.amountBehavior === 'variable') return { status: 'needs_amount', paidDate: null };
+  const knownAmount = expense.baseAmount != null;
+  const past = date <= today;
+  if (!past) return { status: 'scheduled', paidDate: null };
+  return knownAmount ? { status: 'confirmed', paidDate: date } : { status: 'needs_amount', paidDate: null };
+}
+
 
 export interface FutureInstanceChange {
   mode: 'this_instance' | 'this_and_future';
