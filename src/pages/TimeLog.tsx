@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from '@/lib/toast';
 import { useAuth } from "@/data/AuthContext";
 import { NotificationEvents } from "@/data/notificationsApi";
+import { scheduleIncomeSync } from "@/data/financeSync";
 import { startOfDay, subDays, startOfMonth, startOfQuarter, startOfYear, isBefore, isAfter, startOfWeek, endOfWeek } from "date-fns";
 import * as invoiceApi from "../data/invoiceApi";
 import type { Invoice } from "../data/invoiceApi";

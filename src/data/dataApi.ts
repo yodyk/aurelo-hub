@@ -249,6 +249,7 @@ export async function deleteClient(workspaceId: string, clientId: string) {
   const { error } = await supabase.from('clients').delete().eq('id', clientId).eq('workspace_id', workspaceId);
   if (error) throw new Error(`Failed to delete client: ${error.message}`);
   dispatchWebhookEvent(workspaceId, 'client.deleted', { id: clientId });
+  scheduleIncomeSync(workspaceId);
 }
 
 // ── Sessions ────────────────────────────────────────────────────────

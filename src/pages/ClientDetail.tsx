@@ -2,6 +2,7 @@ import { transitions } from '@/lib/motion';
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { format, parseISO } from "date-fns";
 import { DatePicker } from "@/components/ui/date-picker";
+import { scheduleIncomeSync } from "@/data/financeSync";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@radix-ui/react-tooltip";
 import { useParams, Link, useNavigate, useSearchParams } from "react-router";
 import {

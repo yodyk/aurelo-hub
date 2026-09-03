@@ -81,7 +81,7 @@ export async function syncIncomeSources(workspaceId: string, clients: any[], pro
     const anchor = client.retainerCycleStart ? new Date(`${String(client.retainerCycleStart).slice(0, 10)}T00:00:00`) : new Date(year, 0, 1);
     const cursor = new Date(anchor);
     while (cursor < yearStart) cursor.setDate(cursor.getDate() + cycleDays);
-    while (cursor > yearStart) { const back = new Date(cursor); back.setDate(back.getDate() - cycleDays); if (back < yearStart) break; cursor.setTime(back.getTime()); }
+    while (cursor > yearStart) cursor.setDate(cursor.getDate() - cycleDays);
     for (let cycle = new Date(cursor); cycle <= yearEnd; cycle.setDate(cycle.getDate() + cycleDays)) {
       const cycleStart = new Date(cycle);
       const cycleEnd = new Date(cycle); cycleEnd.setDate(cycleEnd.getDate() + cycleDays - 1);
