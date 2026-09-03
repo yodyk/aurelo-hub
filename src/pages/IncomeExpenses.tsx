@@ -117,6 +117,33 @@ export default function IncomeExpenses() {
   </div>;
 }
 
+function IncomeExpenseComparison({ incomeCents, expenseCents, currency }: { incomeCents: number; expenseCents: number; currency: string }) {
+  const scale = Math.max(incomeCents, expenseCents, 0);
+  const pct = (value: number) => (scale > 0 ? Math.max(0, Math.min(100, (value / scale) * 100)) : 0);
+  const ratio = incomeCents > 0 ? expenseCents / incomeCents : null;
+  const rows: { label: string; cents: number; fill: string; note?: string }[] = [
+    { label: 'Income', cents: incomeCents, fill: 'bg-primary' },
+    { label: 'Gross expenses', cents: expenseCents, fill: 'bg-[color:var(--warning)]', note: ratio != null ? `${formatPercent(expenseCents / incomeCents)} of income` : undefined },
+  ];
+  return (
+    <div className="mt-4 space-y-2">
+      {rows.map((row) => (
+        <div key={row.label} className="flex items-center gap-3 text-xs">
+          <span className="w-28 shrink-0 text-muted-foreground">{row.label}</span>
+          <div className="h-2 flex-1 bg-[var(--surface-sunken)]">
+            <motion.div className={`h-full ${row.fill}`} initial={false} animate={{ width: `${pct(row.cents)}%` }} transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }} />
+          </div>
+          <span className="w-24 shrink-0 text-right font-medium tabular-nums text-foreground">{formatMoney(fromCents(row.cents), { currency })}</span>
+          <span className="w-24 shrink-0 text-right text-muted-foreground">{row.note || ''}</span>
+        </div>
+      ))}
+      {expenseCents > incomeCents && incomeCents >= 0 && scale > 0 && (
+        <div className="text-xs text-[color:var(--warning)]">Expenses exceed income in this period.</div>
+      )}
+    </div>
+  );
+}
+
 function setSortState(setter: (v: { key: string; asc: boolean }) => void, key: string) { setter({ key, asc: false }); }
 function exportCsv(rows: any[], filename: string) { const keys = rows.length ? Object.keys(rows[0]).filter((key) => !['metadata', 'additions'].includes(key)) : []; const csv = [keys.join(','), ...rows.map((row) => keys.map((key) => JSON.stringify(row[key] ?? '')).join(','))].join('\n'); const blob = new Blob([csv], { type: 'text/csv' }); const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = `${filename}.csv`; link.click(); URL.revokeObjectURL(url); }
 
