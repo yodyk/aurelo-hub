@@ -119,7 +119,8 @@ export async function syncIncomeSources(workspaceId: string, clients: any[], pro
 export async function loadExpenseData(workspaceId: string): Promise<{ categories: ExpenseCategory[]; expenses: Expense[]; instances: ExpenseInstance[] }> {
   const [catRes, expRes, instRes, addRes] = await Promise.all([
     db.from('expense_categories').select('*').eq('workspace_id', workspaceId).order('sort_order'),
-    db.from('expenses').select('*').eq('workspace_id', workspaceId).order('created_at', { ascending: false }),
+    db.from('expenses').select('*').eq('workspace_id', workspaceId).eq('active', true).order('created_at', { ascending: false }),
+
     db.from('expense_instances').select('*').eq('workspace_id', workspaceId).order('incurred_date', { ascending: false }),
     db.from('expense_instance_additions').select('*').eq('workspace_id', workspaceId),
   ]);
@@ -172,14 +173,28 @@ export async function removeExpense(workspaceId: string, id: string): Promise<vo
 
 /** Upserts only missing occurrence rows; existing confirmed rows are untouched. */
 export async function generateExpenseInstances(workspaceId: string, expenses: Expense[], rangeStart: string, rangeEnd: string): Promise<void> {
+  const todayIso = new Date().toISOString().slice(0, 10);
   const rows: any[] = [];
   for (const expense of expenses) {
     for (const date of occurrenceDates(expense, rangeStart, rangeEnd)) {
-      rows.push({ workspace_id: workspaceId, expense_id: expense.id, occurrence_key: occurrenceKey(expense.id, date), incurred_date: date, paid_date: null, status: expense.amountBehavior === 'variable' ? 'needs_amount' : 'scheduled', base_amount: expense.baseAmount, currency: expense.currency, generated: true });
+      const knownAmount = expense.amountBehavior !== 'variable' && expense.baseAmount != null;
+      // An occurrence already in the past with a known amount is a real, incurred cost —
+      // recognize it as actual instead of leaving it in the planned bucket forever.
+      const past = date <= todayIso && knownAmount;
+      rows.push({ workspace_id: workspaceId, expense_id: expense.id, occurrence_key: occurrenceKey(expense.id, date), incurred_date: date, paid_date: past ? date : null, status: expense.amountBehavior === 'variable' ? 'needs_amount' : past ? 'confirmed' : 'scheduled', base_amount: expense.baseAmount, currency: expense.currency, generated: true });
     }
   }
   if (rows.length) { const { error } = await db.from('expense_instances').upsert(rows, { onConflict: 'expense_id,occurrence_key', ignoreDuplicates: true }); if (error) throw error; }
+  // Backfill past scheduled occurrences created before this rule existed.
+  const expenseIds = expenses.filter((e) => e.amountBehavior !== 'variable').map((e) => e.id);
+  if (expenseIds.length) {
+    const { error } = await db.from('expense_instances').update({ status: 'confirmed', paid_date: null }).eq('workspace_id', workspaceId).in('expense_id', expenseIds).eq('generated', true).eq('status', 'scheduled').lte('incurred_date', todayIso).not('base_amount', 'is', null);
+    if (error) throw error;
+    const { error: paidError } = await db.rpc ? { error: null } : { error: null };
+    if (paidError) throw paidError;
+  }
 }
+
 export async function updateExpenseInstance(workspaceId: string, id: string, patch: any): Promise<void> {
   const row: Record<string, unknown> = {};
   const fields: Record<string, string> = { incurredDate: 'incurred_date', paidDate: 'paid_date', status: 'status', baseAmount: 'base_amount', businessUsePct: 'business_use_pct', currency: 'currency', notes: 'notes' };
