@@ -41,32 +41,55 @@ export async function addManualIncome(workspaceId: string, input: any): Promise<
 
 /** Sync source-owned fields only. User override, notes, and inclusion are never sent. */
 export async function syncIncomeSources(workspaceId: string, clients: any[], projects: any[], invoices: any[], currency: string): Promise<IncomeEntry[]> {
+  const { data: existingRows, error: existingError } = await db.from('income_entries').select('*').eq('workspace_id', workspaceId);
+  if (existingError) throw existingError;
   const rows: any[] = [];
-  const invoiceProjectIds = new Set((invoices || []).map((i: any) => i.projectId).filter(Boolean));
+  const sourceKeys = new Set<string>();
+  const invoiceByProject = new Map<string, any>();
+  const invoiceMonthsByClient = new Map<string, Set<string>>();
   for (const invoice of invoices || []) {
+    const key = `invoice:${invoice.id}`;
+    sourceKeys.add(key);
+    if (invoice.projectId) invoiceByProject.set(String(invoice.projectId), invoice);
+    if (invoice.clientId && invoice.issuedDate) {
+      const months = invoiceMonthsByClient.get(String(invoice.clientId)) || new Set<string>();
+      months.add(String(invoice.issuedDate).slice(0, 7));
+      invoiceMonthsByClient.set(String(invoice.clientId), months);
+    }
     const client = clients.find((c) => c.id === invoice.clientId);
     const paid = invoice.status === 'paid';
-    rows.push({ workspace_id: workspaceId, source_type: 'invoice', source_id: invoice.id, source_key: `invoice:${invoice.id}`, client_id: invoice.clientId || null, payer_name: invoice.clientName || client?.name || null, description: `Invoice #${invoice.number}`, source_amount: invoice.total, currency: invoice.currency || currency, status: paid ? 'paid' : invoice.status === 'voided' || invoice.status === 'cancelled' ? 'excluded' : 'invoiced', earned_date: invoice.issuedDate || null, paid_date: paid ? (invoice.paidDate || null) : null, source_state: 'active', suppressed_by: null, metadata: { invoiceNumber: invoice.number, projectId: invoice.projectId || null } });
+    rows.push({ workspace_id: workspaceId, source_type: 'invoice', source_id: invoice.id, source_key: key, client_id: invoice.clientId || null, payer_name: invoice.clientName || client?.name || null, description: `Invoice #${invoice.number}`, source_amount: invoice.total, currency: invoice.currency || currency, status: paid ? 'paid' : invoice.status === 'voided' || invoice.status === 'cancelled' || invoice.status === 'archived' ? 'excluded' : 'invoiced', earned_date: invoice.issuedDate || null, paid_date: paid ? (invoice.paidDate || null) : null, source_state: 'active', suppressed_by: null, metadata: { invoiceNumber: invoice.number, projectId: invoice.projectId || null } });
   }
   for (const project of projects || []) {
-    if (invoiceProjectIds.has(project.id)) continue;
-    const client = clients.find((c) => c.id === project.clientId);
+    const key = `project:${project.id}`;
+    const linkedInvoice = invoiceByProject.get(String(project.id));
     const amount = Number(project.contractValue ?? project.totalValue ?? 0);
     if (amount <= 0) continue;
-    rows.push({ workspace_id: workspaceId, source_type: 'project', source_id: project.id, source_key: `project:${project.id}`, client_id: project.clientId || null, payer_name: client?.name || null, description: project.name, source_amount: amount, currency, status: project.status === 'Archived' ? 'excluded' : 'projected', earned_date: project.startDate || null, paid_date: null, source_state: project.status === 'Archived' ? 'archived' : 'active', suppressed_by: null, metadata: { projectName: project.name } });
+    sourceKeys.add(key);
+    const client = clients.find((c) => c.id === project.clientId);
+    rows.push({ workspace_id: workspaceId, source_type: 'project', source_id: project.id, source_key: key, client_id: project.clientId || null, payer_name: client?.name || null, description: project.name, source_amount: amount, currency, status: project.status === 'Archived' ? 'excluded' : 'projected', earned_date: project.startDate || null, paid_date: null, source_state: project.status === 'Archived' ? 'archived' : 'active', suppressed_by: linkedInvoice ? `invoice:${linkedInvoice.id}` : null, metadata: { projectName: project.name, linkedInvoiceId: linkedInvoice?.id || null } });
   }
-  // Retainer periods are represented only when there is no invoice for the client.
   for (const client of clients || []) {
-    if (invoices.some((i: any) => i.clientId === client.id)) continue;
     const monthly = Number(client.monthlyContractValue || 0);
-    if (monthly <= 0 || client.status === 'Archived') continue;
+    const isRetainer = String(client.billingModel || '').toLowerCase().includes('retainer') || monthly > 0;
+    if (!isRetainer || monthly <= 0) continue;
     for (let month = 0; month < 12; month++) {
-      const date = `${new Date().getFullYear()}-${String(month + 1).padStart(2, '0')}-01`;
-      rows.push({ workspace_id: workspaceId, source_type: 'retainer', source_id: client.id, source_key: `retainer:${client.id}:${date.slice(0, 7)}`, client_id: client.id, payer_name: client.name, description: `${client.name} retainer · ${date.slice(0, 7)}`, source_amount: monthly, currency, status: 'projected', earned_date: date, paid_date: null, source_state: 'active', suppressed_by: null, metadata: { period: date.slice(0, 7) } });
+      const year = new Date().getFullYear();
+      const date = `${year}-${String(month + 1).padStart(2, '0')}-01`;
+      const periodKey = date.slice(0, 7);
+      const key = `retainer:${client.id}:${periodKey}`;
+      const suppressedInvoice = invoiceMonthsByClient.get(String(client.id))?.has(periodKey) ? (invoices || []).find((i: any) => i.clientId === client.id && String(i.issuedDate || '').slice(0, 7) === periodKey) : null;
+      sourceKeys.add(key);
+      rows.push({ workspace_id: workspaceId, source_type: 'retainer', source_id: client.id, source_key: key, client_id: client.id, payer_name: client.name, description: `${client.name} retainer · ${periodKey}`, source_amount: monthly, currency, status: 'projected', earned_date: date, paid_date: null, source_state: client.status === 'Archived' ? 'archived' : 'active', suppressed_by: suppressedInvoice ? `invoice:${suppressedInvoice.id}` : null, metadata: { period: periodKey, linkedInvoiceId: suppressedInvoice?.id || null } });
     }
   }
   if (rows.length) {
     const { error } = await db.from('income_entries').upsert(rows, { onConflict: 'workspace_id,source_key', ignoreDuplicates: false });
+    if (error) throw error;
+  }
+  const missing = (existingRows || []).filter((row: any) => ['invoice', 'project', 'retainer'].includes(row.source_type) && !sourceKeys.has(row.source_key));
+  for (const row of missing) {
+    const { error } = await db.from('income_entries').update({ source_state: 'missing', status: 'needs_review', suppressed_by: null }).eq('id', row.id).eq('workspace_id', workspaceId);
     if (error) throw error;
   }
   const { data, error } = await db.from('income_entries').select('*').eq('workspace_id', workspaceId).order('earned_date', { ascending: false, nullsFirst: false });
@@ -114,7 +137,12 @@ export async function generateExpenseInstances(workspaceId: string, expenses: Ex
   }
   if (rows.length) { const { error } = await db.from('expense_instances').upsert(rows, { onConflict: 'expense_id,occurrence_key', ignoreDuplicates: true }); if (error) throw error; }
 }
-export async function updateExpenseInstance(workspaceId: string, id: string, patch: any): Promise<void> { const { error } = await db.from('expense_instances').update(patch).eq('id', id).eq('workspace_id', workspaceId); if (error) throw error; }
+export async function updateExpenseInstance(workspaceId: string, id: string, patch: any): Promise<void> {
+  const row: Record<string, unknown> = {};
+  const fields: Record<string, string> = { incurredDate: 'incurred_date', paidDate: 'paid_date', status: 'status', baseAmount: 'base_amount', businessUsePct: 'business_use_pct', currency: 'currency', notes: 'notes' };
+  for (const [key, value] of Object.entries(patch)) row[fields[key] || key] = value;
+  const { error } = await db.from('expense_instances').update(row).eq('id', id).eq('workspace_id', workspaceId); if (error) throw error;
+}
 export async function addExpenseInstance(workspaceId: string, input: any): Promise<ExpenseInstance> { const { data, error } = await db.from('expense_instances').insert({ workspace_id: workspaceId, expense_id: input.expenseId, occurrence_key: `${input.expenseId}:manual:${crypto.randomUUID()}`, incurred_date: input.incurredDate, paid_date: input.paidDate || null, status: input.status || 'confirmed', base_amount: input.baseAmount == null ? null : Number(input.baseAmount), business_use_pct: input.businessUsePct == null ? null : Number(input.businessUsePct), currency: input.currency || 'USD', notes: input.notes || null, generated: false }).select().single(); if (error) throw error; return mapInstance(data); }
 export async function addExpenseAddition(workspaceId: string, instanceId: string, label: string, amount: number): Promise<void> { const { error } = await db.from('expense_instance_additions').insert({ workspace_id: workspaceId, instance_id: instanceId, label, amount }); if (error) throw error; }
 export async function updateExpenseAddition(workspaceId: string, id: string, patch: any): Promise<void> { const { error } = await db.from('expense_instance_additions').update(patch).eq('id', id).eq('workspace_id', workspaceId); if (error) throw error; }

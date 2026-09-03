@@ -11,6 +11,7 @@
  *   - Avoid: "Nothing here", "Oops", mascots, exclamation marks
  */
 import { type LucideIcon } from 'lucide-react';
+import { type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { IconFrame } from './IconFrame';
 import { cn } from '@/lib/utils';
@@ -23,9 +24,11 @@ export interface EmptyStateAction {
 }
 
 export interface EmptyStateProps {
-  glyph: LucideIcon;
+  glyph?: LucideIcon;
   title: string;
   body?: string;
+  description?: string;
+  action?: ReactNode;
   primaryAction?: EmptyStateAction;
   secondaryAction?: EmptyStateAction;
   /** Visual density. `inline` for table/inline contexts, `page` for full surfaces. */
@@ -37,6 +40,8 @@ export function EmptyState({
   glyph,
   title,
   body,
+  description,
+  action,
   primaryAction,
   secondaryAction,
   variant = 'inline',
@@ -51,7 +56,7 @@ export function EmptyState({
         className,
       )}
     >
-      <IconFrame glyph={glyph} size={isPage ? 'lg' : 'md'} tone="neutral" />
+      {glyph && <IconFrame glyph={glyph} size={isPage ? 'lg' : 'md'} tone="neutral" />}
       <div className="space-y-1.5 max-w-sm">
         <h3
           className="text-foreground"
@@ -64,14 +69,15 @@ export function EmptyState({
         >
           {title}
         </h3>
-        {body && (
+        {(body || description) && (
           <p className="text-[13px] text-muted-foreground leading-relaxed">
-            {body}
+            {body || description}
           </p>
         )}
       </div>
-      {(primaryAction || secondaryAction) && (
+      {(action || primaryAction || secondaryAction) && (
         <div className={cn('flex items-center gap-2', isPage ? 'mt-2' : 'mt-1')}>
+          {action}
           {primaryAction && (
             <Button size="sm" onClick={primaryAction.onClick}>
               {primaryAction.icon && <primaryAction.icon />}
