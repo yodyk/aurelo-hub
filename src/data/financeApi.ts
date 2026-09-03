@@ -1,6 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { loadSetting, saveSetting } from './settingsApi';
-import { occurrenceDates, occurrenceKey } from '@/lib/finance/recurrence';
+import { occurrenceDates, occurrenceKey, generatedInstanceStatus } from '@/lib/finance/recurrence';
 import type { Expense, ExpenseAddition, ExpenseCategory, ExpenseInstance, FinanceSettings, IncomeEntry, RecognitionMethod } from '@/lib/finance';
 
 const db = supabase as any;
