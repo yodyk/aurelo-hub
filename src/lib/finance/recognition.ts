@@ -55,9 +55,9 @@ export function classifyIncome(entry: IncomeEntry, opts: ClassifyOpts): Bucket {
   if (entry.suppressedBy) return 'out';
 
   const actualDate = method === 'cash' ? entry.paidDate : entry.earnedDate;
-  const plannedDate = method === 'cash'
-    ? (entry.earnedDate ?? entry.paidDate)
-    : (entry.earnedDate ?? entry.paidDate);
+  // Planned values retain the method's usable source date, but never turn a
+  // missing required cash/accrual date into a recognized actual.
+  const plannedDate = entry.earnedDate ?? entry.paidDate;
 
   const isActual = method === 'cash'
     ? entry.status === 'paid' && !!entry.paidDate
@@ -65,7 +65,10 @@ export function classifyIncome(entry: IncomeEntry, opts: ClassifyOpts): Bucket {
 
   // A row with no usable date at all under either method needs a human.
   if (!actualDate && !plannedDate) {
-    return entry.status === 'needs_review' || !plannedDate ? 'needs_review' : 'out';
+    return 'needs_review';
+  }
+  if (!actualDate && method === 'cash' && entry.status === 'paid') {
+    return inPeriod(plannedDate, period) ? 'needs_review' : 'out';
   }
 
   if (isActual) {
