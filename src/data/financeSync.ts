@@ -30,7 +30,14 @@ export function scheduleIncomeSync(workspaceId?: string | null): void {
   const run = async () => {
     const id = workspaceId || (await resolveWorkspaceId());
     if (!id) return;
-    try { await runIncomeSync(id); } catch (error) { console.warn('[financeSync] income sync failed', error); }
+    try {
+      await runIncomeSync(id);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('finance-income-sync', { detail: { workspaceId: id } }));
+      }
+    } catch (error) {
+      console.warn('[financeSync] income sync failed', error);
+    }
   };
   const key = workspaceId || '__self__';
   const existing = timers.get(key);

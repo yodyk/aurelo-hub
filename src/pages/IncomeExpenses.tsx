@@ -72,6 +72,14 @@ export default function IncomeExpenses() {
   }, [workspaceId, clients, loadAllProjects, period.start, period.end, financialDefaults.currency]);
 
   useEffect(() => { if (workspaceId) void refresh(true); }, [workspaceId]);
+  useEffect(() => {
+    const handleIncomeSync = (event: Event) => {
+      const detail = (event as CustomEvent<{ workspaceId?: string }>).detail;
+      if (workspaceId && (!detail?.workspaceId || detail.workspaceId === workspaceId)) void refresh();
+    };
+    window.addEventListener('finance-income-sync', handleIncomeSync);
+    return () => window.removeEventListener('finance-income-sync', handleIncomeSync);
+  }, [workspaceId, refresh]);
   useEffect(() => { const next = new URLSearchParams(params); next.set('tab', tab); next.set('period', periodKey); next.set('mode', mode); if (search) next.set('q', search); else next.delete('q'); if (incomeStatus !== 'all') next.set('status', incomeStatus); else next.delete('status'); if (expenseInclusion !== 'all') next.set('inclusion', expenseInclusion); else next.delete('inclusion'); setParams(next, { replace: true }); }, [tab, periodKey, mode, search, incomeStatus, expenseInclusion]);
 
   const incomeRows = useMemo(() => income.map((entry) => ({ entry, bucket: classifyIncome(entry, { method: settings.method, period, currency: settings.currency, includePlanned: mode === 'planned' }) })).filter((x) => x.bucket === 'actual' || (mode === 'planned' && x.bucket === 'planned') || x.bucket === 'needs_review' || x.bucket === 'currency_mismatch').filter(({ entry }) => incomeStatus === 'all' || entry.status === incomeStatus).filter(({ entry }) => !search || `${entry.payerName} ${entry.description} ${entry.sourceType} ${entry.notes}`.toLowerCase().includes(search.toLowerCase())).sort((a, b) => { const dir = sort.asc ? 1 : -1; if (sort.key === 'amount') return dir * (effectiveIncomeCents(a.entry) - effectiveIncomeCents(b.entry)); return dir * String(a.entry.earnedDate || '').localeCompare(String(b.entry.earnedDate || '')); }), [income, settings, period, mode, incomeStatus, search, sort]);
