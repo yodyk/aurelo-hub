@@ -1,10 +1,10 @@
 # Roadmap
 
-## Income & Expenses workspace (in progress)
+## Income & Expenses workspace
 - [x] Migration: income_entries, expenses, expense_instances, expense_instance_additions, expense_categories (RLS + GRANTs + indexes)
-- [x] financeApi + initial source synchronization (projects, retainers, invoices)
+- [x] financeApi + initial and debounced source synchronization (projects, retainers, invoices)
 - [x] Pure utils: money (decimal-safe), recognition (cash/accrual), recurrence, dedupe
-- [ ] Follow-up: source-mutation subscriptions and exact retainer-cycle date generation
+- [x] Automatic source-mutation synchronization and exact retainer-cycle date generation
 - [x] Fixture coverage for utils
 - [x] Route `/income-expenses` + sidebar entry
 - [x] Page shell, period controls, Actual/Planned toggle, overview band

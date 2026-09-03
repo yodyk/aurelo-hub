@@ -5,7 +5,7 @@ import type { Expense, ExpenseAddition, ExpenseCategory, ExpenseInstance, Financ
 
 const db = supabase as any;
 const SETTINGS_KEY = 'finance';
-const US_CATEGORIES = ['Advertising', 'Car & Truck', 'Commissions & Fees', 'Contract Labor', 'Insurance', 'Interest', 'Legal & Professional', 'Office Expense', 'Rent or Lease', 'Repairs & Maintenance', 'Supplies', 'Taxes & Licenses', 'Travel', 'Meals', 'Utilities', 'Wages', 'Business Use of Home', 'Software & Subscriptions', 'Other Expense', 'Needs Review'];
+const US_CATEGORIES = ['Advertising', 'Car & Truck', 'Commissions & Fees', 'Contract Labor', 'Insurance', 'Interest', 'Legal & Professional', 'Office Expense', 'Rent or Lease', 'Repairs & Maintenance', 'Supplies', 'Taxes & Licenses', 'Travel', 'Meals', 'Utilities', 'Wages', 'Business Use of Home', 'Software & Subscriptions', 'Other Expense'];
 
 const mapIncome = (r: any): IncomeEntry => ({ id: r.id, workspaceId: r.workspace_id, sourceType: r.source_type, sourceId: r.source_id, sourceKey: r.source_key, clientId: r.client_id, payerName: r.payer_name, description: r.description, sourceAmount: Number(r.source_amount) || 0, overrideAmount: r.override_amount == null ? null : Number(r.override_amount), currency: r.currency || 'USD', status: r.status, earnedDate: r.earned_date, paidDate: r.paid_date, included: r.included, sourceState: r.source_state, suppressedBy: r.suppressed_by, notes: r.notes, metadata: r.metadata || {} });
 const mapCategory = (r: any): ExpenseCategory => ({ id: r.id, workspaceId: r.workspace_id, name: r.name, sortOrder: r.sort_order, isSeed: r.is_seed });
@@ -69,18 +69,35 @@ export async function syncIncomeSources(workspaceId: string, clients: any[], pro
     const client = clients.find((c) => c.id === project.clientId);
     rows.push({ workspace_id: workspaceId, source_type: 'project', source_id: project.id, source_key: key, client_id: project.clientId || null, payer_name: client?.name || null, description: project.name, source_amount: amount, currency, status: project.status === 'Archived' ? 'excluded' : 'projected', earned_date: project.startDate || null, paid_date: null, source_state: project.status === 'Archived' ? 'archived' : 'active', suppressed_by: linkedInvoice ? `invoice:${linkedInvoice.id}` : null, metadata: { projectName: project.name, linkedInvoiceId: linkedInvoice?.id || null } });
   }
+  const year = new Date().getFullYear();
+  const yearStart = new Date(year, 0, 1);
+  const yearEnd = new Date(year, 11, 31);
   for (const client of clients || []) {
     const monthly = Number(client.monthlyContractValue || 0);
     const isRetainer = String(client.billingModel || '').toLowerCase().includes('retainer') || monthly > 0;
     if (!isRetainer || monthly <= 0) continue;
-    for (let month = 0; month < 12; month++) {
-      const year = new Date().getFullYear();
-      const date = `${year}-${String(month + 1).padStart(2, '0')}-01`;
-      const periodKey = date.slice(0, 7);
-      const key = `retainer:${client.id}:${periodKey}`;
-      const suppressedInvoice = invoiceMonthsByClient.get(String(client.id))?.has(periodKey) ? (invoices || []).find((i: any) => i.clientId === client.id && String(i.issuedDate || '').slice(0, 7) === periodKey) : null;
+    // Walk the client's true billing cycle, not calendar months.
+    const cycleDays = Math.max(1, Number(client.retainerCycleDays || 30));
+    const anchor = client.retainerCycleStart ? new Date(`${String(client.retainerCycleStart).slice(0, 10)}T00:00:00`) : new Date(year, 0, 1);
+    if (Number.isNaN(anchor.getTime())) continue;
+    const cursor = new Date(anchor);
+    while (cursor < yearStart) cursor.setDate(cursor.getDate() + cycleDays);
+    while (cursor > yearStart) {
+      const previous = new Date(cursor);
+      previous.setDate(previous.getDate() - cycleDays);
+      if (previous < yearStart) break;
+      cursor.setTime(previous.getTime());
+    }
+    for (let cycle = new Date(cursor); cycle <= yearEnd; cycle.setDate(cycle.getDate() + cycleDays)) {
+      const cycleStart = new Date(cycle);
+      const cycleEnd = new Date(cycle); cycleEnd.setDate(cycleEnd.getDate() + cycleDays - 1);
+      const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const startIso = iso(cycleStart);
+      const endIso = iso(cycleEnd);
+      const key = `retainer:${client.id}:${startIso}`;
+      const suppressedInvoice = (invoices || []).find((i: any) => i.clientId === client.id && i.issuedDate && String(i.issuedDate).slice(0, 10) >= startIso && String(i.issuedDate).slice(0, 10) <= endIso) || null;
       sourceKeys.add(key);
-      rows.push({ workspace_id: workspaceId, source_type: 'retainer', source_id: client.id, source_key: key, client_id: client.id, payer_name: client.name, description: `${client.name} retainer · ${periodKey}`, source_amount: monthly, currency, status: 'projected', earned_date: date, paid_date: null, source_state: client.status === 'Archived' ? 'archived' : 'active', suppressed_by: suppressedInvoice ? `invoice:${suppressedInvoice.id}` : null, metadata: { period: periodKey, linkedInvoiceId: suppressedInvoice?.id || null } });
+      rows.push({ workspace_id: workspaceId, source_type: 'retainer', source_id: client.id, source_key: key, client_id: client.id, payer_name: client.name, description: `${client.name} retainer · ${startIso} – ${endIso}`, source_amount: monthly, currency, status: client.status === 'Archived' ? 'excluded' : 'projected', earned_date: startIso, paid_date: null, source_state: client.status === 'Archived' ? 'archived' : 'active', suppressed_by: suppressedInvoice ? `invoice:${suppressedInvoice.id}` : null, metadata: { cycleStart: startIso, cycleEnd: endIso, cycleDays, linkedInvoiceId: suppressedInvoice?.id || null } });
     }
   }
   if (rows.length) {
@@ -89,9 +106,11 @@ export async function syncIncomeSources(workspaceId: string, clients: any[], pro
   }
   const missing = (existingRows || []).filter((row: any) => ['invoice', 'project', 'retainer'].includes(row.source_type) && !sourceKeys.has(row.source_key));
   for (const row of missing) {
+    // Preserve source history when a project, retainer cycle, or invoice disappears or changes shape.
     const { error } = await db.from('income_entries').update({ source_state: 'missing', status: 'needs_review', suppressed_by: null }).eq('id', row.id).eq('workspace_id', workspaceId);
     if (error) throw error;
   }
+
   const { data, error } = await db.from('income_entries').select('*').eq('workspace_id', workspaceId).order('earned_date', { ascending: false, nullsFirst: false });
   if (error) throw error;
   return (data || []).map(mapIncome);
@@ -109,12 +128,17 @@ export async function loadExpenseData(workspaceId: string): Promise<{ categories
   return { categories: (catRes.data || []).map(mapCategory), expenses: (expRes.data || []).map(mapExpense), instances: (instRes.data || []).map((r: any) => mapInstance(r, additions.filter((a: ExpenseAddition) => a.instanceId === r.id))) };
 }
 
-export async function seedExpenseCategories(workspaceId: string, jurisdiction: string | null): Promise<void> {
-  if (!jurisdiction?.toLowerCase().includes('united states') && !jurisdiction?.toLowerCase().includes('usa')) return;
-  const { data } = await db.from('expense_categories').select('name').eq('workspace_id', workspaceId);
+export async function seedExpenseCategories(workspaceId: string, _jurisdiction: string | null): Promise<void> {
+  // Keep a useful baseline available even before a jurisdiction is configured. The list is
+  // bookkeeping-oriented and does not represent tax advice; jurisdiction can refine it later.
+  const { data, error: readError } = await db.from('expense_categories').select('name').eq('workspace_id', workspaceId);
+  if (readError) throw readError;
   const existing = new Set((data || []).map((r: any) => r.name));
   const rows = US_CATEGORIES.filter((name) => !existing.has(name)).map((name, i) => ({ workspace_id: workspaceId, name, sort_order: i, is_seed: true }));
-  if (rows.length) await db.from('expense_categories').upsert(rows, { onConflict: 'workspace_id,name' });
+  if (rows.length) {
+    const { error } = await db.from('expense_categories').upsert(rows, { onConflict: 'workspace_id,name' });
+    if (error) throw error;
+  }
 }
 
 export async function addExpense(workspaceId: string, input: any): Promise<Expense> {
@@ -127,7 +151,21 @@ export async function updateExpense(workspaceId: string, id: string, patch: any)
   const fields: Record<string, string> = { name: 'name', vendor: 'vendor', categoryId: 'category_id', recurrence: 'recurrence', intervalDays: 'interval_days', amountBehavior: 'amount_behavior', baseAmount: 'base_amount', businessUsePct: 'business_use_pct', inclusion: 'inclusion', currency: 'currency', startDate: 'start_date', endDate: 'end_date', active: 'active', notes: 'notes' };
   for (const [key, value] of Object.entries(patch)) if (fields[key]) row[fields[key]] = value;
   if (!Object.keys(row).length) return;
-  const { error } = await db.from('expenses').update(row).eq('id', id).eq('workspace_id', workspaceId); if (error) throw error;
+
+  const recurrenceFields = ['recurrence', 'intervalDays', 'amountBehavior', 'baseAmount', 'businessUsePct', 'currency', 'startDate', 'endDate'];
+  const changesSchedule = recurrenceFields.some((field) => Object.prototype.hasOwnProperty.call(patch, field));
+  if (changesSchedule) {
+    const { error: cleanupError } = await db.from('expense_instances')
+      .delete()
+      .eq('workspace_id', workspaceId)
+      .eq('expense_id', id)
+      .eq('generated', true)
+      .gte('incurred_date', new Date().toISOString().slice(0, 10))
+      .neq('status', 'confirmed');
+    if (cleanupError) throw cleanupError;
+  }
+  const { error } = await db.from('expenses').update(row).eq('id', id).eq('workspace_id', workspaceId);
+  if (error) throw error;
 }
 /** Preserve the financial record while stopping future occurrence generation. */
 export async function removeExpense(workspaceId: string, id: string): Promise<void> { const { error } = await db.from('expenses').update({ active: false }).eq('id', id).eq('workspace_id', workspaceId); if (error) throw error; }
