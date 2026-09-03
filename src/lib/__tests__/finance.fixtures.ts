@@ -8,9 +8,14 @@ export interface FinanceFixtureResult { name: string; pass: boolean; expected: u
 const period: Period = { start: '2026-01-01', end: '2026-12-31', label: 'This Year' };
 const expense: Expense = { id: 'e1', workspaceId: 'w', name: 'Software', vendor: null, categoryId: null, recurrence: 'monthly', intervalDays: null, amountBehavior: 'base_plus', baseAmount: 50, businessUsePct: 100, inclusion: 'included', currency: 'USD', startDate: '2026-01-01', endDate: null, active: true, notes: null };
 const instance = (date: string, amount: number, pct: number | null = null): ExpenseInstance => ({ id: date, workspaceId: 'w', expenseId: 'e1', occurrenceKey: `e1:${date}`, incurredDate: date, paidDate: date, status: 'confirmed', baseAmount: amount, businessUsePct: pct, currency: 'USD', notes: null, generated: true, additions: [] });
-const income: IncomeEntry = { id: 'i1', workspaceId: 'w', sourceType: 'invoice', sourceId: 'inv', sourceKey: 'invoice:inv', clientId: null, payerName: 'Client', description: null, sourceAmount: 100.1, overrideAmount: null, currency: 'USD', status: 'paid', earnedDate: '2026-01-01', paidDate: '2026-02-01', included: true, sourceState: 'active', suppressedBy: null, notes: null, metadata: {} };
-
-export function runFinanceFixtures(): FinanceFixtureResult[] {
+  const subscription: Expense = { ...expense, id: 'subscription', name: 'Monthly subscription', amountBehavior: 'fixed', baseAmount: 29, startDate: '2026-01-15', endDate: '2026-12-15' };
+  const subscriptionDates = occurrenceDates(subscription, '2026-01-01', '2026-12-31');
+  const pastSubscription = { ...instance('2026-08-15', 29), expenseId: 'subscription', occurrenceKey: 'subscription:2026-08-15' };
+  const futureSubscription = { ...pastSubscription, id: '2026-10-15', incurredDate: '2026-10-15', paidDate: null, status: 'scheduled' as const, occurrenceKey: 'subscription:2026-10-15' };
+  const lastSubscription = { ...pastSubscription, id: '2026-12-15', incurredDate: '2026-12-15', occurrenceKey: 'subscription:2026-12-15' };
+  const outsideSubscription = { ...pastSubscription, id: '2027-01-15', incurredDate: '2027-01-15', occurrenceKey: 'subscription:2027-01-15' };
+  const actualOpts = { method: 'accrual' as const, period: { start: '2026-01-01', end: '2026-08-31', label: 'Past months' }, currency: 'USD', includePlanned: false };
+  const plannedOpts = { ...actualOpts, period: { start: '2026-09-01', end: '2026-12-31', label: 'Future months' }, includePlanned: true };
   const cash = classifyIncome(income, { method: 'cash', period, currency: 'USD', includePlanned: false });
   const accrual = classifyIncome(income, { method: 'accrual', period, currency: 'USD', includePlanned: false });
   const totals = calculateTotals({ income: [income], incomeBuckets: new Map([['i1', 'actual']]), expenses: [{ expense, instance: instance('2026-01-01', 29, 60), bucket: 'actual' }], taxRatePct: 25 });
