@@ -309,18 +309,16 @@ export async function deletePaycheck(workspaceId: string, id: string) {
 
 /* ── estimated tax payments ───────────────────────────────────────── */
 
-const paymentPayload = (input: Partial<TaxPayment>) => ({
-  status: input.status ?? 'planned',
-  planned_date: input.plannedDate || null,
-  paid_date: input.status === 'paid' ? input.paidDate || null : null,
-  amount: input.amount ?? 0,
-  tax_year: input.taxYear,
-  jurisdiction: input.jurisdiction ?? 'federal',
-  period_label: input.periodLabel || null,
-  reference: input.reference || null,
-  currency: input.currency || 'USD',
-  notes: input.notes || null,
-});
+const paymentPayload = (input: Partial<TaxPayment>, partial = false) => {
+  const values: Record<string, unknown> = {
+    status: input.status ?? 'planned', planned_date: input.plannedDate || null, paid_date: input.status === 'paid' ? input.paidDate || null : null,
+    amount: input.amount ?? 0, tax_year: input.taxYear, jurisdiction: input.jurisdiction ?? 'federal', period_label: input.periodLabel || null,
+    reference: input.reference || null, currency: input.currency || 'USD', notes: input.notes || null,
+  };
+  if (!partial) return values;
+  const fields: Record<string, keyof TaxPayment> = { status: 'status', planned_date: 'plannedDate', paid_date: 'paidDate', amount: 'amount', tax_year: 'taxYear', jurisdiction: 'jurisdiction', period_label: 'periodLabel', reference: 'reference', currency: 'currency', notes: 'notes' };
+  return Object.fromEntries(Object.entries(values).filter(([key, value]) => input[fields[key]] !== undefined && value !== undefined));
+};
 
 export async function addTaxPayment(workspaceId: string, input: Partial<TaxPayment>) {
   const { error } = await db.from('tax_payments').insert({ workspace_id: workspaceId, ...paymentPayload(input) } as any);
@@ -328,7 +326,7 @@ export async function addTaxPayment(workspaceId: string, input: Partial<TaxPayme
 }
 
 export async function updateTaxPayment(workspaceId: string, id: string, input: Partial<TaxPayment>) {
-  const { error } = await db.from('tax_payments').update(paymentPayload(input) as any).eq('workspace_id', workspaceId).eq('id', id);
+  const { error } = await db.from('tax_payments').update(paymentPayload(input, true) as any).eq('workspace_id', workspaceId).eq('id', id);
   if (error) throw error;
 }
 
