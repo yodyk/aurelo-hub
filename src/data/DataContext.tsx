@@ -40,7 +40,7 @@ interface DataContextType {
   addProject: (clientId: string, project: any) => Promise<any>;
   updateProject: (clientId: string, projectId: string, updates: any) => Promise<void>;
   allProjects: any[];
-  loadAllProjects: () => Promise<void>;
+  loadAllProjects: () => Promise<any[]>;
   initAvatar: { url: string; fileName: string } | null;
   setInitAvatar: (avatar: { url: string; fileName: string } | null) => void;
   initLogos: { app: any; email: any };
@@ -90,7 +90,7 @@ const safeDefaults: DataContextType = {
   addProject: async () => ({}),
   updateProject: async () => {},
   allProjects: [],
-  loadAllProjects: async () => {},
+  loadAllProjects: async () => [],
   initAvatar: null,
   setInitAvatar: () => {},
   initLogos: { app: null, email: null },
@@ -451,9 +451,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const loadAllProjects = useCallback(async () => {
     const wsId = workspaceIdRef.current;
-    if (!wsId) return;
+    if (!wsId) return [];
     const remote = await api.loadAllProjects(wsId);
     setAllProjects(remote);
+    return remote;
   }, []);
 
   const handleSetIdentityAndCategories = useCallback(async (newIdentity: IdentityType, categories: WorkCategory[]) => {

@@ -16,6 +16,7 @@ const ProjectDetail = lazy(() => import("./pages/ProjectDetail"));
 const TimeLog = lazy(() => import("./pages/TimeLog"));
 const Insights = lazy(() => import("./pages/Insights"));
 const Invoicing = lazy(() => import("./pages/Invoicing"));
+const IncomeExpenses = lazy(() => import("./pages/IncomeExpenses"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Login = lazy(() => import("./pages/Login"));
 const Signup = lazy(() => import("./pages/Signup"));
@@ -108,6 +109,7 @@ export const router = createBrowserRouter([
       { path: "tasks", element: <SuspensePage><Tasks /></SuspensePage> },
       { path: "insights", element: <SuspensePage><Insights /></SuspensePage> },
       { path: "invoicing", element: <SuspensePage><Invoicing /></SuspensePage> },
+      { path: "income-expenses", element: <SuspensePage><IncomeExpenses /></SuspensePage> },
       { path: "settings", element: <SuspensePage><Settings /></SuspensePage> },
       // /team relocated into Settings → Team tab.
       { path: "team", element: <Navigate to="/settings?tab=team" replace /> },
