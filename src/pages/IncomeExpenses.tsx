@@ -127,19 +127,23 @@ export default function IncomeExpenses() {
       {loading ? <div className="py-16 text-center text-sm text-muted-foreground">Loading finance records…</div> : tab === 'income' ? <IncomeTable rows={incomeRows} settings={settings} currency={settings.currency} filtered={hasFilters} search={search} onSearch={setSearch} onClear={() => { setSearch(''); setIncomeStatus('all'); }} onEdit={setEditIncome} onUpdate={async (id, patch) => { if (!workspaceId) return; const saved = await financeApi.updateIncomeEntry(workspaceId, id, patch); setIncome((prev) => prev.map((e) => e.id === id ? saved : e)); }} onStatus={setIncomeStatus} status={incomeStatus} total={<><strong>{hasFilters ? 'Filtered Total' : 'Total'}</strong> · {incomeRows.length} visible · {formatMoney(fromCents(visibleIncomeCents), { currency: settings.currency })} effective{mode === 'planned' && ` · ${formatMoney(fromCents(visibleProjectedCents), { currency: settings.currency })} planned`} · {settings.taxRatePct == null ? 'Tax reserve needs setup' : `${formatMoney(fromCents(visibleReserve), { currency: settings.currency })} gross reserve`}</>} /> : <ExpenseTable rows={expenseRows} settings={settings} categories={categories} expanded={expanded} setExpanded={setExpanded} currency={settings.currency} filtered={hasFilters} search={search} onSearch={setSearch} onClear={() => { setSearch(''); setExpenseInclusion('all'); }} onInclusion={setExpenseInclusion} inclusion={expenseInclusion} onEdit={setEditExpense} onInstanceUpdate={async (id, patch) => { if (!workspaceId) return; await financeApi.updateExpenseInstance(workspaceId, id, patch); await refresh(); }} onApplyFuture={async (expense: Expense, instance: ExpenseInstance, amount: number) => { if (!workspaceId) return; await financeApi.applyAmountFromDate(workspaceId, expense.id, instance.incurredDate, amount); await refresh(); toast.success('Amount applied from this occurrence forward'); }} onExpenseUpdate={async (id, patch) => { if (!workspaceId) return; await financeApi.updateExpense(workspaceId, id, patch); await refresh(); }} onDelete={async (id) => { if (!workspaceId || !window.confirm('Delete this expense and preserve no future instances?')) return; await financeApi.removeExpense(workspaceId, id); await refresh(); }} total={<><strong>{hasFilters ? 'Filtered Total' : 'Total'}</strong> · {expenseRows.length} expenses · {visibleExpenseInstances.length} visible instances · {formatMoney(fromCents(visibleGrossExpense), { currency: settings.currency })} gross · {formatMoney(fromCents(visibleBusinessUse), { currency: settings.currency })} business use</>} />}
     </main>
     {taxOpen && <TaxSettingsModal value={settings} onClose={() => setTaxOpen(false)} onSave={async (next) => { if (!workspaceId) return; await financeApi.saveFinanceSettings(workspaceId, next); setSettings(next); toast.success('Tax settings saved'); }} />}
-    {addOpen === 'income' && <IncomeModal currency={settings.currency} onClose={() => setAddOpen(null)} onSave={async (input) => { if (!workspaceId) return; const entry = await financeApi.addManualIncome(workspaceId, input); setIncome((prev) => [entry, ...prev]); setAddOpen(null); toast.success('Income added'); }} />}
-    {addOpen === 'expense' && <ExpenseModal currency={settings.currency} categories={categories} onClose={() => setAddOpen(null)} onSave={async (input) => { if (!workspaceId) return; await financeApi.addExpense(workspaceId, input); setAddOpen(null); await refresh(); toast.success('Expense added'); }} />}
+    {addOpen === 'income' && <IncomeModal currency={settings.currency} onClose={() => setAddOpen(null)} onSave={async (input) => { if (!workspaceId) return; try { const entry = await financeApi.addManualIncome(workspaceId, input); setIncome((prev) => [entry, ...prev]); setAddOpen(null); toast.success('Income added'); } catch (e: any) { toast.error(e?.message || 'Could not add income'); } }} />}
+    {addOpen === 'expense' && <ExpenseModal currency={settings.currency} categories={categories} onClose={() => setAddOpen(null)} onSave={async (input) => { if (!workspaceId) return; try { await financeApi.addExpense(workspaceId, input); setAddOpen(null); await refresh(); toast.success('Expense added'); } catch (e: any) { toast.error(e?.message || 'Could not add expense'); } }} />}
     {editIncome && <IncomeModal currency={settings.currency} entry={editIncome} onClose={() => setEditIncome(null)} onSave={async (input) => {
       if (!workspaceId) return;
       const target = editIncome;
-      const saved = target.sourceType === 'manual'
-        ? await financeApi.updateManualIncome(workspaceId, target.id, input)
-        : await financeApi.updateIncomeEntry(workspaceId, target.id, { overrideAmount: input.amount == null || input.amount === target.sourceAmount ? null : input.amount, notes: input.notes, included: input.included });
-      setIncome((prev) => prev.map((e) => (e.id === target.id ? saved : e)));
-      setEditIncome(null);
-      toast.success('Income updated');
+      try {
+        const saved = target.sourceType === 'manual'
+          ? await financeApi.updateManualIncome(workspaceId, target.id, input)
+          : await financeApi.updateIncomeEntry(workspaceId, target.id, { overrideAmount: input.amount == null || input.amount === target.sourceAmount ? null : input.amount, notes: input.notes, included: input.included });
+        setIncome((prev) => prev.map((e) => (e.id === target.id ? saved : e)));
+        setEditIncome(null);
+        toast.success('Income updated');
+      } catch (e: any) {
+        toast.error(e?.message || 'Could not update income');
+      }
     }} />}
-    {editExpense && <ExpenseModal currency={settings.currency} categories={categories} expense={editExpense} onClose={() => setEditExpense(null)} onSave={async (input) => { if (!workspaceId) return; await financeApi.updateExpense(workspaceId, editExpense.id, input); setEditExpense(null); await refresh(); toast.success('Expense updated'); }} />}
+    {editExpense && <ExpenseModal currency={settings.currency} categories={categories} expense={editExpense} onClose={() => setEditExpense(null)} onSave={async (input) => { if (!workspaceId) return; try { await financeApi.updateExpense(workspaceId, editExpense.id, input); setEditExpense(null); await refresh(); toast.success('Expense updated'); } catch (e: any) { toast.error(e?.message || 'Could not update expense'); } }} />}
   </div>;
 }
 
