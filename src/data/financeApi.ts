@@ -5,7 +5,7 @@ import type { Expense, ExpenseAddition, ExpenseCategory, ExpenseInstance, Financ
 
 const db = supabase as any;
 const SETTINGS_KEY = 'finance';
-const US_CATEGORIES = ['Advertising', 'Car & Truck', 'Commissions & Fees', 'Contract Labor', 'Insurance', 'Interest', 'Legal & Professional', 'Office Expense', 'Rent or Lease', 'Repairs & Maintenance', 'Supplies', 'Taxes & Licenses', 'Travel', 'Meals', 'Utilities', 'Wages', 'Business Use of Home', 'Software & Subscriptions', 'Other Expense', 'Needs Review'];
+const US_CATEGORIES = ['Advertising', 'Car & Truck', 'Commissions & Fees', 'Contract Labor', 'Insurance', 'Interest', 'Legal & Professional', 'Office Expense', 'Rent or Lease', 'Repairs & Maintenance', 'Supplies', 'Taxes & Licenses', 'Travel', 'Meals', 'Utilities', 'Wages', 'Business Use of Home', 'Software & Subscriptions', 'Other Expense'];
 
 const mapIncome = (r: any): IncomeEntry => ({ id: r.id, workspaceId: r.workspace_id, sourceType: r.source_type, sourceId: r.source_id, sourceKey: r.source_key, clientId: r.client_id, payerName: r.payer_name, description: r.description, sourceAmount: Number(r.source_amount) || 0, overrideAmount: r.override_amount == null ? null : Number(r.override_amount), currency: r.currency || 'USD', status: r.status, earnedDate: r.earned_date, paidDate: r.paid_date, included: r.included, sourceState: r.source_state, suppressedBy: r.suppressed_by, notes: r.notes, metadata: r.metadata || {} });
 const mapCategory = (r: any): ExpenseCategory => ({ id: r.id, workspaceId: r.workspace_id, name: r.name, sortOrder: r.sort_order, isSeed: r.is_seed });
