@@ -129,6 +129,7 @@ export async function updateExpense(workspaceId: string, id: string, patch: any)
   if (!Object.keys(row).length) return;
   const { error } = await db.from('expenses').update(row).eq('id', id).eq('workspace_id', workspaceId); if (error) throw error;
 }
+/** Preserve the financial record while stopping future occurrence generation. */
 export async function removeExpense(workspaceId: string, id: string): Promise<void> { const { error } = await db.from('expenses').update({ active: false }).eq('id', id).eq('workspace_id', workspaceId); if (error) throw error; }
 
 /** Upserts only missing occurrence rows; existing confirmed rows are untouched. */
