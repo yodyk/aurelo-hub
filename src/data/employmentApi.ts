@@ -7,6 +7,8 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
+
+const db = supabase as any;
 import {
   grossPerPaycheckCents,
   occurrenceKeyFor,
@@ -127,10 +129,10 @@ export interface EmploymentData {
 
 export async function loadEmploymentData(workspaceId: string): Promise<EmploymentData> {
   const [sources, paychecks, payments, settings] = await Promise.all([
-    supabase.from('employment_sources').select('*').eq('workspace_id', workspaceId).order('created_at'),
-    supabase.from('employment_paychecks').select('*').eq('workspace_id', workspaceId).order('pay_date'),
-    supabase.from('tax_payments').select('*').eq('workspace_id', workspaceId).order('tax_year', { ascending: false }),
-    supabase.from('employment_settings').select('*').eq('workspace_id', workspaceId).maybeSingle(),
+    db.from('employment_sources').select('*').eq('workspace_id', workspaceId).order('created_at'),
+    db.from('employment_paychecks').select('*').eq('workspace_id', workspaceId).order('pay_date'),
+    db.from('tax_payments').select('*').eq('workspace_id', workspaceId).order('tax_year', { ascending: false }),
+    db.from('employment_settings').select('*').eq('workspace_id', workspaceId).maybeSingle(),
   ]);
   for (const r of [sources, paychecks, payments, settings]) if (r.error) throw r.error;
   return {
@@ -142,7 +144,7 @@ export async function loadEmploymentData(workspaceId: string): Promise<Employmen
 }
 
 export async function saveOtherWithholdingAvailable(workspaceId: string, amount: number) {
-  const { error } = await supabase
+  const { error } = await db
     .from('employment_settings')
     .upsert({ workspace_id: workspaceId, other_withholding_available: amount }, { onConflict: 'workspace_id' });
   if (error) throw error;
