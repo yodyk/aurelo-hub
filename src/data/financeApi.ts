@@ -100,9 +100,7 @@ export async function syncIncomeSources(workspaceId: string, clients: any[], pro
   }
   const missing = (existingRows || []).filter((row: any) => ['invoice', 'project', 'retainer'].includes(row.source_type) && !sourceKeys.has(row.source_key));
   for (const row of missing) {
-    // Untouched projected retainer rows from a previous cycle shape carry no user data — remove instead of parking them in review.
-    const untouched = row.source_type === 'retainer' && row.override_amount == null && !row.notes && row.included !== false;
-    if (untouched) { await db.from('income_entries').delete().eq('id', row.id).eq('workspace_id', workspaceId); continue; }
+    // Preserve source history when a project, retainer cycle, or invoice disappears or changes shape.
     const { error } = await db.from('income_entries').update({ source_state: 'missing', status: 'needs_review', suppressed_by: null }).eq('id', row.id).eq('workspace_id', workspaceId);
     if (error) throw error;
   }

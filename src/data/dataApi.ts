@@ -212,6 +212,7 @@ export async function addClient(workspaceId: string, client: any) {
   if (error) throw new Error(`Failed to add client: ${error.message}`);
   const result = snakeToCamel(data);
   dispatchWebhookEvent(workspaceId, 'client.created', { id: data.id, name: data.name });
+  scheduleIncomeSync(workspaceId);
   return result;
 }
 
@@ -222,6 +223,7 @@ export async function updateClient(workspaceId: string, clientId: string, update
   const { error } = await supabase.from('clients').update(row).eq('id', clientId).eq('workspace_id', workspaceId);
   if (error) throw new Error(`Failed to update client: ${error.message}`);
   dispatchWebhookEvent(workspaceId, 'client.updated', { id: clientId, updates });
+  scheduleIncomeSync(workspaceId);
 }
 
 export async function swapClientOrder(workspaceId: string, clientIdA: string, clientIdB: string) {
@@ -393,6 +395,7 @@ export async function addProject(workspaceId: string, clientId: string, project:
   const { data, error } = await supabase.from('projects').insert(row).select().single();
   if (error) throw new Error(`Failed to add project: ${error.message}`);
   dispatchWebhookEvent(workspaceId, 'project.created', { id: data.id, name: data.name, client_id: clientId });
+  scheduleIncomeSync(workspaceId);
   return snakeToCamel(data);
 }
 
@@ -408,6 +411,7 @@ export async function updateProject(workspaceId: string, _clientId: string, proj
   if (updates.status && prevStatus && updates.status !== prevStatus) {
     dispatchWebhookEvent(workspaceId, 'project.status_changed', { id: projectId, from: prevStatus, to: updates.status });
   }
+  scheduleIncomeSync(workspaceId);
 }
 
 export async function loadAllProjects(workspaceId: string) {
@@ -420,6 +424,7 @@ export async function deleteProject(workspaceId: string, projectId: string) {
   const { error } = await supabase.from('projects').delete().eq('id', projectId).eq('workspace_id', workspaceId);
   if (error) throw new Error(`Failed to delete project: ${error.message}`);
   dispatchWebhookEvent(workspaceId, 'project.deleted', { id: projectId });
+  scheduleIncomeSync(workspaceId);
 }
 
 // ── Files (delegated to storageApi) ─────────────────────────────────

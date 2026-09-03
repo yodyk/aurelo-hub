@@ -167,6 +167,7 @@ export async function createInvoice(invoice: Partial<Invoice>): Promise<Invoice>
   const saved = rowToInvoice(data);
   NotificationEvents.invoiceCreated(wsId, saved.number, saved.clientName || '', saved.total, { invoiceId: saved.id, clientId: saved.clientId });
   dispatchWebhookEvent(wsId, 'invoice.created', { id: saved.id, number: saved.number, client_id: saved.clientId, total: saved.total });
+  scheduleIncomeSync(wsId);
   return saved;
 }
 
@@ -182,7 +183,10 @@ export async function updateInvoice(invoiceId: string, updates: Partial<Invoice>
   if (error) throw new Error(error.message);
   const result = rowToInvoice(data);
   const wsId = await getWorkspaceId();
-  if (wsId) dispatchWebhookEvent(wsId, 'invoice.updated', { id: invoiceId, updates });
+  if (wsId) {
+    dispatchWebhookEvent(wsId, 'invoice.updated', { id: invoiceId, updates });
+    scheduleIncomeSync(wsId);
+  }
   return result;
 }
 
@@ -192,6 +196,8 @@ export async function deleteInvoice(invoiceId: string): Promise<void> {
     .delete()
     .eq('id', invoiceId);
   if (error) throw new Error(error.message);
+  const wsId = await getWorkspaceId();
+  if (wsId) scheduleIncomeSync(wsId);
 }
 
 export async function sendInvoice(invoiceId: string, recipientEmail?: string): Promise<Invoice> {
