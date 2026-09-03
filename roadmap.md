@@ -12,3 +12,8 @@
 - [x] Add context-only employment subtotals, offset breakdown, disclaimers, rate helper, and permission-safe CSV export
 - [x] Add regression fixtures for permissions, YTD overlap, offsets, semimonthly/biweekly schedules, history, and reserve floor
 - [x] Run typecheck, build, fixtures, security linter, and validate remaining scope
+
+## Income & Expenses UI restructure
+- [x] Overview-first layout with Income / Expenses / W-2 sub-views
+- [x] Column chooser + non-wrapping headers + row tone rails on finance tables
+- [x] Summary block: Income + Expenses cards with a pie chart as the third card
