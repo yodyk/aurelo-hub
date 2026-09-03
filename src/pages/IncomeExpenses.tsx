@@ -52,6 +52,7 @@ export default function IncomeExpenses() {
   const [incomeStatus, setIncomeStatus] = useState(params.get('status') || 'all');
   const [expenseInclusion, setExpenseInclusion] = useState(params.get('inclusion') || 'all');
   const [taxOpen, setTaxOpen] = useState(false);
+  const [taxWarningDismissed, setTaxWarningDismissed] = useState(() => localStorage.getItem('aurelo_tax_warning_dismissed') === 'true');
   const [addOpen, setAddOpen] = useState<'income' | 'expense' | null>(null);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [sort] = useState<{ key: string; asc: boolean }>({ key: 'date', asc: false });
