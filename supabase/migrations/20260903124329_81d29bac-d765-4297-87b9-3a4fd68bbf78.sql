@@ -1,0 +1,2 @@
+ALTER TABLE public.employment_paychecks DROP CONSTRAINT IF EXISTS employment_paychecks_employment_source_id_fkey;
+ALTER TABLE public.employment_paychecks ADD CONSTRAINT employment_paychecks_employment_source_id_fkey FOREIGN KEY (employment_source_id) REFERENCES public.employment_sources(id) ON DELETE RESTRICT;

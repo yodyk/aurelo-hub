@@ -690,6 +690,262 @@ export type Database = {
           },
         ]
       }
+      employment_paychecks: {
+        Row: {
+          created_at: string
+          currency: string
+          designated_additional_federal: number
+          designated_additional_state: number
+          employment_source_id: string
+          federal_withheld: number | null
+          generated: boolean
+          gross_amount: number | null
+          id: string
+          kind: string
+          notes: string | null
+          occurrence_key: string
+          pay_date: string
+          state_withheld: number | null
+          status: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          designated_additional_federal?: number
+          designated_additional_state?: number
+          employment_source_id: string
+          federal_withheld?: number | null
+          generated?: boolean
+          gross_amount?: number | null
+          id?: string
+          kind?: string
+          notes?: string | null
+          occurrence_key: string
+          pay_date: string
+          state_withheld?: number | null
+          status?: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          designated_additional_federal?: number
+          designated_additional_state?: number
+          employment_source_id?: string
+          federal_withheld?: number | null
+          generated?: boolean
+          gross_amount?: number | null
+          id?: string
+          kind?: string
+          notes?: string | null
+          occurrence_key?: string
+          pay_date?: string
+          state_withheld?: number | null
+          status?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employment_paychecks_employment_source_id_fkey"
+            columns: ["employment_source_id"]
+            isOneToOne: false
+            referencedRelation: "employment_sources"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employment_paychecks_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employment_paychecks_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces_billing"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employment_paychecks_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employment_settings: {
+        Row: {
+          created_at: string
+          notes: string | null
+          other_withholding_available: number
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          notes?: string | null
+          other_withholding_available?: number
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          notes?: string | null
+          other_withholding_available?: number
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employment_settings_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: true
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employment_settings_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: true
+            referencedRelation: "workspaces_billing"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employment_settings_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: true
+            referencedRelation: "workspaces_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employment_sources: {
+        Row: {
+          active: boolean
+          additional_designated_for_other_income: boolean
+          additional_federal_per_paycheck: number
+          additional_state_per_paycheck: number
+          anchor_payday: string | null
+          annual_salary: number | null
+          compensation_method: string
+          created_at: string
+          currency: string
+          employer_name: string
+          end_date: string | null
+          gross_per_paycheck: number | null
+          id: string
+          manual_remaining_designated: number | null
+          monthly_day: number | null
+          notes: string | null
+          pay_frequency: string
+          projection_mode: string
+          semimonthly_day_1: number | null
+          semimonthly_day_2: number | null
+          start_date: string | null
+          tax_year: number
+          updated_at: string
+          workspace_id: string
+          ytd_designated_federal: number | null
+          ytd_designated_state: number | null
+          ytd_federal_withheld: number | null
+          ytd_gross: number | null
+          ytd_state_withheld: number | null
+          ytd_through_date: string | null
+        }
+        Insert: {
+          active?: boolean
+          additional_designated_for_other_income?: boolean
+          additional_federal_per_paycheck?: number
+          additional_state_per_paycheck?: number
+          anchor_payday?: string | null
+          annual_salary?: number | null
+          compensation_method?: string
+          created_at?: string
+          currency?: string
+          employer_name: string
+          end_date?: string | null
+          gross_per_paycheck?: number | null
+          id?: string
+          manual_remaining_designated?: number | null
+          monthly_day?: number | null
+          notes?: string | null
+          pay_frequency?: string
+          projection_mode?: string
+          semimonthly_day_1?: number | null
+          semimonthly_day_2?: number | null
+          start_date?: string | null
+          tax_year?: number
+          updated_at?: string
+          workspace_id: string
+          ytd_designated_federal?: number | null
+          ytd_designated_state?: number | null
+          ytd_federal_withheld?: number | null
+          ytd_gross?: number | null
+          ytd_state_withheld?: number | null
+          ytd_through_date?: string | null
+        }
+        Update: {
+          active?: boolean
+          additional_designated_for_other_income?: boolean
+          additional_federal_per_paycheck?: number
+          additional_state_per_paycheck?: number
+          anchor_payday?: string | null
+          annual_salary?: number | null
+          compensation_method?: string
+          created_at?: string
+          currency?: string
+          employer_name?: string
+          end_date?: string | null
+          gross_per_paycheck?: number | null
+          id?: string
+          manual_remaining_designated?: number | null
+          monthly_day?: number | null
+          notes?: string | null
+          pay_frequency?: string
+          projection_mode?: string
+          semimonthly_day_1?: number | null
+          semimonthly_day_2?: number | null
+          start_date?: string | null
+          tax_year?: number
+          updated_at?: string
+          workspace_id?: string
+          ytd_designated_federal?: number | null
+          ytd_designated_state?: number | null
+          ytd_federal_withheld?: number | null
+          ytd_gross?: number | null
+          ytd_state_withheld?: number | null
+          ytd_through_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employment_sources_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employment_sources_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces_billing"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employment_sources_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       expense_categories: {
         Row: {
           created_at: string
@@ -2265,6 +2521,79 @@ export type Database = {
           workspace_id?: string
         }
         Relationships: []
+      }
+      tax_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          jurisdiction: string
+          notes: string | null
+          paid_date: string | null
+          period_label: string | null
+          planned_date: string | null
+          reference: string | null
+          status: string
+          tax_year: number
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          jurisdiction?: string
+          notes?: string | null
+          paid_date?: string | null
+          period_label?: string | null
+          planned_date?: string | null
+          reference?: string | null
+          status?: string
+          tax_year: number
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          jurisdiction?: string
+          notes?: string | null
+          paid_date?: string | null
+          period_label?: string | null
+          planned_date?: string | null
+          reference?: string | null
+          status?: string
+          tax_year?: number
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tax_payments_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tax_payments_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces_billing"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tax_payments_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces_safe"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_consents: {
         Row: {

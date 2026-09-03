@@ -12,13 +12,16 @@ import { EmptyState } from '@/components/primitives/EmptyState';
 import { NumericCell } from '@/components/primitives/NumericCell';
 import { FinanceTableShell } from '@/components/finance/FinanceTable';
 import { TaxSettingsModal } from '@/components/finance/TaxSettingsModal';
+import { EmploymentContextPanel } from '@/components/finance/EmploymentContextPanel';
 import { useData } from '@/data/DataContext';
 import { useRoleAccess } from '@/data/useRoleAccess';
 import { formatDate, formatMoney, formatPercent } from '@/lib/format';
 import { toast } from '@/lib/toast';
 import * as invoiceApi from '@/data/invoiceApi';
 import * as financeApi from '@/data/financeApi';
+import * as employmentApi from '@/data/employmentApi';
 import { calculateTotals, effectiveIncomeCents, instanceBusinessUseCents, instanceTotalCents, classifyIncome, classifyInstance, fromCents, incomeTaxReserveCents, type Expense, type ExpenseInstance, type FinanceSettings, type IncomeEntry, type Period } from '@/lib/finance';
+import type { EmploymentData } from '@/data/employmentApi';
 
 const DISCLAIMER = 'This is a planning estimate based on the rate and records you provide. It is not tax advice or a tax return calculation.';
 const today = () => new Date().toISOString().slice(0, 10);
@@ -35,7 +38,7 @@ function tone(status: string) { return status === 'paid' || status === 'confirme
 
 export default function IncomeExpenses() {
   const { workspaceId, clients, loadAllProjects, financialDefaults } = useData();
-  const { canViewFinancials } = useRoleAccess();
+  const { canViewFinancials, isWorkspaceOwner } = useRoleAccess();
   const [params, setParams] = useSearchParams();
   const [tab, setTab] = useState<'income' | 'expenses'>((params.get('tab') as 'income' | 'expenses') || 'income');
   const [periodKey, setPeriodKey] = useState(params.get('period') || 'year');
@@ -45,6 +48,7 @@ export default function IncomeExpenses() {
   const [income, setIncome] = useState<IncomeEntry[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [employmentData, setEmploymentData] = useState<EmploymentData>({ sources: [], paychecks: [], payments: [], otherWithholdingAvailable: 0 });
   const [instances, setInstances] = useState<ExpenseInstance[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
@@ -72,8 +76,15 @@ export default function IncomeExpenses() {
       await financeApi.generateExpenseInstances(workspaceId, expenseData.expenses, period.start, period.end);
       const latestExpenses = await financeApi.loadExpenseData(workspaceId);
       setSettings(loadedSettings); setIncome(synced); setCategories(latestExpenses.categories); setExpenses(latestExpenses.expenses); setInstances(latestExpenses.instances);
+      if (isWorkspaceOwner) {
+        const currentEmployment = await employmentApi.loadEmploymentData(workspaceId);
+        await employmentApi.generatePaychecks(workspaceId, currentEmployment.sources, `${loadedSettings.taxYear}-01-01`, `${loadedSettings.taxYear}-12-31`);
+        setEmploymentData(await employmentApi.loadEmploymentData(workspaceId));
+      } else {
+        setEmploymentData({ sources: [], paychecks: [], payments: [], otherWithholdingAvailable: 0 });
+      }
     } catch (e: any) { setError(e?.message || 'Unable to sync finance records.'); } finally { setLoading(false); setSyncing(false); }
-  }, [workspaceId, clients, loadAllProjects, period.start, period.end, financialDefaults.currency]);
+  }, [workspaceId, clients, loadAllProjects, period.start, period.end, financialDefaults.currency, isWorkspaceOwner]);
 
   useEffect(() => { if (workspaceId) void refresh(true); }, [workspaceId]);
   useEffect(() => {
@@ -110,6 +121,7 @@ export default function IncomeExpenses() {
       <div className="flex flex-wrap items-center gap-2 border-b border-[var(--hairline)] pb-4"><select aria-label="Period" value={periodKey} onChange={(e) => setPeriodValue(e.target.value)} className="h-9 rounded-md border border-[var(--hairline)] bg-[var(--surface-sunken)] px-3 text-sm"><option value="year">This Year</option><option value="q1">Q1</option><option value="q2">Q2</option><option value="q3">Q3</option><option value="q4">Q4</option><option value="custom">Custom Range</option></select>{periodKey === 'custom' && <><DatePicker value={period.start} onChange={(v) => setPeriod({ ...period, start: v || period.start })} /><DatePicker value={period.end} onChange={(v) => setPeriod({ ...period, end: v || period.end })} /></>}<div className="flex h-9 overflow-hidden rounded-md border border-[var(--hairline)]"><button className={`px-3 text-xs ${mode === 'actual' ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`} onClick={() => setMode('actual')}>Actual</button><button className={`border-l border-[var(--hairline)] px-3 text-xs ${mode === 'planned' ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`} onClick={() => setMode('planned')}>Actual + Planned</button></div><span className="text-xs text-muted-foreground">Currency: <strong className="text-foreground">{settings.currency}</strong></span><span className="ml-auto text-xs text-muted-foreground">{syncing ? 'Syncing…' : 'Synced to workspace records'}</span><Button variant="outline" size="sm" onClick={() => setTaxOpen(true)}><Settings2 /> Tax Estimate Settings</Button></div>
       <div className="border-y border-[var(--hairline)] py-4"><div className="mb-3 text-xs text-muted-foreground">Showing <strong className="text-foreground">{period.label}</strong> ({period.start} – {period.end}) · <strong className="text-foreground">{includePlannedTotals ? 'Actual + Planned' : 'Actual only'}</strong> · recognized by {settings.method === 'cash' ? 'payment date (cash)' : 'incurred / earned date (accrual)'}</div><div className="grid grid-cols-2 gap-x-5 gap-y-4 md:grid-cols-5">{[[includePlannedTotals ? 'Income (incl. planned)' : 'Recognized Income', fromCents(totals.incomeCents)], [includePlannedTotals ? 'Business-Use Expenses (incl. planned)' : 'Business-Use Expenses', fromCents(totals.businessUseExpensesCents)], ['Estimated Profit', fromCents(totals.incomeCents - totals.businessUseExpensesCents)], ['Estimated Tax Reserve', settings.taxRatePct == null ? null : fromCents(totals.taxReserveCents)], ['Available After Reserve', fromCents(totals.availableCents)]].map(([label, value]) => <div key={String(label)}><div className="type-eyebrow">{label}</div><div className={`mt-1 text-lg font-semibold tabular-nums ${label === 'Estimated Tax Reserve' ? 'text-[color:var(--warning)]' : ''}`}>{value == null ? <button className="text-xs font-medium text-primary hover:underline" onClick={() => setTaxOpen(true)}>Set tax rate</button> : `~${formatMoney(Number(value), { currency: settings.currency })}`}</div></div>)}</div><IncomeExpenseComparison incomeCents={totals.incomeCents} expenseCents={totals.grossExpensesCents} currency={settings.currency} /></div>
       {!taxWarningDismissed && <div className="flex items-start gap-2 border-l-2 border-[color:var(--warning)] bg-warning/10 px-3 py-2 text-xs text-muted-foreground"><CircleHelp className="mt-0.5 h-3.5 w-3.5 shrink-0" /><span className="flex-1">{DISCLAIMER}{currencyMismatchCount > 0 && <strong className="ml-2 font-medium text-[color:var(--warning)]">{currencyMismatchCount} record{currencyMismatchCount === 1 ? '' : 's'} excluded: Currency Mismatch.</strong>}</span><Button variant="ghost" size="sm" className="-my-1 h-7 text-xs" onClick={() => { setTaxWarningDismissed(true); localStorage.setItem('aurelo_tax_warning_dismissed', 'true'); }}>Mark as understood</Button></div>}
+      {isWorkspaceOwner && <EmploymentContextPanel workspaceId={workspaceId} currency={settings.currency} taxYear={settings.taxYear} includePlanned={mode === 'planned'} reserveBeforeOffsetsCents={totals.taxReserveCents} data={employmentData} onRefresh={async () => { await refresh(); }} />}
       <div className="flex items-center gap-1 border-b border-[var(--hairline)]"><button className={`border-b-2 px-3 py-3 text-sm font-medium ${tab === 'income' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground'}`} onClick={() => setTab('income')}>Income <span className="ml-1 text-xs">{incomeRows.length}</span></button><button className={`border-b-2 px-3 py-3 text-sm font-medium ${tab === 'expenses' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground'}`} onClick={() => setTab('expenses')}>Expenses <span className="ml-1 text-xs">{expenseRows.length}</span></button><div className="ml-auto"><Button size="sm" onClick={() => setAddOpen(tab === 'income' ? 'income' : 'expense')}><Plus /> Add {tab === 'income' ? 'Income' : 'Expense'}</Button></div></div>
       {error && <div className="flex items-center justify-between border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive"><span>{error}</span><Button variant="outline" size="sm" onClick={() => void refresh()}>Try again</Button></div>}
       {loading ? <div className="py-16 text-center text-sm text-muted-foreground">Loading finance records…</div> : tab === 'income' ? <IncomeTable rows={incomeRows} settings={settings} currency={settings.currency} filtered={hasFilters} search={search} onSearch={setSearch} onClear={() => { setSearch(''); setIncomeStatus('all'); }} onEdit={setEditIncome} onUpdate={async (id, patch) => { if (!workspaceId) return; const saved = await financeApi.updateIncomeEntry(workspaceId, id, patch); setIncome((prev) => prev.map((e) => e.id === id ? saved : e)); }} onStatus={setIncomeStatus} status={incomeStatus} total={<><strong>{hasFilters ? 'Filtered Total' : 'Total'}</strong> · {incomeRows.length} visible · {formatMoney(fromCents(visibleIncomeCents), { currency: settings.currency })} effective{mode === 'planned' && ` · ${formatMoney(fromCents(visibleProjectedCents), { currency: settings.currency })} planned`} · {settings.taxRatePct == null ? 'Tax reserve needs setup' : `${formatMoney(fromCents(visibleReserve), { currency: settings.currency })} gross reserve`}</>} /> : <ExpenseTable rows={expenseRows} settings={settings} categories={categories} expanded={expanded} setExpanded={setExpanded} currency={settings.currency} filtered={hasFilters} search={search} onSearch={setSearch} onClear={() => { setSearch(''); setExpenseInclusion('all'); }} onInclusion={setExpenseInclusion} inclusion={expenseInclusion} onEdit={setEditExpense} onInstanceUpdate={async (id, patch) => { if (!workspaceId) return; await financeApi.updateExpenseInstance(workspaceId, id, patch); await refresh(); }} onApplyFuture={async (expense: Expense, instance: ExpenseInstance, amount: number) => { if (!workspaceId) return; await financeApi.applyAmountFromDate(workspaceId, expense.id, instance.incurredDate, amount); await refresh(); toast.success('Amount applied from this occurrence forward'); }} onExpenseUpdate={async (id, patch) => { if (!workspaceId) return; await financeApi.updateExpense(workspaceId, id, patch); await refresh(); }} onDelete={async (id) => { if (!workspaceId || !window.confirm('Delete this expense and preserve no future instances?')) return; await financeApi.removeExpense(workspaceId, id); await refresh(); }} total={<><strong>{hasFilters ? 'Filtered Total' : 'Total'}</strong> · {expenseRows.length} expenses · {visibleExpenseInstances.length} visible instances · {formatMoney(fromCents(visibleGrossExpense), { currency: settings.currency })} gross · {formatMoney(fromCents(visibleBusinessUse), { currency: settings.currency })} business use</>} />}
