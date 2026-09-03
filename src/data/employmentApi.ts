@@ -177,7 +177,7 @@ export async function deactivateEmploymentSource(workspaceId: string, id: string
     .eq('workspace_id', workspaceId)
     .eq('id', id);
   if (error) throw error;
-  await supabase.from('employment_paychecks').delete().eq('workspace_id', workspaceId).eq('employment_source_id', id).eq('status', 'projected').eq('generated', true);
+  await db.from('employment_paychecks').delete().eq('workspace_id', workspaceId).eq('employment_source_id', id).eq('status', 'projected').eq('generated', true);
 }
 
 export async function deleteEmploymentSource(workspaceId: string, id: string) {
@@ -242,7 +242,7 @@ export async function generatePaychecks(workspaceId: string, sources: Employment
   }
 
   if (staleProjected.length) {
-    const { error } = await supabase.from('employment_paychecks').delete().in('id', staleProjected);
+    const { error } = await db.from('employment_paychecks').delete().in('id', staleProjected);
     if (error) throw error;
   }
   if (inserts.length) {
@@ -270,7 +270,7 @@ export async function upsertManualPaycheck(workspaceId: string, input: Partial<P
     generated: false,
     notes: input.notes || null,
   };
-  const { error } = await supabase.from('employment_paychecks').insert(payload as any);
+  const { error } = await db.from('employment_paychecks').insert(payload as any);
   if (error) throw error;
 }
 
@@ -286,12 +286,12 @@ export async function updatePaycheck(workspaceId: string, id: string, patch: Par
   if (patch.payDate !== undefined) payload.pay_date = patch.payDate;
   // Overriding an individual projected paycheck detaches it from regeneration.
   payload.generated = false;
-  const { error } = await supabase.from('employment_paychecks').update(payload).eq('workspace_id', workspaceId).eq('id', id);
+  const { error } = await db.from('employment_paychecks').update(payload).eq('workspace_id', workspaceId).eq('id', id);
   if (error) throw error;
 }
 
 export async function deletePaycheck(workspaceId: string, id: string) {
-  const { error } = await supabase.from('employment_paychecks').delete().eq('workspace_id', workspaceId).eq('id', id);
+  const { error } = await db.from('employment_paychecks').delete().eq('workspace_id', workspaceId).eq('id', id);
   if (error) throw error;
 }
 
@@ -311,17 +311,17 @@ const paymentPayload = (input: Partial<TaxPayment>) => ({
 });
 
 export async function addTaxPayment(workspaceId: string, input: Partial<TaxPayment>) {
-  const { error } = await supabase.from('tax_payments').insert({ workspace_id: workspaceId, ...paymentPayload(input) } as any);
+  const { error } = await db.from('tax_payments').insert({ workspace_id: workspaceId, ...paymentPayload(input) } as any);
   if (error) throw error;
 }
 
 export async function updateTaxPayment(workspaceId: string, id: string, input: Partial<TaxPayment>) {
-  const { error } = await supabase.from('tax_payments').update(paymentPayload(input) as any).eq('workspace_id', workspaceId).eq('id', id);
+  const { error } = await db.from('tax_payments').update(paymentPayload(input) as any).eq('workspace_id', workspaceId).eq('id', id);
   if (error) throw error;
 }
 
 export async function deleteTaxPayment(workspaceId: string, id: string) {
-  const { error } = await supabase.from('tax_payments').delete().eq('workspace_id', workspaceId).eq('id', id);
+  const { error } = await db.from('tax_payments').delete().eq('workspace_id', workspaceId).eq('id', id);
   if (error) throw error;
 }
 
