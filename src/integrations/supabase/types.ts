@@ -690,6 +690,383 @@ export type Database = {
           },
         ]
       }
+      expense_categories: {
+        Row: {
+          created_at: string
+          id: string
+          is_seed: boolean
+          name: string
+          sort_order: number
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_seed?: boolean
+          name: string
+          sort_order?: number
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_seed?: boolean
+          name?: string
+          sort_order?: number
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expense_categories_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expense_categories_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces_billing"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expense_categories_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expense_instance_additions: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          instance_id: string
+          label: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          id?: string
+          instance_id: string
+          label?: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          instance_id?: string
+          label?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expense_instance_additions_instance_id_fkey"
+            columns: ["instance_id"]
+            isOneToOne: false
+            referencedRelation: "expense_instances"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expense_instance_additions_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expense_instance_additions_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces_billing"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expense_instance_additions_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expense_instances: {
+        Row: {
+          base_amount: number | null
+          business_use_pct: number | null
+          created_at: string
+          currency: string
+          expense_id: string
+          generated: boolean
+          id: string
+          incurred_date: string
+          notes: string | null
+          occurrence_key: string
+          paid_date: string | null
+          status: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          base_amount?: number | null
+          business_use_pct?: number | null
+          created_at?: string
+          currency?: string
+          expense_id: string
+          generated?: boolean
+          id?: string
+          incurred_date: string
+          notes?: string | null
+          occurrence_key: string
+          paid_date?: string | null
+          status?: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          base_amount?: number | null
+          business_use_pct?: number | null
+          created_at?: string
+          currency?: string
+          expense_id?: string
+          generated?: boolean
+          id?: string
+          incurred_date?: string
+          notes?: string | null
+          occurrence_key?: string
+          paid_date?: string | null
+          status?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expense_instances_expense_id_fkey"
+            columns: ["expense_id"]
+            isOneToOne: false
+            referencedRelation: "expenses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expense_instances_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expense_instances_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces_billing"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expense_instances_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expenses: {
+        Row: {
+          active: boolean
+          amount_behavior: string
+          base_amount: number | null
+          business_use_pct: number
+          category_id: string | null
+          created_at: string
+          currency: string
+          end_date: string | null
+          id: string
+          inclusion: string
+          interval_days: number | null
+          name: string
+          notes: string | null
+          recurrence: string
+          start_date: string | null
+          updated_at: string
+          vendor: string | null
+          workspace_id: string
+        }
+        Insert: {
+          active?: boolean
+          amount_behavior?: string
+          base_amount?: number | null
+          business_use_pct?: number
+          category_id?: string | null
+          created_at?: string
+          currency?: string
+          end_date?: string | null
+          id?: string
+          inclusion?: string
+          interval_days?: number | null
+          name: string
+          notes?: string | null
+          recurrence?: string
+          start_date?: string | null
+          updated_at?: string
+          vendor?: string | null
+          workspace_id: string
+        }
+        Update: {
+          active?: boolean
+          amount_behavior?: string
+          base_amount?: number | null
+          business_use_pct?: number
+          category_id?: string | null
+          created_at?: string
+          currency?: string
+          end_date?: string | null
+          id?: string
+          inclusion?: string
+          interval_days?: number | null
+          name?: string
+          notes?: string | null
+          recurrence?: string
+          start_date?: string | null
+          updated_at?: string
+          vendor?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expenses_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "expense_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces_billing"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      income_entries: {
+        Row: {
+          client_id: string | null
+          created_at: string
+          currency: string
+          description: string | null
+          earned_date: string | null
+          id: string
+          included: boolean
+          metadata: Json
+          notes: string | null
+          override_amount: number | null
+          paid_date: string | null
+          payer_name: string | null
+          source_amount: number
+          source_id: string | null
+          source_key: string
+          source_state: string
+          source_type: string
+          status: string
+          suppressed_by: string | null
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string
+          currency?: string
+          description?: string | null
+          earned_date?: string | null
+          id?: string
+          included?: boolean
+          metadata?: Json
+          notes?: string | null
+          override_amount?: number | null
+          paid_date?: string | null
+          payer_name?: string | null
+          source_amount?: number
+          source_id?: string | null
+          source_key: string
+          source_state?: string
+          source_type?: string
+          status?: string
+          suppressed_by?: string | null
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string
+          currency?: string
+          description?: string | null
+          earned_date?: string | null
+          id?: string
+          included?: boolean
+          metadata?: Json
+          notes?: string | null
+          override_amount?: number | null
+          paid_date?: string | null
+          payer_name?: string | null
+          source_amount?: number
+          source_id?: string | null
+          source_key?: string
+          source_state?: string
+          source_type?: string
+          status?: string
+          suppressed_by?: string | null
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "income_entries_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "income_entries_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces_billing"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "income_entries_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoice_sequences: {
         Row: {
           next_number: number
