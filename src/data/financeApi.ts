@@ -39,6 +39,22 @@ export async function addManualIncome(workspaceId: string, input: any): Promise<
   return mapIncome(data);
 }
 
+/** Full edit of a manually-created income entry. Synced sources use updateIncomeEntry instead. */
+export async function updateManualIncome(workspaceId: string, id: string, input: any): Promise<IncomeEntry> {
+  const row: any = {};
+  if (input.payerName !== undefined) row.payer_name = input.payerName || null;
+  if (input.description !== undefined) row.description = input.description || null;
+  if (input.amount !== undefined) row.source_amount = Number(input.amount) || 0;
+  if (input.currency !== undefined) row.currency = input.currency;
+  if (input.earnedDate !== undefined) row.earned_date = input.earnedDate || null;
+  if (input.paidDate !== undefined) row.paid_date = input.paidDate || null;
+  if (input.notes !== undefined) row.notes = input.notes || null;
+  if (input.included !== undefined) row.included = input.included;
+  const { data, error } = await db.from('income_entries').update(row).eq('id', id).eq('workspace_id', workspaceId).eq('source_type', 'manual').select().single();
+  if (error) throw error;
+  return mapIncome(data);
+}
+
 /** Sync source-owned fields only. User override, notes, and inclusion are never sent. */
 export async function syncIncomeSources(workspaceId: string, clients: any[], projects: any[], invoices: any[], currency: string): Promise<IncomeEntry[]> {
   const { data: existingRows, error: existingError } = await db.from('income_entries').select('*').eq('workspace_id', workspaceId);
