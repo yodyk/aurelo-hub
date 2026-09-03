@@ -15,3 +15,5 @@
 - [x] Build + typecheck + tests
 
 Notes from user corrections: cash/accrual uses dual dates (earned + paid); tax settings live in `workspace_settings` section `finance`; no "Partially Paid" state; currency mismatch entries excluded from totals with a visible review count.
+- [ ] Reduce oversized ChevronRight icon in the income/expenses table to match surrounding content
+- [ ] Make expense creation idempotent across retries and double-submits
