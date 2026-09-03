@@ -25,8 +25,8 @@ export function runFinanceFixtures(): FinanceFixtureResult[] {
   const subscriptionDates = occurrenceDates(subscription, '2026-01-01', '2026-12-31');
   const pastSubscription: ExpenseInstance = { ...instance('2026-08-15', 29), expenseId: 'subscription', occurrenceKey: 'subscription:2026-08-15' };
   const futureSubscription: ExpenseInstance = { ...pastSubscription, id: '2026-09-15', incurredDate: '2026-09-15', paidDate: null, status: 'scheduled', occurrenceKey: 'subscription:2026-09-15' };
-  const lastSubscription: ExpenseInstance = { ...pastSubscription, id: '2026-12-15', incurredDate: '2026-12-15', occurrenceKey: 'subscription:2026-12-15' };
-  const outsideSubscription: ExpenseInstance = { ...pastSubscription, id: '2027-01-15', incurredDate: '2027-01-15', occurrenceKey: 'subscription:2027-01-15' };
+  const lastSubscription: ExpenseInstance = { ...pastSubscription, id: '2026-12-15', incurredDate: '2026-12-15', paidDate: null, status: 'scheduled', occurrenceKey: 'subscription:2026-12-15' };
+  const outsideSubscription: ExpenseInstance = { ...pastSubscription, id: '2027-01-15', incurredDate: '2027-01-15', paidDate: null, status: 'scheduled', occurrenceKey: 'subscription:2027-01-15' };
   const actualPeriod: Period = { start: '2026-01-01', end: '2026-08-31', label: 'Past months' };
   const plannedPeriod: Period = { start: '2026-09-01', end: '2026-12-31', label: 'Future months' };
   const actualOpts = { method: 'accrual' as const, period: actualPeriod, currency: 'USD', includePlanned: false };
