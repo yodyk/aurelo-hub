@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router';
+import { motion } from 'motion/react';
 import { ArrowDownToLine, ChevronDown, ChevronRight, CircleHelp, Filter, Plus, RefreshCw, Settings2, Trash2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -104,7 +105,7 @@ export default function IncomeExpenses() {
     <PageHeader title="Income & Expenses" subtitle="A planning view of money in, business-use spend, and estimated reserve." actions={<div className="flex items-center gap-2"><Button variant="outline" size="sm" onClick={() => void refresh()} disabled={syncing}><RefreshCw className={syncing ? 'animate-spin' : ''} /> {syncing ? 'Syncing' : 'Sync'}</Button><Button variant="outline" size="sm" onClick={() => exportCsv(tab === 'income' ? incomeRows.map((x) => x.entry) : expenseRows.map((x) => x.expense), tab)}><ArrowDownToLine /> Export</Button></div>} />
     <main className="space-y-6 px-4 py-5 lg:px-6">
       <div className="flex flex-wrap items-center gap-2 border-b border-[var(--hairline)] pb-4"><select aria-label="Period" value={periodKey} onChange={(e) => setPeriodValue(e.target.value)} className="h-9 rounded-md border border-[var(--hairline)] bg-[var(--surface-sunken)] px-3 text-sm"><option value="year">This Year</option><option value="q1">Q1</option><option value="q2">Q2</option><option value="q3">Q3</option><option value="q4">Q4</option><option value="custom">Custom Range</option></select>{periodKey === 'custom' && <><DatePicker value={period.start} onChange={(v) => setPeriod({ ...period, start: v || period.start })} /><DatePicker value={period.end} onChange={(v) => setPeriod({ ...period, end: v || period.end })} /></>}<div className="flex h-9 overflow-hidden rounded-md border border-[var(--hairline)]"><button className={`px-3 text-xs ${mode === 'actual' ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`} onClick={() => setMode('actual')}>Actual</button><button className={`border-l border-[var(--hairline)] px-3 text-xs ${mode === 'planned' ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`} onClick={() => setMode('planned')}>Actual + Planned</button></div><span className="text-xs text-muted-foreground">Currency: <strong className="text-foreground">{settings.currency}</strong></span><span className="ml-auto text-xs text-muted-foreground">{syncing ? 'Syncing…' : 'Synced to workspace records'}</span><Button variant="outline" size="sm" onClick={() => setTaxOpen(true)}><Settings2 /> Tax Estimate Settings</Button></div>
-      <div className="border-y border-[var(--hairline)] py-4"><div className="grid grid-cols-2 gap-x-5 gap-y-4 md:grid-cols-5">{[['Recognized Income', fromCents(totals.incomeCents)], ['Business-Use Expenses', fromCents(totals.businessUseExpensesCents)], ['Estimated Profit', fromCents(totals.incomeCents - totals.businessUseExpensesCents)], ['Estimated Tax Reserve', settings.taxRatePct == null ? null : fromCents(totals.taxReserveCents)], ['Available After Reserve', fromCents(totals.availableCents)]].map(([label, value]) => <div key={String(label)}><div className="type-eyebrow">{label}</div><div className={`mt-1 text-lg font-semibold tabular-nums ${label === 'Estimated Tax Reserve' ? 'text-[color:var(--warning)]' : ''}`}>{value == null ? <button className="text-xs font-medium text-primary hover:underline" onClick={() => setTaxOpen(true)}>Set tax rate</button> : `~${formatMoney(Number(value), { currency: settings.currency })}`}</div></div>)}</div><div className="mt-4 flex items-center gap-3 text-xs text-muted-foreground"><div className="h-2 flex-1 bg-[var(--surface-sunken)]"><div className="h-full bg-primary" style={{ width: `${Math.min(100, totals.incomeCents ? Math.max(0, (totals.incomeCents / Math.max(totals.incomeCents, totals.grossExpensesCents)) * 100) : 0)}%` }} /></div><span>Income</span><div className="h-2 w-24 bg-[var(--surface-sunken)]"><div className="h-full bg-[color:var(--warning)]" style={{ width: `${Math.min(100, totals.grossExpensesCents ? (totals.grossExpensesCents / Math.max(totals.incomeCents, totals.grossExpensesCents)) * 100 : 0)}%` }} /></div><span>Gross expenses</span></div></div>
+      <div className="border-y border-[var(--hairline)] py-4"><div className="grid grid-cols-2 gap-x-5 gap-y-4 md:grid-cols-5">{[['Recognized Income', fromCents(totals.incomeCents)], ['Business-Use Expenses', fromCents(totals.businessUseExpensesCents)], ['Estimated Profit', fromCents(totals.incomeCents - totals.businessUseExpensesCents)], ['Estimated Tax Reserve', settings.taxRatePct == null ? null : fromCents(totals.taxReserveCents)], ['Available After Reserve', fromCents(totals.availableCents)]].map(([label, value]) => <div key={String(label)}><div className="type-eyebrow">{label}</div><div className={`mt-1 text-lg font-semibold tabular-nums ${label === 'Estimated Tax Reserve' ? 'text-[color:var(--warning)]' : ''}`}>{value == null ? <button className="text-xs font-medium text-primary hover:underline" onClick={() => setTaxOpen(true)}>Set tax rate</button> : `~${formatMoney(Number(value), { currency: settings.currency })}`}</div></div>)}</div><IncomeExpenseComparison incomeCents={totals.incomeCents} expenseCents={totals.grossExpensesCents} currency={settings.currency} /></div>
       {!taxWarningDismissed && <div className="flex items-start gap-2 border-l-2 border-[color:var(--warning)] bg-warning/10 px-3 py-2 text-xs text-muted-foreground"><CircleHelp className="mt-0.5 h-3.5 w-3.5 shrink-0" /><span className="flex-1">{DISCLAIMER}{currencyMismatchCount > 0 && <strong className="ml-2 font-medium text-[color:var(--warning)]">{currencyMismatchCount} record{currencyMismatchCount === 1 ? '' : 's'} excluded: Currency Mismatch.</strong>}</span><Button variant="ghost" size="sm" className="-my-1 h-7 text-xs" onClick={() => { setTaxWarningDismissed(true); localStorage.setItem('aurelo_tax_warning_dismissed', 'true'); }}>Mark as understood</Button></div>}
       <div className="flex items-center gap-1 border-b border-[var(--hairline)]"><button className={`border-b-2 px-3 py-3 text-sm font-medium ${tab === 'income' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground'}`} onClick={() => setTab('income')}>Income <span className="ml-1 text-xs">{incomeRows.length}</span></button><button className={`border-b-2 px-3 py-3 text-sm font-medium ${tab === 'expenses' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground'}`} onClick={() => setTab('expenses')}>Expenses <span className="ml-1 text-xs">{expenseRows.length}</span></button><div className="ml-auto"><Button size="sm" onClick={() => setAddOpen(tab === 'income' ? 'income' : 'expense')}><Plus /> Add {tab === 'income' ? 'Income' : 'Expense'}</Button></div></div>
       {error && <div className="flex items-center justify-between border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive"><span>{error}</span><Button variant="outline" size="sm" onClick={() => void refresh()}>Try again</Button></div>}
@@ -114,6 +115,33 @@ export default function IncomeExpenses() {
     {addOpen === 'income' && <AddIncomeModal currency={settings.currency} onClose={() => setAddOpen(null)} onSave={async (input) => { if (!workspaceId) return; const entry = await financeApi.addManualIncome(workspaceId, input); setIncome((prev) => [entry, ...prev]); setAddOpen(null); toast.success('Income added'); }} />}
     {addOpen === 'expense' && <AddExpenseModal currency={settings.currency} categories={categories} onClose={() => setAddOpen(null)} onSave={async (input) => { if (!workspaceId) return; await financeApi.addExpense(workspaceId, input); setAddOpen(null); await refresh(); toast.success('Expense added'); }} />}
   </div>;
+}
+
+function IncomeExpenseComparison({ incomeCents, expenseCents, currency }: { incomeCents: number; expenseCents: number; currency: string }) {
+  const scale = Math.max(incomeCents, expenseCents, 0);
+  const pct = (value: number) => (scale > 0 ? Math.max(0, Math.min(100, (value / scale) * 100)) : 0);
+  const ratio = incomeCents > 0 ? expenseCents / incomeCents : null;
+  const rows: { label: string; cents: number; fill: string; note?: string }[] = [
+    { label: 'Income', cents: incomeCents, fill: 'bg-primary' },
+    { label: 'Gross expenses', cents: expenseCents, fill: 'bg-[color:var(--warning)]', note: ratio != null ? `${formatPercent(expenseCents / incomeCents)} of income` : undefined },
+  ];
+  return (
+    <div className="mt-4 space-y-2">
+      {rows.map((row) => (
+        <div key={row.label} className="flex items-center gap-3 text-xs">
+          <span className="w-28 shrink-0 text-muted-foreground">{row.label}</span>
+          <div className="h-2 flex-1 bg-[var(--surface-sunken)]">
+            <motion.div className={`h-full ${row.fill}`} initial={false} animate={{ width: `${pct(row.cents)}%` }} transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }} />
+          </div>
+          <span className="w-24 shrink-0 text-right font-medium tabular-nums text-foreground">{formatMoney(fromCents(row.cents), { currency })}</span>
+          <span className="w-24 shrink-0 text-right text-muted-foreground">{row.note || ''}</span>
+        </div>
+      ))}
+      {expenseCents > incomeCents && incomeCents >= 0 && scale > 0 && (
+        <div className="text-xs text-[color:var(--warning)]">Expenses exceed income in this period.</div>
+      )}
+    </div>
+  );
 }
 
 function setSortState(setter: (v: { key: string; asc: boolean }) => void, key: string) { setter({ key, asc: false }); }
