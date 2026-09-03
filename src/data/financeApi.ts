@@ -125,7 +125,8 @@ export async function loadExpenseData(workspaceId: string): Promise<{ categories
 export async function seedExpenseCategories(workspaceId: string, _jurisdiction: string | null): Promise<void> {
   // Keep a useful baseline available even before a jurisdiction is configured. The list is
   // bookkeeping-oriented and does not represent tax advice; jurisdiction can refine it later.
-  const { data } = await db.from('expense_categories').select('name').eq('workspace_id', workspaceId);
+  const { data, error: readError } = await db.from('expense_categories').select('name').eq('workspace_id', workspaceId);
+  if (readError) throw readError;
   const existing = new Set((data || []).map((r: any) => r.name));
   const rows = US_CATEGORIES.filter((name) => !existing.has(name)).map((name, i) => ({ workspace_id: workspaceId, name, sort_order: i, is_seed: true }));
   if (rows.length) {
@@ -144,7 +145,21 @@ export async function updateExpense(workspaceId: string, id: string, patch: any)
   const fields: Record<string, string> = { name: 'name', vendor: 'vendor', categoryId: 'category_id', recurrence: 'recurrence', intervalDays: 'interval_days', amountBehavior: 'amount_behavior', baseAmount: 'base_amount', businessUsePct: 'business_use_pct', inclusion: 'inclusion', currency: 'currency', startDate: 'start_date', endDate: 'end_date', active: 'active', notes: 'notes' };
   for (const [key, value] of Object.entries(patch)) if (fields[key]) row[fields[key]] = value;
   if (!Object.keys(row).length) return;
-  const { error } = await db.from('expenses').update(row).eq('id', id).eq('workspace_id', workspaceId); if (error) throw error;
+
+  const recurrenceFields = ['recurrence', 'intervalDays', 'amountBehavior', 'baseAmount', 'businessUsePct', 'currency', 'startDate', 'endDate'];
+  const changesSchedule = recurrenceFields.some((field) => Object.prototype.hasOwnProperty.call(patch, field));
+  if (changesSchedule) {
+    const { error: cleanupError } = await db.from('expense_instances')
+      .delete()
+      .eq('workspace_id', workspaceId)
+      .eq('expense_id', id)
+      .eq('generated', true)
+      .gte('incurred_date', new Date().toISOString().slice(0, 10))
+      .neq('status', 'confirmed');
+    if (cleanupError) throw cleanupError;
+  }
+  const { error } = await db.from('expenses').update(row).eq('id', id).eq('workspace_id', workspaceId);
+  if (error) throw error;
 }
 /** Preserve the financial record while stopping future occurrence generation. */
 export async function removeExpense(workspaceId: string, id: string): Promise<void> { const { error } = await db.from('expenses').update({ active: false }).eq('id', id).eq('workspace_id', workspaceId); if (error) throw error; }
