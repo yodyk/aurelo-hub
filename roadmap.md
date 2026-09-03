@@ -16,4 +16,4 @@
 ## Income & Expenses UI restructure
 - [x] Overview-first layout with Income / Expenses / W-2 sub-views
 - [x] Column chooser + non-wrapping headers + row tone rails on finance tables
-- [ ] Summary block: Income + Expenses cards with a pie chart as the third card
+- [x] Summary block: Income + Expenses cards with a pie chart as the third card
