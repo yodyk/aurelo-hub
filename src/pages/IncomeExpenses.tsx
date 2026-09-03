@@ -12,7 +12,7 @@ import { NumericCell } from '@/components/primitives/NumericCell';
 import { FinanceTableShell } from '@/components/finance/FinanceTable';
 import { TaxSettingsModal } from '@/components/finance/TaxSettingsModal';
 import { useData } from '@/data/DataContext';
-import { usePlan } from '@/data/PlanContext';
+import { useRoleAccess } from '@/data/useRoleAccess';
 import { formatDate, formatMoney, formatPercent } from '@/lib/format';
 import { toast } from '@/lib/toast';
 import * as invoiceApi from '@/data/invoiceApi';
@@ -33,8 +33,8 @@ function statusLabel(status: string) { return status === 'needs_review' ? 'Needs
 function tone(status: string) { return status === 'paid' || status === 'confirmed' ? 'text-[color:var(--success)]' : status === 'needs_review' || status === 'needs_amount' ? 'text-[color:var(--warning)]' : 'text-muted-foreground'; }
 
 export default function IncomeExpenses() {
-  const { workspaceId, clients, allProjects, loadAllProjects, financialDefaults } = useData();
-  const { canViewFinancials } = usePlan() as any;
+  const { workspaceId, clients, loadAllProjects, financialDefaults } = useData();
+  const { canViewFinancials } = useRoleAccess();
   const [params, setParams] = useSearchParams();
   const [tab, setTab] = useState<'income' | 'expenses'>((params.get('tab') as 'income' | 'expenses') || 'income');
   const [periodKey, setPeriodKey] = useState(params.get('period') || 'year');
@@ -61,9 +61,7 @@ export default function IncomeExpenses() {
     if (initial) setLoading(true); else setSyncing(true);
     setError(null);
     try {
-      await loadAllProjects();
-      const [loadedSettings, invoices] = await Promise.all([financeApi.loadFinanceSettings(workspaceId), invoiceApi.loadInvoices()]);
-      const projects = allProjects;
+      const [projects, loadedSettings, invoices] = await Promise.all([loadAllProjects(), financeApi.loadFinanceSettings(workspaceId), invoiceApi.loadInvoices()]);
       const synced = await financeApi.syncIncomeSources(workspaceId, clients, projects, invoices, loadedSettings.currency || financialDefaults.currency);
       await financeApi.seedExpenseCategories(workspaceId, loadedSettings.jurisdiction);
       const expenseData = await financeApi.loadExpenseData(workspaceId);
@@ -71,7 +69,7 @@ export default function IncomeExpenses() {
       const latestExpenses = await financeApi.loadExpenseData(workspaceId);
       setSettings(loadedSettings); setIncome(synced); setCategories(latestExpenses.categories); setExpenses(latestExpenses.expenses); setInstances(latestExpenses.instances);
     } catch (e: any) { setError(e?.message || 'Unable to sync finance records.'); } finally { setLoading(false); setSyncing(false); }
-  }, [workspaceId, clients, allProjects, loadAllProjects, period.start, period.end, financialDefaults.currency]);
+  }, [workspaceId, clients, loadAllProjects, period.start, period.end, financialDefaults.currency]);
 
   useEffect(() => { if (workspaceId) void refresh(true); }, [workspaceId]);
   useEffect(() => { const next = new URLSearchParams(params); next.set('tab', tab); next.set('period', periodKey); next.set('mode', mode); if (search) next.set('q', search); else next.delete('q'); if (incomeStatus !== 'all') next.set('status', incomeStatus); else next.delete('status'); if (expenseInclusion !== 'all') next.set('inclusion', expenseInclusion); else next.delete('inclusion'); setParams(next, { replace: true }); }, [tab, periodKey, mode, search, incomeStatus, expenseInclusion]);
@@ -80,8 +78,7 @@ export default function IncomeExpenses() {
   const expenseRows = useMemo(() => expenses.filter((e) => expenseInclusion === 'all' || e.inclusion === expenseInclusion).filter((e) => !search || `${e.name} ${e.vendor} ${e.notes}`.toLowerCase().includes(search.toLowerCase())).map((expense) => ({ expense, rows: instances.filter((i) => i.expenseId === expense.id).map((instance) => ({ instance, bucket: classifyInstance(instance, expense, { method: settings.method, period, currency: settings.currency, includePlanned: mode === 'planned' }) })).filter((x) => x.bucket === 'actual' || (mode === 'planned' && x.bucket === 'planned') || x.bucket === 'needs_review' || x.bucket === 'needs_amount' || x.bucket === 'currency_mismatch') })).filter(({ rows }) => rows.length > 0 || search), [expenses, instances, expenseInclusion, search, settings, period, mode]);
   const actualExpenseRows = expenseRows.flatMap(({ expense, rows }) => rows.filter((r) => r.bucket === 'actual').map((r) => ({ expense, instance: r.instance, bucket: 'actual' as const })));
   const incomeBuckets = new Map(income.map((entry) => [entry.id, classifyIncome(entry, { method: settings.method, period, currency: settings.currency, includePlanned: true })]));
-  const totals = calculateTotals({ income, incomeBuckets: new Map([...incomeBuckets].map(([id, bucket]) => [id, bucket === 'actual' ? 'actual' : bucket === 'planned' ? 'planned' : 'actual'])), expenses: actualExpenseRows, taxRatePct: settings.taxRatePct });
-  const pageIncome = income.filter((entry) => { const b = incomeBuckets.get(entry.id); return b === 'actual' || (mode === 'planned' && b === 'planned'); });
+  const totals = calculateTotals({ income, incomeBuckets: new Map([...incomeBuckets].filter(([, bucket]) => bucket === 'actual' || bucket === 'planned').map(([id, bucket]) => [id, bucket as 'actual' | 'planned'])), expenses: actualExpenseRows, taxRatePct: settings.taxRatePct });
   const visibleIncomeCents = incomeRows.filter((x) => x.bucket === 'actual' || x.bucket === 'planned').reduce((sum, x) => sum + effectiveIncomeCents(x.entry), 0);
   const visibleProjectedCents = incomeRows.filter((x) => x.bucket === 'planned').reduce((sum, x) => sum + effectiveIncomeCents(x.entry), 0);
   const visibleReserve = incomeRows.filter((x) => x.bucket === 'actual' || x.bucket === 'planned').reduce((sum, x) => sum + (incomeTaxReserveCents(x.entry, settings.taxRatePct) || 0), 0);
@@ -91,7 +88,7 @@ export default function IncomeExpenses() {
   const hasFilters = Boolean(search || incomeStatus !== 'all' || expenseInclusion !== 'all');
   const setPeriodValue = (value: string) => { const year = settings.taxYear || new Date().getFullYear(); setPeriodKey(value); if (value === 'year') setPeriod(yearPeriod(year)); else if (/^q[1-4]$/.test(value)) setPeriod(yearPeriod(year, Number(value.slice(1)))); else if (value === 'custom') setPeriod((p) => ({ ...p, label: 'Custom Range' })); };
   const setSort = (key: string) => setSortState(setSort, key);
-  if (canViewFinancials === false) return <div className="p-8 text-sm text-muted-foreground">This workspace does not have access to financial records.</div>;
+  if (!canViewFinancials) return <div className="p-8 text-sm text-muted-foreground">This workspace does not have access to financial records.</div>;
 
   return <div className="min-w-0 pb-10">
     <PageHeader title="Income & Expenses" subtitle="A planning view of money in, business-use spend, and estimated reserve." actions={<div className="flex items-center gap-2"><Button variant="outline" size="sm" onClick={() => void refresh()} disabled={syncing}><RefreshCw className={syncing ? 'animate-spin' : ''} /> {syncing ? 'Syncing' : 'Sync'}</Button><Button variant="outline" size="sm" onClick={() => exportCsv(tab === 'income' ? incomeRows.map((x) => x.entry) : expenseRows.map((x) => x.expense), tab)}><ArrowDownToLine /> Export</Button></div>} />
