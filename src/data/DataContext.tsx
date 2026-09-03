@@ -90,7 +90,7 @@ const safeDefaults: DataContextType = {
   addProject: async () => ({}),
   updateProject: async () => {},
   allProjects: [],
-  loadAllProjects: async () => {},
+  loadAllProjects: async () => [],
   initAvatar: null,
   setInitAvatar: () => {},
   initLogos: { app: null, email: null },
