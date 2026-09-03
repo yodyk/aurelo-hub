@@ -11,6 +11,6 @@
 - [x] Expense series/instances/additions
 - [x] Filters, URL state, sticky totals, drag-pan, CSV export
 - [x] Empty/loading/error/responsive/a11y states
-- [ ] Build + typecheck + tests
+- [x] Build + typecheck + tests
 
 Notes from user corrections: cash/accrual uses dual dates (earned + paid); tax settings live in `workspace_settings` section `finance`; no "Partially Paid" state; currency mismatch entries excluded from totals with a visible review count.

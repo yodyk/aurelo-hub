@@ -123,9 +123,13 @@ export async function addExpense(workspaceId: string, input: any): Promise<Expen
   return mapExpense(data);
 }
 export async function updateExpense(workspaceId: string, id: string, patch: any): Promise<void> {
-  const { error } = await db.from('expenses').update(patch).eq('id', id).eq('workspace_id', workspaceId); if (error) throw error;
+  const row: Record<string, unknown> = {};
+  const fields: Record<string, string> = { name: 'name', vendor: 'vendor', categoryId: 'category_id', recurrence: 'recurrence', intervalDays: 'interval_days', amountBehavior: 'amount_behavior', baseAmount: 'base_amount', businessUsePct: 'business_use_pct', inclusion: 'inclusion', currency: 'currency', startDate: 'start_date', endDate: 'end_date', active: 'active', notes: 'notes' };
+  for (const [key, value] of Object.entries(patch)) if (fields[key]) row[fields[key]] = value;
+  if (!Object.keys(row).length) return;
+  const { error } = await db.from('expenses').update(row).eq('id', id).eq('workspace_id', workspaceId); if (error) throw error;
 }
-export async function removeExpense(workspaceId: string, id: string): Promise<void> { const { error } = await db.from('expenses').delete().eq('id', id).eq('workspace_id', workspaceId); if (error) throw error; }
+export async function removeExpense(workspaceId: string, id: string): Promise<void> { const { error } = await db.from('expenses').update({ active: false }).eq('id', id).eq('workspace_id', workspaceId); if (error) throw error; }
 
 /** Upserts only missing occurrence rows; existing confirmed rows are untouched. */
 export async function generateExpenseInstances(workspaceId: string, expenses: Expense[], rangeStart: string, rangeEnd: string): Promise<void> {
@@ -145,4 +149,4 @@ export async function updateExpenseInstance(workspaceId: string, id: string, pat
 }
 export async function addExpenseInstance(workspaceId: string, input: any): Promise<ExpenseInstance> { const { data, error } = await db.from('expense_instances').insert({ workspace_id: workspaceId, expense_id: input.expenseId, occurrence_key: `${input.expenseId}:manual:${crypto.randomUUID()}`, incurred_date: input.incurredDate, paid_date: input.paidDate || null, status: input.status || 'confirmed', base_amount: input.baseAmount == null ? null : Number(input.baseAmount), business_use_pct: input.businessUsePct == null ? null : Number(input.businessUsePct), currency: input.currency || 'USD', notes: input.notes || null, generated: false }).select().single(); if (error) throw error; return mapInstance(data); }
 export async function addExpenseAddition(workspaceId: string, instanceId: string, label: string, amount: number): Promise<void> { const { error } = await db.from('expense_instance_additions').insert({ workspace_id: workspaceId, instance_id: instanceId, label, amount }); if (error) throw error; }
-export async function updateExpenseAddition(workspaceId: string, id: string, patch: any): Promise<void> { const { error } = await db.from('expense_instance_additions').update(patch).eq('id', id).eq('workspace_id', workspaceId); if (error) throw error; }
+export async function updateExpenseAddition(workspaceId: string, id: string, patch: any): Promise<void> { const row = { ...(patch.label !== undefined ? { label: patch.label } : {}), ...(patch.amount !== undefined ? { amount: Number(patch.amount) } : {}) }; const { error } = await db.from('expense_instance_additions').update(row).eq('id', id).eq('workspace_id', workspaceId); if (error) throw error; }

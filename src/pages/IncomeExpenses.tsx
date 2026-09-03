@@ -87,7 +87,7 @@ export default function IncomeExpenses() {
   const visibleBusinessUse = visibleExpenseInstances.reduce((sum, r) => sum + instanceBusinessUseCents(r.instance, expenseRows.find((x) => x.rows.some((y) => y.instance.id === r.instance.id))?.expense || expenses[0]), 0);
   const hasFilters = Boolean(search || incomeStatus !== 'all' || expenseInclusion !== 'all');
   const setPeriodValue = (value: string) => { const year = settings.taxYear || new Date().getFullYear(); setPeriodKey(value); if (value === 'year') setPeriod(yearPeriod(year)); else if (/^q[1-4]$/.test(value)) setPeriod(yearPeriod(year, Number(value.slice(1)))); else if (value === 'custom') setPeriod((p) => ({ ...p, label: 'Custom Range' })); };
-  const setSort = (key: string) => setSortState(setSort, key);
+  
   if (!canViewFinancials) return <div className="p-8 text-sm text-muted-foreground">This workspace does not have access to financial records.</div>;
 
   return <div className="min-w-0 pb-10">
