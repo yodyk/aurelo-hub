@@ -2,8 +2,9 @@
 
 ## Income & Expenses workspace (in progress)
 - [x] Migration: income_entries, expenses, expense_instances, expense_instance_additions, expense_categories (RLS + GRANTs + indexes)
-- [x] financeApi + source synchronization (projects, retainers, invoices)
+- [x] financeApi + initial source synchronization (projects, retainers, invoices)
 - [x] Pure utils: money (decimal-safe), recognition (cash/accrual), recurrence, dedupe
+- [ ] Follow-up: source-mutation subscriptions and exact retainer-cycle date generation
 - [x] Fixture coverage for utils
 - [x] Route `/income-expenses` + sidebar entry
 - [x] Page shell, period controls, Actual/Planned toggle, overview band
