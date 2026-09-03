@@ -2,6 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import * as storage from './storageApi';
 import { dispatchWebhookEvent } from './webhookDispatch';
+import { scheduleIncomeSync } from './financeSync';
 // ── Helpers ─────────────────────────────────────────────────────────
 
 /** Parse a YYYY-MM-DD string as a local-timezone Date (avoids UTC midnight shift) */

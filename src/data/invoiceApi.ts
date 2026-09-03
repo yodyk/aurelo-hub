@@ -1,6 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { NotificationEvents } from './notificationsApi';
 import { dispatchWebhookEvent } from './webhookDispatch';
+import { scheduleIncomeSync } from './financeSync';
 
 // ── Invoice Types ──────────────────────────────────────────────────
 

@@ -124,12 +124,16 @@ export async function loadExpenseData(workspaceId: string): Promise<{ categories
   return { categories: (catRes.data || []).map(mapCategory), expenses: (expRes.data || []).map(mapExpense), instances: (instRes.data || []).map((r: any) => mapInstance(r, additions.filter((a: ExpenseAddition) => a.instanceId === r.id))) };
 }
 
-export async function seedExpenseCategories(workspaceId: string, jurisdiction: string | null): Promise<void> {
-  if (!jurisdiction?.toLowerCase().includes('united states') && !jurisdiction?.toLowerCase().includes('usa')) return;
+export async function seedExpenseCategories(workspaceId: string, _jurisdiction: string | null): Promise<void> {
+  // Keep a useful baseline available even before a jurisdiction is configured. The list is
+  // bookkeeping-oriented and does not represent tax advice; jurisdiction can refine it later.
   const { data } = await db.from('expense_categories').select('name').eq('workspace_id', workspaceId);
   const existing = new Set((data || []).map((r: any) => r.name));
   const rows = US_CATEGORIES.filter((name) => !existing.has(name)).map((name, i) => ({ workspace_id: workspaceId, name, sort_order: i, is_seed: true }));
-  if (rows.length) await db.from('expense_categories').upsert(rows, { onConflict: 'workspace_id,name' });
+  if (rows.length) {
+    const { error } = await db.from('expense_categories').upsert(rows, { onConflict: 'workspace_id,name' });
+    if (error) throw error;
+  }
 }
 
 export async function addExpense(workspaceId: string, input: any): Promise<Expense> {
