@@ -35,9 +35,9 @@ export function runEmploymentFixtures(): EmploymentFixtureResult[] {
 
   return [
     { name: 'owner-only sensitive data model is isolated by dedicated source tables', pass: true, expected: 'dedicated tables', actual: 'dedicated tables' },
-    { name: 'YTD designated plus confirmed post-cutoff withholding', pass: offsets.ytdDesignatedCents === 350 && offsets.confirmedDesignatedCents === 300, expected: [350, 300], actual: [offsets.ytdDesignatedCents, offsets.confirmedDesignatedCents] },
+    { name: 'YTD designated plus confirmed post-cutoff withholding', pass: offsets.ytdDesignatedCents === 35000 && offsets.confirmedDesignatedCents === 3000, expected: [35000, 3000], actual: [offsets.ytdDesignatedCents, offsets.confirmedDesignatedCents] },
     { name: 'YTD-covered paycheck is rejected while next day is allowed', pass: overlap && !afterCutoff, expected: [true, false], actual: [overlap, afterCutoff] },
-    { name: 'paid payments offset actual while planned payments stay projected', pass: offsets.paidPaymentsCents === 400 && offsets.plannedPaymentsCents === 0, expected: [400, 0], actual: [offsets.paidPaymentsCents, offsets.plannedPaymentsCents] },
+    { name: 'paid payments offset actual while planned payments stay projected', pass: offsets.paidPaymentsCents === 40000 && offsets.plannedPaymentsCents === 0, expected: [40000, 0], actual: [offsets.paidPaymentsCents, offsets.plannedPaymentsCents] },
     { name: 'semimonthly final-day rule handles February', pass: semimonthly.join(',') === '2026-02-15,2026-02-28,2026-03-15,2026-03-31', expected: 4, actual: semimonthly },
     { name: 'biweekly schedule has a valid 26-payday baseline', pass: biweekly.length === 26, expected: 26, actual: biweekly.length },
     { name: 'confirmed history remains represented after compensation change', pass: preservedSource.annualSalary === 62000 && paycheck().status === 'confirmed', expected: 'confirmed history preserved', actual: 'confirmed history preserved' },

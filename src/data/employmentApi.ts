@@ -129,7 +129,10 @@ const sourcePayload = (input: Partial<EmploymentSource>, partial = false) => {
     additional_state_per_paycheck: 'additionalStatePerPaycheck', additional_designated_for_other_income: 'additionalDesignatedForOtherIncome', projection_mode: 'projectionMode',
     manual_remaining_designated: 'manualRemainingDesignated', tax_year: 'taxYear', notes: 'notes', active: 'active',
   };
-  return Object.fromEntries(Object.entries(values).filter(([key, value]) => input[fields[key]] !== undefined && value !== undefined));
+  return Object.fromEntries(Object.entries(values).filter(([key, value]) => {
+    const field = fields[key];
+    return field !== undefined && input[field] !== undefined && value !== undefined;
+  }));
 };
 
 export interface EmploymentData {
@@ -225,7 +228,7 @@ export async function generatePaychecks(workspaceId: string, sources: Employment
 
     for (const date of dates) {
       const key = occurrenceKeyFor(source, date);
-      const row = byKey.get(`${source.id}|${key}`);
+      const row: any = byKey.get(`${source.id}|${key}`);
       if (row) {
         // Confirmed history is immutable; refresh only future projections.
         if (row.status === 'projected' && row.generated && row.pay_date > today) {
