@@ -134,9 +134,10 @@ export function grossPerPaycheckCents(source: EmploymentSource): number {
  */
 export function payDates(source: EmploymentSource, rangeStart: string, rangeEnd: string): string[] {
   const floors = [rangeStart, source.startDate || '', source.ytdThroughDate ? addDays(source.ytdThroughDate, 1) : ''].filter(Boolean) as string[];
-  const start = floors.sort().at(-1)!;
+  const start = floors.sort().slice(-1)[0];
   const ceilings = [rangeEnd, source.endDate || '9999-12-31'];
   const end = ceilings.sort()[0];
+  if (!start || !end) return [];
   if (start > end) return [];
 
   const out: string[] = [];

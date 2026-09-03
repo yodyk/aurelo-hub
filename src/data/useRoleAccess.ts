@@ -13,6 +13,9 @@ export interface RoleAccess {
   /** The raw workspace role string */
   role: string | null;
 
+  /** True when this user is the workspace owner. Sensitive employment context is owner-only. */
+  isWorkspaceOwner: boolean;
+
   /** True if the user's role is "Member" (not Owner/Admin) */
   isMember: boolean;
 
@@ -44,10 +47,12 @@ export interface RoleAccess {
 export function useRoleAccess(): RoleAccess {
   const { workspaceRole } = useAuth();
   const role = workspaceRole;
+  const isWorkspaceOwner = role === 'Owner';
   const isMember = role === 'Member';
 
   return {
     role,
+    isWorkspaceOwner,
     isMember,
     canViewFinancials: !isMember,
     canViewInsights: !isMember,

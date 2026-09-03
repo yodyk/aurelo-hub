@@ -179,8 +179,9 @@ export async function deactivateEmploymentSource(workspaceId: string, id: string
 }
 
 export async function deleteEmploymentSource(workspaceId: string, id: string) {
-  const { error } = await supabase.from('employment_sources').delete().eq('workspace_id', workspaceId).eq('id', id);
-  if (error) throw error;
+  // Preserve all paycheck history by using the same lifecycle rule as recurring
+  // expenses: deactivate the source and remove only generated projections.
+  await deactivateEmploymentSource(workspaceId, id, new Date().toISOString().slice(0, 10));
 }
 
 /**
