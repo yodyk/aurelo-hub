@@ -12,13 +12,16 @@ import { EmptyState } from '@/components/primitives/EmptyState';
 import { NumericCell } from '@/components/primitives/NumericCell';
 import { FinanceTableShell } from '@/components/finance/FinanceTable';
 import { TaxSettingsModal } from '@/components/finance/TaxSettingsModal';
+import { EmploymentContextPanel } from '@/components/finance/EmploymentContextPanel';
 import { useData } from '@/data/DataContext';
 import { useRoleAccess } from '@/data/useRoleAccess';
 import { formatDate, formatMoney, formatPercent } from '@/lib/format';
 import { toast } from '@/lib/toast';
 import * as invoiceApi from '@/data/invoiceApi';
 import * as financeApi from '@/data/financeApi';
+import * as employmentApi from '@/data/employmentApi';
 import { calculateTotals, effectiveIncomeCents, instanceBusinessUseCents, instanceTotalCents, classifyIncome, classifyInstance, fromCents, incomeTaxReserveCents, type Expense, type ExpenseInstance, type FinanceSettings, type IncomeEntry, type Period } from '@/lib/finance';
+import type { EmploymentData } from '@/data/employmentApi';
 
 const DISCLAIMER = 'This is a planning estimate based on the rate and records you provide. It is not tax advice or a tax return calculation.';
 const today = () => new Date().toISOString().slice(0, 10);
@@ -35,7 +38,7 @@ function tone(status: string) { return status === 'paid' || status === 'confirme
 
 export default function IncomeExpenses() {
   const { workspaceId, clients, loadAllProjects, financialDefaults } = useData();
-  const { canViewFinancials } = useRoleAccess();
+  const { canViewFinancials, isWorkspaceOwner } = useRoleAccess();
   const [params, setParams] = useSearchParams();
   const [tab, setTab] = useState<'income' | 'expenses'>((params.get('tab') as 'income' | 'expenses') || 'income');
   const [periodKey, setPeriodKey] = useState(params.get('period') || 'year');
@@ -45,6 +48,7 @@ export default function IncomeExpenses() {
   const [income, setIncome] = useState<IncomeEntry[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [employmentData, setEmploymentData] = useState<EmploymentData>({ sources: [], paychecks: [], payments: [], otherWithholdingAvailable: 0 });
   const [instances, setInstances] = useState<ExpenseInstance[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
@@ -72,8 +76,15 @@ export default function IncomeExpenses() {
       await financeApi.generateExpenseInstances(workspaceId, expenseData.expenses, period.start, period.end);
       const latestExpenses = await financeApi.loadExpenseData(workspaceId);
       setSettings(loadedSettings); setIncome(synced); setCategories(latestExpenses.categories); setExpenses(latestExpenses.expenses); setInstances(latestExpenses.instances);
+      if (isWorkspaceOwner) {
+        const currentEmployment = await employmentApi.loadEmploymentData(workspaceId);
+        await employmentApi.generatePaychecks(workspaceId, currentEmployment.sources, `${loadedSettings.taxYear}-01-01`, `${loadedSettings.taxYear}-12-31`);
+        setEmploymentData(await employmentApi.loadEmploymentData(workspaceId));
+      } else {
+        setEmploymentData({ sources: [], paychecks: [], payments: [], otherWithholdingAvailable: 0 });
+      }
     } catch (e: any) { setError(e?.message || 'Unable to sync finance records.'); } finally { setLoading(false); setSyncing(false); }
-  }, [workspaceId, clients, loadAllProjects, period.start, period.end, financialDefaults.currency]);
+  }, [workspaceId, clients, loadAllProjects, period.start, period.end, financialDefaults.currency, isWorkspaceOwner]);
 
   useEffect(() => { if (workspaceId) void refresh(true); }, [workspaceId]);
   useEffect(() => {
