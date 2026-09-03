@@ -2,7 +2,7 @@ import { transitions } from '@/lib/motion';
 import { clearDemoData } from '../data/settingsApi';
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Outlet, NavLink, useLocation, useNavigate, Navigate, Link, useParams } from 'react-router';
-import { LayoutDashboard, Users, Clock, TrendingUp, Settings, Timer, Square, Menu, X, LogOut, FileText, Sun, Moon, Lock, PanelLeftClose, PanelLeftOpen, Monitor, ChevronRight, CheckSquare } from 'lucide-react';
+import { LayoutDashboard, Users, Clock, TrendingUp, Settings, Timer, Square, Menu, X, LogOut, FileText, Sun, Moon, Lock, PanelLeftClose, PanelLeftOpen, Monitor, ChevronRight, CheckSquare, ReceiptText } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 import { useData, DataProvider } from '../data/DataContext';
@@ -36,6 +36,7 @@ const navItems: { to: string; icon: any; label: string; end?: boolean; feature?:
   { to: '/tasks', icon: CheckSquare, label: 'Tasks' },
   { to: '/time', icon: Clock, label: 'Time' },
   { to: '/invoicing', icon: FileText, label: 'Invoices', feature: 'clientInvoicing', requiresFinancials: true },
+  { to: '/income-expenses', icon: ReceiptText, label: 'Income & Expenses', requiresFinancials: true },
   { to: '/insights', icon: TrendingUp, label: 'Insights', requiresFinancials: true },
 ];
 
