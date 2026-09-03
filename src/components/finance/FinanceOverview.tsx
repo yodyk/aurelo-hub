@@ -7,12 +7,12 @@ import { formatMoney, formatPercent } from '@/lib/format';
 import { fromCents, instanceBusinessUseCents } from '@/lib/finance';
 
 const SLICE = [
-  'hsl(var(--primary))',
-  'hsl(var(--primary) / 0.72)',
-  'hsl(var(--primary) / 0.5)',
-  'hsl(var(--primary) / 0.34)',
-  'var(--warning)',
-  'hsl(var(--muted-foreground) / 0.45)',
+  '#1A3DAD', // deep cobalt
+  '#335EF5', // rich cobalt
+  '#5C85F8', // primary cobalt
+  '#84A4FB', // soft cobalt
+  '#B0C3FD', // pale cobalt
+  '#D8E2FE', // faint cobalt
 ];
 
 export interface OverviewProps {
