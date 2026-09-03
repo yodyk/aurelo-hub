@@ -79,9 +79,15 @@ export async function syncIncomeSources(workspaceId: string, clients: any[], pro
     // Walk the client's true billing cycle, not calendar months.
     const cycleDays = Math.max(1, Number(client.retainerCycleDays || 30));
     const anchor = client.retainerCycleStart ? new Date(`${String(client.retainerCycleStart).slice(0, 10)}T00:00:00`) : new Date(year, 0, 1);
+    if (Number.isNaN(anchor.getTime())) continue;
     const cursor = new Date(anchor);
     while (cursor < yearStart) cursor.setDate(cursor.getDate() + cycleDays);
-    while (cursor > yearStart) cursor.setDate(cursor.getDate() - cycleDays);
+    while (cursor > yearStart) {
+      const previous = new Date(cursor);
+      previous.setDate(previous.getDate() - cycleDays);
+      if (previous < yearStart) break;
+      cursor.setTime(previous.getTime());
+    }
     for (let cycle = new Date(cursor); cycle <= yearEnd; cycle.setDate(cycle.getDate() + cycleDays)) {
       const cycleStart = new Date(cycle);
       const cycleEnd = new Date(cycle); cycleEnd.setDate(cycleEnd.getDate() + cycleDays - 1);
@@ -91,7 +97,7 @@ export async function syncIncomeSources(workspaceId: string, clients: any[], pro
       const key = `retainer:${client.id}:${startIso}`;
       const suppressedInvoice = (invoices || []).find((i: any) => i.clientId === client.id && i.issuedDate && String(i.issuedDate).slice(0, 10) >= startIso && String(i.issuedDate).slice(0, 10) <= endIso) || null;
       sourceKeys.add(key);
-      rows.push({ workspace_id: workspaceId, source_type: 'retainer', source_id: client.id, source_key: key, client_id: client.id, payer_name: client.name, description: `${client.name} retainer · ${startIso} – ${endIso}`, source_amount: monthly, currency, status: 'projected', earned_date: startIso, paid_date: null, source_state: client.status === 'Archived' ? 'archived' : 'active', suppressed_by: suppressedInvoice ? `invoice:${suppressedInvoice.id}` : null, metadata: { cycleStart: startIso, cycleEnd: endIso, cycleDays, linkedInvoiceId: suppressedInvoice?.id || null } });
+      rows.push({ workspace_id: workspaceId, source_type: 'retainer', source_id: client.id, source_key: key, client_id: client.id, payer_name: client.name, description: `${client.name} retainer · ${startIso} – ${endIso}`, source_amount: monthly, currency, status: client.status === 'Archived' ? 'excluded' : 'projected', earned_date: startIso, paid_date: null, source_state: client.status === 'Archived' ? 'archived' : 'active', suppressed_by: suppressedInvoice ? `invoice:${suppressedInvoice.id}` : null, metadata: { cycleStart: startIso, cycleEnd: endIso, cycleDays, linkedInvoiceId: suppressedInvoice?.id || null } });
     }
   }
   if (rows.length) {

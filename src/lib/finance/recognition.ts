@@ -51,7 +51,7 @@ export interface ClassifyOpts {
  */
 export function classifyIncome(entry: IncomeEntry, opts: ClassifyOpts): Bucket {
   const { method, period, currency } = opts;
-  if (!entry.included || entry.status === 'excluded') return 'out';
+  if (!entry.included || entry.status === 'excluded' || entry.sourceState === 'archived') return 'out';
   if (entry.suppressedBy) return 'out';
 
   const actualDate = method === 'cash' ? entry.paidDate : entry.earnedDate;

@@ -15,8 +15,12 @@ export function runFinanceFixtures(): FinanceFixtureResult[] {
   const accrual = classifyIncome(income, { method: 'accrual', period, currency: 'USD', includePlanned: false });
   const totals = calculateTotals({ income: [income], incomeBuckets: new Map([['i1', 'actual']]), expenses: [{ expense, instance: instance('2026-01-01', 29, 60), bucket: 'actual' }], taxRatePct: 25 });
   const dates = occurrenceDates(expense, period.start, '2026-03-31');
+  const needsCashDate: IncomeEntry = { ...income, paidDate: null, status: 'paid' };
+  const archived: IncomeEntry = { ...income, sourceState: 'archived' };
   return [
     { name: 'cash and accrual use separate dates', pass: cash === 'actual' && accrual === 'actual', expected: ['actual', 'actual'], actual: [cash, accrual] },
+    { name: 'missing cash date needs review', pass: classifyIncome(needsCashDate, { method: 'cash', period, currency: 'USD', includePlanned: false }) === 'needs_review', expected: 'needs_review', actual: classifyIncome(needsCashDate, { method: 'cash', period, currency: 'USD', includePlanned: false }) },
+    { name: 'archived source is excluded', pass: classifyIncome(archived, { method: 'accrual', period, currency: 'USD', includePlanned: false }) === 'out', expected: 'out', actual: classifyIncome(archived, { method: 'accrual', period, currency: 'USD', includePlanned: false }) },
     { name: 'cent-safe many-entry totals', pass: sumCents([toCents('0.10'), toCents('0.20')]) === 30, expected: 30, actual: sumCents([toCents('0.10'), toCents('0.20')]) },
     { name: 'business use and tax formulas', pass: totals.businessUseExpensesCents === 1740 && totals.taxReserveCents === 2068, expected: [1740, 2068], actual: [totals.businessUseExpensesCents, totals.taxReserveCents] },
     { name: 'monthly recurrence is deterministic', pass: dates.join(',') === '2026-01-01,2026-02-01,2026-03-01', expected: 3, actual: dates.length },
