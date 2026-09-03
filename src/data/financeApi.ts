@@ -69,18 +69,29 @@ export async function syncIncomeSources(workspaceId: string, clients: any[], pro
     const client = clients.find((c) => c.id === project.clientId);
     rows.push({ workspace_id: workspaceId, source_type: 'project', source_id: project.id, source_key: key, client_id: project.clientId || null, payer_name: client?.name || null, description: project.name, source_amount: amount, currency, status: project.status === 'Archived' ? 'excluded' : 'projected', earned_date: project.startDate || null, paid_date: null, source_state: project.status === 'Archived' ? 'archived' : 'active', suppressed_by: linkedInvoice ? `invoice:${linkedInvoice.id}` : null, metadata: { projectName: project.name, linkedInvoiceId: linkedInvoice?.id || null } });
   }
+  const year = new Date().getFullYear();
+  const yearStart = new Date(year, 0, 1);
+  const yearEnd = new Date(year, 11, 31);
   for (const client of clients || []) {
     const monthly = Number(client.monthlyContractValue || 0);
     const isRetainer = String(client.billingModel || '').toLowerCase().includes('retainer') || monthly > 0;
     if (!isRetainer || monthly <= 0) continue;
-    for (let month = 0; month < 12; month++) {
-      const year = new Date().getFullYear();
-      const date = `${year}-${String(month + 1).padStart(2, '0')}-01`;
-      const periodKey = date.slice(0, 7);
-      const key = `retainer:${client.id}:${periodKey}`;
-      const suppressedInvoice = invoiceMonthsByClient.get(String(client.id))?.has(periodKey) ? (invoices || []).find((i: any) => i.clientId === client.id && String(i.issuedDate || '').slice(0, 7) === periodKey) : null;
+    // Walk the client's true billing cycle, not calendar months.
+    const cycleDays = Math.max(1, Number(client.retainerCycleDays || 30));
+    const anchor = client.retainerCycleStart ? new Date(`${String(client.retainerCycleStart).slice(0, 10)}T00:00:00`) : new Date(year, 0, 1);
+    const cursor = new Date(anchor);
+    while (cursor < yearStart) cursor.setDate(cursor.getDate() + cycleDays);
+    while (cursor > yearStart) { const back = new Date(cursor); back.setDate(back.getDate() - cycleDays); if (back < yearStart) break; cursor.setTime(back.getTime()); }
+    for (let cycle = new Date(cursor); cycle <= yearEnd; cycle.setDate(cycle.getDate() + cycleDays)) {
+      const cycleStart = new Date(cycle);
+      const cycleEnd = new Date(cycle); cycleEnd.setDate(cycleEnd.getDate() + cycleDays - 1);
+      const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const startIso = iso(cycleStart);
+      const endIso = iso(cycleEnd);
+      const key = `retainer:${client.id}:${startIso}`;
+      const suppressedInvoice = (invoices || []).find((i: any) => i.clientId === client.id && i.issuedDate && String(i.issuedDate).slice(0, 10) >= startIso && String(i.issuedDate).slice(0, 10) <= endIso) || null;
       sourceKeys.add(key);
-      rows.push({ workspace_id: workspaceId, source_type: 'retainer', source_id: client.id, source_key: key, client_id: client.id, payer_name: client.name, description: `${client.name} retainer · ${periodKey}`, source_amount: monthly, currency, status: 'projected', earned_date: date, paid_date: null, source_state: client.status === 'Archived' ? 'archived' : 'active', suppressed_by: suppressedInvoice ? `invoice:${suppressedInvoice.id}` : null, metadata: { period: periodKey, linkedInvoiceId: suppressedInvoice?.id || null } });
+      rows.push({ workspace_id: workspaceId, source_type: 'retainer', source_id: client.id, source_key: key, client_id: client.id, payer_name: client.name, description: `${client.name} retainer · ${startIso} – ${endIso}`, source_amount: monthly, currency, status: 'projected', earned_date: startIso, paid_date: null, source_state: client.status === 'Archived' ? 'archived' : 'active', suppressed_by: suppressedInvoice ? `invoice:${suppressedInvoice.id}` : null, metadata: { cycleStart: startIso, cycleEnd: endIso, cycleDays, linkedInvoiceId: suppressedInvoice?.id || null } });
     }
   }
   if (rows.length) {
@@ -89,9 +100,13 @@ export async function syncIncomeSources(workspaceId: string, clients: any[], pro
   }
   const missing = (existingRows || []).filter((row: any) => ['invoice', 'project', 'retainer'].includes(row.source_type) && !sourceKeys.has(row.source_key));
   for (const row of missing) {
+    // Untouched projected retainer rows from a previous cycle shape carry no user data — remove instead of parking them in review.
+    const untouched = row.source_type === 'retainer' && row.override_amount == null && !row.notes && row.included !== false;
+    if (untouched) { await db.from('income_entries').delete().eq('id', row.id).eq('workspace_id', workspaceId); continue; }
     const { error } = await db.from('income_entries').update({ source_state: 'missing', status: 'needs_review', suppressed_by: null }).eq('id', row.id).eq('workspace_id', workspaceId);
     if (error) throw error;
   }
+
   const { data, error } = await db.from('income_entries').select('*').eq('workspace_id', workspaceId).order('earned_date', { ascending: false, nullsFirst: false });
   if (error) throw error;
   return (data || []).map(mapIncome);
