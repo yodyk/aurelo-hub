@@ -17,6 +17,7 @@ interface DatePickerProps {
   maxDate?: string;
   /** Disable dates before this (YYYY-MM-DD) */
   minDate?: string;
+  disabled?: boolean;
   placeholder?: string;
   className?: string;
 }
@@ -45,6 +46,7 @@ export function DatePicker({
   onChange,
   maxDate,
   minDate,
+  disabled = false,
   placeholder = "Pick a date",
   className,
 }: DatePickerProps) {
@@ -99,7 +101,7 @@ export function DatePicker({
       : "";
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={disabled ? false : open} onOpenChange={disabled ? undefined : setOpen}>
       <div className={cn("relative flex items-center", className)}>
         <input
           ref={inputRef}
@@ -126,12 +128,14 @@ export function DatePicker({
           }}
           placeholder={placeholder}
           aria-label={placeholder}
+          disabled={disabled}
           className="h-[var(--control)] w-full rounded-md border border-transparent bg-[var(--input-background)] px-3 pr-9 text-left text-[13.5px] tabular-nums transition-all placeholder:text-muted-foreground hover:border-[var(--hairline)] focus:border-[color-mix(in_oklab,var(--primary)_55%,transparent)] focus:shadow-[var(--focus-ring)] focus:outline-none"
         />
         <PopoverTrigger asChild>
           <button
             type="button"
             aria-label="Open calendar"
+            disabled={disabled}
             className="absolute right-0 top-0 flex h-full items-center px-2 text-muted-foreground transition-colors hover:text-foreground focus:outline-none"
           >
             <CalendarIcon className="h-3.5 w-3.5 flex-shrink-0" />
