@@ -151,19 +151,15 @@ export async function addExpense(workspaceId: string, input: any): Promise<Expen
   const clientRequestId: string = input.clientRequestId || crypto.randomUUID();
   const row = { workspace_id: workspaceId, client_request_id: clientRequestId, name: input.name, vendor: input.vendor || null, category_id: input.categoryId || null, recurrence: input.recurrence || 'one_time', interval_days: input.intervalDays || null, amount_behavior: input.amountBehavior || 'fixed', base_amount: input.baseAmount == null ? null : Number(input.baseAmount), business_use_pct: Number(input.businessUsePct ?? 100), inclusion: input.inclusion || 'included', currency: input.currency || 'USD', start_date: input.startDate || null, end_date: input.endDate || null, notes: input.notes || null, active: true };
 
-  const { data, error } = await db.from('expenses').upsert(row as any, { onConflict: 'workspace_id,client_request_id' }).select().single();
+  const { data, error } = await db.from('expenses').insert(row as any).select().single();
   if (!error && data) return mapExpense(data);
 
-  // A concurrent in-flight duplicate can still lose the race; resolve to the winner.
+  // The unique workspace/request key makes concurrent retries converge on the
+  // original row without reapplying the payload over later user edits.
   const { data: existing, error: readError } = await db.from('expenses').select('*').eq('workspace_id', workspaceId).eq('client_request_id', clientRequestId).maybeSingle();
   if (readError) throw readError;
   if (existing) return mapExpense(existing);
   throw error;
-}
-
-  const { data, error } = await db.from('expenses').insert({ workspace_id: workspaceId, name: input.name, vendor: input.vendor || null, category_id: input.categoryId || null, recurrence: input.recurrence || 'one_time', interval_days: input.intervalDays || null, amount_behavior: input.amountBehavior || 'fixed', base_amount: input.baseAmount == null ? null : Number(input.baseAmount), business_use_pct: Number(input.businessUsePct ?? 100), inclusion: input.inclusion || 'included', currency: input.currency || 'USD', start_date: input.startDate || null, end_date: input.endDate || null, notes: input.notes || null, active: true }).select().single();
-  if (error) throw error;
-  return mapExpense(data);
 }
 export async function updateExpense(workspaceId: string, id: string, patch: any): Promise<void> {
   const row: Record<string, unknown> = {};
