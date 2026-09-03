@@ -180,7 +180,13 @@ export async function addExpense(workspaceId: string, input: any): Promise<Expen
 export async function updateExpense(workspaceId: string, id: string, patch: any): Promise<void> {
   const row: Record<string, unknown> = {};
   const fields: Record<string, string> = { name: 'name', vendor: 'vendor', categoryId: 'category_id', recurrence: 'recurrence', intervalDays: 'interval_days', amountBehavior: 'amount_behavior', baseAmount: 'base_amount', businessUsePct: 'business_use_pct', inclusion: 'inclusion', currency: 'currency', startDate: 'start_date', endDate: 'end_date', active: 'active', notes: 'notes' };
-  for (const [key, value] of Object.entries(patch)) if (fields[key]) row[fields[key]] = value;
+  // Empty strings from form inputs are not valid uuid/date/numeric values.
+  const nullable = new Set(['category_id', 'start_date', 'end_date', 'interval_days', 'base_amount', 'vendor', 'notes']);
+  for (const [key, value] of Object.entries(patch)) {
+    if (!fields[key]) continue;
+    const column = fields[key];
+    row[column] = value === '' && nullable.has(column) ? null : value;
+  }
   if (!Object.keys(row).length) return;
 
   const recurrenceFields = ['recurrence', 'intervalDays', 'amountBehavior', 'baseAmount', 'businessUsePct', 'currency', 'startDate', 'endDate'];
