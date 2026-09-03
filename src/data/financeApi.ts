@@ -142,7 +142,25 @@ export async function seedExpenseCategories(workspaceId: string, _jurisdiction: 
   }
 }
 
+/**
+ * Idempotent expense creation. The caller supplies a stable `clientRequestId`
+ * for a given submission attempt; retries or double-submits (even across slow
+ * networks or reloads) resolve to the same row instead of creating duplicates.
+ */
 export async function addExpense(workspaceId: string, input: any): Promise<Expense> {
+  const clientRequestId: string = input.clientRequestId || crypto.randomUUID();
+  const row = { workspace_id: workspaceId, client_request_id: clientRequestId, name: input.name, vendor: input.vendor || null, category_id: input.categoryId || null, recurrence: input.recurrence || 'one_time', interval_days: input.intervalDays || null, amount_behavior: input.amountBehavior || 'fixed', base_amount: input.baseAmount == null ? null : Number(input.baseAmount), business_use_pct: Number(input.businessUsePct ?? 100), inclusion: input.inclusion || 'included', currency: input.currency || 'USD', start_date: input.startDate || null, end_date: input.endDate || null, notes: input.notes || null, active: true };
+
+  const { data, error } = await db.from('expenses').upsert(row as any, { onConflict: 'workspace_id,client_request_id' }).select().single();
+  if (!error && data) return mapExpense(data);
+
+  // A concurrent in-flight duplicate can still lose the race; resolve to the winner.
+  const { data: existing, error: readError } = await db.from('expenses').select('*').eq('workspace_id', workspaceId).eq('client_request_id', clientRequestId).maybeSingle();
+  if (readError) throw readError;
+  if (existing) return mapExpense(existing);
+  throw error;
+}
+
   const { data, error } = await db.from('expenses').insert({ workspace_id: workspaceId, name: input.name, vendor: input.vendor || null, category_id: input.categoryId || null, recurrence: input.recurrence || 'one_time', interval_days: input.intervalDays || null, amount_behavior: input.amountBehavior || 'fixed', base_amount: input.baseAmount == null ? null : Number(input.baseAmount), business_use_pct: Number(input.businessUsePct ?? 100), inclusion: input.inclusion || 'included', currency: input.currency || 'USD', start_date: input.startDate || null, end_date: input.endDate || null, notes: input.notes || null, active: true }).select().single();
   if (error) throw error;
   return mapExpense(data);
