@@ -91,34 +91,36 @@ function mapPayment(row: any): TaxPayment {
   };
 }
 
-const sourcePayload = (input: Partial<EmploymentSource>) => ({
-  employer_name: input.employerName,
-  compensation_method: input.compensationMethod,
-  annual_salary: input.annualSalary ?? null,
-  gross_per_paycheck: input.grossPerPaycheck ?? null,
-  pay_frequency: input.payFrequency,
-  anchor_payday: input.anchorPayday || null,
-  semimonthly_day_1: input.semimonthlyDay1 ?? null,
-  semimonthly_day_2: input.semimonthlyDay2 ?? null,
-  monthly_day: input.monthlyDay ?? null,
-  start_date: input.startDate || null,
-  end_date: input.endDate || null,
-  currency: input.currency,
-  ytd_through_date: input.ytdThroughDate || null,
-  ytd_gross: input.ytdGross ?? null,
-  ytd_federal_withheld: input.ytdFederalWithheld ?? null,
-  ytd_state_withheld: input.ytdStateWithheld ?? null,
-  ytd_designated_federal: input.ytdDesignatedFederal ?? null,
-  ytd_designated_state: input.ytdDesignatedState ?? null,
-  additional_federal_per_paycheck: input.additionalFederalPerPaycheck ?? 0,
-  additional_state_per_paycheck: input.additionalStatePerPaycheck ?? 0,
-  additional_designated_for_other_income: input.additionalDesignatedForOtherIncome ?? false,
-  projection_mode: input.projectionMode ?? 'schedule',
-  manual_remaining_designated: input.manualRemainingDesignated ?? null,
-  tax_year: input.taxYear,
-  notes: input.notes || null,
-  active: input.active ?? true,
-});
+const sourcePayload = (input: Partial<EmploymentSource>) => Object.fromEntries(
+  Object.entries({
+    employer_name: input.employerName,
+    compensation_method: input.compensationMethod,
+    annual_salary: input.annualSalary ?? null,
+    gross_per_paycheck: input.grossPerPaycheck ?? null,
+    pay_frequency: input.payFrequency,
+    anchor_payday: input.anchorPayday || null,
+    semimonthly_day_1: input.semimonthlyDay1 ?? null,
+    semimonthly_day_2: input.semimonthlyDay2 ?? null,
+    monthly_day: input.monthlyDay ?? null,
+    start_date: input.startDate || null,
+    end_date: input.endDate || null,
+    currency: input.currency,
+    ytd_through_date: input.ytdThroughDate || null,
+    ytd_gross: input.ytdGross ?? null,
+    ytd_federal_withheld: input.ytdFederalWithheld ?? null,
+    ytd_state_withheld: input.ytdStateWithheld ?? null,
+    ytd_designated_federal: input.ytdDesignatedFederal ?? null,
+    ytd_designated_state: input.ytdDesignatedState ?? null,
+    additional_federal_per_paycheck: input.additionalFederalPerPaycheck ?? 0,
+    additional_state_per_paycheck: input.additionalStatePerPaycheck ?? 0,
+    additional_designated_for_other_income: input.additionalDesignatedForOtherIncome ?? false,
+    projection_mode: input.projectionMode ?? 'schedule',
+    manual_remaining_designated: input.manualRemainingDesignated ?? null,
+    tax_year: input.taxYear,
+    notes: input.notes || null,
+    active: input.active ?? true,
+  }).filter(([, value]) => value !== undefined),
+);
 
 export interface EmploymentData {
   sources: EmploymentSource[];
@@ -151,7 +153,7 @@ export async function saveOtherWithholdingAvailable(workspaceId: string, amount:
 }
 
 export async function addEmploymentSource(workspaceId: string, input: Partial<EmploymentSource>): Promise<EmploymentSource> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('employment_sources')
     .insert({ workspace_id: workspaceId, ...sourcePayload(input) } as any)
     .select()

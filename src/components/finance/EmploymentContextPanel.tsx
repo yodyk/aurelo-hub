@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ExternalLink, Pencil, Plus, Trash2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,7 +29,7 @@ export function EmploymentContextPanel({ workspaceId, currency, taxYear, include
   const [saving, setSaving] = useState(false);
   const [otherDraft, setOtherDraft] = useState(moneyInput(data.otherWithholdingAvailable));
   const offsets = useMemo(() => computeOffsets({ sources: data.sources, paychecks: data.paychecks, payments: data.payments, taxYear, otherWithholdingAvailable: data.otherWithholdingAvailable }), [data, taxYear]);
-  useMemo(() => setOtherDraft(moneyInput(data.otherWithholdingAvailable)), [data.otherWithholdingAvailable]);
+  useEffect(() => setOtherDraft(moneyInput(data.otherWithholdingAvailable)), [data.otherWithholdingAvailable]);
   const gross = employmentGrossCents(data.sources, data.paychecks, taxYear, includePlanned);
   const ordinary = ordinaryWithholdingCents(data.sources, data.paychecks, taxYear, includePlanned);
   const actualReserve = remainingReserveCents(reserveBeforeOffsetsCents, offsets.actualOffsetsCents);
