@@ -1153,6 +1153,8 @@ export type Database = {
           interval_days: number | null
           name: string
           notes: string | null
+          receipts: Json
+          records: Json
           recurrence: string
           start_date: string | null
           updated_at: string
@@ -1174,6 +1176,8 @@ export type Database = {
           interval_days?: number | null
           name: string
           notes?: string | null
+          receipts?: Json
+          records?: Json
           recurrence?: string
           start_date?: string | null
           updated_at?: string
@@ -1195,6 +1199,8 @@ export type Database = {
           interval_days?: number | null
           name?: string
           notes?: string | null
+          receipts?: Json
+          records?: Json
           recurrence?: string
           start_date?: string | null
           updated_at?: string
