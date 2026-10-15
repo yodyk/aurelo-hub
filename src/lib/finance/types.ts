@@ -66,7 +66,12 @@ export interface Expense {
   endDate: string | null;
   active: boolean;
   notes: string | null;
+  records: ExpenseRecord[];
+  receipts: ExpenseReceipt[];
 }
+
+export interface ExpenseRecord { label: string; value: string }
+export interface ExpenseReceipt { path: string; name: string; size: number; mime: string; uploadedAt: string }
 
 export interface ExpenseAddition {
   id: string;
