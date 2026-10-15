@@ -9,7 +9,7 @@ const US_CATEGORIES = ['Advertising', 'Car & Truck', 'Commissions & Fees', 'Cont
 
 const mapIncome = (r: any): IncomeEntry => ({ id: r.id, workspaceId: r.workspace_id, sourceType: r.source_type, sourceId: r.source_id, sourceKey: r.source_key, clientId: r.client_id, payerName: r.payer_name, description: r.description, sourceAmount: Number(r.source_amount) || 0, overrideAmount: r.override_amount == null ? null : Number(r.override_amount), currency: r.currency || 'USD', status: r.status, earnedDate: r.earned_date, paidDate: r.paid_date, included: r.included, sourceState: r.source_state, suppressedBy: r.suppressed_by, notes: r.notes, metadata: r.metadata || {} });
 const mapCategory = (r: any): ExpenseCategory => ({ id: r.id, workspaceId: r.workspace_id, name: r.name, sortOrder: r.sort_order, isSeed: r.is_seed });
-const mapExpense = (r: any): Expense => ({ id: r.id, workspaceId: r.workspace_id, name: r.name, vendor: r.vendor, categoryId: r.category_id, recurrence: r.recurrence, intervalDays: r.interval_days, amountBehavior: r.amount_behavior, baseAmount: r.base_amount == null ? null : Number(r.base_amount), businessUsePct: Number(r.business_use_pct ?? 100), inclusion: r.inclusion, currency: r.currency || 'USD', startDate: r.start_date, endDate: r.end_date, active: r.active, notes: r.notes });
+const mapExpense = (r: any): Expense => ({ id: r.id, workspaceId: r.workspace_id, name: r.name, vendor: r.vendor, categoryId: r.category_id, recurrence: r.recurrence, intervalDays: r.interval_days, amountBehavior: r.amount_behavior, baseAmount: r.base_amount == null ? null : Number(r.base_amount), businessUsePct: Number(r.business_use_pct ?? 100), inclusion: r.inclusion, currency: r.currency || 'USD', startDate: r.start_date, endDate: r.end_date, active: r.active, notes: r.notes, records: Array.isArray(r.records) ? r.records : [], receipts: Array.isArray(r.receipts) ? r.receipts : [] });
 const mapInstance = (r: any, additions: ExpenseAddition[] = []): ExpenseInstance => ({ id: r.id, workspaceId: r.workspace_id, expenseId: r.expense_id, occurrenceKey: r.occurrence_key, incurredDate: r.incurred_date, paidDate: r.paid_date, status: r.status, baseAmount: r.base_amount == null ? null : Number(r.base_amount), businessUsePct: r.business_use_pct == null ? null : Number(r.business_use_pct), currency: r.currency || 'USD', notes: r.notes, generated: r.generated, additions });
 
 export async function loadFinanceSettings(workspaceId: string): Promise<FinanceSettings> {
@@ -165,7 +165,7 @@ export async function seedExpenseCategories(workspaceId: string, _jurisdiction: 
  */
 export async function addExpense(workspaceId: string, input: any): Promise<Expense> {
   const clientRequestId: string = input.clientRequestId || crypto.randomUUID();
-  const row = { workspace_id: workspaceId, client_request_id: clientRequestId, name: input.name, vendor: input.vendor || null, category_id: input.categoryId || null, recurrence: input.recurrence || 'one_time', interval_days: input.intervalDays || null, amount_behavior: input.amountBehavior || 'fixed', base_amount: input.baseAmount == null ? null : Number(input.baseAmount), business_use_pct: Number(input.businessUsePct ?? 100), inclusion: input.inclusion || 'included', currency: input.currency || 'USD', start_date: input.startDate || null, end_date: input.endDate || null, notes: input.notes || null, active: true };
+  const row = { workspace_id: workspaceId, client_request_id: clientRequestId, name: input.name, vendor: input.vendor || null, category_id: input.categoryId || null, recurrence: input.recurrence || 'one_time', interval_days: input.intervalDays || null, amount_behavior: input.amountBehavior || 'fixed', base_amount: input.baseAmount == null ? null : Number(input.baseAmount), business_use_pct: Number(input.businessUsePct ?? 100), inclusion: input.inclusion || 'included', currency: input.currency || 'USD', start_date: input.startDate || null, end_date: input.endDate || null, notes: input.notes || null, records: cleanRecords(input.records), active: true };
 
   const { data, error } = await db.from('expenses').insert(row as any).select().single();
   if (!error && data) return mapExpense(data);
@@ -179,13 +179,13 @@ export async function addExpense(workspaceId: string, input: any): Promise<Expen
 }
 export async function updateExpense(workspaceId: string, id: string, patch: any): Promise<void> {
   const row: Record<string, unknown> = {};
-  const fields: Record<string, string> = { name: 'name', vendor: 'vendor', categoryId: 'category_id', recurrence: 'recurrence', intervalDays: 'interval_days', amountBehavior: 'amount_behavior', baseAmount: 'base_amount', businessUsePct: 'business_use_pct', inclusion: 'inclusion', currency: 'currency', startDate: 'start_date', endDate: 'end_date', active: 'active', notes: 'notes' };
+  const fields: Record<string, string> = { name: 'name', vendor: 'vendor', categoryId: 'category_id', recurrence: 'recurrence', intervalDays: 'interval_days', amountBehavior: 'amount_behavior', baseAmount: 'base_amount', businessUsePct: 'business_use_pct', inclusion: 'inclusion', currency: 'currency', startDate: 'start_date', endDate: 'end_date', active: 'active', notes: 'notes', records: 'records' };
   // Empty strings from form inputs are not valid uuid/date/numeric values.
   const nullable = new Set(['category_id', 'start_date', 'end_date', 'interval_days', 'base_amount', 'vendor', 'notes']);
   for (const [key, value] of Object.entries(patch)) {
     if (!fields[key]) continue;
     const column = fields[key];
-    row[column] = value === '' && nullable.has(column) ? null : value;
+    row[column] = column === 'records' ? cleanRecords(value) : value === '' && nullable.has(column) ? null : value;
   }
   if (!Object.keys(row).length) return;
 
@@ -265,3 +265,36 @@ export async function applyAmountFromDate(workspaceId: string, expenseId: string
 export async function addExpenseInstance(workspaceId: string, input: any): Promise<ExpenseInstance> { const { data, error } = await db.from('expense_instances').insert({ workspace_id: workspaceId, expense_id: input.expenseId, occurrence_key: `${input.expenseId}:manual:${crypto.randomUUID()}`, incurred_date: input.incurredDate, paid_date: input.paidDate || null, status: input.status || 'confirmed', base_amount: input.baseAmount == null ? null : Number(input.baseAmount), business_use_pct: input.businessUsePct == null ? null : Number(input.businessUsePct), currency: input.currency || 'USD', notes: input.notes || null, generated: false }).select().single(); if (error) throw error; return mapInstance(data); }
 export async function addExpenseAddition(workspaceId: string, instanceId: string, label: string, amount: number): Promise<void> { const { error } = await db.from('expense_instance_additions').insert({ workspace_id: workspaceId, instance_id: instanceId, label, amount }); if (error) throw error; }
 export async function updateExpenseAddition(workspaceId: string, id: string, patch: any): Promise<void> { const row = { ...(patch.label !== undefined ? { label: patch.label } : {}), ...(patch.amount !== undefined ? { amount: Number(patch.amount) } : {}) }; const { error } = await db.from('expense_instance_additions').update(row).eq('id', id).eq('workspace_id', workspaceId); if (error) throw error; }
+
+// ---------- Expense records & receipts ----------
+export function cleanRecords(value: any): { label: string; value: string }[] {
+  if (!Array.isArray(value)) return [];
+  return value.map((r) => ({ label: String(r?.label ?? '').trim(), value: String(r?.value ?? '').trim() })).filter((r) => r.label || r.value);
+}
+const RECEIPT_BUCKET = 'client-files';
+export async function uploadExpenseReceipts(workspaceId: string, expenseId: string, files: File[], existing: any[] = []): Promise<any[]> {
+  const added: any[] = [];
+  for (const file of files) {
+    const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const path = `${workspaceId}/expenses/${expenseId}/${Date.now()}-${safe}`;
+    const { error } = await supabase.storage.from(RECEIPT_BUCKET).upload(path, file, { contentType: file.type || undefined });
+    if (error) throw error;
+    added.push({ path, name: file.name, size: file.size, mime: file.type || 'application/octet-stream', uploadedAt: new Date().toISOString() });
+  }
+  const receipts = [...existing, ...added];
+  const { error } = await db.from('expenses').update({ receipts } as any).eq('id', expenseId).eq('workspace_id', workspaceId);
+  if (error) throw error;
+  return receipts;
+}
+export async function removeExpenseReceipt(workspaceId: string, expenseId: string, path: string, existing: any[]): Promise<any[]> {
+  await supabase.storage.from(RECEIPT_BUCKET).remove([path]);
+  const receipts = existing.filter((r) => r.path !== path);
+  const { error } = await db.from('expenses').update({ receipts } as any).eq('id', expenseId).eq('workspace_id', workspaceId);
+  if (error) throw error;
+  return receipts;
+}
+export async function receiptUrl(path: string): Promise<string> {
+  const { data, error } = await supabase.storage.from(RECEIPT_BUCKET).createSignedUrl(path, 3600);
+  if (error) throw error;
+  return data.signedUrl;
+}

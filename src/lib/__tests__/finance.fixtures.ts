@@ -7,7 +7,7 @@ import type { Expense, ExpenseInstance, IncomeEntry, Period } from '../finance/t
 export interface FinanceFixtureResult { name: string; pass: boolean; expected: unknown; actual: unknown; }
 
 const period: Period = { start: '2026-01-01', end: '2026-12-31', label: 'This Year' };
-const expense: Expense = { id: 'e1', workspaceId: 'w', name: 'Software', vendor: null, categoryId: null, recurrence: 'monthly', intervalDays: null, amountBehavior: 'base_plus', baseAmount: 50, businessUsePct: 100, inclusion: 'included', currency: 'USD', startDate: '2026-01-01', endDate: null, active: true, notes: null };
+const expense: Expense = { id: 'e1', workspaceId: 'w', name: 'Software', vendor: null, categoryId: null, recurrence: 'monthly', intervalDays: null, amountBehavior: 'base_plus', baseAmount: 50, businessUsePct: 100, inclusion: 'included', currency: 'USD', startDate: '2026-01-01', endDate: null, active: true, notes: null, records: [], receipts: [] };
 const instance = (date: string, amount: number, pct: number | null = null): ExpenseInstance => ({ id: date, workspaceId: 'w', expenseId: 'e1', occurrenceKey: `e1:${date}`, incurredDate: date, paidDate: date, status: 'confirmed', baseAmount: amount, businessUsePct: pct, currency: 'USD', notes: null, generated: true, additions: [] });
 const income: IncomeEntry = { id: 'i1', workspaceId: 'w', sourceType: 'invoice', sourceId: 'inv', sourceKey: 'invoice:inv', clientId: null, payerName: 'Client', description: null, sourceAmount: 100.1, overrideAmount: null, currency: 'USD', status: 'paid', earnedDate: '2026-01-01', paidDate: '2026-02-01', included: true, sourceState: 'active', suppressedBy: null, notes: null, metadata: {} };
 

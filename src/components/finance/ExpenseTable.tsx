@@ -1,3 +1,4 @@
+import { RecordsSummary } from './ExpenseRecordsFields';
 import { useMemo, useState } from 'react';
 import { ChevronDown, ChevronRight, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -117,6 +118,7 @@ export function ExpenseTable({ rows, settings, categories, expanded, setExpanded
                 {isOpen && (
                   <TableRow key={`${expense.id}-instances`} className="hover:bg-transparent">
                     <TableCell colSpan={shown.length + 1} className="bg-[var(--surface-sunken)] p-0">
+                      {(expense.records?.length > 0 || expense.receipts?.length > 0) && <div className="border-b border-[var(--hairline)] px-4 py-2.5"><RecordsSummary records={expense.records || []} receipts={expense.receipts || []} /></div>}
                       <InstanceList expense={expense} rows={instanceRows} settings={settings} onUpdate={onInstanceUpdate} onApplyFuture={onApplyFuture} />
                     </TableCell>
                   </TableRow>
